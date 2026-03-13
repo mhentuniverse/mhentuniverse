@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MHEnt. - Admin Panel V5</title>
+        <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+        <style>
+            body { font-family: 'Nunito', sans-serif; background: #1a1a2e; color: white; padding: 20px; }
+            .admin-container { max-width: 600px; margin: 0 auto; background: #16213e; padding: 30px; border-radius: 10px; border: 2px solid #ff85a2; box-shadow: 0 0 15px rgba(255, 133, 162, 0.3); position: relative; }
+            h1 { color: #ff85a2; text-align: center; margin-bottom: 20px; margin-top: 10px; }
+            
+            /* --- NÚT QUAY LẠI TRANG CHỦ --- */
+            .btn-back-admin {
+                display: inline-block;
+                color: #ff85a2;
+                text-decoration: none;
+                font-weight: 900;
+                font-size: 14px;
+                transition: 0.3s ease;
+                cursor: pointer;
+                margin-bottom: 15px;
+            }
+            .btn-back-admin:hover {
+                color: #ffb703; 
+                transform: translateX(-5px);
+            }
+
+            /* GIAO DIỆN CHUYỂN TAB */
+            .tab-container { display: flex; margin-bottom: 25px; border-radius: 8px; overflow: hidden; border: 1px solid #ff85a2; }
+            .tab-btn { flex: 1; padding: 12px; background: #1a1a2e; color: white; border: none; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.3s; }
+            .tab-btn.active { background: #ff85a2; color: #1a1a2e; }
+            .tab-content { display: none; animation: fadeIn 0.4s; }
+            .tab-content.active { display: block; }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+            .form-group { margin-bottom: 15px; }
+            label { display: block; margin-bottom: 5px; font-weight: bold; color: #e94560; }
+            input, select, textarea { width: 100%; padding: 10px; border-radius: 5px; border: none; outline: none; box-sizing: border-box; background: #0f3460; color: white; }
+            
+            .btn-publish { width: 100%; padding: 15px; background: #e94560; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+            .btn-publish:hover { background: #ff85a2; }
+            .btn-episode { background: #00ffcc; color: #1a1a2e; }
+            .btn-episode:hover { background: #7fffd4; }
+            .btn-edit { background: #ffb703; color: #1a1a2e; }
+            .btn-edit:hover { background: #ffc300; }
+            
+            .loading { display: none; text-align: center; color: #00ffcc; font-weight: bold; margin-top: 15px; }
+            .two-col { display: flex; gap: 15px; }
+            .two-col .form-group { flex: 1; }
+            .edit-section { border: 1px dashed #ff85a2; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+            .edit-title { color: #ffb703; font-size: 18px; margin-top: 0; }
+
+            /* CSS CHO POPUP TRUNG TÂM */
+            .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; z-index: 10000; animation: fadeInBg 0.3s; }
+            .popup-box { background: #16213e; border: 2px solid #00ffcc; border-radius: 12px; padding: 30px; text-align: center; width: 320px; box-shadow: 0 0 25px rgba(0, 255, 204, 0.3); animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+            .popup-icon { font-size: 55px; margin-bottom: 10px; }
+            .popup-box h3 { margin: 0 0 10px 0; font-size: 22px; color: #fff; text-transform: uppercase; }
+            .popup-box p { color: #d1d1e0; margin-bottom: 25px; font-size: 15px; line-height: 1.5; }
+            .popup-btn { background: #00ffcc; color: #1a1a2e; border: none; padding: 12px 35px; border-radius: 8px; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0, 255, 204, 0.2); }
+            .popup-btn:hover { background: #7fffd4; transform: translateY(-2px); }
+
+            /* Khi Popup báo lỗi thì sẽ đổi màu đỏ */
+            .popup-box.error { border-color: #e94560; box-shadow: 0 0 25px rgba(233, 69, 96, 0.3); }
+            .popup-box.error .popup-btn { background: #e94560; color: white; box-shadow: 0 4px 15px rgba(233, 69, 96, 0.2); }
+            .popup-box.error .popup-btn:hover { background: #ff85a2; }
+
+            @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+            /* CSS CHO NÚT CHỌN TAG */
+            .tag-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+            .tag-btn { background: #0f3460; color: #aaa; border: 1px solid #2a2a35; padding: 6px 15px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: 0.3s; user-select: none; font-weight: bold; }
+            .tag-btn.selected { background: #ff85a2; color: #fff; border-color: #ff85a2; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3); transform: scale(1.05); }
+        </style>
+    </head>
+    <body>
+        <div class="admin-container">
+            <div class="admin-box" style="margin-bottom: 30px; border: 2px solid #ff4d4d; padding: 20px; border-radius: 10px; background: rgba(255, 77, 77, 0.05);">
+                <h2 style="color: #ff4d4d; margin-top: 0;">🚨 Hòm Thư Báo Lỗi Link</h2>
+                <div id="report-list" style="color: white; margin-top: 15px;">Đang quét hệ thống...</div>
+            </div>
+            <a onclick="window.close()" class="btn-back-admin">⬅ Đóng bảng điều khiển</a>
+
+            <h1>🛠️ TRUNG TÂM ĐIỀU KHIỂN</h1>
+
+            <div class="tab-container">
+                <button id="btn-tab-movie" class="tab-btn active">🎬 TẠO MỚI</button>
+                <button id="btn-tab-episode" class="tab-btn">📺 ĐĂNG TẬP</button>
+                <button id="btn-tab-edit" class="tab-btn">✏️ SỬA DATA</button>
+                <button id="btn-tab-tag" class="tab-btn">🏷️ KHO TAG</button>
+                <button id="btn-tab-approve" class="tab-btn">✅ DUYỆT PHIM</button>
+            </div>
+            
+            <div id="tab-movie" class="tab-content active">
+                <div class="two-col">
+                    <div class="form-group">
+                        <label>Loại phim:</label>
+                        <select id="input-type">
+                            <option value="series">Phim Bộ (Nhiều tập)</option>
+                            <option value="movie">Phim Lẻ (1 tập Full)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng thái:</label>
+                        <select id="input-status">
+                            <option value="Đang tiến hành">Đang tiến hành</option>
+                            <option value="Đã hoàn thành">Đã hoàn thành</option>
+                            <option value="Sắp chiếu">Sắp chiếu</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>ID Phim (Link thẻ phim, VD: star-detective):</label>
+                    <input type="text" id="input-id" placeholder="VD: star-detective">
+                </div>
+
+                <div class="form-group">
+                    <label>Tên Phim (Title):</label>
+                    <input type="text" id="input-title" placeholder="VD: Star Detective Pretty Cure!">
+                </div>
+
+                <div class="form-group">
+                    <label>Tên thay thế (AltTitle - Cứ gõ Enter xuống dòng thoải mái):</label>
+                    <textarea id="input-alttitle" rows="2" placeholder="VD: 名探偵プリキュア！\nMeitantei Purikyua!"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Thể loại (Tag):</label>
+                    <div class="tag-picker" id="create-tag-picker">
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Phép thuật</div>
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Hành động</div>
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Đời thường</div>
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Hài hước</div>
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Học đường</div>
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Tình cảm</div>
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Idol</div>
+                        <div class="tag-btn" onclick="this.classList.toggle('selected')">Movie</div>
+                    </div>
+                    <input type="text" id="input-custom-tag" placeholder="Thêm tag khác (VD: Trinh thám / Thần tượng) - Cách nhau bằng dấu gạch chéo" style="margin-top: 10px; border: 1px dashed #ff85a2;">
+                    <input type="hidden" id="input-tag" value="">
+                </div>
+
+                <div class="form-group">
+                    <label>Link ảnh Poster:</label>
+                    <input type="text" id="input-poster-text" placeholder="Nhập: assets/ten_anh.webp">
+                </div>
+
+                <div class="form-group">
+                    <label>Link Trailer (Iframe URL - Có thể để trống):</label>
+                    <input type="text" id="input-trailer" placeholder="Nhập link video facebook hoặc youtube">
+                </div>
+
+                <div class="form-group">
+                    <label>Mô tả nội dung (Cứ gõ Enter xuống dòng thoải mái):</label>
+                    <textarea id="input-desc" rows="6" placeholder="Akechi Anna là một nữ sinh 14 tuổi..."></textarea>
+                </div>
+                
+                <button id="btn-add-movie" class="btn-publish">🚀 TẠO PHIM LÊN MÂY</button>
+                <p id="loading-movie" class="loading">⏳ Đang tạo phim...</p>
+            </div>
+
+            <div id="tab-episode" class="tab-content">
+                <div class="form-group">
+                    <label>Chọn Phim (Tự động lấy từ Mây):</label>
+                    <select id="ep-movie-id" class="dropdown-movies"><option value="">⏳ Đang tải...</option></select>
+                </div>
+                <div class="form-group"><label>Tên Tập Phim (Ghi "Tập Full: ABC" nếu là Phim Lẻ):</label><input type="text" id="ep-title" placeholder="VD: Tập 1: Bắt đầu nào!"></div>
+                
+                <div class="form-group"><label style="color:#ff85a2;">Nguồn Siêu Tốc (SUPER - Link HLS .m3u8):</label><input type="text" id="ep-super" placeholder="Dán link .m3u8 vào đây"></div>
+                
+                <div class="form-group"><label>Nguồn Chính (VIP - Link Google Drive):</label><input type="text" id="ep-vip" placeholder="Dán link iframe Drive vào đây"></div>
+                <div class="form-group"><label>Nguồn Dự Phòng 1 (DP1 - Link MP4 Archive):</label><input type="text" id="ep-dp1" placeholder="Dán link .mp4 vào đây"></div>
+                <div class="form-group"><label>Nguồn Dự Phòng 2 (DP2 - Link VK):</label><input type="text" id="ep-dp2" placeholder="Dán link iframe VK vào đây"></div>
+
+                <button id="btn-add-episode" class="btn-publish btn-episode">⚡ BẮN TẬP PHIM LÊN MÂY</button>
+                <p id="loading-episode" class="loading">⏳ Đang truyền tải dữ liệu...</p>
+            </div>
+
+            <div id="tab-edit" class="tab-content">
+                <div class="form-group">
+                    <label>1. CHỌN PHIM CẦN SỬA:</label>
+                    <select id="edit-movie-id" class="dropdown-movies" onchange="fetchMovieDataToEdit()">
+                        <option value="">⏳ Đang tải...</option>
+                    </select>
+                </div>
+
+                <div class="edit-section" id="edit-movie-section" style="display: none;">
+                    <h3 class="edit-title">📌 SỬA THÔNG TIN PHIM</h3>
+                    <div class="two-col">
+                        <div class="form-group"><label>Loại phim:</label><select id="edit-type"><option value="series">Phim Bộ</option><option value="movie">Phim Lẻ</option></select></div>
+                        <div class="form-group"><label>Trạng thái:</label><select id="edit-status"><option value="Đang tiến hành">Đang tiến hành</option><option value="Đã hoàn thành">Đã hoàn thành</option><option value="Sắp chiếu">Sắp chiếu</option></select></div>
+                    </div>
+                    <div class="form-group"><label>Tên Phim:</label><input type="text" id="edit-title"></div>
+                    <div class="form-group"><label>Tên thay thế (AltTitle):</label><textarea id="edit-alttitle" rows="2"></textarea></div>
+                    <div class="form-group">
+                        <label>Thể loại (Tag):</label>
+                        <div class="tag-picker" id="edit-tag-picker">
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Phép thuật</div>
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Hành động</div>
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Đời thường</div>
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Hài hước</div>
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Học đường</div>
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Tình cảm</div>
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Idol</div>
+                            <div class="tag-btn" onclick="this.classList.toggle('selected')">Movie</div>
+                        </div>
+                        <input type="text" id="edit-custom-tag" placeholder="Tag khác..." style="margin-top: 10px; border: 1px dashed #ff85a2;">
+                        <input type="hidden" id="edit-tag" value="">
+                    </div>
+                    <div class="form-group"><label>Link ảnh Poster:</label><input type="text" id="edit-poster"></div>
+                    <div class="form-group"><label>Link Trailer:</label><input type="text" id="edit-trailer"></div>
+                    <div class="form-group"><label>Mô tả nội dung:</label><textarea id="edit-desc" rows="4"></textarea></div>
+                    <button id="btn-update-movie" class="btn-publish btn-edit">💾 CẬP NHẬT THÔNG TIN PHIM</button>
+                </div>
+
+                <div class="edit-section" id="edit-episode-section" style="display: none;">
+                    <h3 class="edit-title">📌 SỬA THÔNG TIN TẬP PHIM</h3>
+                    <div class="form-group">
+                        <label>Chọn tập cần sửa:</label>
+                        <select id="edit-ep-index" onchange="fetchEpisodeDataToEdit()">
+                            <option value="">-- Chọn tập --</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Tên Tập Phim:</label><input type="text" id="edit-ep-title"></div>
+                    
+                    <div class="form-group"><label style="color:#ff85a2;">Nguồn Siêu Tốc (SUPER):</label><input type="text" id="edit-ep-super"></div>
+                    
+                    <div class="form-group"><label>Nguồn Chính (VIP):</label><input type="text" id="edit-ep-vip"></div>
+                    <div class="form-group"><label>Nguồn Dự Phòng 1 (DP1):</label><input type="text" id="edit-ep-dp1"></div>
+                    <div class="form-group"><label>Nguồn Dự Phòng 2 (DP2):</label><input type="text" id="edit-ep-dp2"></div>
+                    <button id="btn-update-episode" class="btn-publish btn-edit" style="background: #e94560; color:white;">💾 CẬP NHẬT LINK TẬP PHIM</button>
+                </div>
+
+                <p id="loading-edit" class="loading">⏳ Đang xử lý dữ liệu Mây...</p>
+            </div>
+
+            <div id="tab-tag" class="tab-content">
+                <h3 class="edit-title" style="color: #00ffcc;">📌 KHO THỂ LOẠI (TAGS)</h3>
+                <p style="color: #888; font-size: 14px; margin-bottom: 20px; line-height: 1.5;">Thêm tag vào kho để lúc Đăng/Sửa phim chỉ việc tick chọn cho nhanh nha Chủ tịch!</p>
+                
+                <div class="form-group">
+                    <label>Thêm Tag mới vào Kho:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="new-global-tag" placeholder="VD: Mecha, Kinh dị, Trinh thám...">
+                        <button class="btn-publish btn-episode" style="width: auto; margin: 0; padding: 10px 20px;" onclick="addNewGlobalTag()">Thêm</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <label>Các Tag đang có trong Kho (Bấm vào để Xóa):</label>
+                    <div class="tag-picker" id="global-tag-list">
+                        <span style="color:#888;">Đang tải kho tag từ vệ tinh...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="custom-popup" class="popup-overlay" style="display: none;">
+                <div class="popup-box">
+                    <div class="popup-icon" id="popup-icon">✨</div>
+                    <h3 id="popup-title">Thành công!</h3>
+                    <p id="popup-message">Nội dung thông báo ở đây.</p>
+                    <button class="popup-btn" onclick="closePopup()">OK</button>
+                </div>
+            </div>
+
+            <div id="confirm-popup" class="popup-overlay" style="display: none; z-index: 10001;">
+                <div class="popup-box" style="border-color: #ffb703; box-shadow: 0 0 25px rgba(255, 183, 3, 0.3);">
+                    <div class="popup-icon">❓</div>
+                    <h3 style="color: #ffb703;">Xác nhận hành động</h3>
+                    <p id="confirm-message">Cậu chắc chắn muốn làm điều này chứ?</p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button id="btn-confirm-yes" class="popup-btn" style="background: #28a745; color: white;">✅ Chắc chắn</button>
+                        <button class="popup-btn" onclick="closeConfirmPopup()" style="background: #e94560; color: white;">❌ Hủy bỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-approve" class="tab-content">
+                <h3 class="edit-title" style="color: #28a745;">📌 PHÒNG CHỜ KIỂM DUYỆT</h3>
+                <p style="color: #888; font-size: 14px; margin-bottom: 20px;">Dưới đây là các bộ phim do Nhóm Dịch đề xuất. Chủ tịch hãy kiểm tra và quyết định nhé!</p>
+                <div id="pending-movies-list">
+                    <span style="color:#888;">Đang tải dữ liệu phòng chờ...</span>
+                </div>
+            </div>
+        </div>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+            import { getFirestore, doc, setDoc, updateDoc, arrayUnion, collection, getDocs, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+            import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+            const firebaseConfig = {
+          apiKey: "AIzaSyBB7u2GS3rOECqa4_LigngsnwqfLnnBnq8",
+          authDomain: "mhentnetwork.firebaseapp.com",
+          projectId: "mhentnetwork",
+          storageBucket: "mhentnetwork.firebasestorage.app",
+          messagingSenderId: "91401699508",
+          appId: "1:91401699508:web:51b402412972d3c61c97e1",
+          measurementId: "G-RFEPB9WBB8"
+        };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            
+            // --- 🚨 HỆ THỐNG KIỂM TRA QUYỀN LỰC TỐI CAO V2.0 🚨 ---
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    window.location.href = 'login.html';
+                } else {
+                    try {
+                        // Gọi lên mây hỏi xem thẻ căn cước của người này là gì
+                        const userRef = doc(db, "users", user.uid);
+                        const docSnap = await getDoc(userRef);
+                        
+                        // Kẻ đột nhập hoặc Nhóm dịch đối tác -> Đuổi cổ!
+                        if (!docSnap.exists() || docSnap.data().role !== 'admin') {
+                            showPopup("Khu vực cấm! Cậu không có quyền truy cập vào đây nha ❌", true);
+                            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                        } else {
+                            // ĐÚNG LÀ CHỦ TỊCH -> TRẢI THẢM ĐỎ!
+                            console.log("Welcome back, Chủ tịch Lam Chi! 👑");
+                        }
+                    } catch (error) {
+                        console.error("Lỗi xác thực:", error);
+                        showPopup("Lỗi kết nối vệ tinh an ninh!", true);
+                        setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+                    }
+                }
+            });
+
+            // ==============================================
+            // LOGIC TAB 1: TẠO MỚI (CÓ CLEAR FORM)
+            // ==============================================
+            document.getElementById('btn-add-movie').addEventListener('click', async () => {
+                const movieId = document.getElementById('input-id').value.trim();
+                if(!movieId) return showPopup("❌ Nhập ID phim!", true);
+                document.getElementById('loading-movie').style.display = 'block';
+                // Gom tag đã chọn
+                // Gom tag đã chọn + Tag gõ tay
+                let selectedTags = [];
+                document.querySelectorAll('#create-tag-picker .tag-btn.selected').forEach(btn => selectedTags.push(btn.innerText));
+                let customTag = document.getElementById('input-custom-tag').value.trim();
+                if (customTag) selectedTags.push(customTag);
+                document.getElementById('input-tag').value = selectedTags.join(' / ');
+                try {
+                    await setDoc(doc(db, "movies", movieId), {
+                        type: document.getElementById('input-type').value,
+                        status: document.getElementById('input-status').value,
+                        title: document.getElementById('input-title').value.trim(),
+                        altTitle: document.getElementById('input-alttitle').value.trim().replace(/\n/g, "<br>"),
+                        tag: document.getElementById('input-tag').value.trim(),
+                        poster: document.getElementById('input-poster-text').value.trim(),
+                        trailer: document.getElementById('input-trailer').value.trim(),
+                        desc: document.getElementById('input-desc').value.trim().replace(/\n/g, "<br>"),
+                        episodes: [], updatedAt: Date.now() 
+                    });
+                    showPopup("✅ Tạo phim thành công!"); 
+                    
+                    document.getElementById('input-id').value = '';
+                    document.getElementById('input-title').value = '';
+                    document.getElementById('input-alttitle').value = '';
+                    document.getElementById('input-tag').value = '';
+                    document.getElementById('input-poster-text').value = '';
+                    document.getElementById('input-trailer').value = '';
+                    document.getElementById('input-desc').value = '';
+                    document.getElementById('input-type').selectedIndex = 0;
+                    document.getElementById('input-status').selectedIndex = 0;
+                    
+                    loadMovies(); 
+                } catch (error) { showPopup("❌ Lỗi: " + error.message, true); } 
+                finally { document.getElementById('loading-movie').style.display = 'none'; }
+            });
+
+            // ==============================================
+            // LOGIC TAB 2: ĐĂNG TẬP 
+            // ==============================================
+            document.getElementById('btn-add-episode').addEventListener('click', async () => {
+                const epMovieId = document.getElementById('ep-movie-id').value;
+                if(!epMovieId) return showPopup("❌ Chọn phim!", true);
+                document.getElementById('loading-episode').style.display = 'block';
+                try {
+                    await updateDoc(doc(db, "movies", epMovieId), {
+                        episodes: arrayUnion({
+                            title: document.getElementById('ep-title').value.trim(),
+                            linkSuper: document.getElementById('ep-super').value.trim(), // THÊM LINK SUPER
+                            linkVIP: document.getElementById('ep-vip').value.trim(),
+                            linkDuPhong: document.getElementById('ep-dp1').value.trim(),
+                            linkDuPhong2: document.getElementById('ep-dp2').value.trim()
+                        }),
+                        updatedAt: Date.now() 
+                    });
+                    showPopup("✅ Đăng tập thành công!");
+                    
+                    document.getElementById('ep-title').value = '';
+                    document.getElementById('ep-super').value = ''; // XÓA TRẮNG FORM SAU KHI ĐĂNG
+                    document.getElementById('ep-vip').value = '';
+                    document.getElementById('ep-dp1').value = '';
+                    document.getElementById('ep-dp2').value = '';
+
+                } catch (error) { showPopup("❌ Lỗi: " + error.message, true); } 
+                finally { document.getElementById('loading-episode').style.display = 'none'; }
+            });
+
+            // ==============================================
+            // LOGIC TAB 3: CHỈNH SỬA
+            // ==============================================
+            window.fetchMovieDataToEdit = async function() {
+                const movieId = document.getElementById('edit-movie-id').value;
+                const sectionMovie = document.getElementById('edit-movie-section');
+                const sectionEp = document.getElementById('edit-episode-section');
+                
+                if(!movieId) { sectionMovie.style.display = 'none'; sectionEp.style.display = 'none'; return; }
+                
+                document.getElementById('loading-edit').style.display = 'block';
+                try {
+                    const docSnap = await getDoc(doc(db, "movies", movieId));
+                    if (docSnap.exists()) {
+                        window.currentEditMovieData = docSnap.data();
+                        const data = window.currentEditMovieData;
+
+                        document.getElementById('edit-type').value = data.type || 'series';
+                        document.getElementById('edit-status').value = data.status || 'Đang tiến hành';
+                        document.getElementById('edit-title').value = data.title;
+                        document.getElementById('edit-alttitle').value = (data.altTitle || "").replace(/<br>/g, "\n");
+                        // XỬ LÝ SÁNG NÚT TAG KHI MỞ PHIM SỬA
+                    const tagString = data.tag || "";
+                    if(document.getElementById('edit-tag')) document.getElementById('edit-tag').value = tagString;
+                        document.querySelectorAll('#edit-tag-picker .tag-btn').forEach(btn => btn.classList.remove('selected'));
+                        document.getElementById('edit-custom-tag').value = ""; // Xóa trắng ô gõ tay
+
+                        if (tagString) {
+                            const tagsArray = tagString.split('/').map(t => t.trim());
+                            let leftoverTags = []; // Chứa những tag gõ tay không có nút
+
+                            tagsArray.forEach(t => {
+                                let foundBtn = false;
+                                document.querySelectorAll('#edit-tag-picker .tag-btn').forEach(btn => {
+                                    if (btn.innerText.trim() === t) {
+                                        btn.classList.add('selected');
+                                        foundBtn = true;
+                                    }
+                                });
+                                if (!foundBtn && t) leftoverTags.push(t);
+                            });
+
+                            // Đẩy các tag không có nút vào ô text
+                            if (leftoverTags.length > 0) {
+                                document.getElementById('edit-custom-tag').value = leftoverTags.join(' / ');
+                            }
+                        }
+                        document.getElementById('edit-poster').value = data.poster || "";
+                        document.getElementById('edit-trailer').value = data.trailer || "";
+                        document.getElementById('edit-desc').value = (data.desc || "").replace(/<br>/g, "\n");
+
+                        sectionMovie.style.display = 'block';
+
+                        const epSelect = document.getElementById('edit-ep-index');
+                        epSelect.innerHTML = '<option value="">-- Chọn tập --</option>';
+                        if(data.episodes && data.episodes.length > 0) {
+                            data.episodes.forEach((ep, index) => {
+                                const opt = document.createElement('option');
+                                opt.value = index; opt.textContent = ep.title;
+                                epSelect.appendChild(opt);
+                            });
+                            sectionEp.style.display = 'block'; 
+                        } else {
+                            sectionEp.style.display = 'none';
+                        }
+                    }
+                } catch (error) { showPopup("Lỗi tải dữ liệu!", true); }
+                finally { document.getElementById('loading-edit').style.display = 'none'; }
+            };
+
+            document.getElementById('btn-update-movie').addEventListener('click', async () => {
+                const movieId = document.getElementById('edit-movie-id').value;
+                if(!movieId) return;
+                document.getElementById('loading-edit').style.display = 'block';
+                // Gom tag đã chọn khi sửa
+                // Gom tag đã chọn khi sửa + Tag gõ tay
+                let selectedEditTags = [];
+                document.querySelectorAll('#edit-tag-picker .tag-btn.selected').forEach(btn => selectedEditTags.push(btn.innerText));
+                let customEditTag = document.getElementById('edit-custom-tag').value.trim();
+                if (customEditTag) selectedEditTags.push(customEditTag);
+                if(document.getElementById('edit-tag')) document.getElementById('edit-tag').value = selectedEditTags.join(' / ');
+                try {
+                    await updateDoc(doc(db, "movies", movieId), {
+                        type: document.getElementById('edit-type').value,
+                        status: document.getElementById('edit-status').value,
+                        title: document.getElementById('edit-title').value.trim(),
+                        altTitle: document.getElementById('edit-alttitle').value.trim().replace(/\n/g, "<br>"),
+                        tag: document.getElementById('edit-tag').value.trim(),
+                        poster: document.getElementById('edit-poster').value.trim(),
+                        trailer: document.getElementById('edit-trailer').value.trim(),
+                        desc: document.getElementById('edit-desc').value.trim().replace(/\n/g, "<br>"),
+                        updatedAt: Date.now()
+                    });
+                    showPopup("✅ Đã cập nhật xong thông tin Phim!");
+                } catch (error) { showPopup("❌ Lỗi cập nhật!", true); }
+                finally { document.getElementById('loading-edit').style.display = 'none'; }
+            });
+
+            window.fetchEpisodeDataToEdit = function() {
+                const index = document.getElementById('edit-ep-index').value;
+                if(index === "") {
+                    document.getElementById('edit-ep-title').value = '';
+                    document.getElementById('edit-ep-super').value = ''; // KÉO DỮ LIỆU SUPER
+                    document.getElementById('edit-ep-vip').value = '';
+                    document.getElementById('edit-ep-dp1').value = '';
+                    document.getElementById('edit-ep-dp2').value = '';
+                    return;
+                }
+                const epData = window.currentEditMovieData.episodes[index];
+                document.getElementById('edit-ep-title').value = epData.title || '';
+                document.getElementById('edit-ep-super').value = epData.linkSuper || ''; // HIỂN THỊ LINK SUPER CŨ
+                document.getElementById('edit-ep-vip').value = epData.linkVIP || '';
+                document.getElementById('edit-ep-dp1').value = epData.linkDuPhong || '';
+                document.getElementById('edit-ep-dp2').value = epData.linkDuPhong2 || '';
+            };
+
+            document.getElementById('btn-update-episode').addEventListener('click', async () => {
+                const movieId = document.getElementById('edit-movie-id').value;
+                const index = document.getElementById('edit-ep-index').value;
+                if(!movieId || index === "") return showPopup("Chưa chọn tập!", true);
+                
+                document.getElementById('loading-edit').style.display = 'block';
+                try {
+                    window.currentEditMovieData.episodes[index] = {
+                        title: document.getElementById('edit-ep-title').value.trim(),
+                        linkSuper: document.getElementById('edit-ep-super').value.trim(), // LƯU LẠI LINK SUPER VỪA SỬA
+                        linkVIP: document.getElementById('edit-ep-vip').value.trim(),
+                        linkDuPhong: document.getElementById('edit-ep-dp1').value.trim(),
+                        linkDuPhong2: document.getElementById('edit-ep-dp2').value.trim()
+                    };
+                    
+                    await updateDoc(doc(db, "movies", movieId), {
+                        episodes: window.currentEditMovieData.episodes,
+                        updatedAt: Date.now()
+                    });
+                    showPopup("✅ Đã cập nhật xong link Tập phim!");
+                } catch (error) { showPopup("❌ Lỗi cập nhật tập!", true); }
+                finally { document.getElementById('loading-edit').style.display = 'none'; }
+            });
+
+            // --- HÀM GỌI POPUP CHÍNH GIỮA ---
+            window.showPopup = function(message, isError = false) {
+                const popup = document.getElementById('custom-popup');
+                const box = document.querySelector('.popup-box');
+                const icon = document.getElementById('popup-icon');
+                const title = document.getElementById('popup-title');
+                const msg = document.getElementById('popup-message');
+
+                if (isError) {
+                    box.classList.add('error');
+                    icon.innerText = "❌";
+                    title.innerText = "Lỗi rùi!";
+                    title.style.color = "#ff85a2";
+                } else {
+                    box.classList.remove('error');
+                    icon.innerText = "✨";
+                    title.innerText = "Thành công!";
+                    title.style.color = "#00ffcc";
+                }
+                msg.innerText = message;
+                popup.style.display = 'flex';
+            };
+
+            window.closePopup = function() {
+                document.getElementById('custom-popup').style.display = 'none';
+            };
+
+            // --- HÀM GỌI POPUP XÁC NHẬN ---
+            window.showConfirmPopup = function(message, onConfirmCallback) {
+                document.getElementById('confirm-message').innerText = message;
+                document.getElementById('confirm-popup').style.display = 'flex';
+                
+                // Gán sự kiện cho nút "Chắc chắn"
+                const btnYes = document.getElementById('btn-confirm-yes');
+                // Xóa sự kiện cũ (nếu có) để tránh click đúp
+                btnYes.onclick = null; 
+                btnYes.onclick = function() {
+                    closeConfirmPopup();
+                    onConfirmCallback(); // Chạy lệnh khi Chủ tịch bấm Yes
+                };
+            };
+
+            window.closeConfirmPopup = function() {
+                document.getElementById('confirm-popup').style.display = 'none';
+            };
+
+            // ==========================================
+            // 🏷️ HỆ THỐNG QUẢN LÝ KHO TAG
+            // ==========================================
+            window.globalTags = ["Phép thuật", "Hành động", "Đời thường", "Hài hước", "Học đường", "Tình cảm", "Idol", "Movie"];
+
+            window.loadGlobalTags = async function() {
+                try {
+                    const tagSnap = await getDoc(doc(db, "system", "tags"));
+                    if (tagSnap.exists() && tagSnap.data().list) {
+                        window.globalTags = tagSnap.data().list;
+                    } else {
+                        // Lần đầu chạy sẽ tự tạo cái kho trên mây
+                        await setDoc(doc(db, "system", "tags"), { list: window.globalTags });
+                    }
+                    window.renderTagPickers();
+                } catch(e) { console.error("Lỗi load tags", e); }
+            };
+
+            window.renderTagPickers = function() {
+                // In ra nút thường cho Tạo/Sửa phim
+                const tagHTML = window.globalTags.map(tag => `<div class="tag-btn" onclick="this.classList.toggle('selected')">${tag}</div>`).join('');
+                
+                // In ra nút có dấu X cho Kho Tag
+                const deleteHTML = window.globalTags.map(tag => `<div class="tag-btn" onclick="deleteGlobalTag('${tag}')" title="Bấm để xóa tag này" style="border-color:#ff4d4d;">${tag} ❌</div>`).join('');
+                
+                const createPicker = document.getElementById('create-tag-picker');
+                const editPicker = document.getElementById('edit-tag-picker');
+                const globalList = document.getElementById('global-tag-list');
+                
+                if(createPicker) createPicker.innerHTML = tagHTML;
+                if(editPicker) editPicker.innerHTML = tagHTML;
+                if(globalList) globalList.innerHTML = deleteHTML;
+            };
+
+            window.addNewGlobalTag = async function() {
+                const input = document.getElementById('new-global-tag');
+                const newTag = input.value.trim();
+                if(!newTag) return;
+                
+                if(window.globalTags.includes(newTag)) {
+                    showPopup("Tag này đã có trong kho rồi Chủ tịch ơi!", true);
+                    return;
+                }
+
+                window.globalTags.push(newTag);
+                try {
+                    await setDoc(doc(db, "system", "tags"), { list: window.globalTags }, {merge: true});
+                    input.value = '';
+                    window.renderTagPickers();
+                    showPopup("✅ Đã thêm Tag mới vào kho!");
+                } catch(e) { showPopup("❌ Lỗi lưu Tag lên mây!", true); }
+            };
+
+            window.deleteGlobalTag = async function(tagToRemove) {
+                if(!confirm(`Cậu có chắc muốn xóa tag "${tagToRemove}" khỏi kho không?\n(Yên tâm, các phim đã gắn tag này sẽ không bị mất tag đâu nhé)`)) return;
+                
+                window.globalTags = window.globalTags.filter(t => t !== tagToRemove);
+                try {
+                    await setDoc(doc(db, "system", "tags"), { list: window.globalTags }, {merge: true});
+                    window.renderTagPickers();
+                    showPopup("🗑️ Đã xóa Tag khỏi kho thành công!");
+                } catch(e) { showPopup("❌ Lỗi xóa Tag!", true); }
+            };
+
+            // Khởi động kho tag cùng với Admin
+            window.loadGlobalTags();
+
+            // ==========================================
+            // 🚨 HỆ THỐNG QUẢN LÝ BÁO LỖI PHIM
+            // ==========================================
+            window.loadReports = async function() {
+                const reportList = document.getElementById('report-list');
+                try {
+                    const querySnapshot = await getDocs(collection(db, "reports"));
+                    let html = '';
+                    querySnapshot.forEach((docSnap) => {
+                        let data = docSnap.data();
+                        html += `
+                        <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #ff4d4d;">
+                            <p style="margin: 0 0 5px 0;"><strong>🎬 Phim:</strong> <span style="color: #ff85a2;">${data.movieName}</span> (Tập ${data.epIndex + 1})</p>
+                            <p style="margin: 0 0 5px 0;"><strong>⚠️ Nguồn lỗi:</strong> ${data.server}</p>
+                            <p style="margin: 0 0 10px 0; font-size: 13px; color: #aaa;"><strong>👤 Người báo:</strong> ${data.userName} | ⏰ ${new Date(data.time).toLocaleString('vi-VN')}</p>
+                            <button onclick="deleteReport('${docSnap.id}')" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">✅ Đã Fix Link Xong (Xóa)</button>
+                        </div>`;
+                    });
+                    
+                    if (html === '') {
+                        html = '<p style="color: #00e676; font-weight: bold;">Tuyệt vời! Rạp phim đang hoạt động trơn tru, không có ai báo lỗi cả! 🎉</p>';
+                    }
+                    reportList.innerHTML = html;
+                } catch (e) {
+                    console.error("Lỗi tải báo cáo:", e);
+                    reportList.innerHTML = '<p style="color: red;">Lỗi không thể tải báo cáo từ vệ tinh!</p>';
+                }
+            };
+
+            window.deleteReport = async function(id) {
+                showConfirmPopup("Chủ tịch đã cập nhật lại link chiếu cho tập này rồi đúng hơm? Bấm Xác nhận để xóa báo cáo nhé!", async () => {
+                    await deleteDoc(doc(db, "reports", id));
+                    window.loadReports(); 
+                });
+            };
+
+            // ==========================================
+            // 📥 HỆ THỐNG TẢI DANH SÁCH PHIM TỪ MÂY
+            // ==========================================
+            window.loadMovies = async function() {
+                const epSelect = document.getElementById('ep-movie-id');
+                const editSelect = document.getElementById('edit-movie-id');
+                
+                try {
+                    const querySnapshot = await getDocs(collection(db, "movies"));
+                    let optionsHTML = '<option value="">-- Chọn phim --</option>';
+                    
+                    querySnapshot.forEach((docSnap) => {
+                        optionsHTML += `<option value="${docSnap.id}">${docSnap.data().title}</option>`;
+                    });
+
+                    // Bơm dữ liệu vào cả 2 tab Đăng Tập và Sửa Data
+                    if (epSelect) epSelect.innerHTML = optionsHTML;
+                    if (editSelect) editSelect.innerHTML = optionsHTML;
+                } catch (error) {
+                    console.error("Lỗi tải danh sách phim:", error);
+                    if (epSelect) epSelect.innerHTML = '<option value="">❌ Lỗi vệ tinh!</option>';
+                    if (editSelect) editSelect.innerHTML = '<option value="">❌ Lỗi vệ tinh!</option>';
+                }
+            };
+
+            // Khởi động máy hút dữ liệu ngay khi vừa vào trang Admin
+            window.loadMovies();
+
+            // Tự động chạy quét lỗi khi mở Admin
+            window.loadReports();
+
+            // ==========================================
+            // 🔄 HỆ THỐNG CHUYỂN TAB ADMIN
+            // ==========================================
+            function switchTabAdmin(btnId, tabId) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                document.getElementById(btnId).classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            }
+            document.getElementById('btn-tab-movie').onclick = () => switchTabAdmin('btn-tab-movie', 'tab-movie');
+            document.getElementById('btn-tab-episode').onclick = () => switchTabAdmin('btn-tab-episode', 'tab-episode');
+            document.getElementById('btn-tab-edit').onclick = () => switchTabAdmin('btn-tab-edit', 'tab-edit');
+            document.getElementById('btn-tab-tag').onclick = () => switchTabAdmin('btn-tab-tag', 'tab-tag');
+            document.getElementById('btn-tab-approve').onclick = () => { switchTabAdmin('btn-tab-approve', 'tab-approve'); loadPendingMovies(); };
+
+            // ==========================================
+            // ✅ HỆ THỐNG DUYỆT PHIM TỪ ĐỐI TÁC
+            // ==========================================
+            window.loadPendingMovies = async function() {
+                const listDiv = document.getElementById('pending-movies-list');
+                listDiv.innerHTML = '<span style="color:#888;">Đang tải...</span>';
+                try {
+                    const querySnapshot = await getDocs(collection(db, "pending_movies"));
+                    let html = '';
+                    querySnapshot.forEach((docSnap) => {
+                        let data = docSnap.data();
+                        html += `
+                        <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #28a745;">
+                            <h4 style="margin: 0 0 10px 0; color: #fff;">🎬 ${data.title}</h4>
+                            <p style="margin: 0 0 5px 0; font-size: 13px;"><strong>ID:</strong> ${docSnap.id}</p>
+                            <p style="margin: 0 0 5px 0; font-size: 13px; color: #ffb703;"><strong>Đề xuất bởi:</strong> Nhóm ${data.teamName}</p>
+                            <p style="margin: 0 0 15px 0; font-size: 13px;"><strong>Tag:</strong> ${data.tag}</p>
+                            
+                            <button onclick="approveMovie('${docSnap.id}')" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px;">✅ DUYỆT LUÔN</button>
+                            <button onclick="rejectMovie('${docSnap.id}')" style="background: #e94560; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">❌ TỪ CHỐI</button>
+                        </div>`;
+                    });
+                    if (html === '') html = '<p style="color: #00ffcc; font-weight: bold;">Trống trơn! Không có bộ phim nào đang chờ duyệt.</p>';
+                    listDiv.innerHTML = html;
+                } catch (e) { listDiv.innerHTML = '<p style="color: red;">Lỗi tải phòng chờ!</p>'; }
+            };
+
+            window.approveMovie = async function(id) {
+                showConfirmPopup("Chủ tịch chắc chắn duyệt bộ phim này lên Rạp chứ?", async () => {
+                    try {
+                        const docSnap = await getDoc(doc(db, "pending_movies", id));
+                        if(docSnap.exists()) {
+                            await setDoc(doc(db, "movies", id), docSnap.data());
+                            await deleteDoc(doc(db, "pending_movies", id));
+                            showPopup("✅ Đã đưa phim ra Rạp thành công!");
+                            loadPendingMovies(); 
+                            loadMovies(); 
+                        }
+                    } catch(e) { showPopup("❌ Lỗi duyệt phim!", true); }
+                });
+            };
+
+            window.rejectMovie = async function(id) {
+                showConfirmPopup("Xóa bỏ đề xuất phim này?", async () => {
+                    try {
+                        await deleteDoc(doc(db, "pending_movies", id));
+                        showPopup("🗑️ Đã từ chối và xóa đề xuất!");
+                        loadPendingMovies();
+                    } catch(e) { showPopup("❌ Lỗi xóa!", true); }
+                });
+            };
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Định Danh - MHEnt. Network</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff85a2">
+    <link rel="apple-touch-icon" href="assets/icon-web.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', sans-serif !important; }
+        
+        .login-box {
+            width: 100%;
+            max-width: 450px !important; 
+            padding: 40px !important;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        body.dark-mode .login-box {
+            background: rgba(30, 41, 59, 0.95);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .btn-back-login {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 25px !important; 
+            color: #64748b; font-size: 14px; font-weight: bold;
+            text-decoration: none; transition: 0.3s; cursor: pointer;
+        }
+        .btn-back-login:hover { color: #ff85a2; transform: translateY(-2px); }
+        body.dark-mode .btn-back-login { color: #94a3b8; }
+        body.dark-mode .btn-back-login:hover { color: #ff85a2; }
+
+        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
+        .app-item:hover .app-icon svg { transform: scale(1.1); }
+        body.dark-mode .app-icon svg { color: #e2e8f0; }
+        
+        /* =======================================
+           GIAO DIỆN POPUP MỚI SIÊU XỊN XÒ
+           ======================================= */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .popup-box {
+            background: #ffffff; padding: 35px 30px; border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center;
+            max-width: 350px; width: 90%;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border: 1px solid rgba(255, 133, 162, 0.1);
+        }
+        body.dark-mode .popup-box { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); }
+        
+        .popup-icon {
+            width: 60px; height: 60px; margin: 0 auto 20px auto;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        .popup-icon svg { width: 32px; height: 32px; stroke-width: 2.5; }
+        
+        .popup-box:not(.error) .popup-icon { background: rgba(255, 133, 162, 0.1); color: #ff85a2; }
+        .popup-box.error .popup-icon { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; }
+        
+        #popup-title { margin: 0 0 10px 0; font-size: 22px; color: #1e293b; font-weight: 800; }
+        body.dark-mode #popup-title { color: white; }
+        #popup-message { margin: 0; color: #64748b; font-size: 15px; font-weight: 600; line-height: 1.5; }
+        body.dark-mode #popup-message { color: #94a3b8; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
+            .login-box { max-width: 90% !important; padding: 30px 20px !important; }
+        }
+    </style>
+</head>
+<body class="gradient-bg">
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/'" style="cursor: pointer;">
+                <img src="assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                <span class="logo-name">MHEnt. Network</span>
+            </a>
+        </div>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a onclick="window.location.href='/'" style="cursor: pointer;">Đại Sảnh</a></li>
+            <li><a onclick="window.location.href='/cinema/'" style="cursor: pointer;">Cinema</a></li>
+            <li><a onclick="window.location.href='about.html'" style="cursor: pointer;">Về chúng tớ</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <div class="user-section">
+                <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
+                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Vũ Trụ MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='#ff85a2'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                            <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                            <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                            <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                        </svg>
+                    </div>
+                    
+                    <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                        <a onclick="window.location.href='/'" style="cursor: pointer;" class="app-item">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
+                            <span class="app-name">Đại Sảnh</span>
+                        </a>
+                        <a onclick="window.location.href='/cinema/'" style="cursor: pointer;" class="app-item">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                            <span class="app-name">Cinema</span>
+                        </a>
+                        <a onclick="showToast('Thông báo', 'Vũ trụ Manga đang được xây dựng, chờ xíu nha!', 'info')" style="cursor: pointer;" class="app-item disabled">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                            <span class="app-name">Manga</span>
+                        </a>
+                        <a onclick="showToast('Thông báo', 'Vũ trụ Tiểu thuyết đang được xây dựng, chờ xíu nha!', 'info')" style="cursor: pointer;" class="app-item disabled">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+                            <span class="app-name">Novel</span>
+                        </a>
+                        <a onclick="showToast('Thông báo', 'Vũ trụ Âm nhạc đang được xây dựng, chờ xíu nha!', 'info')" style="cursor: pointer;" class="app-item disabled">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
+                            <span class="app-name">Music</span>
+                        </a>
+                    </div>
+                </div>
+
+                <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+
+            </div>
+
+            <div class="menu-toggle" onclick="toggleMobileMenu()">
+                <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+        </div>
+    </nav>
+
+    <div id="custom-popup" class="popup-overlay" style="display: none;">
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <h2 style="color: #ff85a2; margin-top: 20px; font-weight: 800; font-family: 'Nunito', sans-serif;">Đang kết nối mây...</h2>
+        </div>
+        <div class="popup-box">
+            <div class="popup-icon" id="popup-icon">
+                </div>
+            <h3 id="popup-title">Thành công!</h3>
+            <p id="popup-message">Nội dung thông báo ở đây.</p>
+        </div>
+    </div>
+
+    <div class="login-page">
+        <div class="login-box">
+            <img src="assets/avt-web.jpg" alt="MHEnt Logo" style="width: 80px; border-radius: 50%; margin-bottom: 15px; border: 2px solid #ff85a2;">
+            <h1 style="color: #ff5c8a; font-size: 28px; margin: 0 0 5px 0;">CỔNG ĐỊNH DANH</h1>
+            <p style="color: #64748b; font-weight: bold; margin-bottom: 25px;">Khởi tạo Hộ chiếu Đa Vũ Trụ của cậu!</p>
+            
+            <button id="btn-login-google" class="btn-google">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
+                Tiếp tục với Google
+            </button>
+            
+            <a onclick="window.location.href='/'" class="btn-back-login">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Quay lại Đại Sảnh
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-bottom">
+            <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            <div class="footer-social">
+                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    Fanpage MHEnt.
+                </a>
+                <span class="footer-dot">•</span>
+                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Cộng đồng MHEnt.
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        
+        // ĐÃ CẬP NHẬT FIREBASE CONFIG MỚI (mhentnetwork)
+        const firebaseConfig = {
+          apiKey: "AIzaSyBB7u2GS3rOECqa4_LigngsnwqfLnnBnq8",
+          authDomain: "mhentnetwork.firebaseapp.com",
+          projectId: "mhentnetwork",
+          storageBucket: "mhentnetwork.firebasestorage.app",
+          messagingSenderId: "91401699508",
+          appId: "1:91401699508:web:51b402412972d3c61c97e1",
+          measurementId: "G-RFEPB9WBB8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // BỘ MÁY GỌI POPUP ĐÃ ĐƯỢC NÂNG CẤP VECTOR
+        window.showPopup = function(message, isError = false) {
+            const popup = document.getElementById('custom-popup');
+            const box = document.querySelector('.popup-box');
+            const icon = document.getElementById('popup-icon');
+            const title = document.getElementById('popup-title');
+            const msg = document.getElementById('popup-message');
+
+            const successSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+            const errorSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+
+            if (isError) {
+                box.classList.add('error'); 
+                icon.innerHTML = errorSVG; 
+                title.innerText = "Lỗi rùi!";
+            } else {
+                box.classList.remove('error'); 
+                icon.innerHTML = successSVG; 
+                title.innerText = "Thành công!";
+            }
+            msg.innerText = message;
+            popup.style.display = 'flex';
+
+            if (isError) { setTimeout(() => { popup.style.display = 'none'; }, 3000); }
+        };
+
+        // BỘ NÃO ĐIỀU HƯỚNG THÔNG MINH
+        async function handleLoginSuccess(user) {
+            try {
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists() && userSnap.data().isProfileSetup) {
+                    showPopup('Đang kết nối cổng không gian...', false);
+                    setTimeout(() => window.location.href = '/', 1500);
+                } else {
+                    showPopup('Hãy thiết lập hồ sơ trước nhé!', false);
+                    setTimeout(() => window.location.href = '/profile.html?setup=true', 1500);
+                }
+            } catch (error) { window.location.href = '/'; }
+        }
+
+        // 1. Đăng nhập Google 
+        document.getElementById('btn-login-google').addEventListener('click', async () => {
+            const loadingScreen = document.getElementById('loading-overlay');
+            loadingScreen.style.display = 'flex';
+            try {
+                const result = await signInWithPopup(auth, provider);
+                loadingScreen.style.display = 'none';
+                await handleLoginSuccess(result.user);
+            } catch (error) { 
+                loadingScreen.style.display = 'none';
+                showPopup('Mạng lỗi hoặc cậu đã hủy đăng nhập rùi!', true); 
+            }
+        });
+
+        // ==========================================
+        // 🌟 LÕI HỆ THỐNG GIAO DIỆN DÙNG CHUNG
+        // ==========================================
+        
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
+        };
+
+        if (localStorage.getItem('mhent_dark_mode') === 'on') { 
+            document.body.classList.add('dark-mode'); 
+        }
+
+        window.showToast = function(title, message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            let icon = type === 'error' ? '❌' : (type === 'info' ? '⭐' : '✅');
+            toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${message}</span></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+
+        window.toggleAppSwitcher = function() {
+            const switcher = document.getElementById('dropdown-app-switcher');
+            if(switcher) switcher.classList.toggle('show');
+        };
+
+        window.toggleMobileMenu = function() {
+            const navLinks = document.getElementById('nav-links');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            if(switcher) switcher.classList.remove('show'); 
+            if(navLinks) navLinks.classList.toggle('active');
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-section') && !event.target.closest('.modal')) {
+                const switcher = document.getElementById('dropdown-app-switcher');
+                if(switcher) switcher.classList.remove('show');
+            }
+            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                const navLinks = document.getElementById('nav-links');
+                if(navLinks) navLinks.classList.remove('active');
+            }
+        };
+    </script>
+</body>
+</html>

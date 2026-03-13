@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tất cả thông báo - MHEnt. Cinema</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff85a2">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* CSS riêng cho trang Full Notification */
+        .full-notif-container { background: #fff; padding: 0; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; }
+        .full-notif-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid #fff0f3; }
+        .full-notif-item { display: flex; padding: 20px 30px; gap: 20px; border-bottom: 1px solid #f0f0f0; transition: 0.3s; cursor: pointer; text-decoration: none;}
+        .full-notif-item:hover { background: #fff0f3; padding-left: 35px; }
+        .full-notif-item .notif-poster { width: 70px; height: 100px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .full-notif-item .notif-title { font-size: 16px; margin-bottom: 8px; font-weight: 800; color: #555; }
+        .full-notif-item .notif-desc { font-size: 14px; color: #777; line-height: 1.5; }
+        
+        .pagination { display: flex; justify-content: center; gap: 15px; padding: 20px; align-items: center;}
+        .page-btn { padding: 8px 20px; border: 1px solid #ff85a2; background: transparent; color: #ff85a2; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .page-btn:hover:not(:disabled) { background: #ff85a2; color: #fff; }
+        .page-btn:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; }
+        #page-info { font-weight: bold; color: #555; }
+
+        /* Dark Mode */
+        body.dark-mode .full-notif-container { background: #1a1a2e; }
+        body.dark-mode .full-notif-header { border-color: #2a2a35; }
+        body.dark-mode .full-notif-item { border-color: #2a2a35; }
+        body.dark-mode .full-notif-item:hover { background: rgba(255, 133, 162, 0.1); }
+        body.dark-mode .full-notif-item .notif-title { color: #e0e0e0; }
+        body.dark-mode #page-info { color: #ccc; }
+        body.dark-mode .full-notif-item.unread { background: rgba(255, 133, 162, 0.12); border-left: 3px solid #ff85a2; }
+    </style>
+</head>
+<body class="gradient-bg">
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='index.html'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                <span class="logo-name">MHEnt. - Cinema</span>
+            </a>
+        </div>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a onclick="window.location.href='index.html'" style="cursor: pointer;">Trang chủ</a></li>
+            <li><a onclick="window.location.href='index.html#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
+            <li><a onclick="window.location.href='/about.html'" style="cursor: pointer;">Về chúng tớ</a></li>
+        </ul>
+
+        <div class="nav-right">
+                <div class="nav-search-container" id="nav-search-wrapper">
+                    <input type="text" id="nav-search-box" placeholder="Tìm phim..." 
+                           oninput="window.renderNavLiveSearch()" 
+                           onfocus="window.renderNavLiveSearch()">
+                    <div class="nav-search-icon" onclick="toggleNavSearch()" title="Tìm kiếm">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                    <div id="nav-search-dropdown" class="search-dropdown"></div>
+                </div>
+
+                <div class="user-section">
+                    <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
+                        <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='#ff85a2'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                                <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                                <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                            </svg>
+                        </div>
+                        
+                        <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                            <a href="/" class="app-item">
+                                <span class="app-icon">🌌</span>
+                                <span class="app-name">Đại Sảnh</span>
+                            </a>
+                            <a href="/cinema/" class="app-item active">
+                                <span class="app-icon">🍿</span>
+                                <span class="app-name">Cinema</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Manga đang được xây dựng!', 'info'); return false;">
+                                <span class="app-icon">📚</span>
+                                <span class="app-name">Manga</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Novel đang được xây dựng!', 'info'); return false;">
+                                <span class="app-icon">📖</span>
+                                <span class="app-name">Novel</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Music đang được xây dựng!', 'info'); return false;">
+                                <span class="app-icon">🎵</span>
+                                <span class="app-name">Music</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div id="bell-container" style="display: none; position: relative;">
+                        <div class="notif-bell" onclick="toggleNotif()" style="cursor: pointer;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" class="svg-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="notif-dot"></span>
+                        </div>
+                        <div id="dropdown-notif" class="dropdown-menu notif-dropdown">
+                            <div class="notif-header">
+                                <span class="notif-title-text">Thông báo</span>
+                                <span class="notif-mark-read" onclick="markAllAsRead()">Đánh dấu tất cả là đã đọc</span>
+                            </div>
+                            <div id="notif-list" class="notif-body"></div>
+                            <div class="notif-footer">
+                                <button class="btn-view-all" onclick="window.location.href='notification.html'">Xem tất cả ></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    
+                    <button id="btn-login" class="btn-login btn-with-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                        Đăng nhập
+                    </button>
+
+                    <div id="user-profile" class="user-profile" style="position: relative; display: none;">
+                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <img id="user-avatar" src="" alt="User" class="user-avatar">
+                            <span id="user-name" class="user-name">Tên User</span>
+                        </div>
+                        
+                        <div id="dropdown-account" class="dropdown-menu account-dropdown">
+                            <div class="dropdown-item" onclick="window.location.href='profile.html#info'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
+                            </div>
+                            <div class="dropdown-item" onclick="window.location.href='library.html'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện
+                            </div>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode
+                            </div>
+                            <div class="dropdown-item" onclick="window.location.href='profile.html#settings'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Cài đặt
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #28a745 !important;" onclick="window.open('admin.html', '_blank')">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Admin
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="studio-panel-btn" class="dropdown-item" style="display: none; color: #ff9a00 !important;" onclick="window.open('studio.html', '_blank')">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Phòng Studio
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-toggle" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </div>
+            </div>
+    </nav>
+
+    <div class="back-btn-wrapper">
+        <a onclick="window.location.href='index.html'" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" class="btn-back">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Quay lại Trang Chủ
+        </a>
+    </div>
+
+    <main class="movie-section" style="min-height: 60vh; padding-top: 40px;">
+        <div class="full-notif-container">
+            <div class="full-notif-header">
+                <h2 style="color: #ff85a2; margin: 0; font-size: 24px;">🔔 Tất cả thông báo</h2>
+                <span class="notif-mark-read" onclick="markAllAsReadFull()" style="font-size: 14px; color: #888; cursor: pointer; font-weight: bold;">Đánh dấu tất cả là đã đọc</span>
+            </div>
+            
+            <div id="full-notif-list">
+                <p style="padding: 40px; text-align: center; color: #ff85a2; font-weight: bold;">Đang tải dữ liệu vệ tinh...</p>
+            </div>
+
+            <div class="pagination">
+                <button class="page-btn" id="btn-prev" onclick="changePage(-1)">← Trang trước</button>
+                <span id="page-info">Trang 1</span>
+                <button class="page-btn" id="btn-next" onclick="changePage(1)">Trang sau →</button>
+            </div>
+        </div>
+    </main>
+
+    <button id="btn-back-to-top" title="Lên đầu trang" style="display: none; align-items: center; justify-content: center; padding: 0;">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+    </button>
+
+    <footer>
+        <div class="footer-bottom">
+            <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            <div class="footer-social">
+                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    Fanpage MHEnt.
+                </a>
+                <span class="footer-dot">•</span>
+                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Cộng đồng MHEnt.
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        // ⚡ 1. THÊM CÁC HÀM CACHE VÀ SETDOC CỦA FIRESTORE
+        import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+                apiKey: "AIzaSyBB7u2GS3rOECqa4_LigngsnwqfLnnBnq8",
+                authDomain: "mhentnetwork.firebaseapp.com",
+                projectId: "mhentnetwork",
+                storageBucket: "mhentnetwork.firebasestorage.app",
+                messagingSenderId: "91401699508",
+                appId: "1:91401699508:web:51b402412972d3c61c97e1",
+                measurementId: "G-RFEPB9WBB8"
+            };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // ⚡ 2. BẬT BỘ NHỚ ĐỆM SIÊU TỐC
+        const db = initializeFirestore(app, {
+            localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+        });
+
+        // --- Lõi Navbar Cơ Bản ---
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = 'login.html'; });
+        if (btnLogout) { 
+            btnLogout.addEventListener('click', async () => { 
+                await signOut(auth); 
+                window.location.href = 'index.html'; // Lệnh đá văng về trang chủ
+            }); 
+        }
+        window.toggleAccount = function() {
+            const acc = document.getElementById('dropdown-account');
+            const notif = document.getElementById('dropdown-notif');
+            if(notif) notif.classList.remove('show');
+            if(acc) acc.classList.toggle('show');
+        };
+
+        window.toggleNotif = function() {
+            const notif = document.getElementById('dropdown-notif');
+            const acc = document.getElementById('dropdown-account');
+            if(acc) acc.classList.remove('show');
+            if(notif) notif.classList.toggle('show');
+        };
+
+        // HÀM MỞ BẢNG APP SWITCHER
+            window.toggleAppSwitcher = function() {
+                const switcher = document.getElementById('dropdown-app-switcher');
+                const notif = document.getElementById('dropdown-notif');
+                const acc = document.getElementById('dropdown-account');
+                
+                // Đóng các bảng khác nếu đang mở
+                if(notif) notif.classList.remove('show');
+                if(acc) acc.classList.remove('show');
+                
+                // Bật/tắt bảng này
+                if(switcher) switcher.classList.toggle('show');
+            };
+
+        window.onclick = function(event) {
+                // Đóng menu User & Chuông
+                if (!event.target.closest('.user-section') && !event.target.closest('.cinema-overlay') && !event.target.closest('.modal')) {
+                    const acc = document.getElementById('dropdown-account');
+                    const notif = document.getElementById('dropdown-notif');
+                    if(acc) acc.classList.remove('show');
+                    if(notif) notif.classList.remove('show');
+                }
+                
+                // THÊM: Bấm ra ngoài là đóng luôn Menu Mobile
+                if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                    const navLinks = document.getElementById('nav-links');
+                    if(navLinks) navLinks.classList.remove('active');
+                }
+            };
+
+            // Ép Menu Mobile phải nhường đường nếu Mở User/Chuông và ngược lại
+            window.toggleMobileMenu = function() {
+                const navLinks = document.getElementById('nav-links');
+                const acc = document.getElementById('dropdown-account');
+                const notif = document.getElementById('dropdown-notif');
+                
+                if(acc) acc.classList.remove('show'); 
+                if(notif) notif.classList.remove('show'); 
+                if(navLinks) navLinks.classList.toggle('active');
+            };
+
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+        };
+        if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
+
+        // --- Hệ thống Load Data Phân Trang ---
+        let allNotifs = [];
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let globalReadHistory = {}; // Biến RAM lưu trí nhớ đám mây tạm thời
+
+        onAuthStateChanged(auth, async (user) => {
+            const btnTheme = document.getElementById('btn-theme-toggle'); 
+            
+            if (!user) {
+                document.getElementById('btn-login').style.display = 'flex';
+                if(btnTheme) btnTheme.style.display = 'flex'; 
+                document.getElementById('user-profile').style.display = 'none';
+                document.getElementById('bell-container').style.display = 'none';
+                
+                document.getElementById('full-notif-list').innerHTML = '<p style="padding: 40px; text-align: center;">Cậu chưa đăng nhập kìa!</p>';
+                document.querySelector('.pagination').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('btn-login').style.display = 'none';
+            if(btnTheme) btnTheme.style.display = 'none'; 
+            document.getElementById('user-profile').style.display = 'flex';
+            document.getElementById('bell-container').style.display = 'block';
+
+            let finalName = "Khách";
+            if (user.displayName && user.displayName.trim() !== "") { finalName = user.displayName; } 
+            else if (user.email) { finalName = user.email.split('@')[0]; }
+            if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+
+            // Xử lý Avatar (Luôn hiển thị: Có ảnh dùng ảnh User, không có dùng mặc định)
+            const avtElement = document.getElementById('user-avatar');
+            if (avtElement) {
+                avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "assets/avt-web.jpg";
+                avtElement.style.display = 'block'; 
+            }
+
+            const adminBtn = document.getElementById('admin-panel-btn');
+             
+
+            if (typeof loadNotifications === "function") loadNotifications();
+
+            // Tải dữ liệu user & Phim
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            const userData = userSnap.exists() ? userSnap.data() : {};
+            const savedMovies = userData.savedMovies || [];
+            
+            // ☁️ KÉO TRÍ NHỚ TỪ MÂY XUỐNG RAM
+            globalReadHistory = userData.readHistory || {};
+
+            if (savedMovies.length === 0) {
+                document.getElementById('full-notif-list').innerHTML = '<p style="padding: 40px; text-align: center; color: #888;">Cậu chưa có thông báo nào cả 🌵</p>';
+                document.querySelector('.pagination').style.display = 'none';
+                return;
+            }
+
+            const querySnapshot = await getDocs(collection(db, "movies"));
+            querySnapshot.forEach(docSnap => {
+                if (savedMovies.includes(docSnap.id)) {
+                    allNotifs.push({id: docSnap.id, ...docSnap.data()});
+                }
+            });
+            
+            allNotifs.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+            renderPage(); 
+
+            // 🚨 LOGIC PHÂN QUYỀN ĐA VŨ TRỤ V2.0 🚨
+                    
+                    getDoc(userRef).then((docSnap) => {
+                        const adminBtn = document.getElementById('admin-panel-btn');
+                        const studioBtn = document.getElementById('studio-panel-btn');
+                        
+                        // Mặc định giấu cả 2 nút đi khi chưa biết là ai
+                        if (adminBtn) adminBtn.style.display = 'none';
+                        if (studioBtn) studioBtn.style.display = 'none';
+
+                        if (docSnap.exists() && docSnap.data().role) {
+                            const userRole = docSnap.data().role; // Rút thẻ căn cước từ mây về
+
+                            if (userRole === 'admin') {
+                                // Nếu là Chủ tịch -> Mở cửa Căn cứ Admin
+                                if (adminBtn) adminBtn.style.display = 'flex';
+                                if (studioBtn) studioBtn.style.display = 'flex'; // Chủ tịch cũng có quyền vào Studio
+                            } else if (userRole === 'uploader') {
+                                // Nếu là Đối tác Nhóm dịch -> Mở cửa Phòng Studio
+                                if (studioBtn) studioBtn.style.display = 'flex';
+                            }
+                        }
+                    }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+        });
+
+        // ☁️ HÀM IN TRANG (Chạy từ RAM nên cực mượt)
+        function renderPage() {
+            const container = document.getElementById('full-notif-list');
+            container.innerHTML = '';
+            
+            let startIndex = (currentPage - 1) * itemsPerPage;
+            let endIndex = startIndex + itemsPerPage;
+            let pageItems = allNotifs.slice(startIndex, endIndex);
+
+            pageItems.forEach(movie => {
+                const hasEpisodes = movie.episodes && movie.episodes.length > 0;
+                const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!";
+                const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
+                
+                const targetUrl = hasEpisodes ? `watch.html?id=${movie.id}&ep=${lastEpIndex}` : `description.html?id=${movie.id}`;
+
+                let movieTime = movie.updatedAt || 0;
+                // Kiểm tra Đã đọc bằng biến RAM
+                let isUnread = (!globalReadHistory[movie.id] || globalReadHistory[movie.id] < movieTime);
+                const itemClass = isUnread ? "full-notif-item unread notif-item" : "full-notif-item notif-item";
+
+                const item = `
+                    <div class="${itemClass}" onclick="markAsReadAndGoFull('${movie.id}', ${movieTime}, '${targetUrl}')">
+                        <img src="${movie.poster}" class="notif-poster">
+                        <div>
+                            <div class="notif-title">${movie.title}</div>
+                            <div class="notif-desc">🎬 ${lastEpTitle} <br> <span style="font-size:12px; color:#ff85a2; font-style:italic;">Bấm để xem ngay!</span></div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += item;
+            });
+
+            let maxPage = Math.ceil(allNotifs.length / itemsPerPage) || 1;
+            document.getElementById('page-info').innerText = `Trang ${currentPage} / ${maxPage}`;
+            document.getElementById('btn-prev').disabled = currentPage === 1;
+            document.getElementById('btn-next').disabled = currentPage === maxPage || pageItems.length === 0;
+        }
+
+        // HÀM CHUYỂN TRANG
+        window.changePage = function(dir) {
+            let maxPage = Math.ceil(allNotifs.length / itemsPerPage) || 1;
+            currentPage += dir;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > maxPage) currentPage = maxPage;
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Chuyển trang xong cuộn lên đầu
+        };
+
+        // ☁️ NHẬN CLICK -> ĐẨY LÊN MÂY
+        window.markAsReadAndGoFull = async function(movieId, movieTime, targetUrl) {
+            const user = auth.currentUser;
+            if(user) {
+                globalReadHistory[movieId] = movieTime; // Cập nhật RAM
+                try {
+                    await setDoc(doc(db, "users", user.uid), { readHistory: globalReadHistory }, { merge: true }); // Bắn lên mây
+                } catch (error) { console.error("Lỗi đồng bộ:", error); }
+            }
+            window.location.href = targetUrl;
+        };
+
+        // ☁️ ĐÁNH DẤU TẤT CẢ -> ĐẨY LÊN MÂY
+        window.markAllAsReadFull = async function() {
+            const user = auth.currentUser;
+            if(!user) return;
+            
+            allNotifs.forEach(movie => { globalReadHistory[movie.id] = movie.updatedAt || 0; });
+            
+            try {
+                await setDoc(doc(db, "users", user.uid), { readHistory: globalReadHistory }, { merge: true });
+                renderPage(); // In lại trang để mất vạch đỏ
+                
+                const dot = document.querySelector('.notif-dot');
+                if(dot) dot.style.display = 'none';
+            } catch (error) { console.error("Lỗi đồng bộ tất cả:", error); }
+        };
+
+        // ==========================================
+        // 🔔 ĐỒNG BỘ CHUÔNG DROPDOWN NAVBAR CHO TRANG NÀY
+        // ==========================================
+        window.loadNotifications = async function() {
+            const notifList = document.getElementById('notif-list');
+            const dot = document.querySelector('.notif-dot'); 
+            if(!notifList) return; 
+            
+            const user = auth.currentUser;
+            if (!user) return;
+
+            try {
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                const userData = userSnap.exists() ? userSnap.data() : {};
+                const savedMovies = userData.savedMovies || [];
+
+                if (savedMovies.length === 0) {
+                    notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center; font-size:13px;">Cậu chưa lưu phim nào. Hãy thêm vào Thư viện để tớ báo cho cậu nha! ⭐</p>';
+                    if(dot) dot.style.display = 'none';
+                    return;
+                }
+
+                const querySnapshot = await getDocs(collection(db, "movies"));
+                let myNotifMovies = [];
+                
+                querySnapshot.forEach(docSnap => {
+                    if (savedMovies.includes(docSnap.id)) {
+                        myNotifMovies.push({id: docSnap.id, ...docSnap.data()});
+                    }
+                });
+                
+                myNotifMovies.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                
+                let readHistory = userData.readHistory || {}; 
+                let hasUnread = false;
+                notifList.innerHTML = '';
+                
+                myNotifMovies.slice(0, 5).forEach(movie => {
+                    const hasEpisodes = movie.episodes && movie.episodes.length > 0;
+                    const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!";
+                    const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
+                    
+                    const targetUrl = hasEpisodes ? `watch.html?id=${movie.id}&ep=${lastEpIndex}` : `description.html?id=${movie.id}`;
+                    let movieTime = movie.updatedAt || 0;
+                    let isUnread = false;
+
+                    if (!readHistory[movie.id] || readHistory[movie.id] < movieTime) {
+                        isUnread = true;
+                        hasUnread = true; 
+                    }
+
+                    const itemClass = isUnread ? "notif-item unread" : "notif-item";
+
+                    notifList.innerHTML += `
+                        <div class="${itemClass}" onclick="markAsReadAndGoFull('${movie.id}', ${movieTime}, '${targetUrl}')">
+                            <img src="${movie.poster}" class="notif-poster">
+                            <div class="notif-info">
+                                <div class="notif-title">${movie.title}</div>
+                                <div class="notif-desc">🎬 ${lastEpTitle}<br>Bấm để xem ngay!</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (dot) dot.style.display = hasUnread ? 'block' : 'none';
+            } catch (e) { console.error("Lỗi dropdown:", e); }
+        };
+        
+        window.markAllAsRead = window.markAllAsReadFull; 
+
+        // HÀM BẬT/TẮT MENU TRÊN ĐIỆN THOẠI
+            window.toggleMobileMenu = function() {
+                const navLinks = document.getElementById('nav-links');
+                if(navLinks) {
+                    navLinks.classList.toggle('active');
+                }
+            };
+
+            // ==========================================
+            // HỆ THỐNG KÍNH LÚP NAVBAR & TÌM KIẾM THẢ XUỐNG
+            // ==========================================
+            window.navMoviesData = []; // Kho nhớ phụ cho Navbar
+
+            window.renderNavLiveSearch = async function() {
+                const searchBox = document.getElementById('nav-search-box');
+                const dropdown = document.getElementById('nav-search-dropdown');
+                if (!searchBox || !dropdown) return;
+                
+                let keyword = searchBox.value.toLowerCase().trim();
+
+                // Nếu chưa gõ gì thì giấu đi
+                if (!keyword) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                // ⚡ AUTO-FETCH: Nếu dữ liệu trống (vì đang ở trang Profile, About...), nó sẽ chạy lên mây lấy siêu tốc 1 lần
+                if (window.navMoviesData.length === 0) {
+                    try {
+                        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+                        const querySnapshot = await getDocs(collection(db, "movies"));
+                        window.navMoviesData = [];
+                        querySnapshot.forEach((doc) => { window.navMoviesData.push({ id: doc.id, ...doc.data() }); });
+                    } catch (e) { console.log("Lỗi tải data Navbar:", e); }
+                }
+
+                // Lọc Top 4 phim khớp nhất
+                let filtered = window.navMoviesData.filter(m => {
+                    let titleMatch = m.title.toLowerCase().includes(keyword);
+                    let altMatch = m.altTitle && m.altTitle.toLowerCase().includes(keyword);
+                    return titleMatch || altMatch;
+                }).slice(0, 4);
+
+                dropdown.innerHTML = '';
+                
+                // In kết quả
+                if (filtered.length > 0) {
+                    filtered.forEach(movie => {
+                        let firstTag = movie.tag ? movie.tag.split('/')[0].trim() : "Phim";
+                        dropdown.innerHTML += `
+                            <a href="description.html?id=${movie.id}" class="search-dropdown-item">
+                                <img src="${movie.poster}" alt="${movie.title}" class="search-mini-poster">
+                                <div class="search-item-info">
+                                    <span class="search-item-title">${movie.title}</span>
+                                    <span class="search-item-tag">${firstTag}</span>
+                                </div>
+                            </a>
+                        `;
+                    });
+                } else {
+                    dropdown.innerHTML = '<div style="padding: 15px; text-align: center; color: #888; font-size: 13.5px; font-weight: bold;">Ui, không tìm thấy phim này 🥲</div>';
+                }
+
+                // 🌟 NÚT "TÌM TẤT CẢ" (NHƯ GOOGLE) 🌟
+                dropdown.innerHTML += `
+                    <div class="search-view-all" onclick="window.executeNavSearch('${keyword}')">
+                        🔍 Tìm tất cả kết quả cho "${keyword}"
+                    </div>
+                `;
+                
+                dropdown.classList.add('show');
+            };
+
+            // Hàm giấu bảng Dropdown
+            window.hideNavLiveSearch = function() {
+                const dropdown = document.getElementById('nav-search-dropdown');
+                if (dropdown) dropdown.classList.remove('show');
+            };
+
+            // Bấm ra ngoài là tự động thu gọn bảng
+            document.addEventListener('click', function(e) {
+                const wrapper = document.getElementById('nav-search-wrapper');
+                if (wrapper && !wrapper.contains(e.target)) {
+                    window.hideNavLiveSearch();
+                }
+            });
+
+            // 3 HÀM CƠ BẢN GIỮ NGUYÊN 
+            window.toggleNavSearch = function() {
+                const searchBox = document.getElementById('nav-search-box');
+                if (searchBox.classList.contains('active')) {
+                    if (searchBox.value.trim() !== "") { window.executeNavSearch(searchBox.value.trim()); } 
+                    else { searchBox.classList.remove('active'); window.hideNavLiveSearch(); }
+                } else {
+                    searchBox.classList.add('active'); searchBox.focus();
+                }
+            };
+
+            const navSearchBoxObj = document.getElementById('nav-search-box');
+            if (navSearchBoxObj) {
+                navSearchBoxObj.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') { window.executeNavSearch(this.value.trim()); }
+                });
+            }
+
+            window.executeNavSearch = function(keyword) {
+                if (!keyword) return;
+                if (window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/')) {
+                    const mainSearch = document.getElementById('search-box');
+                    if (mainSearch) {
+                        mainSearch.value = keyword;
+                        mainSearch.dispatchEvent(new Event('input'));
+                        window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' });
+                    }
+                } else {
+                    window.location.href = `index.html?search=${encodeURIComponent(keyword)}`;
+                }
+            };
+
+            window.showToast = function(title, message, type = 'success') {
+                // Tạo cái hộp chứa nếu chưa có
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    document.body.appendChild(container);
+                }
+
+                // Tạo thẻ thông báo
+                const toast = document.createElement('div');
+                toast.className = `toast-msg ${type}`;
+                
+                // Chọn icon theo loại
+                let icon = '✅';
+                if (type === 'error') icon = '❌';
+                else if (type === 'info') icon = '⭐';
+
+                toast.innerHTML = `
+                    <div class="toast-icon">${icon}</div>
+                    <div class="toast-content">
+                        <span class="toast-title">${title}</span>
+                        <span class="toast-desc">${message}</span>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+
+                // Tự động bay màu sau 3 giây
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOutRight 0.3s ease-in forwards';
+                    setTimeout(() => { toast.remove(); }, 300); 
+                }, 3000);
+            };
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then((registration) => {
+                    console.log('🚀 PWA Khởi động thành công!');
+                }).catch((error) => {
+                    console.log('❌ Lỗi khởi động PWA: ', error);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
