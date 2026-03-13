@@ -541,56 +541,44 @@
                 }
             };
 
-            window.filterMovies = function(tag, btnElement) {
-                // Hỗ trợ hàm cứng trên HTML
-                const tagContainer = document.getElementById('homepage-tags');
-                if (tagContainer) {
-                    const allBtn = tagContainer.children[0];
-                    const otherBtns = Array.from(tagContainer.querySelectorAll('.filter-btn')).slice(1);
-
-                    if (tag === 'All') {
-                        window.activeTags = [];
-                        allBtn.classList.add('active');
-                        otherBtns.forEach(b => b.classList.remove('active'));
+            // HÀM BẬT/TẮT NHIỀU TAG CÙNG LÚC
+            window.toggleTag = function(tag) {
+                if (tag === 'All') {
+                    window.activeTags = []; // Xóa hết, về "Tất cả"
+                } else {
+                    const index = window.activeTags.indexOf(tag);
+                    if (index > -1) {
+                        window.activeTags.splice(index, 1); // Đã có màu thì tắt màu đi
                     } else {
-                        allBtn.classList.remove('active');
-                        if (btnElement.classList.contains('active')) {
-                            btnElement.classList.remove('active');
-                            window.activeTags = window.activeTags.filter(t => t !== tag);
-                        } else {
-                            btnElement.classList.add('active');
-                            if (!window.activeTags.includes(tag)) window.activeTags.push(tag);
-                        }
-                        if (window.activeTags.length === 0) {
-                            allBtn.classList.add('active');
-                        }
+                        window.activeTags.push(tag); // Chưa có màu thì bật màu lên
                     }
                 }
                 window.applyFilters();
             };
 
+            // HÀM BỘ LỌC TỔNG HỢP (Kết hợp cả Gõ Chữ + Bấm Nhiều Tag)
             window.applyFilters = function() {
-                let searchText = document.getElementById('search-box').value.toLowerCase().trim();
-                let filtered = window.allMoviesData;
+                // 1. Cập nhật giao diện Đổi màu nút Tag
+                const tagContainer = document.getElementById('homepage-tags');
+                if (tagContainer) {
+                    const allBtn = tagContainer.querySelector('#btn-tag-all');
+                    const otherBtns = Array.from(tagContainer.querySelectorAll('.filter-btn')).filter(b => b.id !== 'btn-tag-all');
 
-                if (searchText) {
-                    filtered = filtered.filter(m => {
-                        let titleMatch = m.title.toLowerCase().includes(searchText);
-                        let altMatch = m.altTitle && m.altTitle.toLowerCase().includes(searchText);
-                        return titleMatch || altMatch;
-                    });
+                    if (window.activeTags.length === 0) {
+                        allBtn.classList.add('active');
+                        otherBtns.forEach(b => b.classList.remove('active'));
+                    } else {
+                        allBtn.classList.remove('active');
+                        otherBtns.forEach(btn => {
+                            if (window.activeTags.includes(btn.innerText.trim())) {
+                                btn.classList.add('active');
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        });
+                    }
                 }
-
-                if (window.activeTags.length > 0) {
-                    filtered = filtered.filter(m => {
-                        if (!m.tag) return false;
-                        let movieTags = m.tag.split('/').map(t => t.trim());
-                        return window.activeTags.some(activeT => movieTags.includes(activeT)); // Dùng some để lọc bao quát hơn
-                    });
-                }
-
-                window.renderMoviesList(filtered);
-            };
+            }
 
             document.getElementById('search-box').addEventListener('input', function() {
                 window.applyFilters(); 
