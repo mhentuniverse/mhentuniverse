@@ -175,12 +175,12 @@
 
         <section id="continue-watching-section" class="movie-section" style="display: none; padding-bottom: 0; padding-top: 20px;">
             <h2 class="section-title" style="border-bottom-color: #ff9a55; color: #ff9a55; display: inline-flex; align-items: center; gap: 8px;">
-    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <polyline points="12 6 12 12 16 14"></polyline>
-    </svg> 
-    Tiếp tục xem
-</h2>
+                <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg> 
+                Tiếp tục xem
+            </h2>
             <div class="movie-list" id="continue-watching-container">
                 </div>
         </section>
@@ -198,8 +198,24 @@
                 </div>
                 
                 <div class="filter-tags" id="homepage-tags" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-start;">
+                    <button class="filter-btn active" onclick="filterMovies('All', this)">Tất cả</button>
+                    <button class="filter-btn" onclick="filterMovies('Phép thuật', this)">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Phép thuật
+                    </button>
+                    <button class="filter-btn" onclick="filterMovies('Hành động', this)">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Hành động
+                    </button>
+                    <button class="filter-btn" onclick="filterMovies('Đời thường', this)">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg> Đời thường
+                    </button>
+                    <button class="filter-btn" onclick="filterMovies('Idol', this)">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg> Idol
+                    </button>
+                    <button class="filter-btn" onclick="filterMovies('Movie', this)">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg> Phim rạp
+                    </button>
                 </div>
-        </div>
+            </div>
             
             <div class="movie-list" id="movie-list-container">
                 <div class="movie-card" id="coming-soon-card">
@@ -422,8 +438,9 @@
                     querySnapshot.forEach((doc) => { window.allMoviesData.push({ id: doc.id, ...doc.data() }); });
                     window.allMoviesData.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-                    // Dùng logic hardcode thẻ filter của ngài nên tạm tắt render tự động
-                    window.renderTagButtons();
+                    // Đã tắt render tag bằng JS để dùng HTML cứng
+                    // window.renderTagButtons(); 
+                    
                     window.renderMoviesList(window.allMoviesData);
                     window.renderContinueWatching(); 
 
@@ -514,28 +531,6 @@
                 `;
                 cwContainer.innerHTML = cardHTML;
                 cwSection.style.display = 'block';
-            };
-
-            // Dùng cho trường hợp tự render
-            window.renderTagButtons = function() {
-                let allTags = new Set();
-                window.allMoviesData.forEach(m => {
-                    if (m.tag) {
-                        m.tag.split('/').forEach(t => {
-                            let cleanTag = t.trim();
-                            if (cleanTag) allTags.add(cleanTag);
-                        });
-                    }
-                });
-
-                const tagContainer = document.getElementById('homepage-tags');
-                if (tagContainer) {
-                    let tagsHTML = `<button class="filter-btn active" id="btn-tag-all" onclick="toggleTag('All')">Tất cả</button>`;
-                    allTags.forEach(tag => {
-                        tagsHTML += `<button class="filter-btn" onclick="toggleTag('${tag}')">${tag}</button>`;
-                    });
-                    tagContainer.innerHTML = tagsHTML;
-                }
             };
 
             // [ĐÃ SỬA] HÀM BẬT/TẮT NHIỀU TAG CÙNG LÚC (CHUẨN 100%)
