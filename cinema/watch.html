@@ -11,6 +11,26 @@
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <style>
+        /* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
+        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
+        .app-item:hover .app-icon svg { transform: scale(1.1); }
+        body.dark-mode .app-icon svg { color: #e2e8f0; }
+
+        /* VÁ LỖI LỆCH KHUNG VÀ KHOẢNG CÁCH TRÊN MOBILE */
+        @media (max-width: 768px) {
+            .dropdown-menu.app-switcher-menu {
+                width: 260px !important;
+                right: -60px !important; /* Đẩy lại vào giữa màn hình */
+            }
+            .dropdown-menu.app-switcher-menu::before {
+                right: 90px !important; /* Fix mũi tên trên mobile */
+            }
+            .app-switcher-container { margin-right: 8px !important; }
+            #bell-container { margin-right: 5px !important; }
+        }
+    </style>
 </head>
     <body class="gradient-bg">
         <div id="cinema-overlay" class="cinema-overlay" onclick="toggleCinemaMode()"></div>
@@ -20,8 +40,8 @@
             <p id="loading-text-display" style="color: #ff85a2; font-weight: bold; text-align: center;">
                 MHEnt. - Đang chuẩn bị máy chiếu...
             </p>
-            <button id="btn-emergency-back" onclick="window.history.back()" style="display: none;">
-                ⬅ Quay trở về
+            <button id="btn-emergency-back" onclick="window.history.back()" style="display: none; background: #ff85a2; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Nunito', sans-serif;">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-right: 5px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Quay trở về
             </button>
         </div>
 
@@ -62,23 +82,23 @@
                         
                         <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
                             <a href="/" class="app-item">
-                                <span class="app-icon">🌌</span>
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
                                 <span class="app-name">Đại Sảnh</span>
                             </a>
                             <a href="/cinema/" class="app-item active">
-                                <span class="app-icon">🍿</span>
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
                                 <span class="app-name">Cinema</span>
                             </a>
                             <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Manga đang được xây dựng!', 'info'); return false;">
-                                <span class="app-icon">📚</span>
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
                                 <span class="app-name">Manga</span>
                             </a>
                             <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Novel đang được xây dựng!', 'info'); return false;">
-                                <span class="app-icon">📖</span>
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
                                 <span class="app-name">Novel</span>
                             </a>
                             <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Music đang được xây dựng!', 'info'); return false;">
-                                <span class="app-icon">🎵</span>
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
                                 <span class="app-name">Music</span>
                             </a>
                         </div>
@@ -213,7 +233,10 @@
             <hr class="separator-full">
 
             <div style="width: 100%; padding-top: 10px;">
-                <h3 style="color: #ff85a2; font-weight: 900; margin-bottom: 15px; text-align: left;">💬 Khán giả chém gió</h3>
+                <h3 style="color: #ff85a2; font-weight: 900; margin-bottom: 15px; text-align: left; display: inline-flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    Khán giả chém gió
+                </h3>
                 <div id="disqus_thread" style="width: 100%; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);"></div>
             </div>
 
@@ -702,43 +725,50 @@
                 }); 
             }
             
+            // ĐÃ VÁ LỖI BẬT/TẮT ĐỒNG BỘ 3 BẢNG DROPDOWN
             window.toggleAccount = function() {
                 const acc = document.getElementById('dropdown-account');
                 const notif = document.getElementById('dropdown-notif');
-                if(notif) notif.classList.remove('show');
+                const switcher = document.getElementById('dropdown-app-switcher'); 
+                
+                if(notif) notif.classList.remove('show'); 
+                if(switcher) switcher.classList.remove('show'); 
                 if(acc) acc.classList.toggle('show');
-                if(switcher) switcher.classList.remove('show');
             };
 
             window.toggleNotif = function() {
                 const notif = document.getElementById('dropdown-notif');
                 const acc = document.getElementById('dropdown-account');
-                if(acc) acc.classList.remove('show');
+                const switcher = document.getElementById('dropdown-app-switcher');
+                
+                if(acc) acc.classList.remove('show'); 
+                if(switcher) switcher.classList.remove('show'); 
                 if(notif) notif.classList.toggle('show');
-                if(switcher) switcher.classList.remove('show');
             };
 
-            // HÀM MỞ BẢNG APP SWITCHER
             window.toggleAppSwitcher = function() {
                 const switcher = document.getElementById('dropdown-app-switcher');
                 const notif = document.getElementById('dropdown-notif');
                 const acc = document.getElementById('dropdown-account');
                 
-                // Đóng các bảng khác nếu đang mở
                 if(notif) notif.classList.remove('show');
                 if(acc) acc.classList.remove('show');
-                
-                // Bật/tắt bảng này
                 if(switcher) switcher.classList.toggle('show');
             };
 
             window.onclick = function(event) {
+                // Đóng menu User, Chuông, App Switcher
                 if (!event.target.closest('.user-section') && !event.target.closest('.cinema-overlay') && !event.target.closest('.modal')) {
                     const acc = document.getElementById('dropdown-account');
                     const notif = document.getElementById('dropdown-notif');
+                    const switcher = document.getElementById('dropdown-app-switcher');
+                    
                     if(acc) acc.classList.remove('show');
                     if(notif) notif.classList.remove('show');
+                    if(switcher) switcher.classList.remove('show');
                 }
+                
+                // Đóng luôn Menu Mobile
                 if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
                     const navLinks = document.getElementById('nav-links');
                     if(navLinks) navLinks.classList.remove('active');
@@ -749,11 +779,14 @@
                 const navLinks = document.getElementById('nav-links');
                 const acc = document.getElementById('dropdown-account');
                 const notif = document.getElementById('dropdown-notif');
+                const switcher = document.getElementById('dropdown-app-switcher');
                 
                 if(acc) acc.classList.remove('show'); 
                 if(notif) notif.classList.remove('show'); 
+                if(switcher) switcher.classList.remove('show');
                 if(navLinks) navLinks.classList.toggle('active');
             };
+
 
             window.toggleDarkMode = function() {
                 document.body.classList.toggle('dark-mode');
@@ -1151,7 +1184,7 @@
             if (backToTopBtn) { 
                 window.addEventListener("scroll", () => {
                     if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                        backToTopBtn.style.display = "block";
+                        backToTopBtn.style.display = "flex"; // Dùng flex để canh SVG cho chuẩn
                     } else {
                         backToTopBtn.style.display = "none";
                     }
