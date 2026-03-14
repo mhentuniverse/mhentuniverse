@@ -233,60 +233,64 @@
             }); 
         }
 
+        // Mở bảng này thì tự động vả bảng kia đóng lại
         window.toggleAccount = function() {
             const acc = document.getElementById('dropdown-account');
             const notif = document.getElementById('dropdown-notif');
-            if(notif) notif.classList.remove('show');
+            const switcher = document.getElementById('dropdown-app-switcher'); 
+            
+            if(notif) notif.classList.remove('show'); 
+            if(switcher) switcher.classList.remove('show'); 
             if(acc) acc.classList.toggle('show');
         };
 
         window.toggleNotif = function() {
             const notif = document.getElementById('dropdown-notif');
             const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            
+            if(acc) acc.classList.remove('show'); 
+            if(switcher) switcher.classList.remove('show'); 
             if(notif) notif.classList.toggle('show');
         };
 
-        // HÀM MỞ BẢNG APP SWITCHER
-            window.toggleAppSwitcher = function() {
-                const switcher = document.getElementById('dropdown-app-switcher');
-                const notif = document.getElementById('dropdown-notif');
-                const acc = document.getElementById('dropdown-account');
-                
-                // Đóng các bảng khác nếu đang mở
-                if(notif) notif.classList.remove('show');
-                if(acc) acc.classList.remove('show');
-                
-                // Bật/tắt bảng này
-                if(switcher) switcher.classList.toggle('show');
-            };
-
-        // HÀM BẬT/TẮT MENU TRÊN ĐIỆN THOẠI (Chuẩn hệ sinh thái Dropdown)
-        window.toggleMobileMenu = function() {
-            const navLinks = document.getElementById('nav-links');
-            const acc = document.getElementById('dropdown-account');
+        window.toggleAppSwitcher = function() {
+            const switcher = document.getElementById('dropdown-app-switcher');
             const notif = document.getElementById('dropdown-notif');
+            const acc = document.getElementById('dropdown-account');
             
-            if(acc) acc.classList.remove('show'); 
-            if(notif) notif.classList.remove('show'); 
-            if(navLinks) navLinks.classList.toggle('active');
+            if(notif) notif.classList.remove('show');
+            if(acc) acc.classList.remove('show');
+            if(switcher) switcher.classList.toggle('show');
         };
 
-        // TỰ ĐỘNG THỤT MENU KHI BẤM RA NGOÀI
         window.onclick = function(event) {
-            // Đóng menu User & Chuông
-            if (!event.target.closest('.user-section') && !event.target.closest('.modal')) {
+            if (!event.target.closest('.user-section') && !event.target.closest('.cinema-overlay') && !event.target.closest('.modal')) {
                 const acc = document.getElementById('dropdown-account');
                 const notif = document.getElementById('dropdown-notif');
+                const switcher = document.getElementById('dropdown-app-switcher');
+                
                 if(acc) acc.classList.remove('show');
                 if(notif) notif.classList.remove('show');
+                if(switcher) switcher.classList.remove('show');
             }
             
-            // Đóng luôn Menu Mobile
             if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
                 const navLinks = document.getElementById('nav-links');
                 if(navLinks) navLinks.classList.remove('active');
             }
+        };
+
+        window.toggleMobileMenu = function() {
+            const navLinks = document.getElementById('nav-links');
+            const acc = document.getElementById('dropdown-account');
+            const notif = document.getElementById('dropdown-notif');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            
+            if(acc) acc.classList.remove('show'); 
+            if(notif) notif.classList.remove('show'); 
+            if(switcher) switcher.classList.remove('show');
+            if(navLinks) navLinks.classList.toggle('active');
         };
 
         window.toggleDarkMode = function() {
