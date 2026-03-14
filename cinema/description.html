@@ -24,7 +24,7 @@
                     right: -60px !important; /* Đẩy lại vào giữa màn hình */
                 }
                 .dropdown-menu.app-switcher-menu::before {
-                    right: 90px !important; /* Fix mũi tên trên mobile (Đồng bộ với style.css) */
+                    right: 90px !important; /* Fix mũi tên trên mobile */
                 }
                 .app-switcher-container { margin-right: 8px !important; }
                 #bell-container { margin-right: 5px !important; }
@@ -192,9 +192,15 @@
                 </div>
                 
                 <div class="btn-group" id="action-buttons">
-                    <a id="btn-watch-main" class="btn-watch" style="cursor: pointer;">▶ Vào Rạp Xem Phim</a>
-                    <a id="btn-continue-watch" class="btn-continue" style="display: none; cursor: pointer;">▶ Xem tiếp phim</a>
-                    <button id="btn-trailer" class="btn-trailer" onclick="openTrailer()" style="display: none;">🎬 Xem Trailer</button>
+                    <a id="btn-watch-main" class="btn-watch" style="cursor: pointer;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Vào Rạp Xem Phim
+                    </a>
+                    <a id="btn-continue-watch" class="btn-continue" style="display: none; cursor: pointer;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem tiếp phim
+                    </a>
+                    <button id="btn-trailer" class="btn-trailer" onclick="openTrailer()" style="display: none;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg> Xem Trailer
+                    </button>
                 </div>
             </div>
         </div>
@@ -228,25 +234,23 @@
     </footer>
 
         <script type="module">
-            // Thêm initializeFirestore và các hàm cache vào dòng import
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
             import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
             import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
             const firebaseConfig = {
-            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-            authDomain: "mhentuniverse.firebaseapp.com",
-            projectId: "mhentuniverse",
-            storageBucket: "mhentuniverse.firebasestorage.app",
-            messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
-            measurementId: "G-YE217QW296"
-        };
+                apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+                authDomain: "mhentuniverse.firebaseapp.com",
+                projectId: "mhentuniverse",
+                storageBucket: "mhentuniverse.firebasestorage.app",
+                messagingSenderId: "377044322952",
+                appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
+                measurementId: "G-YE217QW296"
+            };
 
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
 
-            // ⚡ BẬT BỘ NHỚ ĐỆM SIÊU TỐC CHO ĐIỆN THOẠI
             const db = initializeFirestore(app, {
                 localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
             });
@@ -282,23 +286,24 @@
                             // =====================================
                             const actionButtonsBox = document.getElementById('action-buttons');
                             
-                            // Tạo nút mặc định trước
-                            let saveBtnHTML = `<button onclick="saveToLibrary('${movieId}')" class="btn-continue btn-outline" id="btn-save-movie">⭐ Lưu phim</button>`;
+                            // Tạo nút mặc định bằng Vector (Lưu phim)
+                            let saveBtnHTML = `<button onclick="saveToLibrary('${movieId}')" class="btn-continue btn-outline" id="btn-save-movie"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Lưu phim</button>`;
                             
                             // Nếu đã đăng nhập, chạy lên mây kiểm tra nhanh
                             if (auth.currentUser) {
                                 try {
                                     const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
                                     if (userSnap.exists() && userSnap.data().savedMovies && userSnap.data().savedMovies.includes(movieId)) {
-                                        // Đổi mã HTML của nút nếu đã lưu
-                                        saveBtnHTML = `<button onclick="saveToLibrary('${movieId}')" class="btn-continue btn-outline" id="btn-save-movie" style="background: #ff85a2; color: white;">✔️ Đã lưu</button>`;
+                                        // Đổi mã HTML của nút nếu đã lưu (Đã lưu)
+                                        saveBtnHTML = `<button onclick="saveToLibrary('${movieId}')" class="btn-continue btn-outline" id="btn-save-movie" style="background: #ff85a2; color: white;"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -2px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Đã lưu</button>`;
                                     }
                                 } catch(e) { console.log("Lỗi check lưu phim: ", e); }
                             }
 
+                            // Chèn thêm nút Chia sẻ (bằng Vector)
                             actionButtonsBox.innerHTML += `
                                 ${saveBtnHTML}
-                                <button onclick="shareMovie()" class="btn-continue btn-outline" title="Copy link">🔗 Chia sẻ</button>
+                                <button onclick="shareMovie()" class="btn-continue btn-outline" title="Copy link"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -2px;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg> Chia sẻ</button>
                             `;
 
                             let mainBtn = document.getElementById('btn-watch-main');
@@ -319,17 +324,18 @@
 
                                 if (lastEpIndex !== null) {
                                     let epNumber = parseInt(lastEpIndex) + 1;
-                                    mainBtn.innerHTML = '▶ Xem từ đầu';
-                                    continueBtn.innerHTML = '▶ Tiếp tục xem Tập ' + epNumber;
+                                    mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem từ đầu';
+                                    continueBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Tiếp tục xem Tập ' + epNumber;
                                     continueBtn.href = 'watch.html?id=' + movieId;
                                     continueBtn.style.display = 'inline-flex';
                                 } else {
+                                    mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem từ đầu';
                                     mainBtn.href = 'watch.html?id=' + movieId;
                                     mainBtn.onclick = null; 
                                 }
                             } else {
                                 // Nếu là Phim Lẻ (Eiga)
-                                mainBtn.innerHTML = '▶ Xem Phim';
+                                mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem Phim';
                                 mainBtn.href = 'watch.html?id=' + movieId;
                             }
 
@@ -363,14 +369,20 @@
 
                                     allTranslators.add(currentTeam); // Bỏ tên nhóm vào rổ
 
-                                    // In ra từng ô
+                                    // In ra từng ô VỚI VECTOR MỚI
                                     episodeListHTML += `
                                         <a onclick="window.location.href='watch.html?id=${movieId}&ep=${index}'" style="cursor: pointer;" class="ep-list-item">
                                             <div class="ep-item-left">
                                                 <span class="ep-name">${cleanTitle}</span>
-                                                <span class="ep-subtext">👤 ${currentTeam}</span>
+                                                <span class="ep-subtext">
+                                                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                                                    ${currentTeam}
+                                                </span>
                                             </div>
-                                            <div class="ep-item-right">▶ Xem ngay</div>
+                                            <div class="ep-item-right">
+                                                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; vertical-align: -2px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 
+                                                Xem ngay
+                                            </div>
                                         </a>
                                     `;
                                 });
@@ -438,21 +450,21 @@
                         await setDoc(userRef, { savedMovies: arrayRemove(movieId) }, { merge: true });
                         
                         if(saveBtn) {
-                            saveBtn.innerHTML = '⭐ Lưu phim'; // Trả về chữ cũ
-                            saveBtn.style.background = 'transparent'; // Trả về nền trong suốt
-                            saveBtn.style.color = '#ff85a2'; // Trả về viền hồng
+                            saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Lưu phim';
+                            saveBtn.style.background = 'transparent'; 
+                            saveBtn.style.color = '#ff85a2'; 
                         }
-                        showToast('Thông báo', 'Đã bỏ lưu khỏi thư viện', 'info'); // Toast màu hồng
+                        showToast('Thông báo', 'Đã bỏ lưu khỏi thư viện', 'info'); 
                     } else {
                         // NẾU CHƯA CÓ -> THÊM VÀO
                         await setDoc(userRef, { savedMovies: arrayUnion(movieId) }, { merge: true });
                         
                         if(saveBtn) {
-                            saveBtn.innerHTML = '✔️ Đã lưu'; // Đổi thành chữ đã lưu
-                            saveBtn.style.background = '#ff85a2'; // Nền hồng
-                            saveBtn.style.color = 'white'; // Chữ trắng
+                            saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -2px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Đã lưu';
+                            saveBtn.style.background = '#ff85a2'; 
+                            saveBtn.style.color = 'white'; 
                         }
-                        showToast('Thành công', 'Đã thêm vào thư viện', 'success'); // Toast màu xanh
+                        showToast('Thành công', 'Đã thêm vào thư viện', 'success'); 
                     }
                     
                 } catch (error) {
@@ -692,7 +704,7 @@
                                 if (userData.savedMovies && userData.savedMovies.includes(currentMovieId)) {
                                     const saveBtn = document.getElementById('btn-save-movie');
                                     if (saveBtn) {
-                                        saveBtn.innerHTML = '✔️ Đã lưu';
+                                        saveBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -2px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Đã lưu';
                                         saveBtn.style.background = '#ff85a2';
                                         saveBtn.style.color = 'white';
                                     }
@@ -708,11 +720,11 @@
                                     
                                     if (mainBtn && continueBtn) {
                                         // Đổi nút chính thành Xem từ đầu (Bắt buộc chạy Tập 1)
-                                        mainBtn.innerHTML = '▶ Xem từ đầu';
+                                        mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem từ đầu';
                                         mainBtn.onclick = function() { window.location.href = 'watch.html?id=' + currentMovieId + '&ep=0'; };
                                         
                                         // Hiển thị nút Xem tiếp tập lấy từ Mây
-                                        continueBtn.innerHTML = '▶ Tiếp tục xem Tập ' + epNumber;
+                                        continueBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Tiếp tục xem Tập ' + epNumber;
                                         continueBtn.href = 'watch.html?id=' + currentMovieId + '&ep=' + cloudEpIndex;
                                         continueBtn.style.display = 'inline-flex';
                                     }
@@ -928,6 +940,23 @@
                     setTimeout(() => { toast.remove(); }, 300); 
                 }, 3000);
             };
+
+            // BÙA CHÚ VÀ BACK TO TOP (Đã sửa display flex)
+            if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+            window.scrollTo(0, 0);
+
+            const backToTopBtn = document.getElementById("btn-back-to-top");
+            if (backToTopBtn) { 
+                window.addEventListener("scroll", () => {
+                    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                        backToTopBtn.style.display = "flex"; // Dùng flex để canh giữa SVG
+                    } else {
+                        backToTopBtn.style.display = "none";
+                    }
+                });
+                backToTopBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
+            }
+
         </script>
 
         <script>
