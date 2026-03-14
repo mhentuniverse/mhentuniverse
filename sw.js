@@ -1,6 +1,6 @@
-// Bộ não ngầm giúp MHEnt. Cinema đạt chuẩn PWA của Google
+// Bộ não ngầm giúp MHEnt. Universe đạt chuẩn PWA của Google
 self.addEventListener('install', (event) => {
-    console.log('✅ Service Worker MHEnt. đã sẵn sàng!');
+    console.log('✅ Service Worker MHEnt. Universe đã sẵn sàng bảo vệ hệ sinh thái!');
 });
 
 self.addEventListener('fetch', (event) => {
