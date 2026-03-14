@@ -24,9 +24,6 @@
                     width: 260px !important;
                     right: -60px !important; /* Đẩy lại vào giữa màn hình */
                 }
-                .dropdown-menu.app-switcher-menu::before {
-                    right: 105px !important; /* Fix mũi tên trên mobile */
-                }
                 .app-switcher-container { margin-right: 8px !important; }
                 #bell-container { margin-right: 5px !important; }
             }
@@ -541,31 +538,42 @@
                 }
             };
 
-            // [ĐÃ SỬA] HÀM BẬT/TẮT NHIỀU TAG CÙNG LÚC
+            // [ĐÃ SỬA] HÀM BẬT/TẮT NHIỀU TAG CÙNG LÚC (CHUẨN 100%)
             window.filterMovies = function(tag, btnElement) {
                 const tagContainer = document.getElementById('homepage-tags');
                 if (tagContainer) {
                     const allBtn = tagContainer.children[0];
-                    const otherBtns = Array.from(tagContainer.querySelectorAll('.filter-btn')).slice(1);
 
                     if (tag === 'All') {
+                        // Nếu bấm "Tất cả": Xóa sạch mảng, bật sáng nút "Tất cả", tắt hết nút khác
                         window.activeTags = [];
                         allBtn.classList.add('active');
+                        
+                        const otherBtns = Array.from(tagContainer.querySelectorAll('.filter-btn')).slice(1);
                         otherBtns.forEach(b => b.classList.remove('active'));
                     } else {
+                        // Nếu bấm Tag thường: Tắt nút "Tất cả"
                         allBtn.classList.remove('active');
+                        
+                        // Toggle logic cho chính cái nút đang bấm
                         if (btnElement.classList.contains('active')) {
-                            btnElement.classList.remove('active');
-                            window.activeTags = window.activeTags.filter(t => t !== tag);
+                            btnElement.classList.remove('active'); // Bấm lần 2 -> Tắt sáng
+                            window.activeTags = window.activeTags.filter(t => t !== tag); // Xóa khỏi mảng
                         } else {
-                            btnElement.classList.add('active');
-                            if (!window.activeTags.includes(tag)) window.activeTags.push(tag);
+                            btnElement.classList.add('active'); // Bấm lần 1 -> Bật sáng
+                            if (!window.activeTags.includes(tag)) {
+                                window.activeTags.push(tag); // Thêm vào mảng
+                            }
                         }
+                        
+                        // Nếu lỡ tay tắt hết sạch Tag, tự động bật lại nút "Tất cả"
                         if (window.activeTags.length === 0) {
                             allBtn.classList.add('active');
                         }
                     }
                 }
+                
+                // Sau khi tính toán Tag xong thì chạy bộ lọc
                 window.applyFilters();
             };
 
