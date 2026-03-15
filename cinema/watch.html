@@ -552,13 +552,13 @@
                 document.getElementById('btn-server-dp').style.display = tapPhim.linkDuPhong ? 'inline-block' : 'none';
                 document.getElementById('btn-server-dp2').style.display = tapPhim.linkDuPhong2 ? 'inline-block' : 'none';
 
-                if (!tapPhim[window.currentServerType]) {
-                    if (tapPhim.linkSuper) window.currentServerType = 'linkSuper';
-                    else if (tapPhim.linkVIP) window.currentServerType = 'linkVIP';
-                    else if (tapPhim.linkDuPhong) window.currentServerType = 'linkDuPhong';
-                    else if (tapPhim.linkDuPhong2) window.currentServerType = 'linkDuPhong2';
-                    window.changeServerUI(window.currentServerType);
-                }
+                // ÉP BUỘC RESET VỀ SERVER VIP/SUPER MỖI KHI CHUYỂN TẬP
+                if (tapPhim.linkSuper) window.currentServerType = 'linkSuper'; // Ưu tiên SUPER lên số 1 theo ý Chủ tịch
+                else if (tapPhim.linkVIP) window.currentServerType = 'linkVIP';
+                else if (tapPhim.linkDuPhong) window.currentServerType = 'linkDuPhong';
+                else if (tapPhim.linkDuPhong2) window.currentServerType = 'linkDuPhong2';
+                
+                window.changeServerUI(window.currentServerType);
 
                 overlay.style.display = 'flex'; 
                 
