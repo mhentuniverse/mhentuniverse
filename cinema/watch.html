@@ -13,33 +13,58 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
     <style>
-        /* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
         .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
         .app-item:hover .app-icon svg { transform: scale(1.1); }
         body.dark-mode .app-icon svg { color: #e2e8f0; }
-
-        /* VÁ LỖI LỆCH KHUNG VÀ KHOẢNG CÁCH TRÊN MOBILE */
         @media (max-width: 768px) {
-            .dropdown-menu.app-switcher-menu {
-                width: 260px !important;
-                right: -60px !important; /* Đẩy lại vào giữa màn hình */
-            }
-            .dropdown-menu.app-switcher-menu::before {
-                right: 90px !important; /* Fix mũi tên trên mobile */
-            }
+            .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
+            .dropdown-menu.app-switcher-menu::before { right: 90px !important; }
             .app-switcher-container { margin-right: 8px !important; }
             #bell-container { margin-right: 5px !important; }
         }
+
+        /* =========================================
+           CSS CHO CUSTOM VIDEO PLAYER (MHENT. PLAYER)
+           ========================================= */
+        /* Bao bọc video để xử lý Fullscreen nguyên cụm */
+        .mhent-player-wrapper { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 12px; overflow: hidden; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        
+        .mhent-player-wrapper iframe, .mhent-player-wrapper video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; outline: none; }
+        
+        /* Chữ mờ đánh dấu bản quyền (Watermark) */
+        .mhent-watermark { position: absolute; top: 20px; right: 20px; font-size: 24px; font-weight: 900; color: rgba(255, 255, 255, 0.4); text-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none; z-index: 10; user-select: none; font-family: 'Nunito', sans-serif; transition: opacity 0.5s; display: none; }
+
+        /* Thanh điều khiển Custom */
+        .mhent-controls { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%); padding: 30px 20px 15px; display: flex; flex-direction: column; gap: 10px; z-index: 20; opacity: 1; transition: opacity 0.3s ease; display: none; /* Mặc định ẩn, chỉ hiện khi dùng video tag */ }
+        .mhent-player-wrapper.hide-controls .mhent-controls { opacity: 0; pointer-events: none; }
+        .mhent-player-wrapper.hide-controls .mhent-watermark { opacity: 0.1; }
+
+        /* Thanh thời gian (Progress Bar) */
+        .mhent-progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.3); border-radius: 4px; cursor: pointer; position: relative; transition: height 0.2s; }
+        .mhent-progress-container:hover { height: 8px; }
+        .mhent-progress-bar { height: 100%; width: 0%; background: #ff85a2; border-radius: 4px; position: relative; }
+        .mhent-progress-bar::after { content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%) scale(0); width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; }
+        .mhent-progress-container:hover .mhent-progress-bar::after { transform: translateY(-50%) scale(1); }
+
+        /* Các nút bấm */
+        .mhent-controls-row { display: flex; justify-content: space-between; align-items: center; }
+        .mhent-controls-left, .mhent-controls-right { display: flex; align-items: center; gap: 15px; }
+        
+        .mhent-btn { background: transparent; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px; transition: 0.2s; }
+        .mhent-btn:hover { color: #ff85a2; transform: scale(1.1); }
+        .mhent-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+        .mhent-time { color: white; font-size: 13.5px; font-weight: bold; font-family: 'Nunito', sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+        /* Khi Fullscreen */
+        .mhent-player-wrapper:fullscreen { border-radius: 0; }
     </style>
 </head>
     <body class="gradient-bg">
         <div id="cinema-overlay" class="cinema-overlay" onclick="toggleCinemaMode()"></div>
-
         <div id="loading-overlay" class="loading-overlay">
             <div id="loading-spinner" class="spinner"></div>
-            <p id="loading-text-display" style="color: #ff85a2; font-weight: bold; text-align: center;">
-                MHEnt. - Đang chuẩn bị máy chiếu...
-            </p>
+            <p id="loading-text-display" style="color: #ff85a2; font-weight: bold; text-align: center;">MHEnt. - Đang chuẩn bị máy chiếu...</p>
             <button id="btn-emergency-back" onclick="window.history.back()" style="display: none; background: #ff85a2; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Nunito', sans-serif;">
                 <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-right: 5px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Quay trở về
             </button>
@@ -47,135 +72,53 @@
 
         <nav class="navbar">
             <div class="nav-left">
-                <a onclick="window.location.href='index.html'" style="cursor: pointer;">
-                    <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
-                    <span class="logo-name">MHEnt. Cinema</span>
-                </a>
+                <a onclick="window.location.href='index.html'" style="cursor: pointer;"><img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img"><span class="logo-name">MHEnt. Cinema</span></a>
             </div>
-
             <ul class="nav-links" id="nav-links">
                 <li><a onclick="window.location.href='index.html'" style="cursor: pointer;">Trang chủ</a></li>
                 <li><a onclick="window.location.href='index.html#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
                 <li><a onclick="window.location.href='/about.html'" style="cursor: pointer;">Về chúng tớ</a></li>
             </ul>
-
             <div class="nav-right">
                 <div class="nav-search-container" id="nav-search-wrapper">
-                    <input type="text" id="nav-search-box" placeholder="Tìm phim..." 
-                           oninput="window.renderNavLiveSearch()" 
-                           onfocus="window.renderNavLiveSearch()">
-                    <div class="nav-search-icon" onclick="toggleNavSearch()" title="Tìm kiếm">
-                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </div>
+                    <input type="text" id="nav-search-box" placeholder="Tìm phim..." oninput="window.renderNavLiveSearch()" onfocus="window.renderNavLiveSearch()">
+                    <div class="nav-search-icon" onclick="toggleNavSearch()" title="Tìm kiếm"><svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
                     <div id="nav-search-dropdown" class="search-dropdown"></div>
                 </div>
-                
                 <div class="user-section">
                     <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
                         <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='#ff85a2'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                                <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
-                                <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
-                                <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
-                            </svg>
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle></svg>
                         </div>
-                        
                         <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
-                            <a href="/" class="app-item">
-                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
-                                <span class="app-name">Đại Sảnh</span>
-                            </a>
-                            <a href="/cinema/" class="app-item active">
-                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
-                                <span class="app-name">Cinema</span>
-                            </a>
-                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Manga đang được xây dựng!', 'info'); return false;">
-                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
-                                <span class="app-name">Manga</span>
-                            </a>
-                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Novel đang được xây dựng!', 'info'); return false;">
-                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
-                                <span class="app-name">Novel</span>
-                            </a>
-                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Music đang được xây dựng!', 'info'); return false;">
-                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
-                                <span class="app-name">Music</span>
-                            </a>
+                            <a href="/" class="app-item"><span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span><span class="app-name">Đại Sảnh</span></a>
+                            <a href="/cinema/" class="app-item active"><span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span><span class="app-name">Cinema</span></a>
                         </div>
                     </div>
                     <div id="bell-container" style="display: none; position: relative;">
-                        <div class="notif-bell" onclick="toggleNotif()" style="cursor: pointer;">
-                            <svg viewBox="0 0 24 24" width="22" height="22" class="svg-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                            <span class="notif-dot"></span>
-                        </div>
-                        <div id="dropdown-notif" class="dropdown-menu notif-dropdown">
-                            <div class="notif-header">
-                                <span class="notif-title-text">Thông báo</span>
-                                <span class="notif-mark-read" onclick="markAllAsRead()">Đánh dấu tất cả là đã đọc</span>
-                            </div>
-                            <div id="notif-list" class="notif-body"></div>
-                            <div class="notif-footer">
-                                <button class="btn-view-all" onclick="window.location.href='notification.html'">Xem tất cả ></button>
-                            </div>
-                        </div>
+                        <div class="notif-bell" onclick="toggleNotif()" style="cursor: pointer;"><svg viewBox="0 0 24 24" width="22" height="22" class="svg-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="notif-dot"></span></div>
+                        <div id="dropdown-notif" class="dropdown-menu notif-dropdown"><div class="notif-header"><span class="notif-title-text">Thông báo</span><span class="notif-mark-read" onclick="markAllAsRead()">Đánh dấu tất cả là đã đọc</span></div><div id="notif-list" class="notif-body"></div><div class="notif-footer"><button class="btn-view-all" onclick="window.location.href='notification.html'">Xem tất cả ></button></div></div>
                     </div>
-
-                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
-                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                    </button>
-                    
-                    <button id="btn-login" class="btn-login btn-with-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
-                        Đăng nhập
-                    </button>
-
+                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn"><svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+                    <button id="btn-login" class="btn-login btn-with-icon"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>Đăng nhập</button>
                     <div id="user-profile" class="user-profile" style="position: relative; display: none;">
-                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <img id="user-avatar" src="" alt="User" class="user-avatar">
-                            <span id="user-name" class="user-name">Tên User</span>
-                        </div>
-                        
+                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><img id="user-avatar" src="" alt="User" class="user-avatar"><span id="user-name" class="user-name">Tên User</span></div>
                         <div id="dropdown-account" class="dropdown-menu account-dropdown">
-                            <div class="dropdown-item" onclick="window.location.href='/profile.html#info'">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
-                            </div>
-                            <div class="dropdown-item" onclick="window.location.href='library.html'">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện
-                            </div>
-                            <div class="dropdown-item" onclick="toggleDarkMode()">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode
-                            </div>
-                            <div class="dropdown-item" onclick="window.location.href='/profile.html#settings'">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Cài đặt
-                            </div>
+                            <div class="dropdown-item" onclick="window.location.href='/profile.html#info'"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ</div>
+                            <div class="dropdown-item" onclick="window.location.href='library.html'"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện</div>
+                            <div class="dropdown-item" onclick="toggleDarkMode()"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode</div>
                             <div class="dropdown-divider"></div>
-                            <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #28a745 !important;" onclick="window.open('admin.html', '_blank')">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Admin
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <div id="studio-panel-btn" class="dropdown-item" style="display: none; color: #ff9a00 !important;" onclick="window.open('studio.html', '_blank')">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Phòng Studio
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
-                            </div>
+                            <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
                         </div>
                     </div>
                 </div>
-
-                <div class="menu-toggle" onclick="toggleMobileMenu()">
-                    <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                </div>
+                <div class="menu-toggle" onclick="toggleMobileMenu()"><svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
             </div>
         </nav>
 
         <main class="watch-container">
             <div class="back-navigation" style="margin-bottom: 20px;">
-                <a onclick="window.location.href='description.html?id=' + window.currentMovieId" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" class="btn-back">
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                    Quay lại Trang Thông Tin
-                </a>
+                <a onclick="window.location.href='description.html?id=' + window.currentMovieId" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" class="btn-back"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Quay lại Trang Thông Tin</a>
             </div>
             <div class="watch-layout">
                 <div class="video-section" id="video-section-container">
@@ -185,32 +128,45 @@
                             <p id="current-episode">Đang tải phim...</p>
                         </div>
             
-                        <div class="video-player-wrapper">
-                            <iframe id="main-player-iframe" src="" frameborder="0" allowfullscreen style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+                        <div class="mhent-player-wrapper" id="mhent-player">
+                            <iframe id="main-player-iframe" src="" frameborder="0" allow="fullscreen; autoplay" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" style="display: none;"></iframe>
                             
-                            <video id="main-player-video" controls playsinline style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;"></video>
+                            <video id="main-player-video" playsinline style="display: none;"></video>
+                            
+                            <div class="mhent-watermark" id="player-watermark">MHEnt.</div>
+                            
+                            <div class="mhent-controls" id="player-controls-ui">
+                                <div class="mhent-progress-container" id="player-progress-bar">
+                                    <div class="mhent-progress-bar" id="player-progress-fill"></div>
+                                </div>
+                                <div class="mhent-controls-row">
+                                    <div class="mhent-controls-left">
+                                        <button class="mhent-btn" id="btn-play-pause" title="Phát/Tạm dừng">
+                                            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" id="icon-play-path"/></svg>
+                                        </button>
+                                        <span class="mhent-time" id="player-time">00:00 / 00:00</span>
+                                    </div>
+                                    <div class="mhent-controls-right">
+                                        <button class="mhent-btn" id="btn-pip" title="Thu nhỏ cửa sổ (PiP)">
+                                            <svg viewBox="0 0 24 24"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/></svg>
+                                        </button>
+                                        <button class="mhent-btn" id="btn-fullscreen" title="Toàn màn hình">
+                                            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="cinema-tools player-controls" id="cinema-tools-bar">
                             <div class="tools-row-1">
                                 <div class="tools-group">
                                     <span style="font-weight: bold; color: #888;">Hệ thống:</span>
-                                    <button id="btn-prev-ep" class="tool-btn" style="display: none;" onclick="window.changeEpisode(-1)">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 19 2 12 11 5 11 19"></polygon><polygon points="22 19 13 12 22 5 22 19"></polygon></svg>
-                                        Tập Trước
-                                    </button>
-                                    <button id="btn-next-ep" class="tool-btn" style="display: none;" onclick="window.changeEpisode(1)">
-                                        Tập Sau
-                                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
-                                    </button>
-                                    <button id="btn-cinema-mode" class="tool-btn" onclick="window.toggleCinemaMode()">
-                                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                        Tắt đèn
-                                    </button>
+                                    <button id="btn-prev-ep" class="tool-btn" style="display: none;" onclick="window.changeEpisode(-1)"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 19 2 12 11 5 11 19"></polygon><polygon points="22 19 13 12 22 5 22 19"></polygon></svg>Tập Trước</button>
+                                    <button id="btn-next-ep" class="tool-btn" style="display: none;" onclick="window.changeEpisode(1)">Tập Sau<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg></button>
+                                    <button id="btn-cinema-mode" class="tool-btn" onclick="window.toggleCinemaMode()"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>Tắt đèn</button>
                                 </div>
-                                <button id="btn-report" onclick="reportEpisode()" style="background: #ff4d4d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Nunito', sans-serif;">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Báo lỗi
-                                </button>
+                                <button id="btn-report" onclick="reportEpisode()" style="background: #ff4d4d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Nunito', sans-serif;"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Báo lỗi</button>
                             </div>
                             
                             <div class="server-list-mini">
@@ -231,17 +187,11 @@
             </div>
 
             <hr class="separator-full">
-
             <div style="width: 100%; padding-top: 10px;">
-                <h3 style="color: #ff85a2; font-weight: 900; margin-bottom: 15px; text-align: left; display: inline-flex; align-items: center; gap: 10px;">
-                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    Khán giả chém gió
-                </h3>
+                <h3 style="color: #ff85a2; font-weight: 900; margin-bottom: 15px; text-align: left; display: inline-flex; align-items: center; gap: 10px;"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>Khán giả chém gió</h3>
                 <div id="disqus_thread" style="width: 100%; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);"></div>
             </div>
-
             <hr class="separator-full">
-
             <div class="info-footer-container">
                 <img id="footer-poster" src="" alt="Poster" class="poster-watch-fix">
                 <div class="info-content-box">
@@ -249,11 +199,7 @@
                     <div id="rating-section" style="margin: 0 0 15px 0; background: rgba(255, 133, 162, 0.1); padding: 8px 15px; border-radius: 8px; display: inline-block;">
                         <span style="color: #ff85a2; font-weight: bold; margin-right: 10px; font-size: 14px;">Đánh giá phim:</span>
                         <span class="star-rating" style="font-size: 20px; color: #ffd700; cursor: pointer;">
-                            <span class="star" onclick="rateMovie(1)">☆</span>
-                            <span class="star" onclick="rateMovie(2)">☆</span>
-                            <span class="star" onclick="rateMovie(3)">☆</span>
-                            <span class="star" onclick="rateMovie(4)">☆</span>
-                            <span class="star" onclick="rateMovie(5)">☆</span>
+                            <span class="star" onclick="rateMovie(1)">☆</span><span class="star" onclick="rateMovie(2)">☆</span><span class="star" onclick="rateMovie(3)">☆</span><span class="star" onclick="rateMovie(4)">☆</span><span class="star" onclick="rateMovie(5)">☆</span>
                         </span>
                         <span id="rating-text" style="font-size: 13px; color: #888; margin-left: 10px;">(Bạn thấy phim thế nào?)</span>
                     </div>
@@ -267,23 +213,15 @@
             </div>
         </main>
 
-        <button id="btn-back-to-top" title="Lên đầu trang" style="display: none; align-items: center; justify-content: center; padding: 0;">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-        </button>
+        <button id="btn-back-to-top" title="Lên đầu trang" style="display: none; align-items: center; justify-content: center; padding: 0;"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
 
         <footer>
         <div class="footer-bottom">
             <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
             <div class="footer-social">
-                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link">
-                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                    Fanpage MHEnt.
-                </a>
+                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link"><svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>Fanpage MHEnt.</a>
                 <span class="footer-dot">•</span>
-                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link">
-                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    Cộng đồng MHEnt.
-                </a>
+                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link"><svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Cộng đồng MHEnt.</a>
             </div>
         </div>
     </footer>
@@ -305,29 +243,96 @@
 
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
+            const db = initializeFirestore(app, { localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()}) });
 
-            // ⚡ BẬT BỘ NHỚ ĐỆM SIÊU TỐC CHO ĐIỆN THOẠI
-            const db = initializeFirestore(app, {
-                localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
-            });
-
-            // Các biến toàn cục điều khiển rạp
             const epTitle = document.getElementById('current-episode');
             const overlay = document.getElementById('loading-overlay');
-            
             window.currentEpIndex = 0;
-            window.currentServerType = 'linkSuper'; // Ưu tiên load HLS (Super) đầu tiên
+            window.currentServerType = 'linkSuper';
             window.currentMovieData = null;
             window.currentMovieId = null;
 
+            // ==========================================
+            // LOGIC CỦA MHEnt. CUSTOM PLAYER
+            // ==========================================
+            const videoWrapper = document.getElementById('mhent-player');
+            const video = document.getElementById('main-player-video');
+            const iframe = document.getElementById('main-player-iframe');
+            const customControls = document.getElementById('player-controls-ui');
+            const watermark = document.getElementById('player-watermark');
+            const playPauseBtn = document.getElementById('btn-play-pause');
+            const iconPlayPath = document.getElementById('icon-play-path');
+            const timeDisplay = document.getElementById('player-time');
+            const progressContainer = document.getElementById('player-progress-bar');
+            const progressFill = document.getElementById('player-progress-fill');
+            const fullscreenBtn = document.getElementById('btn-fullscreen');
+            const pipBtn = document.getElementById('btn-pip');
+            let hideControlsTimeout;
+
+            function formatTime(seconds) {
+                if (isNaN(seconds)) return "00:00";
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+            }
+
+            function togglePlayPause() {
+                if (video.paused) { video.play(); } else { video.pause(); }
+            }
+
+            video.addEventListener('play', () => { iconPlayPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); }); // Đổi icon Pause
+            video.addEventListener('pause', () => { iconPlayPath.setAttribute('d', 'M8 5v14l11-7z'); }); // Đổi icon Play
+
+            video.addEventListener('timeupdate', () => {
+                timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+                const percent = (video.currentTime / video.duration) * 100;
+                progressFill.style.width = `${percent}%`;
+            });
+
+            progressContainer.addEventListener('click', (e) => {
+                const rect = progressContainer.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                video.currentTime = pos * video.duration;
+            });
+
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            video.addEventListener('click', togglePlayPause); // Bấm vào video cũng Pause/Play
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    if (videoWrapper.requestFullscreen) videoWrapper.requestFullscreen();
+                    else if (videoWrapper.webkitRequestFullscreen) videoWrapper.webkitRequestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                }
+            });
+
+            pipBtn.addEventListener('click', async () => {
+                try {
+                    if (document.pictureInPictureElement) await document.exitPictureInPicture();
+                    else await video.requestPictureInPicture();
+                } catch (error) { console.log("PiP không được hỗ trợ"); }
+            });
+
+            // Ẩn hiện thanh điều khiển thông minh
+            function resetHideControlsTimer() {
+                videoWrapper.classList.remove('hide-controls');
+                clearTimeout(hideControlsTimeout);
+                if (!video.paused) {
+                    hideControlsTimeout = setTimeout(() => { videoWrapper.classList.add('hide-controls'); }, 2500);
+                }
+            }
+            videoWrapper.addEventListener('mousemove', resetHideControlsTimer);
+            videoWrapper.addEventListener('mouseleave', () => { if (!video.paused) videoWrapper.classList.add('hide-controls'); });
+            video.addEventListener('pause', () => { videoWrapper.classList.remove('hide-controls'); clearTimeout(hideControlsTimeout); });
+
             // 🧠 BỘ NÃO NHẬN DIỆN VÀ CHẠY PHIM THÔNG MINH
             window.applyVideoSource = function(link) {
-                const iframe = document.getElementById('main-player-iframe');
-                const video = document.getElementById('main-player-video');
-
-                // Dọn dẹp tàn dư cũ
                 iframe.style.display = 'none';
                 video.style.display = 'none';
+                customControls.style.display = 'none';
+                watermark.style.display = 'none';
                 iframe.src = "";
                 video.pause();
                 video.removeAttribute('src');
@@ -335,28 +340,26 @@
 
                 if (!link) return;
 
-                // Phân loại Link
                 if (link.includes('.m3u8')) {
-                    // 🌟 CHẾ ĐỘ HLS SIÊU TỐC (Dành cho Server Super)
                     video.style.display = 'block';
+                    customControls.style.display = 'flex'; // Bật Custom Player
+                    watermark.style.display = 'block';
                     if (Hls.isSupported()) {
                         window.hls = new Hls();
                         window.hls.loadSource(link);
                         window.hls.attachMedia(video);
-                        window.hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                            video.play().catch(e => console.log("Trình duyệt chặn Autoplay"));
-                        });
+                        window.hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play().catch(e=>{}); });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         video.src = link;
                         video.addEventListener('loadedmetadata', function() { video.play(); });
                     }
                 } else if (link.includes('.mp4')) {
-                    // 🎥 CHẾ ĐỘ MP4 TRUYỀN THỐNG (Dành cho Archive)
                     video.style.display = 'block';
+                    customControls.style.display = 'flex'; // Bật Custom Player
+                    watermark.style.display = 'block';
                     video.src = link;
-                    video.play().catch(e => console.log("Trình duyệt chặn Autoplay"));
+                    video.play().catch(e=>{});
                 } else {
-                    // 🌐 CHẾ ĐỘ IFRAME (Dành cho Google Drive, VK, FB...)
                     iframe.style.display = 'block';
                     iframe.src = link;
                 }
@@ -379,7 +382,6 @@
                                 return; 
                             }
 
-                            // Bơm thông tin cơ bản
                             document.getElementById('cinema-title').innerText = window.currentMovieData.title || '';
                             document.getElementById('footer-title').innerText = window.currentMovieData.title || '';
                             document.getElementById('footer-desc').innerHTML = window.currentMovieData.desc || '';
@@ -389,175 +391,89 @@
 
                             renderButtons();
 
-                            // Khôi phục Trí Nhớ & Đọc URL
                             let startEp = 0; 
                             if (window.currentMovieData.type === 'series') {
                                 let localKey = 'mhent_' + window.currentMovieId + '_last_ep';
                                 let epFromURL = urlParams.get('ep');
-                                
-                                if (epFromURL !== null) {
-                                    startEp = parseInt(epFromURL);
-                                    localStorage.setItem(localKey, startEp);
-                                } else {
-                                    let savedEp = localStorage.getItem(localKey);
-                                    if (savedEp !== null) { startEp = parseInt(savedEp); }
-                                }
+                                if (epFromURL !== null) { startEp = parseInt(epFromURL); localStorage.setItem(localKey, startEp); } 
+                                else { let savedEp = localStorage.getItem(localKey); if (savedEp !== null) { startEp = parseInt(savedEp); } }
                                 if (startEp >= window.currentMovieData.episodes.length || startEp < 0) { startEp = 0; }
                             }
-
                             window.playVideo(startEp);
 
-                        } else {
-                            alert("Không tìm thấy dữ liệu phim!");
-                            window.location.href = 'index.html';
-                        }
-                    } catch (error) {
-                        console.error("Lỗi:", error);
-                        alert("Lỗi kết nối vệ tinh!");
-                    }
-                } else {
-                    window.location.href = 'index.html';
-                }
+                        } else { alert("Không tìm thấy dữ liệu phim!"); window.location.href = 'index.html'; }
+                    } catch (error) { console.error("Lỗi:", error); alert("Lỗi kết nối vệ tinh!"); }
+                } else { window.location.href = 'index.html'; }
             });
 
-            // ==========================================
-            // HỆ THỐNG IN NÚT TẬP PHIM (V2.0 - BẢN LUXURY VIP - ĐÃ ÉP CÂN)
-            // ==========================================
             function renderButtons() {
                 const container = document.getElementById('list-buttons'); 
                 if (!container) return;
-                
-                container.className = ''; 
-                container.innerHTML = '';
+                container.className = ''; container.innerHTML = '';
 
-                // 🌟 TỰ ĐỘNG BƠM CSS LUXURY CHO NÚT BẤM (Bản Mini gọn gàng)
                 if (!document.getElementById('luxury-ep-styles')) {
                     const style = document.createElement('style');
                     style.id = 'luxury-ep-styles';
                     style.innerHTML = `
-                        .ep-btn-custom {
-                            padding: 7px 12px !important; /* Đã thu nhỏ chiều cao và chiều ngang */
-                            border-radius: 8px !important; /* Bo góc gọn gàng hơn */
-                            font-weight: 800 !important;
-                            font-size: 12px !important; /* Chữ nhỏ lại một chút */
-                            border: 1px solid rgba(136, 136, 136, 0.2) !important;
-                            background: transparent !important;
-                            color: var(--text-color, #333) !important;
-                            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-                        }
-                        body.dark-mode .ep-btn-custom {
-                            color: #e0e0e0 !important;
-                            border-color: rgba(255, 133, 162, 0.3) !important;
-                        }
-                        .ep-btn-custom:hover {
-                            transform: translateY(-2px) !important;
-                            box-shadow: 0 4px 10px rgba(255, 133, 162, 0.15) !important;
-                            border-color: #ff85a2 !important;
-                            color: #ff85a2 !important;
-                        }
-                        .ep-btn-custom.active {
-                            background: linear-gradient(135deg, #ff85a2, #ff5c8a) !important;
-                            color: white !important;
-                            border-color: transparent !important;
-                            box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3) !important;
-                            transform: translateY(-2px) !important;
-                        }
+                        .ep-btn-custom { padding: 7px 12px !important; border-radius: 8px !important; font-weight: 800 !important; font-size: 12px !important; border: 1px solid rgba(136, 136, 136, 0.2) !important; background: transparent !important; color: var(--text-color, #333) !important; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; }
+                        body.dark-mode .ep-btn-custom { color: #e0e0e0 !important; border-color: rgba(255, 133, 162, 0.3) !important; }
+                        .ep-btn-custom:hover { transform: translateY(-2px) !important; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.15) !important; border-color: #ff85a2 !important; color: #ff85a2 !important; }
+                        .ep-btn-custom.active { background: linear-gradient(135deg, #ff85a2, #ff5c8a) !important; color: white !important; border-color: transparent !important; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3) !important; transform: translateY(-2px) !important; }
                     `;
                     document.head.appendChild(style);
                 }
 
                 if (!window.currentMovieData || !window.currentMovieData.episodes) return;
-
                 const groups = {}; 
-
                 window.currentMovieData.episodes.forEach((ep, index) => {
-                    let teamName = "MHEnt. Subtitle"; 
-                    let cleanTitle = ep.title; 
-
+                    let teamName = "MHEnt. Subtitle"; let cleanTitle = ep.title; 
                     const match = ep.title.match(/(.+) \[(.+)\]$/);
-                    if (match) {
-                        cleanTitle = match[1].trim(); 
-                        teamName = match[2].trim();   
-                    } else if (ep.title.includes('[')) { 
-                        const parts = ep.title.split('[');
-                        cleanTitle = parts[0].trim();
-                        teamName = parts[1].replace(']', '').trim();
-                    }
-
+                    if (match) { cleanTitle = match[1].trim(); teamName = match[2].trim(); } 
+                    else if (ep.title.includes('[')) { const parts = ep.title.split('['); cleanTitle = parts[0].trim(); teamName = parts[1].replace(']', '').trim(); }
                     let shortTitle = cleanTitle.split(':')[0].trim();
                     if (!groups[teamName]) { groups[teamName] = []; }
                     groups[teamName].push({ originalIndex: index, shortTitle: shortTitle });
                 });
 
                 let finalHTML = '';
-                
                 for (const team in groups) {
-                    finalHTML += `
-                        <div style="background: rgba(255, 133, 162, 0.03); border: 1px solid rgba(255, 133, 162, 0.15); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(255, 133, 162, 0.05); transition: 0.3s; position: relative; overflow: hidden;">
-                            
+                    finalHTML += `<div style="background: rgba(255, 133, 162, 0.03); border: 1px solid rgba(255, 133, 162, 0.15); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(255, 133, 162, 0.05); transition: 0.3s; position: relative; overflow: hidden;">
                             <div style="position: absolute; top: -15px; right: -15px; width: 60px; height: 60px; background: linear-gradient(135deg, rgba(255,133,162,0.2), transparent); border-radius: 50%;"></div>
-
                             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px dashed rgba(255, 133, 162, 0.3); padding-bottom: 10px; margin-bottom: 12px; position: relative; z-index: 2;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="background: linear-gradient(135deg, #ff85a2, #ff5c8a); color: white; padding: 6px; border-radius: 8px; display: flex; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3);">
-                                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                    </div>
-                                    <div style="display: flex; flex-direction: column;">
-                                        <span style="font-size: 10px; color: #888; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Thực hiện bởi</span>
-                                        <span style="font-size: 13px; font-weight: 900; color: #ff85a2; letter-spacing: 0.5px;">${team}</span>
-                                    </div>
-                                </div>
-                                <span style="font-size: 9px; background: rgba(255,133,162,0.1); color: #ff85a2; padding: 3px 8px; border-radius: 20px; font-weight: 900; letter-spacing: 0.5px; border: 1px solid rgba(255,133,162,0.2);">VIP</span>
-                            </div>
-
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; position: relative; z-index: 2;">
-                    `;
-
+                                    <div style="background: linear-gradient(135deg, #ff85a2, #ff5c8a); color: white; padding: 6px; border-radius: 8px; display: flex; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3);"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                                    <div style="display: flex; flex-direction: column;"><span style="font-size: 10px; color: #888; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Thực hiện bởi</span><span style="font-size: 13px; font-weight: 900; color: #ff85a2; letter-spacing: 0.5px;">${team}</span></div>
+                                </div><span style="font-size: 9px; background: rgba(255,133,162,0.1); color: #ff85a2; padding: 3px 8px; border-radius: 20px; font-weight: 900; letter-spacing: 0.5px; border: 1px solid rgba(255,133,162,0.2);">VIP</span>
+                            </div><div style="display: flex; flex-wrap: wrap; gap: 8px; position: relative; z-index: 2;">`;
                     groups[team].forEach(ep => {
                         let isActive = (window.currentEpIndex === ep.originalIndex) ? 'active' : '';
-                        finalHTML += `
-                            <button class="ep-btn-custom ${isActive}" data-index="${ep.originalIndex}" onclick="playVideo(${ep.originalIndex})">
-                                ${ep.shortTitle}
-                            </button>
-                        `;
+                        finalHTML += `<button class="ep-btn-custom ${isActive}" data-index="${ep.originalIndex}" onclick="playVideo(${ep.originalIndex})">${ep.shortTitle}</button>`;
                     });
-
-                    finalHTML += `
-                            </div>
-                        </div>
-                    `;
+                    finalHTML += `</div></div>`;
                 }
-
                 container.innerHTML = finalHTML;
             }
 
             window.playVideo = function(index) {
                 window.currentEpIndex = index;
-                window.isAutoNextTriggered = false; // DÒNG MỚI: Reset lại hệ thống đếm ngược cho tập mới
+                window.isAutoNextTriggered = false; 
                 const tapPhim = window.currentMovieData.episodes[index];
                 
-                // Đồng bộ tiến độ lên Mây
                 const user = auth.currentUser;
                 if(user) {
                     const userRef = doc(db, "users", user.uid);
-                    setDoc(userRef, { 
-                        lastWatched: { [window.currentMovieId]: index },
-                        latestWatchedId: window.currentMovieId 
-                    }, { merge: true });
+                    setDoc(userRef, { lastWatched: { [window.currentMovieId]: index }, latestWatchedId: window.currentMovieId }, { merge: true });
                 }
 
-                // Hiện/Ẩn 4 nút Server
                 document.getElementById('btn-server-super').style.display = tapPhim.linkSuper ? 'inline-block' : 'none';
                 document.getElementById('btn-server-vip').style.display = tapPhim.linkVIP ? 'inline-block' : 'none';
                 document.getElementById('btn-server-dp').style.display = tapPhim.linkDuPhong ? 'inline-block' : 'none';
                 document.getElementById('btn-server-dp2').style.display = tapPhim.linkDuPhong2 ? 'inline-block' : 'none';
 
-                // ÉP BUỘC RESET VỀ SERVER VIP/SUPER MỖI KHI CHUYỂN TẬP
-                if (tapPhim.linkSuper) window.currentServerType = 'linkSuper'; // Ưu tiên SUPER lên số 1 theo ý Chủ tịch
-                else if (tapPhim.linkVIP) window.currentServerType = 'linkVIP';
+                if (tapPhim.linkVIP) window.currentServerType = 'linkVIP'; 
+                else if (tapPhim.linkSuper) window.currentServerType = 'linkSuper';
                 else if (tapPhim.linkDuPhong) window.currentServerType = 'linkDuPhong';
                 else if (tapPhim.linkDuPhong2) window.currentServerType = 'linkDuPhong2';
-                
                 window.changeServerUI(window.currentServerType);
 
                 overlay.style.display = 'flex'; 
@@ -566,39 +482,28 @@
                     let finalLink = tapPhim[window.currentServerType];
                     window.applyVideoSource(finalLink);
                     
-                    // Bóc tách tên nhóm ra khỏi tên tập để hiển thị cho gọn
                     let cleanEpTitle = tapPhim.title;
                     const matchTitle = tapPhim.title.match(/(.+) \[(.+)\]$/);
-                    if (matchTitle) {
-                        cleanEpTitle = matchTitle[1].trim(); 
-                    } else if (tapPhim.title.includes('[')) { 
-                        cleanEpTitle = tapPhim.title.split('[')[0].trim();
-                    }
+                    if (matchTitle) { cleanEpTitle = matchTitle[1].trim(); } else if (tapPhim.title.includes('[')) { cleanEpTitle = tapPhim.title.split('[')[0].trim(); }
                     
-                    epTitle.innerText = cleanEpTitle; // Chỉ in tên tập sạch sẽ lên màn hình
-                    
+                    epTitle.innerText = cleanEpTitle; 
                     const epName = cleanEpTitle.split(':')[0]; 
                     const movieName = window.currentMovieData.title; 
                     document.title = `Đang xem ${epName} - ${movieName} - MHEnt. Cinema`;
                 
-                    // HỆ THỐNG ĐỊNH VỊ TẬP CHUẨN XÁC
                     const allBtns = document.querySelectorAll('.ep-btn-custom');
                     allBtns.forEach(b => b.classList.remove('active'));
                     const activeBtn = document.querySelector(`.ep-btn-custom[data-index="${index}"]`);
                     if (activeBtn) activeBtn.classList.add('active');
                     
-                    // ✨ MA THUẬT Ở ĐÂY: Sửa URL trên thanh địa chỉ mà không tải lại trang
                     const newUrl = `watch.html?id=${window.currentMovieId}&ep=${index}`;
                     window.history.pushState({ path: newUrl }, '', newUrl);
-
                     overlay.style.display = 'none'; 
                     
-                    // Trượt nhẹ video ra giữa màn hình cho mượt
-                    const videoWrapper = document.querySelector('.video-section'); 
-                    if (videoWrapper) { videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+                    const videoWrapperBox = document.querySelector('.video-section'); 
+                    if (videoWrapperBox) { videoWrapperBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
                 }, 800); 
                 
-                // --- ĐÁNH THỨC NÚT CHUYỂN TẬP ---
                 const btnPrev = document.getElementById('btn-prev-ep');
                 const btnNext = document.getElementById('btn-next-ep');
                 if (btnPrev && btnNext) {
@@ -606,24 +511,17 @@
                     btnPrev.style.display = index > 0 ? 'inline-flex' : 'none';
                     btnNext.style.display = index < totalEps - 1 ? 'inline-flex' : 'none';
                 }
-
-                // Gọi hệ thống Disqus tải bình luận của tập này
                 window.loadDisqusComments(index);
             };
 
             window.changeServer = function(serverType) {
                 window.currentServerType = serverType; 
                 window.changeServerUI(serverType);
-                
                 overlay.style.display = 'flex';
                 setTimeout(() => {
                     const tapPhim = window.currentMovieData.episodes[window.currentEpIndex];
-                    if(tapPhim[serverType]) {
-                        // GỌI BỘ NÃO THÔNG MINH
-                        window.applyVideoSource(tapPhim[serverType]);
-                    } else {
-                        alert("Tập này chưa có nguồn này nha!");
-                    }
+                    if(tapPhim[serverType]) { window.applyVideoSource(tapPhim[serverType]); } 
+                    else { alert("Tập này chưa có nguồn này nha!"); }
                     overlay.style.display = 'none';
                 }, 500); 
             };
@@ -640,666 +538,282 @@
                 else if (serverType === 'linkDuPhong2') { document.getElementById('btn-server-dp2').classList.add('active'); }
             };
 
-            // ==========================================
-            // 🚨 HỆ THỐNG BÁO LỖI PHIM TRỰC TIẾP
-            // ==========================================
             window.reportEpisode = async function() {
                 const user = auth.currentUser;
-                if (!user) {
-                    alert("Cậu đăng nhập để gửi báo cáo lỗi nha! 🕵️‍♂️");
-                    return;
-                }
+                if (!user) { alert("Cậu đăng nhập để gửi báo cáo lỗi nha! 🕵️‍♂️"); return; }
                 let isConfirm = confirm("Tập này bị lỗi không xem được hả cậu? Tớ sẽ báo cho Admin ngay!");
                 if (isConfirm) {
                     try {
-                        await addDoc(collection(db, "reports"), {
-                            movieId: window.currentMovieId,
-                            movieName: window.currentMovieData.title,
-                            epIndex: window.currentEpIndex,
-                            server: window.currentServerType,
-                            userId: user.uid,
-                            userName: user.displayName || user.email,
-                            time: new Date().toISOString(),
-                            status: "Chưa xử lý"
-                        });
+                        await addDoc(collection(db, "reports"), { movieId: window.currentMovieId, movieName: window.currentMovieData.title, epIndex: window.currentEpIndex, server: window.currentServerType, userId: user.uid, userName: user.displayName || user.email, time: new Date().toISOString(), status: "Chưa xử lý" });
                         alert("Cảm ơn cậu! Báo cáo đã bay thẳng đến bàn làm việc của Giám đốc Kỹ thuật 🚀");
-                    } catch (e) {
-                        console.error("Lỗi:", e);
-                        alert("Ui, có lỗi mạng rồi, cậu thử lại sau nha.");
-                    }
+                    } catch (e) { console.error("Lỗi:", e); alert("Ui, có lỗi mạng rồi, cậu thử lại sau nha."); }
                 }
             };
 
-            // ==========================================
-            // ⭐ HỆ THỐNG CHẤM ĐIỂM 5 SAO
-            // ==========================================
             window.rateMovie = async function(stars) {
                 const user = auth.currentUser;
-                if (!user) {
-                    alert("Cậu đăng nhập để đánh giá phim nha! ⭐");
-                    return;
-                }
-                
-                // Đổi giao diện sao ngay lập tức cho đẹp
+                if (!user) { alert("Cậu đăng nhập để đánh giá phim nha! ⭐"); return; }
                 let starElements = document.querySelectorAll('.star');
-                starElements.forEach((s, index) => {
-                    s.innerText = (index < stars) ? '★' : '☆';
-                });
+                starElements.forEach((s, index) => { s.innerText = (index < stars) ? '★' : '☆'; });
                 document.getElementById('rating-text').innerText = `Cảm ơn cậu đã cho ${stars} sao! 💖`;
-
-                // Lưu vào Firebase
-                try {
-                    const ratingRef = doc(db, "ratings", window.currentMovieId + "_" + user.uid);
-                    await setDoc(ratingRef, {
-                        movieId: window.currentMovieId,
-                        userId: user.uid,
-                        score: stars,
-                        time: new Date().toISOString()
-                    }, { merge: true });
-                } catch (e) { console.error("Lỗi lưu đánh giá:", e); }
+                try { const ratingRef = doc(db, "ratings", window.currentMovieId + "_" + user.uid); await setDoc(ratingRef, { movieId: window.currentMovieId, userId: user.uid, score: stars, time: new Date().toISOString() }, { merge: true }); } catch (e) { console.error("Lỗi lưu đánh giá:", e); }
             };
 
             window.toggleDescription = function() {
-                const container = document.getElementById('desc-container');
-                const btn = document.getElementById('btn-toggle');
-                if (container.classList.contains('expanded')) {
-                    container.classList.remove('expanded');
-                    btn.innerText = "... Xem thêm";
-                } else {
-                    container.classList.add('expanded');
-                    btn.innerText = "Thu gọn";
-                }
+                const container = document.getElementById('desc-container'); const btn = document.getElementById('btn-toggle');
+                if (container.classList.contains('expanded')) { container.classList.remove('expanded'); btn.innerText = "... Xem thêm"; } 
+                else { container.classList.add('expanded'); btn.innerText = "Thu gọn"; }
             };
 
-            // ==========================================
-            // 🌟 LÕI HỆ THỐNG DÙNG CHUNG (NAVBAR, DARK MODE, USER, NOTI)
-            // ==========================================
             const btnLogin = document.getElementById('btn-login');
             const btnLogout = document.getElementById('btn-logout');
-
             if (btnLogin) { btnLogin.addEventListener('click', () => { window.location.href = 'login.html'; }); }
-            if (btnLogout) { 
-                btnLogout.addEventListener('click', async () => { 
-                    await signOut(auth); 
-                    window.location.href = 'index.html'; 
-                }); 
-            }
+            if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = 'index.html'; }); }
             
-            // ĐÃ VÁ LỖI BẬT/TẮT ĐỒNG BỘ 3 BẢNG DROPDOWN
             window.toggleAccount = function() {
-                const acc = document.getElementById('dropdown-account');
-                const notif = document.getElementById('dropdown-notif');
-                const switcher = document.getElementById('dropdown-app-switcher'); 
-                
-                if(notif) notif.classList.remove('show'); 
-                if(switcher) switcher.classList.remove('show'); 
-                if(acc) acc.classList.toggle('show');
+                const acc = document.getElementById('dropdown-account'); const notif = document.getElementById('dropdown-notif'); const switcher = document.getElementById('dropdown-app-switcher'); 
+                if(notif) notif.classList.remove('show'); if(switcher) switcher.classList.remove('show'); if(acc) acc.classList.toggle('show');
             };
-
             window.toggleNotif = function() {
-                const notif = document.getElementById('dropdown-notif');
-                const acc = document.getElementById('dropdown-account');
-                const switcher = document.getElementById('dropdown-app-switcher');
-                
-                if(acc) acc.classList.remove('show'); 
-                if(switcher) switcher.classList.remove('show'); 
-                if(notif) notif.classList.toggle('show');
+                const notif = document.getElementById('dropdown-notif'); const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show'); if(notif) notif.classList.toggle('show');
             };
-
             window.toggleAppSwitcher = function() {
-                const switcher = document.getElementById('dropdown-app-switcher');
-                const notif = document.getElementById('dropdown-notif');
-                const acc = document.getElementById('dropdown-account');
-                
-                if(notif) notif.classList.remove('show');
-                if(acc) acc.classList.remove('show');
-                if(switcher) switcher.classList.toggle('show');
+                const switcher = document.getElementById('dropdown-app-switcher'); const notif = document.getElementById('dropdown-notif'); const acc = document.getElementById('dropdown-account');
+                if(notif) notif.classList.remove('show'); if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.toggle('show');
             };
-
             window.onclick = function(event) {
-                // Đóng menu User, Chuông, App Switcher
                 if (!event.target.closest('.user-section') && !event.target.closest('.cinema-overlay') && !event.target.closest('.modal')) {
-                    const acc = document.getElementById('dropdown-account');
-                    const notif = document.getElementById('dropdown-notif');
-                    const switcher = document.getElementById('dropdown-app-switcher');
-                    
-                    if(acc) acc.classList.remove('show');
-                    if(notif) notif.classList.remove('show');
-                    if(switcher) switcher.classList.remove('show');
+                    const acc = document.getElementById('dropdown-account'); const notif = document.getElementById('dropdown-notif'); const switcher = document.getElementById('dropdown-app-switcher');
+                    if(acc) acc.classList.remove('show'); if(notif) notif.classList.remove('show'); if(switcher) switcher.classList.remove('show');
                 }
-                
-                // Đóng luôn Menu Mobile
                 if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
-                    const navLinks = document.getElementById('nav-links');
-                    if(navLinks) navLinks.classList.remove('active');
+                    const navLinks = document.getElementById('nav-links'); if(navLinks) navLinks.classList.remove('active');
                 }
             };
-
             window.toggleMobileMenu = function() {
-                const navLinks = document.getElementById('nav-links');
-                const acc = document.getElementById('dropdown-account');
-                const notif = document.getElementById('dropdown-notif');
-                const switcher = document.getElementById('dropdown-app-switcher');
-                
-                if(acc) acc.classList.remove('show'); 
-                if(notif) notif.classList.remove('show'); 
-                if(switcher) switcher.classList.remove('show');
-                if(navLinks) navLinks.classList.toggle('active');
+                const navLinks = document.getElementById('nav-links'); const acc = document.getElementById('dropdown-account'); const notif = document.getElementById('dropdown-notif'); const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show'); if(notif) notif.classList.remove('show'); if(switcher) switcher.classList.remove('show'); if(navLinks) navLinks.classList.toggle('active');
             };
-
 
             window.toggleDarkMode = function() {
-                document.body.classList.toggle('dark-mode');
-                const isDark = document.body.classList.contains('dark-mode');
-                localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
-                
-                if (typeof window.currentEpIndex !== 'undefined') {
-                    window.loadFacebookComments(window.currentEpIndex);
-                }
+                document.body.classList.toggle('dark-mode'); const isDark = document.body.classList.contains('dark-mode'); localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
+                if (typeof window.currentEpIndex !== 'undefined') { window.loadFacebookComments(window.currentEpIndex); }
             };
-
             if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
 
             onAuthStateChanged(auth, (user) => {
                 const btnTheme = document.getElementById('btn-theme-toggle'); 
                 if (user) {
-                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
-                    if(btnTheme) btnTheme.style.display = 'none'; 
-                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-                    if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'block';
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none'; if(btnTheme) btnTheme.style.display = 'none'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex'; if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'block';
+                    let finalName = user.displayName || user.email.split('@')[0]; if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+                    const avtElement = document.getElementById('user-avatar'); if (avtElement) { avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "assets/avt-web.jpg"; avtElement.style.display = 'block'; }
 
-                    let finalName = user.displayName || user.email.split('@')[0];
-                    if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
-
-                    // Xử lý Avatar (Luôn hiển thị: Có ảnh dùng ảnh User, không có dùng mặc định)
-                    const avtElement = document.getElementById('user-avatar');
-                    if (avtElement) {
-                        avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "assets/avt-web.jpg";
-                        avtElement.style.display = 'block'; 
-                    }
-
-                    // 🚨 LOGIC PHÂN QUYỀN ĐA VŨ TRỤ V2.0 🚨
                     const userRef = doc(db, "users", user.uid);
                     getDoc(userRef).then((docSnap) => {
-                        const adminBtn = document.getElementById('admin-panel-btn');
-                        const studioBtn = document.getElementById('studio-panel-btn');
-                        
-                        // Mặc định giấu cả 2 nút đi khi chưa biết là ai
-                        if (adminBtn) adminBtn.style.display = 'none';
-                        if (studioBtn) studioBtn.style.display = 'none';
-
+                        const adminBtn = document.getElementById('admin-panel-btn'); const studioBtn = document.getElementById('studio-panel-btn');
+                        if (adminBtn) adminBtn.style.display = 'none'; if (studioBtn) studioBtn.style.display = 'none';
                         if (docSnap.exists() && docSnap.data().role) {
-                            const userRole = docSnap.data().role; // Rút thẻ căn cước từ mây về
-
-                            if (userRole === 'admin') {
-                                // Nếu là Chủ tịch -> Mở cửa Căn cứ Admin
-                                if (adminBtn) adminBtn.style.display = 'flex';
-                                if (studioBtn) studioBtn.style.display = 'flex'; // Chủ tịch cũng có quyền vào Studio
-                            } else if (userRole === 'uploader') {
-                                // Nếu là Đối tác Nhóm dịch -> Mở cửa Phòng Studio
-                                if (studioBtn) studioBtn.style.display = 'flex';
-                            }
+                            const userRole = docSnap.data().role; 
+                            if (userRole === 'admin') { if (adminBtn) adminBtn.style.display = 'flex'; if (studioBtn) studioBtn.style.display = 'flex'; } 
+                            else if (userRole === 'uploader') { if (studioBtn) studioBtn.style.display = 'flex'; }
                         }
                     }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
 
-                    // ☁️ HỆ THỐNG ĐỒNG BỘ TẬP PHIM TỪ ĐÁM MÂY (DÁN VÀO ĐÂY NÈ)
                     if (window.currentMovieId && window.currentMovieData && window.currentMovieData.type === 'series') {
                         const urlParams = new URLSearchParams(window.location.search);
-                        // Chỉ tự động nhảy tập nếu người dùng KHÔNG bấm vào 1 tập cụ thể trên URL
                         if (urlParams.get('ep') === null) { 
                             getDoc(doc(db, "users", user.uid)).then(userSnap => {
                                 if (userSnap.exists() && userSnap.data().lastWatched) {
                                     const cloudEp = userSnap.data().lastWatched[window.currentMovieId];
-                                    // Nếu mây lưu tập khác với tập hiện tại đang chiếu
-                                    if (cloudEp !== undefined && cloudEp !== window.currentEpIndex && cloudEp < window.currentMovieData.episodes.length) {
-                                        console.log("Đã đồng bộ tiến độ xem từ Cloud:", cloudEp);
-                                        window.playVideo(cloudEp); // Tự động nhảy sang tập trên mây
-                                    }
+                                    if (cloudEp !== undefined && cloudEp !== window.currentEpIndex && cloudEp < window.currentMovieData.episodes.length) { window.playVideo(cloudEp); }
                                 }
                             }).catch(e => console.error("Lỗi đồng bộ:", e));
                         }
                     }
-
                     if (typeof loadNotifications === "function") loadNotifications();
                 } else {
-                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
-                    if(btnTheme) btnTheme.style.display = 'flex'; 
-                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
-                    if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'none';
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex'; if(btnTheme) btnTheme.style.display = 'flex'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none'; if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'none';
                 }
             });
 
-            // ==========================================
-        // TÍNH NĂNG TẮT ĐÈN (CINEMA MODE - FADE & AUTO-CENTER)
-        // ==========================================
         window.isOriginalLightMode = false; 
-
         window.toggleCinemaMode = function() {
-            const btn = document.getElementById('btn-cinema-mode');
-            const body = document.body;
-            const videoWrapper = document.querySelector('.video-section'); // Chọn nguyên khối video
-            
-            // Lệnh CSS tự động xử lý hiệu ứng mờ dần
+            const btn = document.getElementById('btn-cinema-mode'); const body = document.body; const videoWrapper = document.querySelector('.video-section'); 
             const isCinema = body.classList.toggle('cinema-active');
-            
             if (isCinema) {
-                // 1. Cực VIP: Tự động trượt video ra ngay chính giữa màn hình!
-                if (videoWrapper) {
-                    videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-
-                // 2. Đổi nút
-                btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Bật đèn';
-                btn.style.background = '#ff85a2';
-                btn.style.color = '#fff';
-                
-                // 3. Đổi nền
-                window.isOriginalLightMode = !body.classList.contains('dark-mode');
-                if (window.isOriginalLightMode) { body.classList.add('dark-mode'); }
+                if (videoWrapper) { videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Bật đèn'; btn.style.background = '#ff85a2'; btn.style.color = '#fff';
+                window.isOriginalLightMode = !body.classList.contains('dark-mode'); if (window.isOriginalLightMode) { body.classList.add('dark-mode'); }
             } else {
-                // 1. Trả lại nút
-                btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> Tắt đèn';
-                btn.style.background = '';
-                btn.style.color = '';
-                
-                // 2. Trả lại nền
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> Tắt đèn'; btn.style.background = ''; btn.style.color = '';
                 if (window.isOriginalLightMode) { body.classList.remove('dark-mode'); }
             }
         };
 
-        // ==========================================
-        // TÍNH NĂNG CHUYỂN TẬP NHANH
-        // ==========================================
         window.changeEpisode = function(step) {
-            let newEp = window.currentEpIndex + step;
-            let totalEps = window.currentMovieData.episodes.length;
-            
-            // Nếu chưa tới tập cuối hoặc chưa lùi quá tập 1 thì phát luôn
-            if (newEp >= 0 && newEp < totalEps) {
-                window.playVideo(newEp); // Phát thẳng video mới, KHÔNG TẢI LẠI TRANG!
-            }
+            let newEp = window.currentEpIndex + step; let totalEps = window.currentMovieData.episodes.length;
+            if (newEp >= 0 && newEp < totalEps) { window.playVideo(newEp); }
         };
 
-            // ==========================================
-            // HỆ THỐNG KÍNH LÚP NAVBAR & TÌM KIẾM THẢ XUỐNG
-            // ==========================================
-            window.navMoviesData = []; // Kho nhớ phụ cho Navbar
-
+            window.navMoviesData = []; 
             window.renderNavLiveSearch = async function() {
-                const searchBox = document.getElementById('nav-search-box');
-                const dropdown = document.getElementById('nav-search-dropdown');
+                const searchBox = document.getElementById('nav-search-box'); const dropdown = document.getElementById('nav-search-dropdown');
                 if (!searchBox || !dropdown) return;
-                
                 let keyword = searchBox.value.toLowerCase().trim();
-
-                // Nếu chưa gõ gì thì giấu đi
-                if (!keyword) {
-                    dropdown.classList.remove('show');
-                    return;
-                }
-
-                // ⚡ AUTO-FETCH: Nếu dữ liệu trống (vì đang ở trang Profile, About...), nó sẽ chạy lên mây lấy siêu tốc 1 lần
+                if (!keyword) { dropdown.classList.remove('show'); return; }
                 if (window.navMoviesData.length === 0) {
                     try {
                         const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
-                        const querySnapshot = await getDocs(collection(db, "movies"));
-                        window.navMoviesData = [];
+                        const querySnapshot = await getDocs(collection(db, "movies")); window.navMoviesData = [];
                         querySnapshot.forEach((doc) => { window.navMoviesData.push({ id: doc.id, ...doc.data() }); });
                     } catch (e) { console.log("Lỗi tải data Navbar:", e); }
                 }
-
-                // Lọc Top 4 phim khớp nhất
-                let filtered = window.navMoviesData.filter(m => {
-                    let titleMatch = m.title.toLowerCase().includes(keyword);
-                    let altMatch = m.altTitle && m.altTitle.toLowerCase().includes(keyword);
-                    return titleMatch || altMatch;
-                }).slice(0, 4);
-
+                let filtered = window.navMoviesData.filter(m => { let titleMatch = m.title.toLowerCase().includes(keyword); let altMatch = m.altTitle && m.altTitle.toLowerCase().includes(keyword); return titleMatch || altMatch; }).slice(0, 4);
                 dropdown.innerHTML = '';
-                
-                // In kết quả
                 if (filtered.length > 0) {
                     filtered.forEach(movie => {
                         let firstTag = movie.tag ? movie.tag.split('/')[0].trim() : "Phim";
-                        dropdown.innerHTML += `
-                            <a onclick="window.location.href='description.html?id=${movie.id}'" class="search-dropdown-item">
-                                <img src="${movie.poster}" alt="${movie.title}" class="search-mini-poster">
-                                <div class="search-item-info">
-                                    <span class="search-item-title">${movie.title}</span>
-                                    <span class="search-item-tag">${firstTag}</span>
-                                </div>
-                            </a>
-                        `;
+                        dropdown.innerHTML += `<a onclick="window.location.href='description.html?id=${movie.id}'" class="search-dropdown-item"><img src="${movie.poster}" alt="${movie.title}" class="search-mini-poster"><div class="search-item-info"><span class="search-item-title">${movie.title}</span><span class="search-item-tag">${firstTag}</span></div></a>`;
                     });
-                } else {
-                    dropdown.innerHTML = '<div style="padding: 15px; text-align: center; color: #888; font-size: 13.5px; font-weight: bold;">Ui, không tìm thấy phim này 🥲</div>';
-                }
-
-                // 🌟 NÚT "TÌM TẤT CẢ" (NHƯ GOOGLE) 🌟
-                dropdown.innerHTML += `
-                    <div class="search-view-all" onclick="window.executeNavSearch('${keyword}')">
-                        🔍 Tìm tất cả kết quả cho "${keyword}"
-                    </div>
-                `;
-                
+                } else { dropdown.innerHTML = '<div style="padding: 15px; text-align: center; color: #888; font-size: 13.5px; font-weight: bold;">Ui, không tìm thấy phim này 🥲</div>'; }
+                dropdown.innerHTML += `<div class="search-view-all" onclick="window.executeNavSearch('${keyword}')">🔍 Tìm tất cả kết quả cho "${keyword}"</div>`;
                 dropdown.classList.add('show');
             };
 
-            // Hàm giấu bảng Dropdown
-            window.hideNavLiveSearch = function() {
-                const dropdown = document.getElementById('nav-search-dropdown');
-                if (dropdown) dropdown.classList.remove('show');
-            };
+            window.hideNavLiveSearch = function() { const dropdown = document.getElementById('nav-search-dropdown'); if (dropdown) dropdown.classList.remove('show'); };
+            document.addEventListener('click', function(e) { const wrapper = document.getElementById('nav-search-wrapper'); if (wrapper && !wrapper.contains(e.target)) { window.hideNavLiveSearch(); } });
 
-            // Bấm ra ngoài là tự động thu gọn bảng
-            document.addEventListener('click', function(e) {
-                const wrapper = document.getElementById('nav-search-wrapper');
-                if (wrapper && !wrapper.contains(e.target)) {
-                    window.hideNavLiveSearch();
-                }
-            });
-
-            // 3 HÀM CƠ BẢN GIỮ NGUYÊN 
             window.toggleNavSearch = function() {
                 const searchBox = document.getElementById('nav-search-box');
-                if (searchBox.classList.contains('active')) {
-                    if (searchBox.value.trim() !== "") { window.executeNavSearch(searchBox.value.trim()); } 
-                    else { searchBox.classList.remove('active'); window.hideNavLiveSearch(); }
-                } else {
-                    searchBox.classList.add('active'); searchBox.focus();
-                }
+                if (searchBox.classList.contains('active')) { if (searchBox.value.trim() !== "") { window.executeNavSearch(searchBox.value.trim()); } else { searchBox.classList.remove('active'); window.hideNavLiveSearch(); } } 
+                else { searchBox.classList.add('active'); searchBox.focus(); }
             };
-
             const navSearchBoxObj = document.getElementById('nav-search-box');
-            if (navSearchBoxObj) {
-                navSearchBoxObj.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') { window.executeNavSearch(this.value.trim()); }
-                });
-            }
-
+            if (navSearchBoxObj) { navSearchBoxObj.addEventListener('keypress', function(e) { if (e.key === 'Enter') { window.executeNavSearch(this.value.trim()); } }); }
             window.executeNavSearch = function(keyword) {
                 if (!keyword) return;
                 if (window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/')) {
-                    const mainSearch = document.getElementById('search-box');
-                    if (mainSearch) {
-                        mainSearch.value = keyword;
-                        mainSearch.dispatchEvent(new Event('input'));
-                        window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' });
-                    }
-                } else {
-                    window.location.href = `index.html?search=${encodeURIComponent(keyword)}`;
-                }
+                    const mainSearch = document.getElementById('search-box'); if (mainSearch) { mainSearch.value = keyword; mainSearch.dispatchEvent(new Event('input')); window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' }); }
+                } else { window.location.href = `index.html?search=${encodeURIComponent(keyword)}`; }
             };
 
-            // ==========================================
-            // 🔔 HỆ THỐNG THÔNG BÁO V5 
-            // ==========================================
             window.currentLoadedNotifs = [];
-
             window.loadNotifications = async function() {
-                const notifList = document.getElementById('notif-list');
-                const dot = document.querySelector('.notif-dot'); 
+                const notifList = document.getElementById('notif-list'); const dot = document.querySelector('.notif-dot'); 
                 if(!notifList) return; 
-                
                 const user = auth.currentUser;
-                if (!user) {
-                    notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center;">Đăng nhập để nhận thông báo phim nhé!</p>';
-                    return;
-                }
-
+                if (!user) { notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center;">Đăng nhập để nhận thông báo phim nhé!</p>'; return; }
                 try {
-                    const userRef = doc(db, "users", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    const userData = userSnap.data() || {};
-                    const savedMovies = userData.savedMovies || [];
-
-                    if (savedMovies.length === 0) {
-                        notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center; font-size:13px;">Cậu chưa lưu phim nào. Hãy thêm vào Thư viện để tớ báo cho cậu nha! ⭐</p>';
-                        if(dot) dot.style.display = 'none';
-                        return;
-                    }
-
-                    const querySnapshot = await getDocs(collection(db, "movies"));
-                    let myNotifMovies = [];
-                    
-                    querySnapshot.forEach(docSnap => {
-                        if (savedMovies.includes(docSnap.id)) {
-                            myNotifMovies.push({id: docSnap.id, ...docSnap.data()});
-                        }
-                    });
-                    
-                    myNotifMovies.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-                    window.currentLoadedNotifs = myNotifMovies; 
-
-                    let readHistory = userData.readHistory || {}; 
-                    let hasUnread = false;
-                    notifList.innerHTML = '';
-                    
+                    const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef); const userData = userSnap.data() || {}; const savedMovies = userData.savedMovies || [];
+                    if (savedMovies.length === 0) { notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center; font-size:13px;">Cậu chưa lưu phim nào. Hãy thêm vào Thư viện để tớ báo cho cậu nha! ⭐</p>'; if(dot) dot.style.display = 'none'; return; }
+                    const querySnapshot = await getDocs(collection(db, "movies")); let myNotifMovies = [];
+                    querySnapshot.forEach(docSnap => { if (savedMovies.includes(docSnap.id)) { myNotifMovies.push({id: docSnap.id, ...docSnap.data()}); } });
+                    myNotifMovies.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)); window.currentLoadedNotifs = myNotifMovies; 
+                    let readHistory = userData.readHistory || {}; let hasUnread = false; notifList.innerHTML = '';
                     myNotifMovies.slice(0, 5).forEach(movie => {
-                        const hasEpisodes = movie.episodes && movie.episodes.length > 0;
-                        const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!";
-                        const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
-                        
-                        const targetUrl = hasEpisodes ? `watch.html?id=${movie.id}&ep=${lastEpIndex}` : `description.html?id=${movie.id}`;
-                        let movieTime = movie.updatedAt || 0;
-                        let isUnread = false;
-
-                        if (!readHistory[movie.id] || readHistory[movie.id] < movieTime) {
-                            isUnread = true;
-                            hasUnread = true; 
-                        }
-
+                        const hasEpisodes = movie.episodes && movie.episodes.length > 0; const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!"; const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
+                        const targetUrl = hasEpisodes ? `watch.html?id=${movie.id}&ep=${lastEpIndex}` : `description.html?id=${movie.id}`; let movieTime = movie.updatedAt || 0; let isUnread = false;
+                        if (!readHistory[movie.id] || readHistory[movie.id] < movieTime) { isUnread = true; hasUnread = true; }
                         const itemClass = isUnread ? "notif-item unread" : "notif-item";
-
-                        notifList.innerHTML += `
-                            <div class="${itemClass}" onclick="markAsReadAndGo('${movie.id}', ${movieTime}, '${targetUrl}')">
-                                <img src="${movie.poster}" class="notif-poster">
-                                <div class="notif-info">
-                                    <div class="notif-title">${movie.title}</div>
-                                    <div class="notif-desc">🎬 ${lastEpTitle}<br>Bấm để xem ngay!</div>
-                                </div>
-                            </div>
-                        `;
+                        notifList.innerHTML += `<div class="${itemClass}" onclick="markAsReadAndGo('${movie.id}', ${movieTime}, '${targetUrl}')"><img src="${movie.poster}" class="notif-poster"><div class="notif-info"><div class="notif-title">${movie.title}</div><div class="notif-desc">🎬 ${lastEpTitle}<br>Bấm để xem ngay!</div></div></div>`;
                     });
-
                     if (dot) dot.style.display = hasUnread ? 'block' : 'none';
-
                 } catch (e) { console.error("Lỗi Tải Thông Báo:", e); }
             };
 
             window.markAsReadAndGo = async function(movieId, movieTime, targetUrl) {
                 const user = auth.currentUser;
-                if(user) {
-                    try {
-                        const userRef = doc(db, "users", user.uid);
-                        const userSnap = await getDoc(userRef);
-                        let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {};
-                        readHistory[movieId] = movieTime; 
-                        await setDoc(userRef, { readHistory: readHistory }, { merge: true });
-                    } catch (error) { console.error("Lỗi đồng bộ:", error); }
-                }
+                if(user) { try { const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef); let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {}; readHistory[movieId] = movieTime; await setDoc(userRef, { readHistory: readHistory }, { merge: true }); } catch (error) { console.error("Lỗi đồng bộ:", error); } }
                 window.location.href = targetUrl; 
             };
 
             window.markAllAsRead = async function() {
-                const user = auth.currentUser;
-                if(!user || !window.currentLoadedNotifs) return;
-
+                const user = auth.currentUser; if(!user || !window.currentLoadedNotifs) return;
                 try {
-                    const userRef = doc(db, "users", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {};
-
-                    window.currentLoadedNotifs.forEach(movie => {
-                        readHistory[movie.id] = movie.updatedAt || 0;
-                    });
-
+                    const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef); let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {};
+                    window.currentLoadedNotifs.forEach(movie => { readHistory[movie.id] = movie.updatedAt || 0; });
                     await setDoc(userRef, { readHistory: readHistory }, { merge: true });
-
-                    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
-                    const dot = document.querySelector('.notif-dot');
-                    if(dot) dot.style.display = 'none';
+                    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread')); const dot = document.querySelector('.notif-dot'); if(dot) dot.style.display = 'none';
                 } catch (error) { console.error("Lỗi đồng bộ:", error); }
             };
 
-            // ==========================================
-        // TRÙM CUỐI: AUTO-NEXT (TỰ ĐỘNG NHẢY TẬP)
-        // Lưu ý: Chỉ hoạt động với nguồn HLS (SUPER) hoặc MP4 do bảo mật iframe
-        // ==========================================
-        window.isAutoNextTriggered = false; // Biến cờ để rạp không bị cuống nhảy 2-3 tập cùng lúc
-
-        const videoPlayer = document.getElementById('main-player-video');
-        if (videoPlayer) {
-            videoPlayer.addEventListener('timeupdate', function() {
-                // Nếu video chưa load được tổng thời gian thì bỏ qua
-                if (!videoPlayer.duration) return;
-                
-                const timeLeft = videoPlayer.duration - videoPlayer.currentTime;
-                
-                // Kích hoạt: Còn đúng 5 giây, lớn hơn 0, và cờ chưa sập
+        window.isAutoNextTriggered = false; 
+        const videoPlayerObj = document.getElementById('main-player-video');
+        if (videoPlayerObj) {
+            videoPlayerObj.addEventListener('timeupdate', function() {
+                if (!videoPlayerObj.duration) return;
+                const timeLeft = videoPlayerObj.duration - videoPlayerObj.currentTime;
                 if (timeLeft <= 5 && timeLeft > 0 && !window.isAutoNextTriggered) {
                     let totalEps = window.currentMovieData.episodes.length;
-                    
-                    // Nếu chưa phải tập cuối thì mới đếm ngược
                     if (window.currentEpIndex < totalEps - 1) {
-                        window.isAutoNextTriggered = true; // Sập cờ lại liền
-                        
-                        // Kêu hệ thống bắn thông báo
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Hệ thống MHEnt', 'Phim sắp hết, chuẩn bị bay sang tập tiếp theo sau 5 giây...', 'info');
-                        }
-                        
-                        // Đếm ngược 5 giây rồi nhảy tập
-                        setTimeout(() => {
-                            window.changeEpisode(1);
-                        }, 5000);
+                        window.isAutoNextTriggered = true; 
+                        if (typeof window.showToast === 'function') { window.showToast('Hệ thống MHEnt', 'Phim sắp hết, chuẩn bị bay sang tập tiếp theo sau 5 giây...', 'info'); }
+                        setTimeout(() => { window.changeEpisode(1); }, 5000);
                     }
                 }
             });
         }
 
             if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-            
             const backToTopBtn = document.getElementById("btn-back-to-top");
             if (backToTopBtn) { 
-                window.addEventListener("scroll", () => {
-                    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                        backToTopBtn.style.display = "flex"; // Dùng flex để canh SVG cho chuẩn
-                    } else {
-                        backToTopBtn.style.display = "none";
-                    }
-                });
+                window.addEventListener("scroll", () => { if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) { backToTopBtn.style.display = "flex"; } else { backToTopBtn.style.display = "none"; } });
                 backToTopBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
             }
 
-            // ==========================================
-            // HỆ THỐNG BÌNH LUẬN DISQUS (XỊN & MƯỢT HƠN FB)
-            // ==========================================
             window.loadDisqusComments = function(epIndex) {
                 const currentUrl = `https://mhent-network.web.app/watch.html?id=${window.currentMovieId}&ep=${epIndex}`;
-                const identifier = `${window.currentMovieId}_ep_${epIndex}`; // Tạo mã định danh riêng cho từng tập
-
-                if (window.DISQUS) {
-                    // Nếu Disqus đã tải rồi, chỉ cần reset lại cho tập mới
-                    window.DISQUS.reset({
-                        reload: true,
-                        config: function () {
-                            this.page.url = currentUrl;
-                            this.page.identifier = identifier;
-                        }
-                    });
-                } else {
-                    // Nếu gọi lần đầu thì gắn code nhúng vào
-                    window.disqus_config = function () {
-                        this.page.url = currentUrl;
-                        this.page.identifier = identifier;
-                    };
-                    (function() { 
-                        // TẠM THỜI DÙNG TÊN MIỀN DEMO, MAI TẠO TÀI KHOẢN RỒI THAY SAU
-                        var d = document, s = d.createElement('script');
-                        s.src = 'https://mhent-cinema.disqus.com/embed.js'; 
-                        s.setAttribute('data-timestamp', +new Date());
-                        (d.head || d.body).appendChild(s);
-                    })();
+                const identifier = `${window.currentMovieId}_ep_${epIndex}`; 
+                if (window.DISQUS) { window.DISQUS.reset({ reload: true, config: function () { this.page.url = currentUrl; this.page.identifier = identifier; } }); } 
+                else {
+                    window.disqus_config = function () { this.page.url = currentUrl; this.page.identifier = identifier; };
+                    (function() { var d = document, s = d.createElement('script'); s.src = 'https://mhent-cinema.disqus.com/embed.js'; s.setAttribute('data-timestamp', +new Date()); (d.head || d.body).appendChild(s); })();
                 }
             };
 
-            // ==========================================
-        // DỰ ÁN PHỤ: BỘ PHÍM TẮT RẠP PHIM (TỔ HỢP PHÍM)
-        // ==========================================
         document.addEventListener('keydown', function(e) {
-            // Khóa an toàn 1: Không kích hoạt phím tắt nếu đang gõ chữ (Tìm kiếm, Bình luận...)
             if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
-
-            // Khóa an toàn 2: CHỈ kích hoạt khi người dùng GIỮ PHÍM SHIFT
-            if (e.shiftKey) {
-                if (e.key === 'ArrowRight') {
-                    e.preventDefault(); // Chặn hành động cuộn trang mặc định
-                    window.changeEpisode(1); // Shift + Mũi tên phải -> Tập sau
-                } else if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    window.changeEpisode(-1); // Shift + Mũi tên trái -> Tập trước
-                } else if (e.key.toLowerCase() === 'l') {
-                    e.preventDefault();
-                    window.toggleCinemaMode(); // Shift + L -> Tắt/Mở đèn
+            
+            // Xử lý Phím Cách (Space) để Play/Pause (Không cần Shift)
+            if (e.code === 'Space') {
+                e.preventDefault(); // Tránh cuộn trang
+                const vid = document.getElementById('main-player-video');
+                if (vid && vid.style.display === 'block') {
+                    if (vid.paused) vid.play(); else vid.pause();
                 }
+            }
+            
+            // Xử lý Mũi tên Trái/Phải để Tua phim 10s (Không cần Shift)
+            if (e.code === 'ArrowRight' && !e.shiftKey) {
+                const vid = document.getElementById('main-player-video');
+                if (vid && vid.style.display === 'block') { e.preventDefault(); vid.currentTime += 10; }
+            }
+            if (e.code === 'ArrowLeft' && !e.shiftKey) {
+                const vid = document.getElementById('main-player-video');
+                if (vid && vid.style.display === 'block') { e.preventDefault(); vid.currentTime -= 10; }
+            }
+
+            // Giữ nguyên các phím tắt Shift cũ
+            if (e.shiftKey) {
+                if (e.key === 'ArrowRight') { e.preventDefault(); window.changeEpisode(1); } 
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); window.changeEpisode(-1); } 
+                else if (e.key.toLowerCase() === 'l') { e.preventDefault(); window.toggleCinemaMode(); }
             }
         });
 
-            // HÀM BẬT/TẮT MENU TRÊN ĐIỆN THOẠI
-            window.toggleMobileMenu = function() {
-                const navLinks = document.getElementById('nav-links');
-                if(navLinks) {
-                    navLinks.classList.toggle('active');
-                }
-            };
-
+            window.toggleMobileMenu = function() { const navLinks = document.getElementById('nav-links'); if(navLinks) { navLinks.classList.toggle('active'); } };
             window.showToast = function(title, message, type = 'success') {
-                // Tạo cái hộp chứa nếu chưa có
-                let container = document.getElementById('toast-container');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'toast-container';
-                    document.body.appendChild(container);
-                }
-
-                // Tạo thẻ thông báo
-                const toast = document.createElement('div');
-                toast.className = `toast-msg ${type}`;
-                
-                // Chọn icon theo loại
-                let icon = '✅';
-                if (type === 'error') icon = '❌';
-                else if (type === 'info') icon = '⭐';
-
-                toast.innerHTML = `
-                    <div class="toast-icon">${icon}</div>
-                    <div class="toast-content">
-                        <span class="toast-title">${title}</span>
-                        <span class="toast-desc">${message}</span>
-                    </div>
-                `;
-
-                container.appendChild(toast);
-
-                // Tự động bay màu sau 3 giây
-                setTimeout(() => {
-                    toast.style.animation = 'fadeOutRight 0.3s ease-in forwards';
-                    setTimeout(() => { toast.remove(); }, 300); 
-                }, 3000);
+                let container = document.getElementById('toast-container'); if (!container) { container = document.createElement('div'); container.id = 'toast-container'; document.body.appendChild(container); }
+                const toast = document.createElement('div'); toast.className = `toast-msg ${type}`; let icon = '✅'; if (type === 'error') icon = '❌'; else if (type === 'info') icon = '⭐';
+                toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${message}</span></div>`;
+                container.appendChild(toast); setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => { toast.remove(); }, 300); }, 3000);
             };
         </script>
-
         <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then((registration) => {
-                    console.log('🚀 PWA Khởi động thành công!');
-                }).catch((error) => {
-                    console.log('❌ Lỗi khởi động PWA: ', error);
-                });
-            });
-        }
-    </script>
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').then((registration) => { console.log('🚀 PWA Khởi động thành công!'); }).catch((error) => { console.log('❌ Lỗi khởi động PWA: ', error); }); }); }
+        </script>
     </body>
 </html>
