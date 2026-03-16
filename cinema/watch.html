@@ -44,9 +44,14 @@
         .mhent-player-wrapper.hide-controls .mhent-watermark { opacity: 0.2; }
 
         /* Timeline (Progress Bar) */
-        .mhent-progress-container { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 4px; cursor: pointer; position: relative; transition: height 0.2s; }
-        .mhent-progress-container:hover { height: 7px; }
-        .mhent-progress-bar { height: 100%; width: 0%; background: #ff85a2; border-radius: 4px; position: relative; }
+        .mhent-progress-container { width: 100%; height: 5px; background: rgba(255,255,255,0.15); border-radius: 4px; cursor: pointer; position: relative; transition: height 0.2s; overflow: hidden; }
+        .mhent-progress-container:hover { height: 7px; overflow: visible; }
+        
+        /* Thanh Load trước (Buffer) - Màu xám nhạt */
+        .mhent-buffer-bar { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: rgba(255,255,255,0.4); border-radius: 4px; pointer-events: none; transition: width 0.2s; z-index: 1; }
+        
+        /* Thanh Tiến trình đã xem - Màu hồng */
+        .mhent-progress-bar { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #ff85a2; border-radius: 4px; z-index: 2; }
         .mhent-progress-bar::after { content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; }
         .mhent-progress-container:hover .mhent-progress-bar::after { transform: translateY(-50%) scale(1); }
 
@@ -282,6 +287,8 @@
                             
                             <div class="mhent-controls" id="player-controls-ui">
                                 <div class="mhent-progress-container" id="player-progress-bar">
+                                    <div class="mhent-buffer-bar" id="player-buffer-fill"></div>
+                                    
                                     <div class="mhent-progress-bar" id="player-progress-fill"></div>
                                 </div>
                                 
@@ -444,6 +451,8 @@
             const fullscreenBtn = document.getElementById('btn-fullscreen');
             const pipBtn = document.getElementById('btn-pip');
 
+            const bufferFill = document.getElementById('player-buffer-fill');
+
             // KHAI BÁO BỘ LOADING MẠNG YẾU
             const bufferingOverlay = document.getElementById('player-buffering');
             
@@ -505,6 +514,24 @@
                 const percent = (video.currentTime / video.duration) * 100;
                 progressFill.style.width = `${percent}%`;
             });
+
+            // SỰ KIỆN VẼ THANH BUFFER (PRE-LOAD)
+            video.addEventListener('progress', updateBuffer);
+            video.addEventListener('timeupdate', updateBuffer);
+
+            function updateBuffer() {
+                if (video.duration > 0 && video.buffered.length > 0) {
+                    // Trình duyệt có thể tải nhiều mảnh khác nhau, ta tìm mảnh chứa thời gian hiện tại
+                    for (let i = 0; i < video.buffered.length; i++) {
+                        if (video.currentTime >= video.buffered.start(i) && video.currentTime <= video.buffered.end(i)) {
+                            let bufferedEnd = video.buffered.end(i);
+                            let percent = (bufferedEnd / video.duration) * 100;
+                            bufferFill.style.width = `${percent}%`;
+                            break;
+                        }
+                    }
+                }
+            }
 
             progressContainer.addEventListener('click', (e) => {
                 const rect = progressContainer.getBoundingClientRect();
