@@ -24,39 +24,55 @@
         }
 
         /* =========================================
-           CSS CHO CUSTOM VIDEO PLAYER (MHENT. PLAYER)
+           CSS CHO CUSTOM VIDEO PLAYER (YOUTUBE STYLE)
            ========================================= */
-        /* Bao bọc video để xử lý Fullscreen nguyên cụm */
         .mhent-player-wrapper { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 12px; overflow: hidden; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        
         .mhent-player-wrapper iframe, .mhent-player-wrapper video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; outline: none; }
         
-        /* Chữ mờ đánh dấu bản quyền (Watermark) */
-        .mhent-watermark { position: absolute; top: 20px; right: 20px; font-size: 24px; font-weight: 900; color: rgba(255, 255, 255, 0.4); text-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none; z-index: 10; user-select: none; font-family: 'Nunito', sans-serif; transition: opacity 0.5s; display: none; }
+        /* Tiêu đề góc trái (Lấy từ Database) */
+        .mhent-video-header { position: absolute; top: 0; left: 0; width: 100%; padding: 20px 20px 40px; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%); color: white; font-size: 16px; font-weight: 800; font-family: 'Nunito', sans-serif; z-index: 20; transition: opacity 0.3s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.8); display: none; pointer-events: none; }
+        
+        /* Logo Ảnh góc phải */
+        .mhent-watermark { position: absolute; top: 15px; right: 20px; width: 40px; height: auto; opacity: 0.6; pointer-events: none; z-index: 10; transition: opacity 0.5s; display: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
 
         /* Thanh điều khiển Custom */
-        .mhent-controls { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%); padding: 30px 20px 15px; display: flex; flex-direction: column; gap: 10px; z-index: 20; opacity: 1; transition: opacity 0.3s ease; display: none; /* Mặc định ẩn, chỉ hiện khi dùng video tag */ }
+        .mhent-controls { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%); padding: 30px 20px 15px; display: flex; flex-direction: column; gap: 10px; z-index: 20; opacity: 1; transition: opacity 0.3s ease; display: none; }
+        
+        /* Ẩn hiện thanh công cụ */
         .mhent-player-wrapper.hide-controls .mhent-controls { opacity: 0; pointer-events: none; }
-        .mhent-player-wrapper.hide-controls .mhent-watermark { opacity: 0.1; }
+        .mhent-player-wrapper.hide-controls .mhent-video-header { opacity: 0; pointer-events: none; }
+        .mhent-player-wrapper.hide-controls .mhent-watermark { opacity: 0.2; }
 
-        /* Thanh thời gian (Progress Bar) */
-        .mhent-progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.3); border-radius: 4px; cursor: pointer; position: relative; transition: height 0.2s; }
-        .mhent-progress-container:hover { height: 8px; }
+        /* Timeline (Progress Bar) */
+        .mhent-progress-container { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 4px; cursor: pointer; position: relative; transition: height 0.2s; }
+        .mhent-progress-container:hover { height: 7px; }
         .mhent-progress-bar { height: 100%; width: 0%; background: #ff85a2; border-radius: 4px; position: relative; }
-        .mhent-progress-bar::after { content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%) scale(0); width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; }
+        .mhent-progress-bar::after { content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%) scale(0); width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s; }
         .mhent-progress-container:hover .mhent-progress-bar::after { transform: translateY(-50%) scale(1); }
 
         /* Các nút bấm */
         .mhent-controls-row { display: flex; justify-content: space-between; align-items: center; }
-        .mhent-controls-left, .mhent-controls-right { display: flex; align-items: center; gap: 15px; }
+        .mhent-controls-left, .mhent-controls-right { display: flex; align-items: center; gap: 8px; }
         
-        .mhent-btn { background: transparent; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px; transition: 0.2s; }
+        .mhent-btn { background: transparent; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px; transition: 0.2s; position: relative; }
         .mhent-btn:hover { color: #ff85a2; transform: scale(1.1); }
         .mhent-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
-        .mhent-time { color: white; font-size: 13.5px; font-weight: bold; font-family: 'Nunito', sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .mhent-time { color: white; font-size: 13px; font-weight: bold; font-family: 'Nunito', sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,0.8); margin-left: 10px; min-width: 90px; }
 
-        /* Khi Fullscreen */
+        /* Thanh Volume Slider trượt ngang */
+        .mhent-volume-container { display: flex; align-items: center; position: relative; margin-right: 5px; }
+        .mhent-volume-slider { width: 0; opacity: 0; transform-origin: left; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s; height: 4px; -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.4); border-radius: 2px; cursor: pointer; margin-left: 0; }
+        .mhent-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #ff85a2; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .mhent-volume-container:hover .mhent-volume-slider { width: 60px; opacity: 1; margin-left: 5px; }
+
+        /* Menu Cài đặt (Settings) */
+        .mhent-settings-menu { position: absolute; bottom: 50px; right: 20px; background: rgba(28,28,28,0.9); backdrop-filter: blur(5px); border-radius: 8px; padding: 8px 0; min-width: 140px; flex-direction: column; z-index: 30; opacity: 0; visibility: hidden; transform: translateY(10px); transition: 0.2s; border: 1px solid rgba(255,255,255,0.1); }
+        .mhent-settings-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .mhent-setting-item { color: white; padding: 8px 20px; font-size: 13px; font-family: 'Nunito', sans-serif; cursor: pointer; font-weight: 700; display: flex; justify-content: space-between; transition: 0.2s; }
+        .mhent-setting-item:hover { background: rgba(255,133,162,0.2); color: #ff85a2; }
+        .mhent-setting-item.active { color: #ff85a2; border-left: 3px solid #ff85a2; padding-left: 17px; background: rgba(255,255,255,0.05); }
+
         .mhent-player-wrapper:fullscreen { border-radius: 0; }
     </style>
 </head>
@@ -129,24 +145,55 @@
                         </div>
             
                         <div class="mhent-player-wrapper" id="mhent-player">
+                            <div class="mhent-video-header" id="player-header-title">Đang kết nối vệ tinh...</div>
+
                             <iframe id="main-player-iframe" src="" frameborder="0" allow="fullscreen; autoplay" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" style="display: none;"></iframe>
                             
                             <video id="main-player-video" playsinline style="display: none;"></video>
                             
-                            <div class="mhent-watermark" id="player-watermark">MHEnt.</div>
+                            <img src="/assets/icon-web.png" class="mhent-watermark" id="player-watermark" alt="MHEnt Logo">
                             
                             <div class="mhent-controls" id="player-controls-ui">
                                 <div class="mhent-progress-container" id="player-progress-bar">
                                     <div class="mhent-progress-bar" id="player-progress-fill"></div>
                                 </div>
+                                
                                 <div class="mhent-controls-row">
                                     <div class="mhent-controls-left">
+                                        <button class="mhent-btn" id="btn-rewind" title="Lùi 10s">
+                                            <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+                                        </button>
+                                        
                                         <button class="mhent-btn" id="btn-play-pause" title="Phát/Tạm dừng">
                                             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" id="icon-play-path"/></svg>
                                         </button>
+                                        
+                                        <button class="mhent-btn" id="btn-forward" title="Tiến 10s">
+                                            <svg viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                                        </button>
+                                        
+                                        <div class="mhent-volume-container">
+                                            <button class="mhent-btn" id="btn-volume" title="Âm lượng">
+                                                <svg viewBox="0 0 24 24"><path id="icon-volume-path" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                                            </button>
+                                            <input type="range" class="mhent-volume-slider" id="volume-slider" min="0" max="1" step="0.05" value="1">
+                                        </div>
+
                                         <span class="mhent-time" id="player-time">00:00 / 00:00</span>
                                     </div>
+                                    
                                     <div class="mhent-controls-right">
+                                        <button class="mhent-btn" id="btn-settings" title="Cài đặt tốc độ">
+                                            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                                        </button>
+                                        
+                                        <div class="mhent-settings-menu" id="settings-menu">
+                                            <div class="mhent-setting-item" data-speed="0.5">Tốc độ 0.5x</div>
+                                            <div class="mhent-setting-item active" data-speed="1">Tốc độ 1x (Chuẩn)</div>
+                                            <div class="mhent-setting-item" data-speed="1.5">Tốc độ 1.5x</div>
+                                            <div class="mhent-setting-item" data-speed="2">Tốc độ 2x</div>
+                                        </div>
+
                                         <button class="mhent-btn" id="btn-pip" title="Thu nhỏ cửa sổ (PiP)">
                                             <svg viewBox="0 0 24 24"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/></svg>
                                         </button>
@@ -171,7 +218,7 @@
                             
                             <div class="server-list-mini">
                                 <span class="server-label">Nguồn phát:</span>
-                                <button id="btn-server-super" class="server-btn-mini active" onclick="changeServer('linkSuper')">🚀 SUPER (Siêu mượt)</button>
+                                <button id="btn-server-super" class="server-btn-mini active" onclick="changeServer('linkSuper')">🚀 SUPER</button>
                                 <button id="btn-server-vip" class="server-btn-mini" onclick="changeServer('linkVIP')">✨ VIP</button>
                                 <button id="btn-server-dp" class="server-btn-mini" onclick="changeServer('linkDuPhong')">📺 Dự phòng</button>
                                 <button id="btn-server-dp2" class="server-btn-mini" onclick="changeServer('linkDuPhong2')">🛡️ Dự phòng</button>
@@ -260,6 +307,8 @@
             const iframe = document.getElementById('main-player-iframe');
             const customControls = document.getElementById('player-controls-ui');
             const watermark = document.getElementById('player-watermark');
+            const headerTitle = document.getElementById('player-header-title');
+            
             const playPauseBtn = document.getElementById('btn-play-pause');
             const iconPlayPath = document.getElementById('icon-play-path');
             const timeDisplay = document.getElementById('player-time');
@@ -267,6 +316,17 @@
             const progressFill = document.getElementById('player-progress-fill');
             const fullscreenBtn = document.getElementById('btn-fullscreen');
             const pipBtn = document.getElementById('btn-pip');
+            
+            // Chức năng mới: Tua, Volume, Settings
+            const rewindBtn = document.getElementById('btn-rewind');
+            const forwardBtn = document.getElementById('btn-forward');
+            const volumeBtn = document.getElementById('btn-volume');
+            const iconVolumePath = document.getElementById('icon-volume-path');
+            const volumeSlider = document.getElementById('volume-slider');
+            const settingsBtn = document.getElementById('btn-settings');
+            const settingsMenu = document.getElementById('settings-menu');
+            const speedItems = document.querySelectorAll('.mhent-setting-item');
+
             let hideControlsTimeout;
 
             function formatTime(seconds) {
@@ -280,8 +340,8 @@
                 if (video.paused) { video.play(); } else { video.pause(); }
             }
 
-            video.addEventListener('play', () => { iconPlayPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); }); // Đổi icon Pause
-            video.addEventListener('pause', () => { iconPlayPath.setAttribute('d', 'M8 5v14l11-7z'); }); // Đổi icon Play
+            video.addEventListener('play', () => { iconPlayPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); }); 
+            video.addEventListener('pause', () => { iconPlayPath.setAttribute('d', 'M8 5v14l11-7z'); }); 
 
             video.addEventListener('timeupdate', () => {
                 timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
@@ -296,7 +356,55 @@
             });
 
             playPauseBtn.addEventListener('click', togglePlayPause);
-            video.addEventListener('click', togglePlayPause); // Bấm vào video cũng Pause/Play
+            video.addEventListener('click', () => {
+                // Chỉ toggle play/pause nếu menu cài đặt đang ẩn
+                if(!settingsMenu.classList.contains('show')) togglePlayPause();
+                else settingsMenu.classList.remove('show');
+            });
+
+            // LOGIC TUA LUI / TUA TỚI 10s
+            rewindBtn.addEventListener('click', () => { video.currentTime = Math.max(0, video.currentTime - 10); });
+            forwardBtn.addEventListener('click', () => { video.currentTime = Math.min(video.duration, video.currentTime + 10); });
+
+            // LOGIC VOLUME ÂM LƯỢNG
+            function updateVolumeIcon() {
+                if (video.muted || video.volume === 0) {
+                    iconVolumePath.setAttribute('d', 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z');
+                } else if (video.volume < 0.5) {
+                    iconVolumePath.setAttribute('d', 'M5 9v6h4l5 5V4L9 9H5zm11.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z');
+                } else {
+                    iconVolumePath.setAttribute('d', 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z');
+                }
+            }
+
+            volumeSlider.addEventListener('input', (e) => {
+                video.volume = e.target.value;
+                video.muted = (e.target.value == 0);
+                updateVolumeIcon();
+            });
+
+            volumeBtn.addEventListener('click', () => {
+                video.muted = !video.muted;
+                volumeSlider.value = video.muted ? 0 : video.volume;
+                updateVolumeIcon();
+            });
+
+            // LOGIC CÀI ĐẶT TỐC ĐỘ (SETTINGS)
+            settingsBtn.addEventListener('click', () => { settingsMenu.classList.toggle('show'); });
+            
+            speedItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const speed = parseFloat(item.getAttribute('data-speed'));
+                    video.playbackRate = speed;
+                    
+                    // Đổi class active
+                    speedItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Tự động đóng menu
+                    settingsMenu.classList.remove('show');
+                });
+            });
 
             fullscreenBtn.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
@@ -319,13 +427,20 @@
             function resetHideControlsTimer() {
                 videoWrapper.classList.remove('hide-controls');
                 clearTimeout(hideControlsTimeout);
-                if (!video.paused) {
+                // Nếu đang mở menu settings thì không ẩn thanh công cụ
+                if (!video.paused && !settingsMenu.classList.contains('show')) {
                     hideControlsTimeout = setTimeout(() => { videoWrapper.classList.add('hide-controls'); }, 2500);
                 }
             }
             videoWrapper.addEventListener('mousemove', resetHideControlsTimer);
-            videoWrapper.addEventListener('mouseleave', () => { if (!video.paused) videoWrapper.classList.add('hide-controls'); });
+            videoWrapper.addEventListener('mouseleave', () => { 
+                if (!video.paused && !settingsMenu.classList.contains('show')) videoWrapper.classList.add('hide-controls'); 
+            });
             video.addEventListener('pause', () => { videoWrapper.classList.remove('hide-controls'); clearTimeout(hideControlsTimeout); });
+
+            // Đóng menu setting khi chuột rời đi
+            settingsMenu.addEventListener('mouseleave', () => { settingsMenu.classList.remove('show'); resetHideControlsTimer(); });
+
 
             // 🧠 BỘ NÃO NHẬN DIỆN VÀ CHẠY PHIM THÔNG MINH
             window.applyVideoSource = function(link) {
@@ -333,6 +448,8 @@
                 video.style.display = 'none';
                 customControls.style.display = 'none';
                 watermark.style.display = 'none';
+                headerTitle.style.display = 'none';
+                
                 iframe.src = "";
                 video.pause();
                 video.removeAttribute('src');
@@ -342,8 +459,10 @@
 
                 if (link.includes('.m3u8')) {
                     video.style.display = 'block';
-                    customControls.style.display = 'flex'; // Bật Custom Player
+                    customControls.style.display = 'flex'; 
                     watermark.style.display = 'block';
+                    headerTitle.style.display = 'block';
+                    
                     if (Hls.isSupported()) {
                         window.hls = new Hls();
                         window.hls.loadSource(link);
@@ -355,11 +474,14 @@
                     }
                 } else if (link.includes('.mp4')) {
                     video.style.display = 'block';
-                    customControls.style.display = 'flex'; // Bật Custom Player
+                    customControls.style.display = 'flex'; 
                     watermark.style.display = 'block';
+                    headerTitle.style.display = 'block';
+                    
                     video.src = link;
                     video.play().catch(e=>{});
                 } else {
+                    // Nếu là Google Drive (iframe), ẩn luôn Header và Logo
                     iframe.style.display = 'block';
                     iframe.src = link;
                 }
@@ -470,8 +592,8 @@
                 document.getElementById('btn-server-dp').style.display = tapPhim.linkDuPhong ? 'inline-block' : 'none';
                 document.getElementById('btn-server-dp2').style.display = tapPhim.linkDuPhong2 ? 'inline-block' : 'none';
 
-                if (tapPhim.linkVIP) window.currentServerType = 'linkVIP'; 
-                else if (tapPhim.linkSuper) window.currentServerType = 'linkSuper';
+                if (tapPhim.linkSuper) window.currentServerType = 'linkSuper'; 
+                else if (tapPhim.linkVIP) window.currentServerType = 'linkVIP';
                 else if (tapPhim.linkDuPhong) window.currentServerType = 'linkDuPhong';
                 else if (tapPhim.linkDuPhong2) window.currentServerType = 'linkDuPhong2';
                 window.changeServerUI(window.currentServerType);
@@ -490,6 +612,9 @@
                     const epName = cleanEpTitle.split(':')[0]; 
                     const movieName = window.currentMovieData.title; 
                     document.title = `Đang xem ${epName} - ${movieName} - MHEnt. Cinema`;
+
+                    // Cập nhật tiêu đề In trên Video (Chức năng mới theo yêu cầu)
+                    headerTitle.innerText = `${movieName} - ${cleanEpTitle}`;
                 
                     const allBtns = document.querySelectorAll('.ep-btn-custom');
                     allBtns.forEach(b => b.classList.remove('active'));
@@ -641,10 +766,10 @@
 
         window.isOriginalLightMode = false; 
         window.toggleCinemaMode = function() {
-            const btn = document.getElementById('btn-cinema-mode'); const body = document.body; const videoWrapper = document.querySelector('.video-section'); 
+            const btn = document.getElementById('btn-cinema-mode'); const body = document.body; const videoWrapperBox = document.querySelector('.video-section'); 
             const isCinema = body.classList.toggle('cinema-active');
             if (isCinema) {
-                if (videoWrapper) { videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+                if (videoWrapperBox) { videoWrapperBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
                 btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Bật đèn'; btn.style.background = '#ff85a2'; btn.style.color = '#fff';
                 window.isOriginalLightMode = !body.classList.contains('dark-mode'); if (window.isOriginalLightMode) { body.classList.add('dark-mode'); }
             } else {
@@ -777,16 +902,12 @@
         document.addEventListener('keydown', function(e) {
             if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
             
-            // Xử lý Phím Cách (Space) để Play/Pause (Không cần Shift)
             if (e.code === 'Space') {
-                e.preventDefault(); // Tránh cuộn trang
+                e.preventDefault(); 
                 const vid = document.getElementById('main-player-video');
-                if (vid && vid.style.display === 'block') {
-                    if (vid.paused) vid.play(); else vid.pause();
-                }
+                if (vid && vid.style.display === 'block') { if (vid.paused) vid.play(); else vid.pause(); }
             }
             
-            // Xử lý Mũi tên Trái/Phải để Tua phim 10s (Không cần Shift)
             if (e.code === 'ArrowRight' && !e.shiftKey) {
                 const vid = document.getElementById('main-player-video');
                 if (vid && vid.style.display === 'block') { e.preventDefault(); vid.currentTime += 10; }
@@ -796,7 +917,6 @@
                 if (vid && vid.style.display === 'block') { e.preventDefault(); vid.currentTime -= 10; }
             }
 
-            // Giữ nguyên các phím tắt Shift cũ
             if (e.shiftKey) {
                 if (e.key === 'ArrowRight') { e.preventDefault(); window.changeEpisode(1); } 
                 else if (e.key === 'ArrowLeft') { e.preventDefault(); window.changeEpisode(-1); } 
