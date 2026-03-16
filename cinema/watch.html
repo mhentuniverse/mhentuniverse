@@ -74,6 +74,27 @@
         .mhent-setting-item.active { color: #ff85a2; border-left: 3px solid #ff85a2; padding-left: 17px; background: rgba(255,255,255,0.05); }
 
         .mhent-player-wrapper:fullscreen { border-radius: 0; }
+
+        /* VÁ LỖI TẮT ĐÈN CHO CUSTOM PLAYER */
+        .cinema-active .mhent-player-wrapper { position: relative; z-index: 10001; box-shadow: 0 0 50px rgba(0,0,0,1); }
+        .cinema-active #cinema-tools-bar { position: relative; z-index: 10001; }
+
+        /* HIỆU ỨNG NÚT GIỮA MÀN HÌNH (YOUTUBE STYLE) */
+        .mhent-center-action {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background: rgba(0, 0, 0, 0.6); color: white;
+            border-radius: 50%; width: 70px; height: 70px;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; z-index: 15; opacity: 0;
+        }
+        .mhent-center-action svg { width: 40px; height: 40px; fill: currentColor; }
+        .mhent-center-action.animate { animation: actionFadeZoom 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+        
+        @keyframes actionFadeZoom {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
     </style>
 </head>
     <body class="gradient-bg">
@@ -150,6 +171,10 @@
                             <iframe id="main-player-iframe" src="" frameborder="0" allow="fullscreen; autoplay" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" style="display: none;"></iframe>
                             
                             <video id="main-player-video" playsinline style="display: none;"></video>
+
+                            <div class="mhent-center-action" id="center-action-icon">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" id="center-action-path"/></svg>
+                            </div>
                             
                             <img src="/assets/icon-web.png" class="mhent-watermark" id="player-watermark" alt="MHEnt Logo">
                             
@@ -336,8 +361,31 @@
                 return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
             }
 
+            // Khai báo thêm biến ở trên cùng khu vực này
+            const centerAction = document.getElementById('center-action-icon');
+            const centerActionPath = document.getElementById('center-action-path');
+
+            // Hàm bắn hiệu ứng ra giữa màn hình
+            function triggerCenterAnimation(action) {
+                centerAction.classList.remove('animate');
+                void centerAction.offsetWidth; // Mẹo nhỏ ép CSS chạy lại từ đầu
+                if (action === 'play') {
+                    centerActionPath.setAttribute('d', 'M8 5v14l11-7z'); // Icon Play
+                } else if (action === 'pause') {
+                    centerActionPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); // Icon Pause
+                }
+                centerAction.classList.add('animate');
+            }
+
+            // Hàm bấm Play/Pause đã nâng cấp
             function togglePlayPause() {
-                if (video.paused) { video.play(); } else { video.pause(); }
+                if (video.paused) { 
+                    video.play(); 
+                    triggerCenterAnimation('play'); // Kêu hiệu ứng Play
+                } else { 
+                    video.pause(); 
+                    triggerCenterAnimation('pause'); // Kêu hiệu ứng Pause
+                }
             }
 
             video.addEventListener('play', () => { iconPlayPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); }); 
