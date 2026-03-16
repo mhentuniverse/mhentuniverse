@@ -95,6 +95,25 @@
             0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
         }
+
+        /* 1. ĐỘNG CƠ XOAY CHO TẤT CẢ SPINNER */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite !important; }
+
+        /* 2. MÀN HÌNH LOADING KHI MẠNG YẾU (NẰM TRONG VIDEO) */
+        .mhent-buffering {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); z-index: 15;
+            display: none; align-items: center; justify-content: center;
+        }
+        .mhent-buffering .spinner {
+            width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.2); border-top-color: #ff85a2;
+        }
+
+        /* 3. HIỆU ỨNG NÚT BẤM CONTROL BAR ĐỈNH CAO */
+        .mhent-btn { transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .mhent-btn:hover { color: #ff85a2; transform: scale(1.15) translateY(-2px); filter: drop-shadow(0 0 8px rgba(255,133,162,0.6)); }
+        .mhent-btn:active { transform: scale(0.85); } /* Cảm giác lún xuống khi bấm */
     </style>
 </head>
     <body class="gradient-bg">
@@ -109,47 +128,126 @@
 
         <nav class="navbar">
             <div class="nav-left">
-                <a onclick="window.location.href='index.html'" style="cursor: pointer;"><img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img"><span class="logo-name">MHEnt. Cinema</span></a>
+                <a onclick="window.location.href='index.html'" style="cursor: pointer;">
+                    <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                    <span class="logo-name">MHEnt. Cinema</span>
+                </a>
             </div>
+
             <ul class="nav-links" id="nav-links">
                 <li><a onclick="window.location.href='index.html'" style="cursor: pointer;">Trang chủ</a></li>
                 <li><a onclick="window.location.href='index.html#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
                 <li><a onclick="window.location.href='/about.html'" style="cursor: pointer;">Về chúng tớ</a></li>
             </ul>
+
             <div class="nav-right">
                 <div class="nav-search-container" id="nav-search-wrapper">
-                    <input type="text" id="nav-search-box" placeholder="Tìm phim..." oninput="window.renderNavLiveSearch()" onfocus="window.renderNavLiveSearch()">
-                    <div class="nav-search-icon" onclick="toggleNavSearch()" title="Tìm kiếm"><svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+                    <input type="text" id="nav-search-box" placeholder="Tìm phim..." 
+                           oninput="window.renderNavLiveSearch()" 
+                           onfocus="window.renderNavLiveSearch()">
+                    <div class="nav-search-icon" onclick="toggleNavSearch()" title="Tìm kiếm">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
                     <div id="nav-search-dropdown" class="search-dropdown"></div>
                 </div>
+
                 <div class="user-section">
                     <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
                         <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='#ff85a2'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle></svg>
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                                <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                                <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                            </svg>
                         </div>
+                        
                         <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
-                            <a href="/" class="app-item"><span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span><span class="app-name">Đại Sảnh</span></a>
-                            <a href="/cinema/" class="app-item active"><span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span><span class="app-name">Cinema</span></a>
+                            <a href="/" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
+                                <span class="app-name">Đại Sảnh</span>
+                            </a>
+                            <a href="/cinema/" class="app-item active">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                                <span class="app-name">Cinema</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Manga đang được xây dựng!', 'info'); return false;">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                                <span class="app-name">Manga</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Novel đang được xây dựng!', 'info'); return false;">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+                                <span class="app-name">Novel</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Music đang được xây dựng!', 'info'); return false;">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
+                                <span class="app-name">Music</span>
+                            </a>
                         </div>
                     </div>
                     <div id="bell-container" style="display: none; position: relative;">
-                        <div class="notif-bell" onclick="toggleNotif()" style="cursor: pointer;"><svg viewBox="0 0 24 24" width="22" height="22" class="svg-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="notif-dot"></span></div>
-                        <div id="dropdown-notif" class="dropdown-menu notif-dropdown"><div class="notif-header"><span class="notif-title-text">Thông báo</span><span class="notif-mark-read" onclick="markAllAsRead()">Đánh dấu tất cả là đã đọc</span></div><div id="notif-list" class="notif-body"></div><div class="notif-footer"><button class="btn-view-all" onclick="window.location.href='notification.html'">Xem tất cả ></button></div></div>
+                        <div class="notif-bell" onclick="toggleNotif()" style="cursor: pointer;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" class="svg-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="notif-dot"></span>
+                        </div>
+                        <div id="dropdown-notif" class="dropdown-menu notif-dropdown">
+                            <div class="notif-header">
+                                <span class="notif-title-text">Thông báo</span>
+                                <span class="notif-mark-read" onclick="markAllAsRead()">Đánh dấu tất cả là đã đọc</span>
+                            </div>
+                            <div id="notif-list" class="notif-body"></div>
+                            <div class="notif-footer">
+                                <button class="btn-view-all" onclick="window.location.href='notification.html'">Xem tất cả ></button>
+                            </div>
+                        </div>
                     </div>
-                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn"><svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
-                    <button id="btn-login" class="btn-login btn-with-icon"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>Đăng nhập</button>
+
+                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    
+                    <button id="btn-login" class="btn-login btn-with-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                        Đăng nhập
+                    </button>
+
                     <div id="user-profile" class="user-profile" style="position: relative; display: none;">
-                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><img id="user-avatar" src="" alt="User" class="user-avatar"><span id="user-name" class="user-name">Tên User</span></div>
+                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <img id="user-avatar" src="" alt="User" class="user-avatar">
+                            <span id="user-name" class="user-name">Tên User</span>
+                        </div>
+                        
                         <div id="dropdown-account" class="dropdown-menu account-dropdown">
-                            <div class="dropdown-item" onclick="window.location.href='/profile.html#info'"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ</div>
-                            <div class="dropdown-item" onclick="window.location.href='library.html'"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện</div>
-                            <div class="dropdown-item" onclick="toggleDarkMode()"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode</div>
+                            <div class="dropdown-item" onclick="window.location.href='/profile.html#info'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
+                            </div>
+                            <div class="dropdown-item" onclick="window.location.href='library.html'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện
+                            </div>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode
+                            </div>
+                            <div class="dropdown-item" onclick="window.location.href='/profile.html#settings'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Cài đặt
+                            </div>
                             <div class="dropdown-divider"></div>
-                            <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;"><svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
+                            <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #28a745 !important;" onclick="window.open('admin.html', '_blank')">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Admin
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="studio-panel-btn" class="dropdown-item" style="display: none; color: #ff9a00 !important;" onclick="window.open('studio.html', '_blank')">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Phòng Studio
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="menu-toggle" onclick="toggleMobileMenu()"><svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
+
+                <div class="menu-toggle" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </div>
             </div>
         </nav>
 
@@ -171,6 +269,10 @@
                             <iframe id="main-player-iframe" src="" frameborder="0" allow="fullscreen; autoplay" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" style="display: none;"></iframe>
                             
                             <video id="main-player-video" playsinline style="display: none;"></video>
+
+                            <div class="mhent-buffering" id="player-buffering">
+                                <div class="spinner"></div>
+                            </div>
 
                             <div class="mhent-center-action" id="center-action-icon">
                                 <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" id="center-action-path"/></svg>
@@ -341,6 +443,13 @@
             const progressFill = document.getElementById('player-progress-fill');
             const fullscreenBtn = document.getElementById('btn-fullscreen');
             const pipBtn = document.getElementById('btn-pip');
+
+            // KHAI BÁO BỘ LOADING MẠNG YẾU
+            const bufferingOverlay = document.getElementById('player-buffering');
+            
+            video.addEventListener('waiting', () => { bufferingOverlay.style.display = 'flex'; }); // Mạng yếu -> Hiện xoay xoay
+            video.addEventListener('playing', () => { bufferingOverlay.style.display = 'none'; }); // Mạng khỏe lại -> Tắt
+            video.addEventListener('canplay', () => { bufferingOverlay.style.display = 'none'; }); // Đã load xong -> Tắt
             
             // Chức năng mới: Tua, Volume, Settings
             const rewindBtn = document.getElementById('btn-rewind');
