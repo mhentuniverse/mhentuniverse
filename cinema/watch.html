@@ -410,7 +410,7 @@
                         </span>
                         <span id="rating-text" style="font-size: 13px; color: #888; margin-left: 10px;">(Bạn thấy phim thế nào?)</span>
                     </div>
-                    <p><strong>Bản dịch:</strong> Team Subtitle - MHEnt</p>
+                    <p><strong>Bản dịch:</strong> <span id="movie-translator">Đang tải...</span></p>
                     <div id="desc-container" class="description-scroll">
                         <p><strong>Mô tả:</strong></p>
                         <p id="footer-desc">...</p>
@@ -788,7 +788,13 @@
                     finalHTML += `</div></div>`;
                 }
                 container.innerHTML = finalHTML;
-            }
+                
+                // --- THÊM MỚI: Bơm tên các nhóm dịch vào phần thông tin dưới Video ---
+                const translatorText = document.getElementById('movie-translator');
+                if (translatorText) {
+                    translatorText.innerText = Object.keys(groups).join(', ');
+                }
+            } // (Đây là dấu đóng của hàm renderButtons)
 
             window.playVideo = function(index) {
                 window.currentEpIndex = index;
