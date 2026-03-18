@@ -616,21 +616,52 @@
                 });
             });
 
+            // 🚀 BẢN NÂNG CẤP CHỐNG LỖI CHO NÚT TOÀN MÀN HÌNH (FULLSCREEN)
             fullscreenBtn.addEventListener('click', () => {
-                if (!document.fullscreenElement) {
-                    if (videoWrapper.requestFullscreen) videoWrapper.requestFullscreen();
-                    else if (videoWrapper.webkitRequestFullscreen) videoWrapper.webkitRequestFullscreen();
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    // Ưu tiên phóng to cả Rạp (Dành cho PC & Android)
+                    if (videoWrapper.requestFullscreen) {
+                        videoWrapper.requestFullscreen();
+                    } else if (videoWrapper.webkitRequestFullscreen) {
+                        videoWrapper.webkitRequestFullscreen();
+                    } 
+                    // BÙA CHÚ DÀNH RIÊNG CHO IPHONE/IPAD (Buộc phải phóng to thẻ video gốc)
+                    else if (video.webkitEnterFullscreen) {
+                        video.webkitEnterFullscreen();
+                    }
                 } else {
-                    if (document.exitFullscreen) document.exitFullscreen();
-                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    // Thu nhỏ lại
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
                 }
             });
 
+            // 🚀 BẢN NÂNG CẤP CHỐNG LỖI CHO NÚT THU NHỎ (PiP)
             pipBtn.addEventListener('click', async () => {
                 try {
-                    if (document.pictureInPictureElement) await document.exitPictureInPicture();
-                    else await video.requestPictureInPicture();
-                } catch (error) { console.log("PiP không được hỗ trợ"); }
+                    if (document.pictureInPictureElement) {
+                        // Đang mở PiP thì tắt đi
+                        await document.exitPictureInPicture();
+                    } else if (document.pictureInPictureEnabled) {
+                        // Mở PiP chuẩn Quốc tế (PC, Android, Safari đời mới)
+                        await video.requestPictureInPicture();
+                    } else if (video.webkitSupportsPresentationMode && typeof video.webkitSetPresentationMode === "function") {
+                        // BÙA CHÚ DÀNH RIÊNG CHO IPHONE ĐỜI CŨ
+                        video.webkitSetPresentationMode(video.webkitPresentationMode === "picture-in-picture" ? "inline" : "picture-in-picture");
+                    } else {
+                        if (typeof window.showToast === 'function') {
+                            window.showToast("Thông báo", "Trình duyệt của điện thoại này không hỗ trợ PiP nha!", "info");
+                        }
+                    }
+                } catch (error) {
+                    console.log("PiP bị từ chối:", error);
+                    if (typeof window.showToast === 'function') {
+                        window.showToast("Lỗi", "Không thể thu nhỏ màn hình lúc này, thử Play video trước nhé!", "error");
+                    }
+                }
             });
 
             // Ẩn hiện thanh điều khiển thông minh
