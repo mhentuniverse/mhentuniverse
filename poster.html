@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poster Kỷ Niệm 120 Năm Ngày Sinh Cố Thủ Tướng Phạm Văn Đồng</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
-    <link rel="stylesheet" href="style.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
 
@@ -14,41 +11,65 @@
             margin: 0;
             padding: 0;
             display: flex;
+            flex-direction: column; /* Đổi sang cột để nút nằm dưới poster trên di động */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #e0e0e0; /* Nền ngoài tối màu hơn chút để nổi poster */
             font-family: 'Montserrat', sans-serif;
+            overflow: hidden; /* Tránh cuộn ngang/dọc không cần thiết trên body */
         }
 
-        /* Khung chính của poster (Tỷ lệ 16:9) */
+        /* KHỐI POSTER THỐNG NHẤT VÀ RESPONSIVE */
+        .poster-wrapper {
+            position: relative;
+            width: 100vw;       /* Chiếm toàn bộ chiều rộng màn hình */
+            max-width: 1200px;  /* Nhưng không vượt quá 1200px trên màn to */
+            /* Bí kíp giữ tỷ lệ 16:9 (9/16 = 0.5625) */
+            aspect-ratio: 16 / 9; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px; /* Thêm padding để không dính sát viền trên màn nhỏ */
+            box-sizing: border-box;
+        }
+
         .poster-container {
-            width: 1000px;
-            height: 562px;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #81d4fa 100%);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            /* Thu nhỏ nội dung bên trong dựa trên font-size gốc */
+            font-size: 1vw; /* 1vw = 1% chiều rộng viewport, giúp mọi thứ scale theo */
+        }
+
+        /* Giới hạn font-size trên màn hình rất lớn để không bị to quá */
+        @media (min-width: 1200px) {
+            .poster-container {
+                font-size: 12px; 
+            }
         }
 
         /* Các khối hình học trang trí tạo hiệu ứng nền */
         .shape-1 {
             position: absolute;
-            width: 600px;
-            height: 600px;
+            width: 60em; /* Dùng em thay vì px để scale theo font-size */
+            height: 60em;
             background: rgba(255, 255, 255, 0.4);
             border-radius: 50%;
-            top: -200px;
-            left: -150px;
+            top: -20em;
+            left: -15em;
         }
         .shape-2 {
             position: absolute;
-            width: 500px;
-            height: 500px;
+            width: 50em;
+            height: 50em;
             background: rgba(3, 169, 244, 0.15);
             border-radius: 50%;
-            bottom: -150px;
-            right: -100px;
+            bottom: -15em;
+            right: -10em;
         }
 
         /* Phần nội dung chính */
@@ -56,33 +77,35 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
+            width: 55%; /* Chỉ cho nội dung chiếm 55% không gian bên trái */
             height: 100%;
-            padding: 40px 50px;
+            padding: 4em 5em;
             box-sizing: border-box;
             z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Căn giữa nội dung theo chiều dọc */
         }
         
-        /* CSS MỚI CHO KHU VỰC LOGO */
+        /* KHU VỰC LOGO ĐÃ THU NHỎ LẠI */
         .logo-container {
-            display: inline-flex; /* Bí kíp giúp khối ôm khít vào logo, không bị kéo giãn */
-            align-items: center;  /* Căn giữa các logo theo chiều dọc */
-            gap: 20px;
-            margin-bottom: 25px;
-
-            /* Khối nền trắng đã được tinh chỉnh lại cho gọn gàng, trong trẻo hơn */
+            display: inline-flex;
+            align-items: center;
+            gap: 1.5em; /* Khoảng cách dựa trên tỷ lệ */
+            margin-bottom: 2em;
             background-color: rgba(255, 255, 255, 0.85); 
-            padding: 12px 30px; 
-            border-radius: 50px; 
-            box-shadow: 0 5px 20px rgba(0, 82, 156, 0.08);
+            padding: 0.8em 2em; 
+            border-radius: 5em; 
+            box-shadow: 0 0.5em 2em rgba(0, 82, 156, 0.08);
             border: 2px solid #fff;
+            align-self: flex-start; /* Ép khối này dạt sang trái, không bị giãn giữa */
         }
 
-        /* Class dành riêng cho ảnh Logo */
+        /* Class dành riêng cho ảnh Logo - KÍCH THƯỚC NHỎ HƠN */
         .logo-img {
             width: auto;
             object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(0, 82, 156, 0.15));
+            filter: drop-shadow(0 0.4em 0.6em rgba(0, 82, 156, 0.15));
             transition: transform 0.3s ease;
         }
 
@@ -90,100 +113,78 @@
             transform: scale(1.08);
         }
 
-        .logo-doan { height: 90px; }
-        .logo-nlu { height: 80px; }
-        .logo-khoa { height: 70px; border-radius: 100%; }
-        .logo-placeholder {
-            width: 60px;
-            height: 60px;
-            background-color: #fff;
-            border-radius: 50%;
-            border: 2px solid #0277bd;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 10px;
-            color: #0277bd;
-            text-align: center;
-            font-weight: 600;
-        }
+        .logo-doan { height: 5.5em; } /* Thu nhỏ từ 90px xuống tương đương ~55px */
+        .logo-nlu { height: 4.8em; }
+        .logo-khoa { height: 4.2em; border-radius: 100%; }
 
-        /* Typography - Chữ */
-        .subtitle-blue {
-            color: #0277bd;
-            font-size: 18px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-        }
-
+        /* Typography - Đã dùng 'em' để scale chuẩn */
         .title-red {
             color: #d32f2f;
-            font-size: 42px;
+            font-size: 3.2em; /* Tương đương 32px ở kích thước gốc */
             font-weight: 900;
             text-transform: uppercase;
             line-height: 1.2;
-            margin: 10px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin: 0.2em 0;
+            text-shadow: 0.2em 0.2em 0.4em rgba(0,0,0,0.1);
         }
 
         .title-blue {
             color: #0277bd;
-            font-size: 26px;
+            font-size: 2.2em;
             font-weight: 800;
             text-transform: uppercase;
-            margin: 5px 0;
+            margin: 0.2em 0;
+            line-height: 1.3;
         }
 
         .date-text {
             color: #0277bd;
-            font-size: 24px;
+            font-size: 2em;
             font-weight: 900;
-            margin-bottom: 25px;
+            margin-bottom: 1.5em;
         }
 
         .details {
             display: inline-block;
             background-color: rgba(255, 255, 255, 0.7);
-            padding: 8px 15px;
-            border-radius: 20px;
+            padding: 0.8em 1.5em;
+            border-radius: 2em;
             color: #01579b;
-            font-size: 14px;
+            font-size: 1.2em;
             font-weight: 600;
+            line-height: 1.5;
+            align-self: flex-start;
         }
 
-        /* Phần bên phải: Khung ảnh lớn */
-        .right-area {
-            flex: 1; /* Chiếm diện tích lớn tương đương phần trái */
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
+        /* KHUNG ẢNH LỚN BÊN PHẢI - ĐÃ HẠ XUỐNG ĐÁY */
         .image-area {
             position: absolute;
-            right: 0px;
-            bottom: 0px;
-            width: 860px;
-            height: 750px;
-            /* border: 3px dashed rgba(2, 119, 189, 0.3); */
-            border-radius: 15px;
+            right: 0;
+            bottom: 0; /* Gắn chặt xuống cạnh dưới */
+            width: 55%; /* Hình ảnh chiếm phần bên phải */
+            height: 90%; /* Không cao bằng 100% để tạo chiều sâu */
             display: flex;
-            justify-content: center;
-            align-items: center;
-            color: rgba(2, 119, 189, 0.6);
-            font-weight: 600;
-            text-align: center;
-            padding: 0px;
+            justify-content: flex-end; /* Căn hình sát sang phải */
+            align-items: flex-end; /* Căn hình sát xuống dưới */
+            z-index: 5; /* Nằm dưới text nếu có đè lên nhau */
         }
 
-        /* NÚT TẢI XUỐNG CỦA CẬU ĐÂY */
+        .image-area img {
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain;
+            object-position: bottom right; /* Quan trọng: Gắn gốc ảnh vào góc dưới phải */
+        }
+
+        /* NÚT TẢI XUỐNG - Tách ra khỏi vùng chụp ảnh */
+        .action-area {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
         .btn-download {
-            position: absolute;
-            bottom: 40px;
-            left: 40px;
             padding: 12px 28px;
             font-size: 16px;
             font-weight: 800;
@@ -198,7 +199,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            z-index: 10;
         }
 
         .btn-download:hover {
@@ -214,36 +214,40 @@
 </head>
 <body>
 
-    <button class="btn-download" id="downloadBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Tải Poster Về Máy
-    </button>
+    <div class="poster-wrapper">
+        <div class="poster-container" id="posterArea">
+            <div class="shape-1"></div>
+            <div class="shape-2"></div>
 
-    <div class="poster-container" id="posterArea">
-        <div class="shape-1"></div>
-        <div class="shape-2"></div>
-
-        <div class="content">
-            <div class="logo-container">
-                <img class="logo-img logo-doan" src="https://upload.wikimedia.org/wikipedia/vi/0/09/Huy_Hi%E1%BB%87u_%C4%90o%C3%A0n.png" alt="Logo Đoàn" title="Logo Đoàn TNCS">
-                <img class="logo-img logo-nlu" src="https://upload.wikimedia.org/wikipedia/vi/e/e1/Logo_HCMUAF.svg" alt="Logo NLU" title="Logo NLU">
-                <img class="logo-img logo-khoa" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRahe4PBqL3Sr3OuFzXmhx0mZ7eyGWAOTm-ww&s" alt="Logo Khoa">
+            <div class="content">
+                <div class="logo-container">
+                    <img class="logo-img logo-doan" src="https://upload.wikimedia.org/wikipedia/vi/0/09/Huy_Hi%E1%BB%87u_%C4%90o%C3%A0n.png" alt="Logo Đoàn" title="Logo Đoàn TNCS">
+                    <img class="logo-img logo-nlu" src="https://upload.wikimedia.org/wikipedia/vi/e/e1/Logo_HCMUAF.svg" alt="Logo NLU" title="Logo NLU">
+                    <img class="logo-img logo-khoa" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRahe4PBqL3Sr3OuFzXmhx0mZ7eyGWAOTm-ww&s" alt="Logo Khoa">
+                </div>
+                
+                <div class="title-red">HỌC HỎI TẤM GƯƠNG TIÊU BIỂU</div>
+                
+                <div class="title-blue">KỶ NIỆM 120 NĂM NGÀY SINH<br>CỐ THỦ TƯỚNG PHẠM VĂN ĐỒNG</div>
+                
+                <div class="date-text">(01/3/1906 - 01/3/2026)</div>
+                
+                <div class="details">
+                    Chủ nhật Ngày 22 Tháng 3 Năm 2026 <br>Địa điểm: RD200 - Trường Đại Học Nông Lâm TP.HCM
+                </div>
             </div>
-            
-            <div class="title-red">HỌC HỎI TẤM GƯƠNG TIÊU BIỂU</div>
-            
-            <div class="title-blue">KỶ NIỆM 120 NĂM NGÀY SINH<br>CỐ THỦ TƯỚNG PHẠM VĂN ĐỒNG</div>
-            
-            <div class="date-text">(01/3/1906 - 01/3/2026)</div>
-            
-            <div class="details">
-                Chủ nhật Ngày 22 Tháng 3 Năm 2026 <br>Địa điểm: RD200 - Trường Đại Học Nông Lâm TP.HCM
+
+            <div class="image-area">
+                <img src="https://i.imgur.com/Ff3KDxn.png" alt="Ảnh Cố Thủ Tướng Phạm Văn Đồng">
             </div>
         </div>
+    </div>
 
-        <div class="image-area">
-            <img src="https://i.imgur.com/Ff3KDxn.png" alt="Ảnh Cố Thủ Tướng Phạm Văn Đồng" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-        </div>
+    <div class="action-area">
+        <button class="btn-download" id="downloadBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Tải Poster Về Máy
+        </button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -260,7 +264,11 @@
             const poster = document.getElementById('posterArea');
             
             // Tăng độ phân giải ảnh tải về (scale: 2) để in ra không bị vỡ
-            html2canvas(poster, { scale: 2 }).then(canvas => {
+            html2canvas(poster, { 
+                scale: 2,
+                useCORS: true, // Cho phép tải ảnh từ domain khác (imgur, wiki)
+                backgroundColor: null // Đảm bảo nền trong suốt nếu bo góc
+            }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'Poster_Ki_Niem_120_Nam.png';
                 link.href = canvas.toDataURL('image/png');
