@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Góp ý & Báo lỗi | MHEnt. Universe</title>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS riêng cho trang Feedback để nó gọn gàng và nổi bật */
+        body {
+            background-color: #fdf2f8; /* Màu nền hồng nhạt cực chill */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .feedback-header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            width: 100%;
+        }
+
+        .feedback-header h1 {
+            color: #ec4899; /* Màu hồng đậm MHEnt */
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .feedback-header p {
+            color: #64748b;
+            font-size: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.1);
+            overflow: hidden;
+            margin: 20px;
+            padding: 10px;
+        }
+
+        /* Khung chứa Google Form */
+        .google-form-iframe {
+            width: 100%;
+            height: 800px; /* Độ cao tùy chỉnh theo độ dài form của ngài */
+            border: none;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: white;
+            color: #ec4899;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 2px solid #fbcfe8;
+        }
+
+        .back-btn:hover {
+            background-color: #ec4899;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="feedback-header">
+        <h1><i class="fa-solid fa-envelope-open-text"></i> Hòm Thư Góp Ý MHEnt.</h1>
+        <p>Có lỗi web? Có ý tưởng hay? Hay đơn giản là muốn gửi lời chào đến đội ngũ? Các cậu cứ thoải mái để lại lời nhắn ở đây nhé, tụi tớ đọc không sót chữ nào đâu! 💖</p>
+    </div>
+
+    <div class="form-container" style="padding: 30px;">
+        <form id="mhentFeedbackForm">
+            <div style="margin-bottom: 15px;">
+                <label style="color: #ec4899; font-weight: bold; display: block; margin-bottom: 5px;">Tên/Biệt danh của cậu:</label>
+                <input type="text" name="name" required style="width: 100%; padding: 10px; border: 2px solid #fbcfe8; border-radius: 10px; outline: none; box-sizing: border-box;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="color: #ec4899; font-weight: bold; display: block; margin-bottom: 5px;">Cậu muốn gửi gì cho tụi tớ?</label>
+                <select name="type" style="width: 100%; padding: 10px; border: 2px solid #fbcfe8; border-radius: 10px; outline: none; box-sizing: border-box;">
+                    <option value="Góp ý">💡 Góp ý ý tưởng</option>
+                    <option value="Báo lỗi">🐛 Báo lỗi (Web/Link hỏng)</option>
+                    <option value="Lời chào">💌 Gửi lời yêu thương</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="color: #ec4899; font-weight: bold; display: block; margin-bottom: 5px;">Nội dung chi tiết:</label>
+                <textarea name="message" rows="5" required style="width: 100%; padding: 10px; border: 2px solid #fbcfe8; border-radius: 10px; outline: none; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn" style="width: 100%; background-color: #ec4899; color: white; border: none; padding: 12px; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+                <i class="fa-solid fa-paper-plane"></i> Gửi vào Vũ Trụ MHEnt
+            </button>
+            <p id="statusMsg" style="text-align: center; font-weight: bold; margin-top: 15px; display: none;"></p>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('mhentFeedbackForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        
+        // CHỦ TỊCH DÁN CÁI LINK WEB APP URL Ở BƯỚC 2 VÀO ĐÂY NHÉ:
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyMRV7QJysthMC74NlAxYhUwlunayDBgaVaW1Ikrab2fXM5a6x70okUbzjrXdWUf-9n/exec';
+
+        form.addEventListener('submit', e => {
+            e.preventDefault(); // Ngăn web bị load lại
+            
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang truyền dữ liệu...';
+            submitBtn.style.opacity = '0.7';
+            submitBtn.disabled = true;
+
+            let requestBody = new FormData(form);
+
+            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: requestBody })
+                .then(response => {
+                    statusMsg.style.display = 'block';
+                    statusMsg.style.color = '#10b981'; // Màu xanh lá mạ
+                    statusMsg.innerHTML = '💖 Cảm ơn cậu! Lời nhắn đã được gửi đến nhóm dịch thành công!';
+                    form.reset(); // Xóa trắng form
+                })
+                .catch(error => {
+                    statusMsg.style.display = 'block';
+                    statusMsg.style.color = 'red';
+                    statusMsg.innerHTML = '❌ Úi, lỗi mạng rồi. Cậu thử lại xíu nhé!';
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi vào Vũ Trụ MHEnt';
+                    submitBtn.style.opacity = '1';
+                    submitBtn.disabled = false;
+                });
+        });
+    </script>
+
+    <a href="index.html" class="back-btn">
+        <i class="fa-solid fa-house"></i> Quay về Đại Sảnh
+    </a>
+
+</body>
+</html>
