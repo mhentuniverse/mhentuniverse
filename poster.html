@@ -210,6 +210,14 @@
         .btn-download:active {
             transform: translateY(1px);
         }
+
+        footer { background: #f9f9f9; padding: 20px 0; width: 100%; margin-top: 40px; text-align: center; border-top: 1px solid #eee; }
+        .footer-bottom { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .footer-bottom p { margin: 0; color: #777; font-size: 13.5px; }
+        .footer-social { display: flex; gap: 12px; align-items: center; }
+        .footer-link { text-decoration: none; color: #ff85a2; font-weight: 800; font-size: 13.5px; }
+        .footer-link:hover { transform: translateY(-2px); }
+        .footer-dot { color: #ccc; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -378,5 +386,117 @@
             </div>
         </div>
     </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            projectId: "mhentuniverse",
+            storageBucket: "mhentuniverse.firebasestorage.app",
+            messagingSenderId: "377044322952",
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
+            measurementId: "G-YE217QW296"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login.html'; });
+        if (btnLogout) { 
+            btnLogout.addEventListener('click', async () => { 
+                await signOut(auth); 
+                window.location.reload(); 
+            }); 
+        }
+
+        window.toggleAccount = function() {
+            const acc = document.getElementById('dropdown-account');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            if(switcher) switcher.classList.remove('show'); 
+            if(acc) acc.classList.toggle('show');
+        };
+
+        window.toggleAppSwitcher = function() {
+            const switcher = document.getElementById('dropdown-app-switcher');
+            const acc = document.getElementById('dropdown-account');
+            if(acc) acc.classList.remove('show'); 
+            if(switcher) switcher.classList.toggle('show');
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-section')) {
+                const acc = document.getElementById('dropdown-account');
+                const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show');
+                if(switcher) switcher.classList.remove('show');
+            }
+            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                const navLinks = document.getElementById('nav-links');
+                if(navLinks) navLinks.classList.remove('active');
+            }
+        };
+
+        window.toggleMobileMenu = function() {
+            const navLinks = document.getElementById('nav-links');
+            const acc = document.getElementById('dropdown-account');
+            if(acc) acc.classList.remove('show'); 
+            if(navLinks) navLinks.classList.toggle('active');
+        };
+
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
+        };
+
+        if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
+
+        window.showToast = function(title, message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            let icon = type === 'error' ? '❌' : (type === 'info' ? '⭐' : '✅');
+            toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${message}</span></div>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutRight 0.3s ease-in forwards';
+                setTimeout(() => { toast.remove(); }, 300); 
+            }, 3000);
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            const btnTheme = document.getElementById('btn-theme-toggle'); 
+            if (user) {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+
+                let finalName = user.displayName || user.email.split('@')[0];
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+
+                const avtElement = document.getElementById('user-avatar');
+                if (avtElement) {
+                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    avtElement.style.display = 'block'; 
+                }
+
+                // Tối ưu hóa: Đại sảnh không cần check quyền Admin/Uploader nữa vì đã xóa nút rồi, giúp web load nhanh hơn!
+
+            } else {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
