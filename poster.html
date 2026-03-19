@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poster Kỷ Niệm 120 Năm Ngày Sinh Cố Thủ Tướng Phạm Văn Đồng</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
+    <link rel="stylesheet" href="style.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
 
@@ -147,27 +150,32 @@
 </head>
 <body>
 
+    <button class="btn-download" id="downloadBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Tải Poster Về Máy
+    </button>
+
     <div class="poster-container">
         <div class="shape-1"></div>
         <div class="shape-2"></div>
 
         <div class="content">
             <div class="logos">
-                <div class="logo-placeholder">Logo<br>Đoàn</div>
-                <div class="logo-placeholder">Logo<br>Hội</div>
-                <div class="logo-placeholder">Logo<br>Lớp</div>
+                <img class="logo-img logo-doan" src="https://upload.wikimedia.org/wikipedia/vi/0/09/Huy_Hi%E1%BB%87u_%C4%90o%C3%A0n.png" alt="Logo Đoàn" title="Logo Đoàn TNCS">
+                <img class="logo-img logo-nlu" src="https://upload.wikimedia.org/wikipedia/vi/e/e1/Logo_HCMUAF.svg" alt="Logo NLU" title="Logo NLU">
+                <img class="logo-img logo-khoa" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRahe4PBqL3Sr3OuFzXmhx0mZ7eyGWAOTm-ww&s" alt="Logo Khoa" style="border-radius: 100%;">
             </div>
 
-            <div class="subtitle-blue">CHI ĐOÀN LỚP MÌNH</div>
+            <!-- <div class="subtitle-blue">CHI ĐOÀN LỚP MÌNH</div> -->
             
-            <div class="title-red">HÀNH TRÌNH VỀ ĐỊA CHỈ ĐỎ</div>
+            <div class="title-red">HỌC HỎI TẤM GƯƠNG TIÊU BIỂU</div>
             
-            <div class="title-blue">NHÂN KỶ NIỆM 120 NĂM NGÀY SINH<br>CỐ THỦ TƯỚNG PHẠM VĂN ĐỒNG</div>
+            <div class="title-blue">KỶ NIỆM 120 NĂM NGÀY SINH<br>CỐ THỦ TƯỚNG PHẠM VĂN ĐỒNG</div>
             
             <div class="date-text">(01/3/1906 - 01/3/2026)</div>
             
             <div class="details">
-                Thời gian: Chủ nhật, tuần này | Địa điểm: Phòng học lớp mình
+                Chủ nhật Ngày 22 Tháng 3 Năm 2026 | Địa điểm: RD200 - Trường Đại Học Nông Lâm TP.HCM
             </div>
         </div>
 
@@ -175,6 +183,34 @@
             [Khu vực này cậu có thể dùng thẻ &lt;img src="..."&gt; <br> để chèn ảnh nhân vật đồ họa (đã tách nền) vào nhé]
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            // Hiệu ứng đang tải
+            btn.innerHTML = '⏳ Đang tạo ảnh...';
+            btn.style.opacity = '0.8';
+            btn.style.pointerEvents = 'none';
+            
+            const poster = document.getElementById('posterArea');
+            
+            // Tăng độ phân giải ảnh tải về (scale: 2) để in ra không bị vỡ
+            html2canvas(poster, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Poster_Ki_Niem_120_Nam.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // Trả lại trạng thái cũ cho nút
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            });
+        });
+    </script>
 
 </body>
 </html>
