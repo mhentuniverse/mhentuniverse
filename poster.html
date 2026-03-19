@@ -6,7 +6,7 @@
     <title>Poster Kỷ Niệm 120 Năm Ngày Sinh Cố Thủ Tướng Phạm Văn Đồng</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="style.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
  
@@ -215,11 +215,92 @@
         .btn-download:active {
             transform: translateY(1px);
         }
+
+        .navbar { display: flex; justify-content: space-between; align-items: center; background-color: #ffffff; padding: 10px 40px; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; box-shadow: 0 2px 15px rgba(0,0,0,0.08); box-sizing: border-box; }
+        .nav-left a { display: flex; align-items: center; gap: 15px; text-decoration: none; }
+        .avt-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #ff85a2; }
+        .logo-name { font-size: 19px; font-weight: 900; color: #ff85a2; }
+        .menu-toggle { display: none; font-size: 28px; color: #ff85a2; cursor: pointer; margin-left: auto; margin-right: 15px; }
+
+        .nav-links { list-style: none; display: flex; align-items: center; gap: 30px; margin: 0 auto 0 40px; padding: 0; }
+        .nav-links a { text-decoration: none; color: #555; font-weight: 700; font-size: 14.5px; transition: 0.3s; }
+        .nav-links a:hover { color: #ff85a2; }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+
+        /* Kính lúp Navbar & SVG */
+        .svg-icon { stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .btn-with-icon { display: inline-flex; align-items: center; gap: 8px; }
+        .nav-search-container { display: flex; align-items: center; justify-content: flex-end; margin-right: 15px; position: relative; background: rgba(255, 133, 162, 0.08); border-radius: 30px; padding: 4px; transition: background 0.3s ease; }
+        #nav-search-box { width: 0; border: none; background: transparent; color: #ff85a2; font-family: 'Nunito', sans-serif; font-size: 14.5px; font-weight: bold; outline: none; padding: 0; pointer-events: none; transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), padding 0.4s ease; }
+        .nav-search-container:focus-within #nav-search-box, #nav-search-box.active { width: 180px; padding: 0 10px 0 15px; pointer-events: auto; }
+        #nav-search-box::placeholder { color: rgba(255, 133, 162, 0.6); font-weight: normal; }
+        .nav-search-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; color: #ff85a2; background: white; border-radius: 50%; width: 34px; height: 34px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.25); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); user-select: none; }
+        .nav-search-icon:hover { transform: scale(1.1); background: #ff85a2; color: white; }
+
+        /* User Section & Nút bấm trên Nav */
+        .user-section { position: relative; display: flex; align-items: center; gap: 15px; }
+        .btn-theme { background: transparent; border: 1px solid #ff85a2; color: #ff85a2; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; padding: 0; }
+        .btn-theme:hover { background: #fff0f3; transform: scale(1.1); }
+        .btn-login { background: #e94560; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 14px; cursor: pointer; font-family: 'Nunito', sans-serif; transition: 0.2s; }
+        .btn-login:hover { background: #ff85a2; transform: translateY(-2px); }
+        .user-profile { display: flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #ff85a2; flex-shrink: 0; }
+        .user-name { font-weight: 700; color: #1a1a2e; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; }
+        .user-name:hover { color: #ff85a2; }
+
+        /* Các bảng Dropdown (Notif, User) */
+        .notif-bell { color: #ff85a2; display: flex; align-items: center; cursor: pointer; position: relative; }
+        .notif-bell:hover { transform: scale(1.1); }
+        .notif-dot { display: none; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ff5277; border-radius: 50%; border: 2px solid #ffffff; }
+        .dropdown-menu { position: absolute; top: 55px; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 133, 162, 0.2); border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); z-index: 1000; visibility: hidden; opacity: 0; transform: translateY(-15px) scale(0.95); transition: all 0.3s; pointer-events: none; }
+        .dropdown-menu.show { visibility: visible; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        .dropdown-menu::before { content: ''; position: absolute; top: -6px; right: 18px; width: 12px; height: 12px; background: #ffffff; transform: rotate(45deg); border-top: 1px solid rgba(255, 133, 162, 0.2); border-left: 1px solid rgba(255, 133, 162, 0.2); z-index: -1; }
+
+        /* FIX MŨI TÊN APP SWITCHER */
+        .dropdown-menu.app-switcher-menu::before { right: 40px; }
+
+        .account-dropdown { width: 200px; padding: 8px 0; }
+        .dropdown-item { position: relative; padding: 10px 20px; color: #555 !important; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: 800; overflow: hidden; }
+        .dropdown-item::before { content: ''; position: absolute; left: 0; top: 10%; height: 80%; width: 4px; background: #ff85a2; border-radius: 0 4px 4px 0; transform: scaleY(0); transition: 0.2s; }
+        .dropdown-item:hover { color: #ff85a2 !important; padding-left: 28px; background: transparent; }
+        .dropdown-item:hover::before { transform: scaleY(1); }
+        .dropdown-divider { height: 1px; background: rgba(255, 133, 162, 0.15); margin: 5px 20px; }
+
+        .notif-dropdown { width: 380px; }
+        .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid rgba(255, 133, 162, 0.15); }
+        .notif-title-text { font-weight: 900; font-size: 15px; color: #ff85a2; }
+        .notif-mark-read { font-size: 12px; color: #888; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .notif-mark-read:hover { color: #ff85a2; text-decoration: underline; }
+        .notif-body { max-height: 350px; overflow-y: auto; }
+        .notif-body::-webkit-scrollbar { width: 6px; }
+        .notif-body::-webkit-scrollbar-track { background: transparent; }
+        .notif-body::-webkit-scrollbar-thumb { background: #ffe0e9; border-radius: 10px; }
+        .notif-item { display: flex; padding: 12px 20px; gap: 12px; border-bottom: 1px solid rgba(255, 133, 162, 0.08); transition: 0.2s; cursor: pointer; background: transparent; }
+        .notif-item:hover { background: rgba(255, 133, 162, 0.08); padding-left: 25px; }
+        .notif-poster { width: 45px; height: 60px; border-radius: 6px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .notif-title { font-weight: 800; font-size: 13.5px; color: #555 !important; margin-bottom: 4px; }
+        .notif-desc { font-size: 12px; color: #777 !important; line-height: 1.4; }
+        .notif-footer { padding: 10px 20px; display: flex; justify-content: flex-end; border-top: 1px solid rgba(255, 133, 162, 0.15); }
+        .btn-view-all { background: transparent; color: #ff85a2; border: 1px solid #ff85a2; padding: 5px 15px; border-radius: 20px; font-size: 12.5px; font-weight: 800; cursor: pointer; transition: 0.2s; font-family: 'Nunito', sans-serif; }
+        .btn-view-all:hover { background: #ff85a2; color: white; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3); }
+        .notif-item.unread { background: #fff0f3; }
+        .notif-item.unread .notif-title { color: #ff85a2 !important; }
+
+        .footer-vector-icon { width: 14px; height: 14px; margin-right: 5px; vertical-align: -2px; stroke-width: 2.5; }
+
+
+        footer { background: #f9f9f9; padding: 20px 0; width: 100%; margin-top: 40px; text-align: center; border-top: 1px solid #eee; }
+        .footer-bottom { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .footer-bottom p { margin: 0; color: #777; font-size: 13.5px; }
+        .footer-social { display: flex; gap: 12px; align-items: center; }
+        .footer-link { text-decoration: none; color: #ff85a2; font-weight: 800; font-size: 13.5px; }
+        .footer-link:hover { transform: translateY(-2px); }
+        .footer-dot { color: #ccc; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
+    <nav class="navbar" style="@import url(https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap);">
         <div class="nav-left">
             <a onclick="window.location.href='/'" style="cursor: pointer;">
                 <img src="assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
@@ -368,7 +449,7 @@
             });
         });
     </script>
-    <footer>
+    <footer style="@import url(https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap);">
         <div class="footer-bottom">
             <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
             <div class="footer-social">
