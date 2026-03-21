@@ -334,32 +334,39 @@
                 font-family: 'Montserrat', sans-serif;
             }
 
-            /* FIX ẢNH NỀN BỊ XOAY 90 ĐỘ */
+            /* FIX: Xoay -90 độ và thu nhỏ zoom lại */
             .main-bg-rotated {
                 position: absolute;
                 top: 50%; left: 50%;
-                width: 200%;
-                height: 200%;
+                width: 120cqw;
+                height: 120cqw;
                 object-fit: cover;
-                transform: translate(-50%, -50%) rotate(90deg); 
+                transform: translate(-50%, -50%) rotate(-90deg); 
                 z-index: 0;
             }
 
-            /* Cụm Logo */
+            /* FIX: Phóng to logo lên hết cỡ */
             .top-logo-strip {
                 position: absolute;
-                top: 4cqw;
+                top: 2cqw;
                 left: 50%;
                 transform: translateX(-50%);
-                height: 4.5cqw;
+                height: 9cqw; /* Tăng chiều cao khung */
+                width: 80%;
+                display: flex;
+                justify-content: center;
                 z-index: 5;
             }
-            .top-logo-strip img { height: 100%; object-fit: contain; }
+            .top-logo-strip img { 
+                height: 100%; 
+                object-fit: contain; 
+                transform: scale(1.4); /* Ép to ảnh để khử viền trong suốt */
+            }
 
             /* Khu vực Text Center */
             .text-overlay {
                 position: absolute;
-                top: 14cqw;
+                top: 10cqw; /* Đẩy chữ lên xíu để không che mặt */
                 left: 50%;
                 transform: translateX(-50%);
                 width: 100%;
@@ -378,6 +385,7 @@
                 text-shadow: 0.1cqw 0.1cqw 0.2cqw rgba(0,0,0,0.15);
             }
 
+            /* FIX: Chữ đặc ruột, có viền trắng và đổ bóng đỏ đậm */
             .title-bold {
                 font-size: 7.5cqw; 
                 font-weight: 900;
@@ -385,8 +393,11 @@
                 text-transform: uppercase;
                 margin-bottom: 2cqw;
                 line-height: 1;
-                -webkit-text-stroke: 0.15cqw #ffffff;
-                text-shadow: 0.3cqw 0.3cqw 0 #8e0000, 0.5cqw 0.5cqw 1cqw rgba(0,0,0,0.3);
+                /* Dùng bóng 4 góc để tạo viền trắng, bảo toàn màu đỏ bên trong */
+                text-shadow: 
+                    0.15cqw 0.15cqw 0 #ffffff, -0.15cqw -0.15cqw 0 #ffffff, 
+                    0.15cqw -0.15cqw 0 #ffffff, -0.15cqw 0.15cqw 0 #ffffff,
+                    0.4cqw 0.4cqw 0 #8e0000, 0.6cqw 0.6cqw 1cqw rgba(0,0,0,0.3);
                 letter-spacing: 0.1cqw;
             }
 
@@ -408,8 +419,8 @@
             .portrait-area {
                 position: absolute;
                 bottom: -2cqw;
-                left: 5cqw;
-                height: 75%;
+                left: 10cqw; /* Kéo xích sang phải 1 tí */
+                height: 85%; /* Phóng to lên xíu */
                 z-index: 5;
             }
             .portrait-area img {
@@ -437,20 +448,9 @@
                 transform: skewX(15deg); 
             }
 
-            /* CSS CHO TÍNH NĂNG EDIT TEXT TRỰC TIẾP */
-            [contenteditable="true"] {
-                outline: none;
-                transition: 0.2s;
-            }
-            [contenteditable="true"]:focus {
-                outline: 2px dashed #ffeb3b;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 0.5cqw;
-                cursor: text;
-            }
-            [contenteditable="true"]:hover {
-                cursor: text;
-            }
+            [contenteditable="true"] { outline: none; transition: 0.2s; }
+            [contenteditable="true"]:focus { outline: 2px dashed #ffeb3b; background: rgba(255, 255, 255, 0.1); border-radius: 0.5cqw; cursor: text; }
+            [contenteditable="true"]:hover { cursor: text; }
         </style>
 
         <div class="poster-wrapper">
