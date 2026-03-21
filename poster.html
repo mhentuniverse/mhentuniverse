@@ -326,7 +326,7 @@
             .poster-container {
                 width: 100%;
                 height: 100%;
-                background-color: #f6f4ed;
+                background-color: #f6f4ed; /* Trùng màu nền của ảnh Canva */
                 position: relative;
                 overflow: hidden;
                 box-shadow: 0 10px 40px rgba(0,0,0,0.25);
@@ -334,25 +334,27 @@
                 font-family: 'Montserrat', sans-serif;
             }
 
-            /* FIX: Xoay -90 độ và thu nhỏ zoom lại */
+            /* 1. SIÊU THU NHỎ BACKGROUND */
             .main-bg-rotated {
                 position: absolute;
                 top: 50%; left: 50%;
-                width: 120cqw;
-                height: 120cqw;
-                object-fit: cover;
-                transform: translate(-50%, -50%) rotate(-90deg); 
+                width: 200%;
+                height: 200%;
+                object-fit: contain;
+                /* Thêm scale(0.55) để thu nhỏ cái trống đồng lại. 
+                   Nhờ có nền #f6f4ed ở trên bù vào nên thu nhỏ cỡ nào cũng hòa vào nhau! */
+                transform: translate(-50%, -50%) rotate(-90deg) scale(0.55); 
                 z-index: 0;
             }
 
-            /* FIX: Phóng to logo lên hết cỡ */
+            /* 2. PHÓNG TO BỘ LOGO */
             .top-logo-strip {
                 position: absolute;
-                top: 2cqw;
+                top: 4cqw;
                 left: 50%;
                 transform: translateX(-50%);
-                height: 9cqw; /* Tăng chiều cao khung */
-                width: 80%;
+                height: 12cqw; /* Tăng độ cao khung chứa */
+                width: 90%;
                 display: flex;
                 justify-content: center;
                 z-index: 5;
@@ -360,13 +362,13 @@
             .top-logo-strip img { 
                 height: 100%; 
                 object-fit: contain; 
-                transform: scale(1.4); /* Ép to ảnh để khử viền trong suốt */
+                transform: scale(2.4); /* Ép zoom bạo lực để triệt tiêu lề trong suốt */
             }
 
             /* Khu vực Text Center */
             .text-overlay {
                 position: absolute;
-                top: 10cqw; /* Đẩy chữ lên xíu để không che mặt */
+                top: 10cqw; 
                 left: 50%;
                 transform: translateX(-50%);
                 width: 100%;
@@ -385,7 +387,6 @@
                 text-shadow: 0.1cqw 0.1cqw 0.2cqw rgba(0,0,0,0.15);
             }
 
-            /* FIX: Chữ đặc ruột, có viền trắng và đổ bóng đỏ đậm */
             .title-bold {
                 font-size: 7.5cqw; 
                 font-weight: 900;
@@ -393,7 +394,6 @@
                 text-transform: uppercase;
                 margin-bottom: 2cqw;
                 line-height: 1;
-                /* Dùng bóng 4 góc để tạo viền trắng, bảo toàn màu đỏ bên trong */
                 text-shadow: 
                     0.15cqw 0.15cqw 0 #ffffff, -0.15cqw -0.15cqw 0 #ffffff, 
                     0.15cqw -0.15cqw 0 #ffffff, -0.15cqw 0.15cqw 0 #ffffff,
@@ -419,8 +419,8 @@
             .portrait-area {
                 position: absolute;
                 bottom: -2cqw;
-                left: 10cqw; /* Kéo xích sang phải 1 tí */
-                height: 85%; /* Phóng to lên xíu */
+                left: 10cqw; 
+                height: 85%; 
                 z-index: 5;
             }
             .portrait-area img {
