@@ -308,34 +308,181 @@
 
     <div class="poster-main-area">
 
-    <div class="poster-wrapper">
-        <div class="poster-container" id="posterArea">
-            <div class="shape-1"></div>
-            <div class="shape-2"></div>
+        <style>
+            /* CSS RIÊNG CHO POSTER ĐỎ VÀNG */
+            .poster-container {
+                background: radial-gradient(circle at center, #e53935 0%, #b71c1c 100%);
+                color: #fff;
+                font-family: 'Montserrat', sans-serif;
+                text-align: center;
+                overflow: hidden;
+            }
 
-            <div class="content">
-                <div class="logo-container">
-                    <img class="logo-img logo-doan" src="https://upload.wikimedia.org/wikipedia/vi/0/09/Huy_Hi%E1%BB%87u_%C4%90o%C3%A0n.png" alt="Logo Đoàn" title="Logo Đoàn TNCS">
-                    <img class="logo-img logo-nlu" src="https://upload.wikimedia.org/wikipedia/vi/e/e1/Logo_HCMUAF.svg" alt="Logo NLU" title="Logo NLU">
-                    <img class="logo-img logo-khoa" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRahe4PBqL3Sr3OuFzXmhx0mZ7eyGWAOTm-ww&s" alt="Logo Khoa">
-                </div>
-                
-                <div class="title-red">HỌC HỎI TẤM GƯƠNG TIÊU BIỂU</div>
-                
-                <div class="title-blue">KỶ NIỆM 120 NĂM NGÀY SINH<br>CỐ THỦ TƯỚNG PHẠM VĂN ĐỒNG</div>
-                
-                <div class="date-text">(01/3/1906 - 01/3/2026)</div>
-                
-                <div class="details">
-                    Thời gian: Chủ nhật Ngày 22 Tháng 3 Năm 2026 <br>Địa điểm: RD200 - Trường Đại Học Nông Lâm TP.HCM
-                </div>
-            </div>
+            /* Hiệu ứng tia sáng hào quang */
+            .sunburst {
+                position: absolute;
+                top: 50%; left: 50%;
+                width: 200%; height: 200%;
+                transform: translate(-50%, -50%);
+                background: repeating-conic-gradient(
+                    from 0deg,
+                    transparent 0deg 8deg,
+                    rgba(255, 235, 59, 0.15) 8deg 16deg
+                );
+                z-index: 1;
+                animation: rotateSun 60s linear infinite;
+            }
+            @keyframes rotateSun {
+                100% { transform: translate(-50%, -50%) rotate(360deg); }
+            }
 
-            <div class="image-area">
-                <img src="https://i.imgur.com/4u842Hw.png" alt="Ảnh Cố Thủ Tướng Phạm Văn Đồng">
+            /* Dải logo bo tròn nền trắng phía trên */
+            .top-logo-strip {
+                position: absolute;
+                top: 3cqw;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #ffffff;
+                padding: 0.8cqw 2.5cqw;
+                border-radius: 5cqw;
+                display: flex;
+                align-items: center;
+                gap: 1.5cqw;
+                z-index: 5;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            }
+            .top-logo-strip img {
+                height: 3.5cqw; /* Chiều cao logo */
+                object-fit: contain;
+            }
+
+            /* Ngôi sao trang trí 2 bên */
+            .decor-star {
+                position: absolute;
+                top: 35%;
+                font-size: 15cqw;
+                color: #ffeb3b;
+                z-index: 2;
+                filter: drop-shadow(0 0.5cqw 1cqw rgba(0,0,0,0.4));
+            }
+            .star-left { left: 5cqw; transform: rotate(-15deg); }
+            .star-right { right: 5cqw; transform: rotate(15deg); }
+
+            /* Ảnh nhân vật (Cố Thủ Tướng) */
+            .portrait-area {
+                position: absolute;
+                bottom: 5cqw; /* Nằm đằng sau chữ */
+                left: 50%;
+                transform: translateX(-50%);
+                height: 75%; /* Chiếm 75% chiều cao poster */
+                z-index: 3;
+                display: flex;
+                align-items: flex-end;
+            }
+            .portrait-area img {
+                height: 100%;
+                object-fit: contain;
+                filter: drop-shadow(0 0 2cqw rgba(0,0,0,0.5));
+            }
+
+            /* Khối chữ và thời gian nằm đè lên ảnh */
+            .text-overlay {
+                position: absolute;
+                bottom: 4cqw;
+                left: 0;
+                width: 100%;
+                z-index: 10;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .title-small {
+                color: #ffeb3b; /* Chữ vàng */
+                font-size: 2.2cqw;
+                font-weight: 800;
+                text-transform: uppercase;
+                text-shadow: 0 0.3cqw 0.5cqw rgba(0,0,0,0.6);
+                letter-spacing: 0.2cqw;
+                margin-bottom: 0.5cqw;
+            }
+
+            .title-big {
+                color: #ffffff; /* Chữ trắng viền đỏ đổ bóng vàng y chang mẫu */
+                font-size: 6.5cqw;
+                font-weight: 900;
+                text-transform: uppercase;
+                line-height: 1;
+                margin-bottom: 2cqw;
+                /* Hiệu ứng 3D siêu ngầu */
+                -webkit-text-stroke: 0.2cqw #d32f2f;
+                text-shadow: 
+                    0 0.3cqw 0 #ffeb3b,
+                    0 0.6cqw 1.5cqw rgba(0,0,0,0.7);
+            }
+
+            .date-pill {
+                background: linear-gradient(to right, #e65100, #ffb300, #e65100);
+                color: #ffffff;
+                padding: 1cqw 5cqw;
+                border-radius: 5cqw;
+                font-size: 2.2cqw;
+                font-weight: 900;
+                box-shadow: 0 0.5cqw 1.5cqw rgba(0,0,0,0.4);
+                border: 0.2cqw solid #ffeb3b;
+                display: inline-flex;
+                align-items: center;
+                gap: 1.5cqw;
+            }
+
+            .date-pill .star-icon {
+                color: #ffeb3b;
+                font-size: 2cqw;
+            }
+
+            .footer-text {
+                position: absolute;
+                bottom: 1.5cqw;
+                left: 0; width: 100%;
+                text-align: center;
+                font-size: 1.2cqw;
+                font-weight: 700;
+                color: #ffcdd2;
+                z-index: 10;
+                letter-spacing: 0.1cqw;
+            }
+        </style>
+
+        <div class="poster-wrapper">
+            <div class="poster-container" id="posterArea">
+                <div class="sunburst"></div>
+                <div class="decor-star star-left">★</div>
+                <div class="decor-star star-right">★</div>
+
+                <div class="top-logo-strip">
+                    <img src="https://upload.wikimedia.org/wikipedia/vi/0/09/Huy_Hi%E1%BB%87u_%C4%90o%C3%A0n.png" alt="Đoàn">
+                    <img src="https://upload.wikimedia.org/wikipedia/vi/e/e1/Logo_HCMUAF.svg" alt="NLU">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRahe4PBqL3Sr3OuFzXmhx0mZ7eyGWAOTm-ww&s" alt="FIT">
+                </div>
+
+                <div class="portrait-area">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Pham_Van_Dong_portrait.jpg/400px-Pham_Van_Dong_portrait.jpg" alt="Cố Thủ Tướng" style="border-radius: 2cqw;"> 
+                </div>
+
+                <div class="text-overlay">
+                    <div class="title-small">Kỷ niệm 120 năm ngày sinh Cố thủ tướng</div>
+                    <div class="title-big">PHẠM VĂN ĐỒNG</div>
+                    
+                    <div class="date-pill">
+                        01/03/1906 <span class="star-icon">★</span> 01/03/2026
+                    </div>
+                </div>
+
+                <div class="footer-text">
+                    CHỦ NHẬT NGÀY 22/03/2026 • ĐỊA ĐIỂM: RD200 - ĐH NÔNG LÂM TP.HCM
+                </div>
             </div>
         </div>
-    </div>
 
     <div class="action-area">
         <button class="btn-download" id="downloadBtn">
