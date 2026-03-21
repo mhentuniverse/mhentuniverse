@@ -309,155 +309,155 @@
     <div class="poster-main-area">
 
         <style>
-            /* CSS RIÊNG CHO POSTER ĐỎ VÀNG */
+            /* THÊM FONT VIẾT TAY CHO CHỮ NHỎ TRÊN */
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Playball&display=swap');
+
+            .poster-wrapper {
+                position: relative;
+                width: 100%;       
+                max-width: 1200px;  
+                aspect-ratio: 16 / 9; 
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-sizing: border-box;
+                container-type: inline-size;
+            }
+
             .poster-container {
-                background: radial-gradient(circle at center, #e53935 0%, #b71c1c 100%);
-                color: #fff;
-                font-family: 'Montserrat', sans-serif;
-                text-align: center;
+                width: 100%;
+                height: 100%;
+                background-color: #f6f4ed; /* Nền kem sáng */
+                background-image: radial-gradient(circle at center, #ffffff 0%, #f6f4ed 60%, #e8e3d3 100%);
+                position: relative;
                 overflow: hidden;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+                font-size: 1cqw; 
+                font-family: 'Montserrat', sans-serif;
             }
 
-            /* Hiệu ứng tia sáng hào quang */
-            .sunburst {
+            /* Họa tiết Trống Đồng (Bên phải) */
+            .drum-bg {
                 position: absolute;
-                top: 50%; left: 50%;
-                width: 200%; height: 200%;
-                transform: translate(-50%, -50%);
-                background: repeating-conic-gradient(
-                    from 0deg,
-                    transparent 0deg 8deg,
-                    rgba(255, 235, 59, 0.15) 8deg 16deg
-                );
+                right: -15cqw;
+                top: 5cqw;
+                width: 60cqw;
+                opacity: 0.15; /* Làm mờ để không lấn át chữ */
+                pointer-events: none;
                 z-index: 1;
-                animation: rotateSun 60s linear infinite;
-            }
-            @keyframes rotateSun {
-                100% { transform: translate(-50%, -50%) rotate(360deg); }
             }
 
-            /* Dải logo bo tròn nền trắng phía trên */
+            /* Cờ Việt Nam (Góc trái trên) */
+            .flag-bg {
+                position: absolute;
+                left: -2cqw;
+                top: -3cqw;
+                width: 25cqw;
+                filter: drop-shadow(0.5cqw 0.5cqw 1cqw rgba(0,0,0,0.3));
+                transform: rotate(-5deg);
+                z-index: 2;
+            }
+
+            /* Dải logo trắng nền bo tròn */
             .top-logo-strip {
                 position: absolute;
                 top: 3cqw;
                 left: 50%;
                 transform: translateX(-50%);
                 background: #ffffff;
-                padding: 0.8cqw 2.5cqw;
+                padding: 0.6cqw 2.5cqw;
                 border-radius: 5cqw;
                 display: flex;
                 align-items: center;
                 gap: 1.5cqw;
                 z-index: 5;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                box-shadow: 0 0.5cqw 1.5cqw rgba(0,0,0,0.08);
+                border: 1px solid #e0dcd0;
             }
-            .top-logo-strip img {
-                height: 3.5cqw; /* Chiều cao logo */
-                object-fit: contain;
-            }
+            .top-logo-strip img { height: 3.2cqw; object-fit: contain; }
 
-            /* Ngôi sao trang trí 2 bên */
-            .decor-star {
+            /* Khu vực Text Center */
+            .text-overlay {
                 position: absolute;
-                top: 35%;
-                font-size: 15cqw;
-                color: #ffeb3b;
-                z-index: 2;
-                filter: drop-shadow(0 0.5cqw 1cqw rgba(0,0,0,0.4));
-            }
-            .star-left { left: 5cqw; transform: rotate(-15deg); }
-            .star-right { right: 5cqw; transform: rotate(15deg); }
-
-            /* Ảnh nhân vật (Cố Thủ Tướng) */
-            .portrait-area {
-                position: absolute;
-                bottom: 5cqw; /* Nằm đằng sau chữ */
+                top: 16cqw;
                 left: 50%;
                 transform: translateX(-50%);
-                height: 75%; /* Chiếm 75% chiều cao poster */
-                z-index: 3;
-                display: flex;
-                align-items: flex-end;
+                width: 100%;
+                text-align: center;
+                z-index: 10;
+            }
+
+            .title-script {
+                font-family: 'Playball', cursive;
+                color: #d32f2f;
+                font-size: 4.5cqw;
+                margin-bottom: -1cqw;
+                text-shadow: 0.1cqw 0.1cqw 0.2cqw rgba(0,0,0,0.1);
+            }
+
+            .title-bold {
+                font-size: 6.5cqw;
+                font-weight: 900;
+                color: #c62828;
+                text-transform: uppercase;
+                /* Viền chữ trắng + bóng mờ tạo cảm giác nổi khối */
+                -webkit-text-stroke: 0.1cqw #8e0000;
+                text-shadow: 0.2cqw 0.2cqw 0 #ffffff, 0.4cqw 0.4cqw 0.5cqw rgba(0,0,0,0.2);
+                letter-spacing: 0.1cqw;
+                margin-bottom: 2cqw;
+            }
+
+            .date-box {
+                display: inline-block;
+                background: #ffffff;
+                color: #c62828;
+                border: 0.2cqw solid #c62828;
+                padding: 0.8cqw 2.5cqw;
+                border-radius: 3cqw;
+                font-weight: 900;
+                font-size: 1.8cqw;
+                box-shadow: 0.3cqw 0.3cqw 0 #c62828;
+            }
+
+            /* Dải ruy băng Khoa/Địa điểm (Góc phải dưới) */
+            .ribbon-bottom {
+                position: absolute;
+                bottom: 5cqw;
+                right: -2cqw;
+                background: #c62828;
+                color: #ffffff;
+                padding: 1cqw 5cqw 1cqw 3cqw;
+                font-weight: 800;
+                font-size: 1.5cqw;
+                transform: skewX(-15deg);
+                box-shadow: 0.3cqw 0.5cqw 1cqw rgba(0,0,0,0.3);
+                z-index: 10;
+            }
+            .ribbon-bottom span {
+                display: inline-block;
+                transform: skewX(15deg); /* Ép chữ thẳng lại, chỉ nghiêng khung */
+            }
+
+            /* Ảnh Nhân vật / Layout cụm hình (Góc trái dưới) */
+            .portrait-area {
+                position: absolute;
+                bottom: 0;
+                left: 5cqw;
+                height: 60%;
+                z-index: 5;
             }
             .portrait-area img {
                 height: 100%;
                 object-fit: contain;
-                filter: drop-shadow(0 0 2cqw rgba(0,0,0,0.5));
-            }
-
-            /* Khối chữ và thời gian nằm đè lên ảnh */
-            .text-overlay {
-                position: absolute;
-                bottom: 4cqw;
-                left: 0;
-                width: 100%;
-                z-index: 10;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .title-small {
-                color: #ffeb3b; /* Chữ vàng */
-                font-size: 2.2cqw;
-                font-weight: 800;
-                text-transform: uppercase;
-                text-shadow: 0 0.3cqw 0.5cqw rgba(0,0,0,0.6);
-                letter-spacing: 0.2cqw;
-                margin-bottom: 0.5cqw;
-            }
-
-            .title-big {
-                color: #ffffff; /* Chữ trắng viền đỏ đổ bóng vàng y chang mẫu */
-                font-size: 6.5cqw;
-                font-weight: 900;
-                text-transform: uppercase;
-                line-height: 1;
-                margin-bottom: 2cqw;
-                /* Hiệu ứng 3D siêu ngầu */
-                -webkit-text-stroke: 0.2cqw #d32f2f;
-                text-shadow: 
-                    0 0.3cqw 0 #ffeb3b,
-                    0 0.6cqw 1.5cqw rgba(0,0,0,0.7);
-            }
-
-            .date-pill {
-                background: linear-gradient(to right, #e65100, #ffb300, #e65100);
-                color: #ffffff;
-                padding: 1cqw 5cqw;
-                border-radius: 5cqw;
-                font-size: 2.2cqw;
-                font-weight: 900;
-                box-shadow: 0 0.5cqw 1.5cqw rgba(0,0,0,0.4);
-                border: 0.2cqw solid #ffeb3b;
-                display: inline-flex;
-                align-items: center;
-                gap: 1.5cqw;
-            }
-
-            .date-pill .star-icon {
-                color: #ffeb3b;
-                font-size: 2cqw;
-            }
-
-            .footer-text {
-                position: absolute;
-                bottom: 1.5cqw;
-                left: 0; width: 100%;
-                text-align: center;
-                font-size: 1.2cqw;
-                font-weight: 700;
-                color: #ffcdd2;
-                z-index: 10;
-                letter-spacing: 0.1cqw;
+                filter: drop-shadow(0.5cqw 0 1cqw rgba(0,0,0,0.2));
             }
         </style>
 
         <div class="poster-wrapper">
             <div class="poster-container" id="posterArea">
-                <div class="sunburst"></div>
-                <div class="decor-star star-left">★</div>
-                <div class="decor-star star-right">★</div>
+                
+                <img class="drum-bg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Dong_son_drum.svg/500px-Dong_son_drum.svg.png" alt="Trống Đồng">
+                <img class="flag-bg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/320px-Flag_of_Vietnam.svg.png" alt="Cờ Việt Nam">
 
                 <div class="top-logo-strip">
                     <img src="https://upload.wikimedia.org/wikipedia/vi/0/09/Huy_Hi%E1%BB%87u_%C4%90o%C3%A0n.png" alt="Đoàn">
@@ -465,22 +465,20 @@
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRahe4PBqL3Sr3OuFzXmhx0mZ7eyGWAOTm-ww&s" alt="FIT">
                 </div>
 
-                <div class="portrait-area">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Pham_Van_Dong_portrait.jpg/400px-Pham_Van_Dong_portrait.jpg" alt="Cố Thủ Tướng" style="border-radius: 2cqw;"> 
-                </div>
-
                 <div class="text-overlay">
-                    <div class="title-small">Kỷ niệm 120 năm ngày sinh Cố thủ tướng</div>
-                    <div class="title-big">PHẠM VĂN ĐỒNG</div>
-                    
-                    <div class="date-pill">
-                        01/03/1906 <span class="star-icon">★</span> 01/03/2026
-                    </div>
+                    <div class="title-script">Kỷ niệm 120 năm ngày sinh</div>
+                    <div class="title-bold">CỐ THỦ TƯỚNG PHẠM VĂN ĐỒNG</div>
+                    <div class="date-box">01/3/1906 - 01/3/2026</div>
                 </div>
 
-                <div class="footer-text">
-                    CHỦ NHẬT NGÀY 22/03/2026 • ĐỊA ĐIỂM: RD200 - ĐH NÔNG LÂM TP.HCM
+                <div class="portrait-area">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Pham_Van_Dong_portrait.jpg/400px-Pham_Van_Dong_portrait.jpg" alt="Ảnh trang trí"> 
                 </div>
+
+                <div class="ribbon-bottom">
+                    <span>ĐỊA ĐIỂM: RD200 - ĐH NÔNG LÂM TP.HCM</span>
+                </div>
+
             </div>
         </div>
 
