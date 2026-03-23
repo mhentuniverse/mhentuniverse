@@ -15,9 +15,7 @@
     <style>
         body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
 
-        /* =======================================================
-           BÙA CHÚ CHUYỂN CẢNH MƯỢT MÀ (SỬA LỖI JUMP CUT)
-           ======================================================= */
+        /* BÙA CHÚ CHUYỂN CẢNH MƯỢT MÀ */
         .navbar, .music-loader, .music-input, .music-main-layout, 
         .player-section, .queue-section, .dj-controls, .queue-item, .dropdown-menu, .btn-clear-queue {
             transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
@@ -80,9 +78,9 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative;
         }
 
-        /* LÁCH LUẬT AUTO-PLAY YOUTUBE: Không để width/height bằng 0, mà đá nó ra khỏi màn hình */
+        /* FIX LỖI CHROME ĐÓNG BĂNG IFRAME: Thu nhỏ 1x1 pixel và làm tàng hình, giữ nguyên trong viewport */
         #youtube-player-hidden { 
-            position: absolute; left: -9999px; top: -9999px; width: 300px; height: 300px; opacity: 0; pointer-events: none; 
+            position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; z-index: -100; pointer-events: none; 
         }
 
         .vinyl-record {
@@ -138,7 +136,6 @@
         .queue-title { font-weight: 900; color: #1e293b; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;}
         .queue-title i { color: #c084fc;}
         
-        /* NÚT XÓA QUEUE NỔI BẬT HƠN */
         .btn-clear-queue {
             position: absolute; top: 15px; right: 15px; background: rgba(255, 77, 77, 0.1); 
             color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); padding: 8px 12px; border-radius: 10px;
@@ -270,7 +267,7 @@
                     <div id="dropdown-account" class="dropdown-menu account-dropdown">
                         <div class="dropdown-item" onclick="window.location.href='/profile.html#info'"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="7" r="4"></circle></svg> Hồ sơ</div>
                         <div class="dropdown-divider"></div>
-                        <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
+                        <div id="btn-logout" class="dropdown-item"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
                     </div>
                 </div>
             </div>
@@ -338,6 +335,17 @@
     <footer>
         <div class="footer-bottom">
             <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            <div class="footer-social">
+                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    Fanpage MHEnt.
+                </a>
+                <span class="footer-dot">•</span>
+                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Cộng đồng MHEnt.
+                </a>
+            </div>
         </div>
     </footer>
 
@@ -463,20 +471,19 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (V10 - BẢN HOÀN HẢO)
+        // YOUTUBE & FIREBASE DJ LOGIC (V11)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player = null;
-        let isPlayerReady = false; // Cờ kiểm tra Youtube API
+        let isPlayerReady = false; 
         let isSyncing = false; 
-        let pendingFirebaseData = null; // Dữ liệu chờ đồng bộ nếu Youtube load chậm
+        let pendingFirebaseData = null; 
         let localState = { type: 'none', ytId: '', index: 0, state: -1, isShuffle: false, isLoop: false };
 
-        // 1. KHỞI TẠO YOUTUBE
         window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('youtube-player-hidden', {
-                height: '300', width: '300', // Đã lách luật tàng hình
-                videoId: 't0Q2otsqC4I', // ID mồi (Tom & Jerry)
+                height: '300', width: '300', 
+                videoId: 'dQw4w9WgXcQ', // ID mồi 
                 playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0 },
                 events: { 
                     'onReady': () => {
@@ -499,6 +506,11 @@
             const listMatch = url.match(listRegex);
             if (listMatch && listMatch[1]) playlistId = listMatch[1];
 
+            // LOẠI BỎ MIX (RD) NẾU CÓ BÀI HÁT ĐI KÈM
+            if (playlistId && playlistId.startsWith('RD') && videoId) {
+                playlistId = null;
+            }
+
             return { videoId, playlistId };
         }
 
@@ -511,7 +523,6 @@
             }
         }
 
-        // 2. BẮN LỆNH LÊN FIREBASE (BẰNG HÀM SET)
         function updateFirebaseState(forceUpdate = {}) {
             if (isSyncing) return;
             
@@ -548,7 +559,6 @@
             else setTimeout(tryRenderPlaylist, 1000); 
         }
 
-        // 3. XỬ LÝ KHI YOUTUBE BÁO CÁO TRẠNG THÁI
         function onPlayerStateChange(event) {
             const playBtn = document.getElementById('btn-play-pause');
             const vinyl = document.getElementById('vinyl-disc');
@@ -572,7 +582,14 @@
                         const title = player.getVideoData().title;
                         document.getElementById('current-song-title').innerText = title;
                         document.getElementById('current-song-artist').innerText = "Đang phát từ Playlist";
-                        updateVinylCover(null, true);
+                        
+                        // Lấy id video đang phát trong playlist để hiện cover
+                        if(player.getVideoData().video_id) {
+                            updateVinylCover(player.getVideoData().video_id, false);
+                        } else {
+                            updateVinylCover(null, true);
+                        }
+                        
                         set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
                         
                         if(typeof player.getPlaylist === 'function' && player.getPlaylist()) {
@@ -590,11 +607,9 @@
             updateFirebaseState();
         }
 
-        // 4. LẮNG NGHE TỪ FIREBASE
         onValue(roomRef, (snapshot) => {
             const data = snapshot.exists() ? snapshot.val() : { type: 'none' };
             
-            // Nếu Youtube API chưa tải xong, cất dữ liệu đó đợi tí dùng
             if (!isPlayerReady) {
                 pendingFirebaseData = data;
                 return;
@@ -602,9 +617,7 @@
             syncPlayer(data);
         });
 
-        // Hàm ĐỒNG BỘ MÁY PHÁT 
         function syncPlayer(data) {
-            // KHI AI ĐÓ BẤM XÓA QUEUE (THÙNG RÁC)
             if(data.type === 'none') {
                 if (typeof player.stopVideo === 'function') player.stopVideo();
                 document.getElementById('current-song-title').innerText = 'Chưa có bài hát nào';
@@ -621,7 +634,6 @@
 
             isSyncing = true; 
 
-            // Cập nhật Bài / Playlist MỚI
             if (data.ytId !== localState.ytId || data.type !== localState.type) {
                 localState.type = data.type;
                 localState.ytId = data.ytId;
@@ -634,11 +646,9 @@
                     updateVinylCover(data.ytId, false); 
                 }
             } 
-            // Nếu chỉ Next bài trong cùng Playlist
             else if (data.type === 'playlist' && data.index !== player.getPlaylistIndex()) {
                 player.playVideoAt(data.index);
             }
-            // Đồng bộ Play/Pause và thời gian
             else {
                 const localTime = player.getCurrentTime() || 0;
                 if (Math.abs(data.time - localTime) > 2) player.seekTo(data.time);
@@ -647,13 +657,11 @@
                 else if (data.state === YT.PlayerState.PAUSED) player.pauseVideo();
             }
 
-            // Cập nhật text Tên bài hát
             if(data.title && data.title !== "Đang tải dữ liệu...") {
                 document.getElementById('current-song-title').innerText = data.title;
                 document.getElementById('current-song-artist').innerText = data.type === 'playlist' ? 'Đang phát từ Playlist' : 'YouTube Music';
             }
 
-            // Đồng bộ Nút Lặp và Trộn
             localState.isLoop = data.isLoop || false;
             localState.isShuffle = data.isShuffle || false;
             document.getElementById('btn-loop').classList.toggle('active', localState.isLoop);
@@ -716,14 +724,22 @@
             if(!urlInput) return;
             const parsed = parseUrl(urlInput);
             
-            // "Hack" trình duyệt: Bấm nút là ép Youtube phát 1s để lách luật khóa âm thanh auto-play
             if (isPlayerReady && typeof player.playVideo === 'function') {
-                player.playVideo();
+                player.playVideo(); // Ép phát để lách luật khóa âm thanh auto-play
+            } else {
+                showToast('Đang khởi động', 'Trạm phát chưa sẵn sàng, vui lòng đợi 1 giây rồi thử lại!', 'info');
+                return;
             }
 
             if(parsed.playlistId) {
-                updateFirebaseState({ type: 'playlist', ytId: parsed.playlistId, index: 0, time: 0, state: 1, title: 'Đang tải Playlist...' });
-                showToast('Đang phát tín hiệu', 'Đã gửi lệnh tải Playlist!', 'success');
+                // Nếu URL có list=RD (Mix) nhưng lại có video ID, ưu tiên phát Video đơn để khỏi lỗi đồng bộ!
+                if (parsed.playlistId.startsWith('RD') && parsed.videoId) {
+                     showToast('Phát hiện Mix', 'Playlist Mix (Radio) không hỗ trợ đồng bộ, hệ thống sẽ phát bài hát này thui!', 'info');
+                     updateFirebaseState({ type: 'video', ytId: parsed.videoId, time: 0, state: 1, title: 'Đang tải Bài hát...' });
+                } else {
+                     updateFirebaseState({ type: 'playlist', ytId: parsed.playlistId, index: 0, time: 0, state: 1, title: 'Đang tải Playlist...' });
+                     showToast('Đang phát tín hiệu', 'Đã gửi lệnh tải Playlist!', 'success');
+                }
             } else if (parsed.videoId) {
                 updateFirebaseState({ type: 'video', ytId: parsed.videoId, time: 0, state: 1, title: 'Đang tải Bài hát...' });
                 showToast('Đang phát tín hiệu', 'Đã tải Bài Hát vào Trạm!', 'success');
@@ -774,7 +790,6 @@
                 updateFirebaseState({ isShuffle: newState });
             } else showToast('Thông báo', 'Cậu cần nạp Playlist để trộn bài nha!', 'info');
         });
-
     </script>
 </body>
 </html>
