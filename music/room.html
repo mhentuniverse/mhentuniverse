@@ -5,76 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Private Music Studio - MHEnt. Universe</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#c084fc"> <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <meta name="theme-color" content="#c084fc">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/music/music-theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* ÉP FONT NUNITO CHO TOÀN BỘ TRANG */
         body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
 
-        .music-page-container { padding: 40px 20px; max-width: 1100px; margin: 0 auto; animation: fadeIn 0.8s ease-out; min-height: 75vh; }
+        /* =======================================================
+           ĐOẠN CODE "PHÉP THUẬT" GHI ĐÈ MÀU HỒNG TỪ STYLE.CSS 
+           ======================================================= */
+        :root {
+            --hub-color: #c084fc; /* Tím Music */
+            --hub-color-light: #e879f9;
+            --hub-bg: rgba(192, 132, 252, 0.15);
+        }
         
+        /* Đổi màu Nav Links & Logo */
+        .logo-name { color: var(--hub-color) !important; }
+        .nav-links a:hover { color: var(--hub-color) !important; }
+        
+        /* Đổi màu Avatar & Nút Dark Mode */
+        .avt-img { border-color: var(--hub-color) !important; }
+        .user-avatar { border-color: var(--hub-color) !important; }
+        .btn-theme { border-color: var(--hub-color) !important; color: var(--hub-color) !important; }
+        .btn-theme:hover { background: var(--hub-bg) !important; }
+        
+        /* Đổi màu Menu Mobile */
+        .menu-toggle svg { stroke: var(--hub-color) !important; }
+        
+        /* Đổi màu Dropdown Profile */
+        .dropdown-menu { border-color: rgba(192, 132, 252, 0.3) !important; }
+        .dropdown-menu::before { border-top-color: rgba(192, 132, 252, 0.3) !important; border-left-color: rgba(192, 132, 252, 0.3) !important; }
+        .dropdown-item:hover { color: var(--hub-color) !important; }
+        .dropdown-item::before { background: var(--hub-color) !important; }
+        #btn-logout:hover { color: #ff4d4d !important; } /* Đăng xuất giữ màu đỏ */
+
+        /* ======================================================= */
+
+        .music-page-container { padding: 40px 20px; max-width: 1100px; margin: 0 auto; animation: fadeIn 0.8s ease-out; min-height: 75vh; }
         .music-header { text-align: center; margin-bottom: 40px; }
-        .music-header h1 { color: #c084fc; margin-bottom: 5px; font-size: 32px; font-weight: 900;} /* Màu tiêu đề TÍM */
+        .music-header h1 { color: #c084fc; margin-bottom: 5px; font-size: 32px; font-weight: 900;}
         .music-subtitle { color: #64748b; font-weight: 800; letter-spacing: 1px; font-size: 15px;}
         
-        /* KHU VỰC NẠP LINK (Input) */
         .music-loader {
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
             padding: 15px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            border: 1px solid rgba(192, 132, 252, 0.2); /* Viền TÍM */
+            border: 1px solid rgba(192, 132, 252, 0.3);
             display: flex; gap: 10px; margin-bottom: 40px; align-items: center; max-width: 800px; margin-left: auto; margin-right: auto;
         }
         .music-input { 
             flex: 1; padding: 12px 20px; border-radius: 50px; 
             border: 2px solid transparent; font-size: 15px; outline: none; transition: 0.3s; background: #f8fafc; font-weight: 600;
         }
-        .music-input:focus { border-color: #c084fc; background: #fff; } /* Viền focus TÍM */
+        .music-input:focus { border-color: #c084fc; background: #fff; }
         
         .btn-music-load {
-            background: linear-gradient(135deg, #c084fc, #e879f9); /* Nút TÍM gradient */
-            color: white; border: none;
+            background: linear-gradient(135deg, #c084fc, #e879f9); color: white; border: none;
             padding: 12px 25px; border-radius: 50px; font-weight: 900; font-size: 15px; cursor: pointer;
             transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;
         }
         .btn-music-load:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(192, 132, 252, 0.4); }
 
-        /* BỐ CỤC CHÍNH (GRID) */
         .music-main-layout {
             display: flex; gap: 40px; align-items: stretch;
             background: rgba(255, 255, 255, 0.5); padding: 30px;
-            border-radius: 30px; border: 1px solid rgba(192, 132, 252, 0.1); /* Viền TÍM nhẹ */
+            border-radius: 30px; border: 1px solid rgba(192, 132, 252, 0.2);
         }
 
-        /* KHU VỰC PLAYER (BÊN TRÁI) */
         .player-section {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: #fff; padding: 40px 20px; border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative;
         }
 
-        /* Ẩn hoàn toàn iframe của Youtube */
         #youtube-player-hidden { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
 
-        /* Đĩa nhạc xoay xoay với viền TÍM */
+        /* ĐĨA NHẠC CHỨA COVER */
         .vinyl-record {
-            width: 220px; height: 220px; border-radius: 50%;
-            background: linear-gradient(145deg, #111, #333);
-            border: 8px solid #c084fc; /* Viền đĩa TÍM */
+            width: 240px; height: 240px; border-radius: 50%;
+            background: linear-gradient(145deg, #111, #222);
+            border: 8px solid #c084fc;
             box-shadow: 0 15px 35px rgba(192, 132, 252, 0.4), inset 0 0 20px rgba(0,0,0,0.8);
             margin-bottom: 30px; position: relative;
             display: flex; align-items: center; justify-content: center;
-            animation: spin 10s linear infinite; animation-play-state: paused;
+            animation: spin 12s linear infinite; animation-play-state: paused;
         }
         .vinyl-record.playing { animation-play-state: running; }
         
         .vinyl-center {
-            width: 60px; height: 60px; border-radius: 50%;
-            background: #e879f9; border: 4px solid #fff; /* Tâm đĩa TÍM nhạt */
-            background-image: url('/assets/avt-web.jpg'); background-size: cover; background-position: center;
+            width: 130px; height: 130px; border-radius: 50%; /* Nới rộng tâm để hiển thị cover rõ hơn */
+            background: #e879f9; border: 4px solid #111; 
+            background-image: url('/assets/avt-web.jpg'); /* Mặc định là logo của nhóm */
+            background-size: cover; background-position: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            transition: background-image 0.5s ease;
+        }
+        /* Cái núm nhỏ xíu giữa đĩa nhạc */
+        .vinyl-center::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 15px; height: 15px; background: #fff; border-radius: 50%; border: 2px solid #555;
         }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -83,7 +117,6 @@
         .current-song-title { font-size: 22px; font-weight: 900; color: #1e293b; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px;}
         .current-song-artist { font-size: 14px; font-weight: 700; color: #94a3b8; margin: 0;}
 
-        /* BẢNG ĐIỀU KHIỂN DJ (Controls) */
         .dj-controls {
             display: flex; justify-content: center; align-items: center; gap: 20px;
             padding: 15px 25px; background: #f8fafc; border-radius: 50px; border: 1px solid #e2e8f0;
@@ -98,18 +131,15 @@
         .control-btn.play-btn { background: #c084fc; color: white; font-size: 20px; width: 60px; height: 60px; box-shadow: 0 5px 15px rgba(192, 132, 252, 0.4); }
         .control-btn.play-btn:hover { background: #a855f7; transform: scale(1.1); color: white;}
 
-        /* DANH SÁCH NHẠC (BÊN PHẢI) */
         .queue-section { 
             flex: 1; background: #fff; border-radius: 20px; 
-            padding: 25px; border: 1px solid rgba(192, 132, 252, 0.1); display: flex; flex-direction: column;
+            padding: 25px; border: 1px solid rgba(192, 132, 252, 0.2); display: flex; flex-direction: column;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
         .queue-title { font-weight: 900; color: #1e293b; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;}
-        .queue-title i { color: #c084fc;} /* TÍM */
+        .queue-title i { color: #c084fc;}
         
         .queue-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; max-height: 400px;}
-        
-        /* Chỉnh thanh cuộn cho List nhạc */
         .queue-list::-webkit-scrollbar { width: 6px; }
         .queue-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px;}
         .queue-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px;}
@@ -119,34 +149,31 @@
             display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 15px;
             cursor: pointer; transition: 0.3s; margin-bottom: 8px; border: 1px solid transparent; background: #f8fafc;
         }
-        .queue-item:hover { background: #f1f5f9; border-color: rgba(192, 132, 252, 0.2); transform: translateX(5px);}
-        .queue-item.active { background: rgba(192, 132, 252, 0.1); border-color: #c084fc; } /* TÍM */
+        .queue-item:hover { background: #f1f5f9; border-color: rgba(192, 132, 252, 0.3); transform: translateX(5px);}
+        .queue-item.active { background: rgba(192, 132, 252, 0.15); border-color: #c084fc; }
         
         .queue-thumb { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background: #e2e8f0; flex-shrink: 0;}
         
         .queue-info { flex: 1; overflow: hidden; }
         .queue-song-title { font-weight: 800; font-size: 14.5px; color: #1e293b; margin: 0 0 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .queue-song-artist { font-weight: 600; font-size: 12.5px; color: #94a3b8; margin: 0;}
-        .queue-item.active .queue-song-title { color: #c084fc;} /* TÍM */
+        .queue-item.active .queue-song-title { color: #c084fc;}
 
-        /* Lời nhắn khi danh sách rỗng */
         .empty-queue-msg { text-align: center; color: #94a3b8; font-weight: 700; margin-top: 50px; font-size: 15px; line-height: 1.6;}
 
         #sync-status-icon { position: absolute; top: 20px; right: 20px; font-size: 18px; color: #10b981;}
 
-        /* RESPONSIVE: CSS CHO MOBILE */
         @media (max-width: 900px) {
             .music-page-container { padding: 20px 15px; }
             .music-loader { padding: 10px; flex-direction: column; border-radius: 20px; gap: 10px;}
             .music-input { width: 100%; box-sizing: border-box;}
             .btn-music-load { width: 100%; }
 
-            /* Chuyển Grid thành cột dọc: Đĩa trên, List dưới */
             .music-main-layout { flex-direction: column; gap: 20px; padding: 15px; background: transparent; border: none;}
             
             .player-section { padding: 30px 15px; }
-            .vinyl-record { width: 180px; height: 180px; margin-bottom: 20px;}
-            .vinyl-center { width: 50px; height: 50px; }
+            .vinyl-record { width: 200px; height: 200px; margin-bottom: 20px;}
+            .vinyl-center { width: 100px; height: 100px; }
             .dj-controls { gap: 10px; padding: 10px 15px; width: 100%; box-sizing: border-box;}
             .control-btn { width: 40px; height: 40px; font-size: 18px;}
             .control-btn.play-btn { width: 50px; height: 50px; }
@@ -155,11 +182,12 @@
             .queue-list { max-height: 350px;}
         }
 
-        /* CHẾ ĐỘ TỐI (Dark Mode) - DỰA TRÊN MÀU TÍM */
+        /* DARK MODE - TÍM */
         body.dark-mode .gradient-bg { background: linear-gradient(180deg, #111 0%, #000 100%) !important; }
         body.dark-mode .navbar { background: rgba(0, 0, 0, 0.9) !important; border-bottom: 1px solid rgba(192, 132, 252, 0.2) !important; }
         body.dark-mode .nav-links a { color: #e2e8f0 !important; }
         body.dark-mode .logo-name { color: white !important; }
+        body.dark-mode .user-name { color: #c084fc !important; }
         
         body.dark-mode .music-subtitle { color: #94a3b8; }
         body.dark-mode .music-loader { background: rgba(30, 41, 59, 0.9); border-color: rgba(192, 132, 252, 0.2); }
@@ -181,6 +209,10 @@
         body.dark-mode .queue-item.active { background: rgba(192, 132, 252, 0.15); border-color: #c084fc; }
         body.dark-mode .queue-item.active .queue-song-title { color: #c084fc; }
         body.dark-mode .empty-queue-msg { color: #64748b; }
+        
+        body.dark-mode .dropdown-menu { background: rgba(30, 41, 59, 0.95) !important; border-color: rgba(192, 132, 252, 0.3) !important; }
+        body.dark-mode .dropdown-menu::before { background: #1e293b !important; border-color: rgba(192, 132, 252, 0.3) !important; }
+        body.dark-mode .dropdown-item { color: #e2e8f0 !important; }
     </style>
 </head>
 <body class="gradient-bg">
@@ -189,7 +221,8 @@
         <div class="nav-left">
             <a onclick="window.location.href='/'" style="cursor: pointer;">
                 <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
-                <span class="logo-name" style="color: #c084fc;">MHEnt. Music</span> </a>
+                <span class="logo-name">MHEnt. Music</span>
+            </a>
         </div>
 
         <ul class="nav-links" id="nav-links">
@@ -213,7 +246,7 @@
                         <a onclick="window.location.href='/'" class="app-item"><span class="app-name">Đại Sảnh</span></a>
                         <a onclick="window.location.href='/cinema/'" class="app-item"><span class="app-name">Cinema</span></a>
                         <a onclick="window.location.href='/music/room.html'" class="app-item active" style="border-color: #c084fc; background: rgba(192,132,252,0.15);">
-                            <span class="app-name" style="color:#c084fc;">Music Room</span>
+                            <span class="app-name" style="color:#c084fc;">Music</span>
                         </a>
                     </div>
                 </div>
@@ -233,13 +266,13 @@
                     <div id="dropdown-account" class="dropdown-menu account-dropdown">
                         <div class="dropdown-item" onclick="window.location.href='/profile.html#info'"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="7" r="4"></circle></svg> Hồ sơ</div>
                         <div class="dropdown-divider"></div>
-                        <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
+                        <div id="btn-logout" class="dropdown-item"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
                     </div>
                 </div>
             </div>
 
             <div class="menu-toggle" onclick="toggleMobileMenu()">
-                <svg viewBox="0 0 24 24" width="28" height="28" style="stroke: #c084fc;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg viewBox="0 0 24 24" width="28" height="28"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </div>
         </div>
     </nav>
@@ -263,7 +296,7 @@
                 <div id="sync-status-icon" title="Đang chờ tín hiệu..."><i class="fa-solid fa-satellite-dish fa-fade" style="color: #c084fc;"></i></div>
 
                 <div class="vinyl-record" id="vinyl-disc">
-                    <div class="vinyl-center"></div>
+                    <div class="vinyl-center" id="vinyl-cover"></div>
                 </div>
 
                 <div class="song-info-display">
@@ -307,7 +340,7 @@
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getDatabase, ref, update, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // ⚠️ BÊ CẤU HÌNH FIREBASE CỦA CẬU VÀO ĐÂY LÀ ĐƯỢC
+        // CẤU HÌNH FIREBASE 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
             authDomain: "mhentuniverse.firebaseapp.com",
@@ -322,7 +355,7 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // UI & AUTH (Giữ nguyên)
+        // UI & AUTH LOGIC
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
 
@@ -418,7 +451,7 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (NÂNG CẤP)
+        // YOUTUBE & FIREBASE DJ LOGIC 
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player;
@@ -433,7 +466,6 @@
             });
         };
 
-        // Hàm Tách Link Youtube v2 (Có hỗ trợ Playlist)
         function parseUrl(url) {
             let videoId = null, playlistId = null;
             try {
@@ -448,7 +480,13 @@
             return { videoId, playlistId };
         }
 
-        // Bắn tín hiệu lên RTDB
+        // CẬP NHẬT ẢNH COVER
+        function updateVinylCover(vid) {
+            if (!vid) return;
+            const coverUrl = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+            document.getElementById('vinyl-cover').style.backgroundImage = `url('${coverUrl}')`;
+        }
+
         function updateFirebaseState(forceUpdate = {}) {
             if (isSyncing || !player || !player.getPlayerState) return;
             const currentState = player.getPlayerState();
@@ -476,12 +514,16 @@
             const playBtn = document.getElementById('btn-play-pause');
             const vinyl = document.getElementById('vinyl-disc');
             
-            // Xoay đĩa và Đổi nút Play/Pause
             if(event.data === YT.PlayerState.PLAYING) {
                 playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
                 vinyl.classList.add('playing');
                 
-                // Nếu là Video đơn, cập nhật tên và vẽ lại queue
+                // Móc ID của video ĐANG PHÁT (kể cả trong playlist) để lấy Cover
+                if(player.getVideoData && player.getVideoData().video_id) {
+                    const currentVidId = player.getVideoData().video_id;
+                    updateVinylCover(currentVidId);
+                }
+
                 if(localState.type === 'video' && player.getVideoData && player.getVideoData().title) {
                     const title = player.getVideoData().title;
                     document.getElementById('current-song-title').innerText = title;
@@ -489,7 +531,6 @@
                     update(roomRef, { title: title });
                     renderSingleQueue(localState.ytId, title);
                 } 
-                // Nếu là Playlist, gọi API lấy danh sách nếu chưa lấy
                 else if (localState.type === 'playlist' && player.getPlaylist) {
                     const title = player.getVideoData().title;
                     document.getElementById('current-song-title').innerText = title;
@@ -506,7 +547,6 @@
             updateFirebaseState();
         }
 
-        // ĐỒNG BỘ: Nhận tín hiệu (onValue)
         onValue(roomRef, (snapshot) => {
             if (snapshot.exists() && player && player.playVideo) {
                 const data = snapshot.val();
@@ -515,7 +555,6 @@
 
                 isSyncing = true; 
 
-                // 1. Đổi Bài / Đổi Playlist
                 if (data.ytId !== localState.ytId || data.type !== localState.type) {
                     localState.type = data.type;
                     localState.ytId = data.ytId;
@@ -525,13 +564,12 @@
                         renderEmptyQueue("Đang tải danh sách Playlist...");
                     } else {
                         player.loadVideoById(data.ytId, data.time);
+                        updateVinylCover(data.ytId); // Cập nhật cover liền cho bài đơn
                     }
                 } 
-                // 2. Chuyển bài trong Playlist
                 else if (data.type === 'playlist' && data.index !== player.getPlaylistIndex()) {
                     player.playVideoAt(data.index);
                 }
-                // 3. Đồng bộ thời gian & Play/Pause
                 else {
                     const localTime = player.getCurrentTime() || 0;
                     if (Math.abs(data.time - localTime) > 2) player.seekTo(data.time);
@@ -540,13 +578,11 @@
                     else if (data.state === YT.PlayerState.PAUSED) player.pauseVideo();
                 }
 
-                // Cập nhật Text Tên bài
                 if(data.title && data.title !== "Đang tải dữ liệu...") {
                     document.getElementById('current-song-title').innerText = data.title;
                     document.getElementById('current-song-artist').innerText = data.type === 'playlist' ? 'Đang phát từ Playlist' : 'YouTube Music';
                 }
 
-                // Đồng bộ Nút
                 localState.isLoop = data.isLoop || false;
                 localState.isShuffle = data.isShuffle || false;
                 document.getElementById('btn-loop').classList.toggle('active', localState.isLoop);
@@ -559,11 +595,10 @@
             }
         });
 
-        // UI Danh sách phát (Khi phát bài đơn)
         function renderSingleQueue(vid, title) {
             document.getElementById('custom-queue-list').innerHTML = `
                 <li class="queue-item active">
-                    <img src="https://img.youtube.com/vi/${vid}/default.jpg" class="queue-thumb">
+                    <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" class="queue-thumb">
                     <div class="queue-info">
                         <h4 class="queue-song-title">${title}</h4>
                         <p class="queue-song-artist">Đang phát</p>
@@ -572,13 +607,12 @@
             `;
         }
 
-        // UI Danh sách phát (Khi phát Playlist)
         function renderPlaylistQueue(playlistArray, activeIndex) {
             if(!playlistArray || playlistArray.length === 0) return;
             
             let html = playlistArray.map((vid, index) => `
                 <li class="queue-item ${index === activeIndex ? 'active' : ''}" onclick="playPlaylistIndex(${index})">
-                    <img src="https://img.youtube.com/vi/${vid}/default.jpg" class="queue-thumb">
+                    <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" class="queue-thumb">
                     <div class="queue-info">
                         <h4 class="queue-song-title">Track ${index + 1}</h4>
                         <p class="queue-song-artist">YouTube Playlist</p>
@@ -588,7 +622,6 @@
             document.getElementById('custom-queue-list').innerHTML = html;
         }
 
-        // Lời nhắn chờ
         function renderEmptyQueue(msg) {
             document.getElementById('custom-queue-list').innerHTML = `
                 <div class="empty-queue-msg">
@@ -598,7 +631,6 @@
             `;
         }
 
-        // XỬ LÝ NÚT BẤM
         document.getElementById('btn-start-sync').addEventListener('click', () => {
             let urlInput = document.getElementById('yt-url-input').value.trim();
             if(!urlInput) return;
@@ -615,7 +647,6 @@
             }
         });
 
-        // Hàm gọi khi người dùng click vào một bài trong playlist queue
         window.playPlaylistIndex = function(index) {
             if(localState.type === 'playlist') {
                 player.playVideoAt(index);
@@ -630,7 +661,6 @@
             else player.playVideo();
         });
 
-        // Nút Next/Prev (Chỉ hoạt động khi đang bật Playlist)
         document.getElementById('btn-next').addEventListener('click', () => {
             if(localState.type === 'playlist') {
                 player.nextVideo();
