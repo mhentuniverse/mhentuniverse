@@ -26,6 +26,11 @@
             transition: color 0.4s ease !important;
         }
 
+        /* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
+        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
+        .app-item:hover .app-icon svg { color: var(--hub-color) !important; transform: scale(1.1); }
+        body.dark-mode .app-icon svg { color: #e2e8f0; }
+
         /* GHI ĐÈ MÀU TÍM MUSIC HUB */
         :root {
             --hub-color: #c084fc; 
@@ -436,8 +441,6 @@
         </div>
     </footer>
 
-    <script src="https://www.youtube.com/iframe_api"></script>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -580,6 +583,12 @@
                 }
             });
         };
+
+        // 🔥 SAU KHI GÀI BẪY XONG MỚI GỌI YOUTUBE API TỚI
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         function parseUrl(url) {
             let videoId = null, playlistId = null;
