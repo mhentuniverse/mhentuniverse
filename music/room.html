@@ -77,23 +77,23 @@
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: #fff; padding: 40px 20px; border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative;
+            min-width: 0; /* Ép không cho phình ra */
         }
 
-        /* ⚠️ CÚ LỪA CHROME: Giấu Youtube ngay sau đĩa than, độ mờ 0.01 để trình duyệt không đóng băng */
         #youtube-player-hidden { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 200px; height: 200px; opacity: 0.01; z-index: 0; pointer-events: none; 
         }
 
         .vinyl-record {
-            width: 240px; height: 240px; border-radius: 50%;
+            width: 240px; height: 240px; border-radius: 50%; flex-shrink: 0;
             background: linear-gradient(145deg, #111, #222);
             border: 8px solid #c084fc;
             box-shadow: 0 15px 35px rgba(192, 132, 252, 0.4), inset 0 0 20px rgba(0,0,0,0.8);
             margin-bottom: 30px; position: relative;
             display: flex; align-items: center; justify-content: center;
             animation: spin 12s linear infinite; animation-play-state: paused;
-            z-index: 10; /* Đè lên Youtube Player */
+            z-index: 10; 
         }
         .vinyl-record.playing { animation-play-state: running; }
         
@@ -112,28 +112,82 @@
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .song-info-display { text-align: center; margin-bottom: 25px; width: 100%;}
-        .current-song-title { font-size: 22px; font-weight: 900; color: #1e293b; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px;}
-        .current-song-artist { font-size: 14px; font-weight: 700; color: #94a3b8; margin: 0;}
+        /* =======================================================
+           1. FIX TÊN BÀI HÁT QUÁ DÀI (HIỆU ỨNG PING-PONG SPOTIFY)
+           ======================================================= */
+        .song-info-display { 
+            text-align: center; margin-bottom: 20px; width: 100%; 
+            display: flex; flex-direction: column; align-items: center;
+            overflow: hidden; /* Cắt phần dư thừa của khung */
+        }
+        
+        .marquee-box {
+            width: 100%; max-width: 380px; /* Khóa chết chiều rộng */
+            overflow: hidden; white-space: nowrap; margin-bottom: 5px;
+        }
 
+        .current-song-title { 
+            display: inline-block; font-size: 20px; font-weight: 900; color: #1e293b; margin: 0; padding: 0 5px;
+        }
+
+        /* Khi được gắn class scrolling, nó sẽ chạy qua lại */
+        .current-song-title.scrolling {
+            animation: pingpong 8s ease-in-out infinite alternate;
+        }
+        @keyframes pingpong {
+            0%, 15% { transform: translateX(0); }
+            85%, 100% { transform: translateX(var(--scroll-amount)); }
+        }
+
+        .current-song-artist { font-size: 13px; font-weight: 700; color: #94a3b8; margin: 0;}
+
+        /* =======================================================
+           2. CSS THANH TIẾN ĐỘ (PROGRESS BAR)
+           ======================================================= */
+        .progress-wrapper {
+            display: flex; align-items: center; gap: 12px; margin-top: 15px;
+            width: 100%; max-width: 350px;
+        }
+        .time-text {
+            font-size: 12px; color: #64748b; font-weight: 800; width: 40px; text-align: center; font-variant-numeric: tabular-nums;
+        }
+        .progress-bar-container {
+            flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; position: relative; cursor: pointer;
+            transition: height 0.2s, background 0.4s ease;
+        }
+        .progress-bar-container:hover { height: 8px; }
+        
+        .progress-bar-fill {
+            height: 100%; background: #c084fc; border-radius: 3px; width: 0%; position: relative; pointer-events: none;
+            transition: width 0.1s linear;
+        }
+        
+        .progress-bar-thumb {
+            position: absolute; right: -6px; top: 50%; transform: translateY(-50%);
+            width: 12px; height: 12px; background: #fff; border: 2px solid #c084fc; border-radius: 50%;
+            opacity: 0; transition: opacity 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .progress-bar-container:hover .progress-bar-thumb { opacity: 1; }
+
+        /* Nút Điều Khiển */
         .dj-controls {
             display: flex; justify-content: center; align-items: center; gap: 20px;
             padding: 15px 25px; background: #f8fafc; border-radius: 50px; border: 1px solid #e2e8f0; z-index: 10;
         }
         .control-btn {
-            background: transparent; border: none; color: #94a3b8; font-size: 20px;
-            width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: transparent; border: none; color: #94a3b8; font-size: 18px;
+            width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: 0.3s;
         }
         .control-btn:hover { background: rgba(192, 132, 252, 0.1); color: #c084fc; transform: scale(1.1); }
         .control-btn.active { color: #c084fc; background: rgba(192, 132, 252, 0.15); }
-        .control-btn.play-btn { background: #c084fc; color: white; font-size: 20px; width: 60px; height: 60px; box-shadow: 0 5px 15px rgba(192, 132, 252, 0.4); }
+        .control-btn.play-btn { background: #c084fc; color: white; font-size: 20px; width: 55px; height: 55px; box-shadow: 0 5px 15px rgba(192, 132, 252, 0.4); }
         .control-btn.play-btn:hover { background: #a855f7; transform: scale(1.1); color: white;}
 
         .queue-section { 
             flex: 1; background: #fff; border-radius: 20px; 
             padding: 25px; border: 1px solid rgba(192, 132, 252, 0.2); display: flex; flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; min-width: 0;
         }
         
         .queue-title { font-weight: 900; color: #1e293b; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;}
@@ -182,8 +236,6 @@
             .vinyl-record { width: 200px; height: 200px; margin-bottom: 20px;}
             .vinyl-center { width: 100px; height: 100px; }
             .dj-controls { gap: 10px; padding: 10px 15px; width: 100%; box-sizing: border-box;}
-            .control-btn { width: 40px; height: 40px; font-size: 18px;}
-            .control-btn.play-btn { width: 50px; height: 50px; }
             
             .queue-section { padding: 15px;}
             .queue-list { max-height: 350px;}
@@ -220,6 +272,10 @@
         body.dark-mode .dropdown-menu { background: rgba(30, 41, 59, 0.95) !important; border-color: rgba(192, 132, 252, 0.3) !important; }
         body.dark-mode .dropdown-menu::before { background: #1e293b !important; border-color: rgba(192, 132, 252, 0.3) !important; }
         body.dark-mode .dropdown-item { color: #e2e8f0 !important; }
+
+        /* Dark Mode cho thanh tiến độ */
+        body.dark-mode .progress-bar-container { background: #334155; }
+        body.dark-mode .time-text { color: #94a3b8; }
     </style>
 </head>
 <body class="gradient-bg">
@@ -233,26 +289,42 @@
         </div>
 
         <ul class="nav-links" id="nav-links">
-            <li><a onclick="window.location.href='/'" style="cursor: pointer;">Đại Sảnh</a></li>
-            <li><a onclick="window.location.href='/cinema/'" style="cursor: pointer;">Cinema</a></li>
-            <li><a onclick="window.location.href='/about.html'" style="cursor: pointer;">Về chúng tớ</a></li>
-        </ul>
+                <li><a onclick="window.location.href='index.html'" style="cursor: pointer;">Trang chủ</a></li>
+                <li><a onclick="window.location.href='index.html#nhac'" style="cursor: pointer;">Danh sách Nhạc</a></li>
+                <li><a onclick="window.location.href='/about.html'" style="cursor: pointer;">Về chúng tớ</a></li>
+            </ul>
 
         <div class="nav-right">
             <div class="user-section">
                 <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
-                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Vũ Trụ MHEnt" style="cursor: pointer;">
+                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='#ff85a2'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                             <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
                             <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
                             <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
                         </svg>
                     </div>
+                    
                     <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
-                        <a onclick="window.location.href='/'" class="app-item"><span class="app-name">Đại Sảnh</span></a>
-                        <a onclick="window.location.href='/cinema/'" class="app-item"><span class="app-name">Cinema</span></a>
-                        <a onclick="window.location.href='/music/room.html'" class="app-item active" style="border-color: #c084fc; background: rgba(192,132,252,0.15);">
-                            <span class="app-name" style="color:#c084fc;">Music Room</span>
+                        <a href="/" class="app-item">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
+                            <span class="app-name">Đại Sảnh</span>
+                        </a>
+                        <a href="/cinema/" class="app-item">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                            <span class="app-name">Cinema</span>
+                        </a>
+                        <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Manga đang được xây dựng!', 'info'); return false;">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                            <span class="app-name">Manga</span>
+                        </a>
+                        <a href="#" class="app-item disabled" onclick="window.showToast('Thông báo', 'Vũ trụ Novel đang được xây dựng!', 'info'); return false;">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+                            <span class="app-name">Novel</span>
+                        </a>
+                        <a href="/music/" class="app-item active" onclick="window.showToast('Thông báo', 'Vũ trụ Music đang được xây dựng!', 'info'); return false;">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
+                            <span class="app-name">Music</span>
                         </a>
                     </div>
                 </div>
@@ -303,8 +375,20 @@
                 </div>
 
                 <div class="song-info-display">
-                    <h2 id="current-song-title" class="current-song-title">Chưa có bài hát nào</h2>
+                    <div class="marquee-box" id="marquee-box">
+                        <h2 id="current-song-title" class="current-song-title">Chưa có bài hát nào</h2>
+                    </div>
                     <p id="current-song-artist" class="current-song-artist">Hãy nạp link YouTube để bắt đầu</p>
+
+                    <div class="progress-wrapper">
+                        <span class="time-text" id="time-current">0:00</span>
+                        <div class="progress-bar-container" id="progress-bar-container">
+                            <div class="progress-bar-fill" id="progress-bar-fill">
+                                <div class="progress-bar-thumb"></div>
+                            </div>
+                        </div>
+                        <span class="time-text" id="time-total">0:00</span>
+                    </div>
                 </div>
 
                 <div class="dj-controls">
@@ -352,6 +436,8 @@
         </div>
     </footer>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -374,9 +460,7 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // ==========================================
-        // UI & AUTH
-        // ==========================================
+        // UI & AUTH (Giữ nguyên)
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
 
@@ -472,37 +556,30 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (V13 - THE ENDGAME)
+        // YOUTUBE & FIREBASE DJ LOGIC (V13)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player = null;
         let isPlayerReady = false; 
         let isSyncing = false; 
         let pendingFirebaseData = null; 
+        let progressInterval; // Bộ đếm giờ cho thanh tiến độ
         let localState = { type: 'none', ytId: '', index: 0, state: -1, isShuffle: false, isLoop: false };
 
-        // 🔥 FIX RACE CONDITION: Khai báo hàm đợi trước
         window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('youtube-player-hidden', {
                 height: '200', width: '200', 
-                videoId: 't0Q2otsqC4I', // Mồi Tom & Jerry
+                videoId: 't0Q2otsqC4I', 
                 playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0 },
                 events: { 
                     'onReady': () => {
                         isPlayerReady = true;
-                        // Vừa bật lên là lấy data từ Firebase đập vào luôn
                         if(pendingFirebaseData) syncPlayer(pendingFirebaseData);
                     },
                     'onStateChange': onPlayerStateChange 
                 }
             });
         };
-
-        // 🔥 SAU KHI GÀI BẪY XONG MỚI GỌI YOUTUBE API TỚI
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         function parseUrl(url) {
             let videoId = null, playlistId = null;
@@ -526,6 +603,70 @@
                 document.getElementById('vinyl-cover').style.backgroundImage = `url('${coverUrl}')`;
             }
         }
+
+        // ĐỔI TÊN BÀI HÁT & KIỂM TRA CHẠY CHỮ (PING-PONG)
+        function updateSongTitle(title) {
+            const titleEl = document.getElementById('current-song-title');
+            titleEl.innerText = title;
+            
+            // Xóa class cũ trước khi tính toán
+            titleEl.classList.remove('scrolling');
+            titleEl.style.removeProperty('--scroll-amount');
+            
+            // Đợi giao diện cập nhật text xong mới đo kích thước
+            setTimeout(() => {
+                const box = document.getElementById('marquee-box');
+                if (titleEl.scrollWidth > box.clientWidth) {
+                    const diff = titleEl.scrollWidth - box.clientWidth;
+                    // Lệch thêm 10px cho dễ thở
+                    titleEl.style.setProperty('--scroll-amount', `-${diff + 10}px`);
+                    titleEl.classList.add('scrolling');
+                }
+            }, 100);
+        }
+
+        // FORMAT THỜI GIAN (VD: 03:45)
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // CẬP NHẬT THANH TIẾN ĐỘ
+        function updateProgress() {
+            if (isPlayerReady && typeof player.getPlayerState === 'function' && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                const current = player.getCurrentTime() || 0;
+                const total = player.getDuration() || 0;
+                
+                document.getElementById('time-current').innerText = formatTime(current);
+                document.getElementById('time-total').innerText = formatTime(total);
+                
+                if (total > 0) {
+                    const percent = (current / total) * 100;
+                    document.getElementById('progress-bar-fill').style.width = `${percent}%`;
+                }
+            }
+        }
+
+        // CHO PHÉP CLICK VÀO THANH TIẾN ĐỘ ĐỂ TUA NHẠC
+        document.getElementById('progress-bar-container').addEventListener('click', function(e) {
+            if (!isPlayerReady || typeof player.getDuration !== 'function') return;
+            const total = player.getDuration();
+            if (total <= 0) return;
+
+            const rect = this.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percent = clickX / rect.width;
+            const seekTime = total * percent;
+
+            player.seekTo(seekTime, true);
+            updateFirebaseState({ time: seekTime }); // Đồng bộ điểm tua lên Firebase
+            
+            // Cập nhật giao diện ngay lập tức
+            document.getElementById('progress-bar-fill').style.width = `${percent * 100}%`;
+            document.getElementById('time-current').innerText = formatTime(seekTime);
+        });
 
         function updateFirebaseState(forceUpdate = {}) {
             if (isSyncing) return;
@@ -560,7 +701,11 @@
             const playBtn = document.getElementById('btn-play-pause');
             const vinyl = document.getElementById('vinyl-disc');
             
+            // Quản lý bộ đếm giờ của thanh tiến độ
             if(event.data === YT.PlayerState.PLAYING) {
+                clearInterval(progressInterval);
+                progressInterval = setInterval(updateProgress, 500); // 0.5s cập nhật 1 lần
+                
                 playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
                 vinyl.classList.add('playing');
                 
@@ -568,23 +713,21 @@
                     const title = player.getVideoData().title;
                     const vidId = player.getVideoData().video_id;
                     
-                    document.getElementById('current-song-title').innerText = title;
+                    updateSongTitle(title);
                     document.getElementById('current-song-artist').innerText = player.getVideoData().author || "YouTube Music";
                     updateVinylCover(vidId, false);
+                    
                     set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
                     renderSingleQueue(vidId, title);
                 } 
                 else if (localState.type === 'playlist') {
                     if(player.getVideoData && player.getVideoData().title) {
                         const title = player.getVideoData().title;
-                        document.getElementById('current-song-title').innerText = title;
+                        updateSongTitle(title);
                         document.getElementById('current-song-artist').innerText = "Đang phát từ Playlist";
                         
-                        if(player.getVideoData().video_id) {
-                            updateVinylCover(player.getVideoData().video_id, false);
-                        } else {
-                            updateVinylCover(null, true);
-                        }
+                        if(player.getVideoData().video_id) updateVinylCover(player.getVideoData().video_id, false);
+                        else updateVinylCover(null, true);
                         
                         set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
                         
@@ -596,6 +739,7 @@
                     }
                 }
             } else {
+                clearInterval(progressInterval);
                 playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
                 vinyl.classList.remove('playing');
             }
@@ -616,11 +760,18 @@
         function syncPlayer(data) {
             if(data.type === 'none') {
                 if (typeof player.stopVideo === 'function') player.stopVideo();
-                document.getElementById('current-song-title').innerText = 'Chưa có bài hát nào';
+                clearInterval(progressInterval);
+                updateSongTitle('Chưa có bài hát nào');
                 document.getElementById('current-song-artist').innerText = 'Hãy nạp link YouTube để bắt đầu';
                 document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
                 document.getElementById('btn-play-pause').innerHTML = '<i class="fa-solid fa-play"></i>';
                 document.getElementById('vinyl-disc').classList.remove('playing');
+                
+                // Reset thanh tiến độ
+                document.getElementById('progress-bar-fill').style.width = '0%';
+                document.getElementById('time-current').innerText = '0:00';
+                document.getElementById('time-total').innerText = '0:00';
+
                 renderEmptyQueue("Danh sách đang trống.<br>Hãy nạp nhạc vào nha!");
                 localState.type = 'none'; localState.ytId = '';
                 document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-satellite-dish" style="color:#c084fc;"></i>';
@@ -647,14 +798,20 @@
             }
             else {
                 const localTime = player.getCurrentTime() || 0;
-                if (Math.abs(data.time - localTime) > 2) player.seekTo(data.time);
+                if (Math.abs(data.time - localTime) > 2) {
+                    player.seekTo(data.time);
+                    // Cập nhật liền thanh tiến độ cho mượt
+                    document.getElementById('time-current').innerText = formatTime(data.time);
+                    const total = player.getDuration() || 1;
+                    document.getElementById('progress-bar-fill').style.width = `${(data.time / total) * 100}%`;
+                }
 
                 if (data.state === YT.PlayerState.PLAYING) player.playVideo();
                 else if (data.state === YT.PlayerState.PAUSED) player.pauseVideo();
             }
 
             if(data.title && data.title !== "Đang tải dữ liệu...") {
-                document.getElementById('current-song-title').innerText = data.title;
+                updateSongTitle(data.title);
                 document.getElementById('current-song-artist').innerText = data.type === 'playlist' ? 'Đang phát từ Playlist' : 'YouTube Music';
             }
 
