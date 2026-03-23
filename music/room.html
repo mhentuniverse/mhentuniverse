@@ -16,7 +16,6 @@
     <style>
         body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
 
-        /* BÙA CHÚ CHUYỂN CẢNH MƯỢT MÀ */
         .navbar, .music-loader, .music-input, .music-main-layout, 
         .player-section, .queue-section, .dj-controls, .queue-item, .dropdown-menu, .btn-clear-queue {
             transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
@@ -26,11 +25,7 @@
             transition: color 0.4s ease !important;
         }
 
-        /* GHI ĐÈ MÀU TÍM MUSIC HUB */
-        :root {
-            --hub-color: #c084fc; 
-            --hub-bg: rgba(192, 132, 252, 0.15);
-        }
+        :root { --hub-color: #c084fc; --hub-bg: rgba(192, 132, 252, 0.15); }
         .logo-name { color: var(--hub-color) !important; }
         .nav-links a:hover { color: var(--hub-color) !important; }
         .avt-img, .user-avatar { border-color: var(--hub-color) !important; }
@@ -106,17 +101,6 @@
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 15px; height: 15px; background: #fff; border-radius: 50%; border: 2px solid #555;
         }
-        
-        .mobile-tap-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); border-radius: 50%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; font-weight: 800; font-size: 14px; cursor: pointer; z-index: 20;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5); backdrop-filter: blur(2px);
-        }
-        .mobile-tap-overlay i { font-size: 24px; margin-bottom: 5px; animation: bounce 1s infinite; color: #ff85a2;}
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .song-info-display { 
             text-align: center; margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; overflow: hidden; 
@@ -136,12 +120,25 @@
         .progress-bar-thumb { position: absolute; right: -6px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; background: #fff; border: 2px solid #c084fc; border-radius: 50%; opacity: 0; transition: opacity 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .progress-bar-container:hover .progress-bar-thumb { opacity: 1; }
 
-        .dj-controls { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 25px; background: #f8fafc; border-radius: 50px; border: 1px solid #e2e8f0; z-index: 10; }
+        .dj-controls { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 25px; background: #f8fafc; border-radius: 50px; border: 1px solid #e2e8f0; z-index: 10; margin-bottom: 15px;}
         .control-btn { background: transparent; border: none; color: #94a3b8; font-size: 18px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
         .control-btn:hover { background: rgba(192, 132, 252, 0.1); color: #c084fc; transform: scale(1.1); }
         .control-btn.active { color: #c084fc; background: rgba(192, 132, 252, 0.15); }
         .control-btn.play-btn { background: #c084fc; color: white; font-size: 20px; width: 55px; height: 55px; box-shadow: 0 5px 15px rgba(192, 132, 252, 0.4); }
         .control-btn.play-btn:hover { background: #a855f7; transform: scale(1.1); color: white;}
+
+        /* NÚT ÉP ĐỒNG BỘ CHO IPHONE */
+        .btn-force-sync {
+            background: linear-gradient(135deg, #ff4d4d, #ff85a2); color: white; border: none; 
+            padding: 10px 25px; border-radius: 50px; font-weight: 900; font-size: 14px; cursor: pointer; 
+            box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4); display: flex; align-items: center; gap: 8px;
+            animation: pulseSync 1.5s infinite; z-index: 20;
+        }
+        @keyframes pulseSync {
+            0% { transform: scale(1); box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 5px 25px rgba(255, 77, 77, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4); }
+        }
 
         .queue-section { flex: 1; background: #fff; border-radius: 20px; padding: 25px; border: 1px solid rgba(192, 132, 252, 0.2); display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; min-width: 0; }
         .queue-title { font-weight: 900; color: #1e293b; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;}
@@ -150,13 +147,16 @@
         .btn-clear-queue { position: absolute; top: 20px; right: 20px; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 800; font-size: 13px; transition: 0.3s; }
         .btn-clear-queue:hover { background: #ff4d4d; color: white; transform: scale(1.05); }
         
-        .queue-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; max-height: 400px;}
+        /* ÉP ẨN THANH CUỘN NGANG */
+        .queue-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; overflow-x: hidden; max-height: 400px;}
         .queue-list::-webkit-scrollbar { width: 6px; }
         .queue-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px;}
         .queue-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px;}
         .queue-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
         .queue-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 15px; cursor: pointer; transition: 0.3s; margin-bottom: 8px; border: 1px solid transparent; background: #f8fafc; }
-        .queue-item:hover { background: #f1f5f9; border-color: rgba(192, 132, 252, 0.3); transform: translateX(5px);}
+        /* Giảm độ giật ngang để không bị ló scrollbar */
+        .queue-item:hover { background: #f1f5f9; border-color: rgba(192, 132, 252, 0.3); transform: translateX(3px);}
         .queue-item.active { background: rgba(192, 132, 252, 0.15); border-color: #c084fc; }
         .queue-thumb { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background: #e2e8f0; flex-shrink: 0;}
         .queue-info { flex: 1; overflow: hidden; }
@@ -300,7 +300,7 @@
 
     <main class="music-page-container">
         <section class="music-header">
-            <h1>Secret Music Room</h1>
+            <h1>Secret Music Studio</h1>
             <p class="music-subtitle">Cùng chung nhịp đập, dẫu ở cách xa</p>
         </section>
 
@@ -317,9 +317,6 @@
 
                 <div class="vinyl-record" id="vinyl-disc">
                     <div class="vinyl-center" id="vinyl-cover"></div>
-                    <div id="mobile-tap-overlay" class="mobile-tap-overlay" style="display:none;">
-                        <i class="fa-solid fa-hand-pointer"></i> Bấm để đồng bộ
-                    </div>
                 </div>
 
                 <div class="song-info-display">
@@ -346,6 +343,10 @@
                     <button class="control-btn" id="btn-next" title="Bài tiếp"><i class="fa-solid fa-forward-step"></i></button>
                     <button class="control-btn" id="btn-loop" title="Lặp lại"><i class="fa-solid fa-repeat"></i></button>
                 </div>
+                
+                <button id="btn-force-sync" class="btn-force-sync" style="display:none;">
+                    <i class="fa-solid fa-volume-high"></i> BẤM VÀO ĐÂY ĐỂ ĐỒNG BỘ ÂM THANH
+                </button>
 
                 <div id="youtube-player-hidden"></div>
             </section>
@@ -502,7 +503,7 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (V16.1)
+        // YOUTUBE & FIREBASE DJ LOGIC (V16.2)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player = null;
@@ -547,7 +548,8 @@
         function updateVinylCover(vid, isPlaylist = false) {
             if (isPlaylist) document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
             else if (vid) {
-                const coverUrl = `https://img.youtube.com/vi/$${vid}/hqdefault.jpg`;
+                // Đã sửa lại lỗi $${vid} dư dấu
+                const coverUrl = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
                 document.getElementById('vinyl-cover').style.backgroundImage = `url('${coverUrl}')`;
             }
         }
@@ -622,11 +624,9 @@
             });
         }
 
-        document.getElementById('mobile-tap-overlay').addEventListener('click', () => {
-            if (isPlayerReady && player.playVideo) {
-                player.playVideo();
-                document.getElementById('mobile-tap-overlay').style.display = 'none';
-            }
+        document.getElementById('btn-force-sync').addEventListener('click', () => {
+            if (isPlayerReady && player.playVideo) player.playVideo();
+            document.getElementById('btn-force-sync').style.display = 'none';
         });
 
         function onPlayerStateChange(event) {
@@ -710,7 +710,7 @@
                 document.getElementById('time-total').innerText = '0:00';
                 renderEmptyQueue("Danh sách đang trống.<br>Hãy nạp nhạc vào nha!");
                 document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-satellite-dish" style="color:#c084fc;"></i>';
-                document.getElementById('mobile-tap-overlay').style.display = 'none';
+                document.getElementById('btn-force-sync').style.display = 'none';
                 localState = { type: 'none', ytId: '', index: 0 };
                 isSyncing = false;
                 return;
@@ -753,10 +753,11 @@
 
                 if (data.state === 1) {
                     player.playVideo();
+                    // Nếu điện thoại bị chặn AutoPlay, hiện nút bắt bấm
                     setTimeout(() => {
-                        if (player.getPlayerState() !== 1) document.getElementById('mobile-tap-overlay').style.display = 'flex';
-                        else document.getElementById('mobile-tap-overlay').style.display = 'none';
-                    }, 1000);
+                        if (player.getPlayerState() !== 1) document.getElementById('btn-force-sync').style.display = 'flex';
+                        else document.getElementById('btn-force-sync').style.display = 'none';
+                    }, 800);
                 } else if (data.state === 2) {
                     player.pauseVideo();
                 }
@@ -782,18 +783,18 @@
         }
 
         // ===============================================
-        // HÀM RENDER QUEUE (CÓ NÚT XÓA TỪNG BÀI)
+        // HÀM RENDER QUEUE (ĐÃ SỬA LỖI $${vid})
         // ===============================================
         function renderCustomQueue(q, activeIndex) {
             if(!q || q.length === 0) { renderEmptyQueue("Danh sách đang trống."); return; }
             let html = q.map((item, index) => `
                 <li class="queue-item ${index === activeIndex ? 'active' : ''}" onclick="playCustomIndex(${index})">
-                    <img src="https://img.youtube.com/vi/$${item.id}/hqdefault.jpg" class="queue-thumb">
+                    <img src="https://img.youtube.com/vi/${item.id}/hqdefault.jpg" class="queue-thumb">
                     <div class="queue-info">
                         <h4 class="queue-song-title">${item.title}</h4>
                         <p class="queue-song-artist">Bài số ${index + 1}</p>
                     </div>
-                    <button class="btn-remove-item" onclick="removeCustomIndex(event, ${index})" title="Xóa bài này khỏi danh sách">
+                    <button class="btn-remove-item" onclick="removeCustomIndex(event, ${index})" title="Xóa bài này">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </li>
@@ -805,7 +806,7 @@
             if(!playlistArray || playlistArray.length === 0) return;
             let html = playlistArray.map((vid, index) => `
                 <li class="queue-item ${index === activeIndex ? 'active' : ''}" onclick="playPlaylistIndex(${index})">
-                    <img src="https://img.youtube.com/vi/$${vid}/hqdefault.jpg" class="queue-thumb">
+                    <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" class="queue-thumb">
                     <div class="queue-info">
                         <h4 class="queue-song-title">Track ${index + 1}</h4>
                         <p class="queue-song-artist">YouTube Playlist</p>
@@ -828,18 +829,16 @@
         // ĐIỀU KHIỂN NÚT BẤM DJ -> BẮN THẲNG LÊN FIREBASE
         // ===============================================
         
-        // LOGIC XÓA TỪNG BÀI TRONG CUSTOM QUEUE
         window.removeCustomIndex = function(e, indexToRemove) {
-            e.stopPropagation(); // Cản không cho click nhầm thành Play nhạc
+            e.stopPropagation(); 
             
             if (currentRoomData.type !== 'custom_queue') return;
             let q = currentRoomData.customQueue || [];
             if (q.length === 0) return;
 
-            q.splice(indexToRemove, 1); // Cắt bài đó ra khỏi mảng
+            q.splice(indexToRemove, 1); 
 
             if (q.length === 0) {
-                // Nếu xóa hết sạch thì dọn dẹp phòng
                 updateFirebaseState({ type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false, customQueue: [] });
                 showToast('Thông báo', 'Danh sách chờ đã trống!', 'info');
                 return;
@@ -848,29 +847,24 @@
             let currentIndex = currentRoomData.index;
             
             if (indexToRemove < currentIndex) {
-                // Nếu xóa bài cũ (đã hát qua), lùi index lại 1 bước để không bị trượt bài
                 currentIndex--;
                 updateFirebaseState({ customQueue: q, index: currentIndex });
                 showToast('Đã xóa', 'Đã xóa bài hát khỏi danh sách!', 'success');
             } 
             else if (indexToRemove === currentIndex) {
-                // Nếu xóa ĐÚNG BÀI ĐANG HÁT
                 if (currentIndex >= q.length) {
                     if (currentRoomData.isLoop) {
-                        currentIndex = 0; // Quay về đầu nếu lặp
+                        currentIndex = 0; 
                     } else {
-                        // Nếu là bài cuối cùng và không bật lặp thì tắt luôn
                         updateFirebaseState({ type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false, customQueue: [] });
                         showToast('Thông báo', 'Đã hát hết danh sách!', 'info');
                         return;
                     }
                 }
-                // Ép máy chuyển sang bài tiếp theo (vừa được đôn lên)
                 updateFirebaseState({ ytId: q[currentIndex].id, index: currentIndex, time: 0, state: 1, title: q[currentIndex].title, customQueue: q });
                 showToast('Chuyển bài', 'Đang chuyển bài vì bài hiện tại đã bị xóa...', 'info');
             } 
             else {
-                // Nếu xóa bài trong tương lai, chỉ việc cập nhật list
                 updateFirebaseState({ customQueue: q });
                 showToast('Đã xóa', 'Đã xóa bài hát khỏi danh sách!', 'success');
             }
@@ -881,15 +875,30 @@
             showToast('Thông báo', 'Đã dọn dẹp sạch sẽ!', 'info');
         });
 
+        // HÀM ADD QUEUE VÀ LẤY TÊN BÀI HÁT TỪ API THỨ 3
+        function handleAddingToQueue(vid, title) {
+            let q = currentRoomData.customQueue ? [...currentRoomData.customQueue] : [];
+            if (currentRoomData.type !== 'custom_queue') q = []; 
+            q.push({ id: vid, title: title });
+            
+            if (q.length === 1 || currentRoomData.type === 'none') {
+                updateFirebaseState({ type: 'custom_queue', ytId: vid, customQueue: q, index: 0, time: 0, state: 1, title: title });
+                showToast('Đang phát', 'Đã nạp Bài Hát vào Trạm!', 'success');
+            } else {
+                let safeData = { customQueue: q };
+                if (isPlayerReady && player.getPlayerState) safeData.time = player.getCurrentTime() || 0;
+                updateFirebaseState(safeData);
+                showToast('Đã thêm', 'Bài hát đã được nối đuôi vào hàng chờ!', 'success');
+            }
+        }
+
         document.getElementById('btn-start-sync').addEventListener('click', () => {
             let urlInput = document.getElementById('yt-url-input').value.trim();
             if(!urlInput) return;
             const parsed = parseUrl(urlInput);
             
             if (isPlayerReady && typeof player.playVideo === 'function') player.playVideo(); 
-            document.getElementById('mobile-tap-overlay').style.display = 'none';
-
-            let q = currentRoomData.customQueue ? [...currentRoomData.customQueue] : [];
+            document.getElementById('btn-force-sync').style.display = 'none';
 
             if(parsed.playlistId) {
                 if (parsed.playlistId.startsWith('RD') && parsed.videoId) {
@@ -902,21 +911,16 @@
             } 
             
             if (parsed.videoId && !parsed.playlistId) {
-                if (currentRoomData.type !== 'custom_queue') q = []; 
-                q.push({ id: parsed.videoId, title: 'Đang tải bài hát...' });
-                
-                if (q.length === 1 || currentRoomData.type === 'none') {
-                    updateFirebaseState({ type: 'custom_queue', ytId: parsed.videoId, customQueue: q, index: 0, time: 0, state: 1, title: 'Đang tải...' });
-                    showToast('Đang phát', 'Đã nạp Bài Hát vào Trạm!', 'success');
-                } else {
-                    // LƯU Ý BẢO MẬT THỜI GIAN: Thêm bài mới chỉ gửi Queue lên, không ghi đè thời gian hiện tại
-                    let safeData = { customQueue: q };
-                    if (isPlayerReady && player.getPlayerState) {
-                        safeData.time = player.getCurrentTime() || 0;
-                    }
-                    updateFirebaseState(safeData);
-                    showToast('Đã thêm', 'Bài hát đã được nối đuôi vào hàng chờ!', 'success');
-                }
+                showToast('Đang xử lý', 'Đang nạp thông tin bài hát...', 'info');
+                // Gọi API để lấy tên bài hát nhanh nhất có thể
+                fetch(`https://noembed.com/embed?dataType=json&url=https://www.youtube.com/watch?v=${parsed.videoId}`)
+                    .then(res => res.json())
+                    .then(apiData => {
+                        handleAddingToQueue(parsed.videoId, apiData.title || 'YouTube Audio');
+                    })
+                    .catch(() => {
+                        handleAddingToQueue(parsed.videoId, 'YouTube Audio');
+                    });
             }
             document.getElementById('yt-url-input').value = ''; 
         });
