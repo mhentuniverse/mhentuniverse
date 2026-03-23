@@ -343,9 +343,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getDatabase, ref, update, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        
+        // Đã đổi từ 'update' sang 'set' để sửa lỗi dữ liệu rỗng
+        import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // ĐIỀN CẤU HÌNH FIREBASE CỦA BẠN VÀO ĐÂY
+        // ⚠️ CẤU HÌNH FIREBASE CỦA CẬU
         const firebaseConfig = {
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
             authDomain: "mhentuniverse.firebaseapp.com",
@@ -361,8 +363,9 @@
         const db = getDatabase(app);
 
         // ==========================================
-        // UI & AUTH
+        // UI & AUTH CƠ BẢN
         // ==========================================
+
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
 
@@ -458,41 +461,32 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (VÁ LỖI REGEX & AUTO-MIX)
+        // YOUTUBE & FIREBASE DJ LOGIC (V8.0)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
-        let player;
+        let player = null;
         let isSyncing = false; 
         let localState = { type: 'none', ytId: '', index: 0, state: -1, isShuffle: false, isLoop: false };
 
         window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('youtube-player-hidden', {
-                height: '0', width: '0', videoId: '',
+                height: '0', width: '0', 
+                videoId: 'dQw4w9WgXcQ', // FIX LỖI 1: Phải có 1 ID mồi để Youtube không bị lỗi ngầm
                 playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0 },
                 events: { 'onStateChange': onPlayerStateChange }
             });
         };
 
-        // HÀM QUÉT LINK SIÊU CẤP (BẮT MỌI THỂ LOẠI LINK YOUTUBE)
         function parseUrl(url) {
             let videoId = null, playlistId = null;
-            
-            // Cố gắng tìm ID Video trước (11 ký tự)
             const vidRegex = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/;
             const vidMatch = url.match(vidRegex);
-            if (vidMatch && vidMatch[1]) {
-                videoId = vidMatch[1];
-            } else if (/^[\w-]{11}$/.test(url)) {
-                // Nhập thẳng 11 ký tự
-                videoId = url;
-            }
+            if (vidMatch && vidMatch[1]) videoId = vidMatch[1];
+            else if (/^[\w-]{11}$/.test(url)) videoId = url;
 
-            // Tìm ID Playlist (Sau chữ list=)
             const listRegex = /[?&]list=([\w-]+)/;
             const listMatch = url.match(listRegex);
-            if (listMatch && listMatch[1]) {
-                playlistId = listMatch[1];
-            }
+            if (listMatch && listMatch[1]) playlistId = listMatch[1];
 
             return { videoId, playlistId };
         }
@@ -503,15 +497,23 @@
             document.getElementById('vinyl-cover').style.backgroundImage = `url('${coverUrl}')`;
         }
 
+        // BẮN TÍN HIỆU LÊN FIREBASE (FIX LỖI RỖNG BẰNG HÀM SET)
         function updateFirebaseState(forceUpdate = {}) {
-            if (isSyncing || !player || !player.getPlayerState) return;
-            const currentState = player.getPlayerState();
+            if (isSyncing) return;
+            
+            // Ép lấy dữ liệu an toàn kể cả khi Youtube chưa load xong
+            let currentState = -1, currentTime = 0, currentIndex = 0;
+            if (player && typeof player.getPlayerState === 'function') {
+                currentState = player.getPlayerState() || -1;
+                currentTime = player.getCurrentTime() || 0;
+                currentIndex = player.getPlaylistIndex() || 0;
+            }
             
             let updateData = {
                 type: localState.type,
                 ytId: localState.ytId,
-                index: player.getPlaylistIndex() || 0,
-                time: player.getCurrentTime() || 0,
+                index: currentIndex,
+                time: currentTime,
                 state: currentState,
                 isShuffle: localState.isShuffle,
                 isLoop: localState.isLoop,
@@ -519,21 +521,21 @@
                 ...forceUpdate
             };
 
-            if(forceUpdate.ytId || forceUpdate.type) {
-                updateData.title = "Đang tải dữ liệu..."; 
-            }
+            if(forceUpdate.ytId || forceUpdate.type) updateData.title = "Đang tải dữ liệu..."; 
 
-            update(roomRef, updateData);
+            // FIX LỖI 2: Dùng SET thay vì Update
+            set(roomRef, updateData).catch((error) => {
+                console.error("Firebase Error:", error);
+                // FIX LỖI 3: Báo động đỏ nếu bị kẹt Rules
+                showToast('Lỗi Database', 'Cậu chưa Đăng Nhập hoặc Rules đang chặn rùi!', 'error');
+            });
         }
 
         function tryRenderPlaylist() {
-            if(!player || !player.getPlaylist) return;
+            if(!player || typeof player.getPlaylist !== 'function') return;
             let pl = player.getPlaylist();
-            if (pl && pl.length > 0) {
-                renderPlaylistQueue(pl, player.getPlaylistIndex());
-            } else {
-                setTimeout(tryRenderPlaylist, 1000); 
-            }
+            if (pl && pl.length > 0) renderPlaylistQueue(pl, player.getPlaylistIndex());
+            else setTimeout(tryRenderPlaylist, 1000); 
         }
 
         function onPlayerStateChange(event) {
@@ -552,7 +554,7 @@
                     const title = player.getVideoData().title;
                     document.getElementById('current-song-title').innerText = title;
                     document.getElementById('current-song-artist').innerText = player.getVideoData().author || "YouTube Music";
-                    update(roomRef, { title: title });
+                    set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
                     renderSingleQueue(localState.ytId, title);
                 } 
                 else if (localState.type === 'playlist') {
@@ -560,7 +562,7 @@
                         const title = player.getVideoData().title;
                         document.getElementById('current-song-title').innerText = title;
                         document.getElementById('current-song-artist').innerText = "Đang phát từ Playlist";
-                        update(roomRef, { title: title });
+                        set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
                     }
                     tryRenderPlaylist(); 
                 }
@@ -574,68 +576,69 @@
         }
 
         // ===============================================
-        // ĐỒNG BỘ TỪ FIREBASE (LẮNG NGHE SỰ KIỆN)
+        // ĐỒNG BỘ TỪ FIREBASE 
         // ===============================================
         onValue(roomRef, (snapshot) => {
-            if (snapshot.exists() && player && player.playVideo) {
-                const data = snapshot.val();
-                
-                // KHI AI ĐÓ XÓA QUEUE
-                if(data.type === 'none') {
-                    player.stopVideo();
-                    document.getElementById('current-song-title').innerText = 'Chưa có bài hát nào';
-                    document.getElementById('current-song-artist').innerText = 'Hãy nạp link YouTube để bắt đầu';
-                    document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
-                    document.getElementById('btn-play-pause').innerHTML = '<i class="fa-solid fa-play"></i>';
-                    document.getElementById('vinyl-disc').classList.remove('playing');
-                    renderEmptyQueue("Danh sách đang trống.<br>Hãy nạp nhạc vào nha!");
-                    localState.type = 'none';
-                    localState.ytId = '';
-                    document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-satellite-dish" style="color:#c084fc;"></i>';
-                    isSyncing = false;
-                    return;
-                }
-
-                isSyncing = true; 
-
-                if (data.ytId !== localState.ytId || data.type !== localState.type) {
-                    localState.type = data.type;
-                    localState.ytId = data.ytId;
-                    
-                    if (data.type === 'playlist') {
-                        player.loadPlaylist({list: data.ytId, index: data.index, startSeconds: data.time});
-                        renderEmptyQueue("Đang tải danh sách Playlist...<br><span style='font-size:12px'>(Có thể hơi lâu nếu là Mix tự động)</span>");
-                    } else {
-                        player.loadVideoById(data.ytId, data.time);
-                        updateVinylCover(data.ytId); 
-                    }
-                } 
-                else if (data.type === 'playlist' && data.index !== player.getPlaylistIndex()) {
-                    player.playVideoAt(data.index);
-                }
-                else {
-                    const localTime = player.getCurrentTime() || 0;
-                    if (Math.abs(data.time - localTime) > 2) player.seekTo(data.time);
-
-                    if (data.state === YT.PlayerState.PLAYING) player.playVideo();
-                    else if (data.state === YT.PlayerState.PAUSED) player.pauseVideo();
-                }
-
-                if(data.title && data.title !== "Đang tải dữ liệu...") {
-                    document.getElementById('current-song-title').innerText = data.title;
-                    document.getElementById('current-song-artist').innerText = data.type === 'playlist' ? 'Đang phát từ Playlist' : 'YouTube Music';
-                }
-
-                localState.isLoop = data.isLoop || false;
-                localState.isShuffle = data.isShuffle || false;
-                document.getElementById('btn-loop').classList.toggle('active', localState.isLoop);
-                document.getElementById('btn-shuffle').classList.toggle('active', localState.isShuffle);
-                player.setLoop(localState.isLoop);
-                player.setShuffle(localState.isShuffle);
-
-                document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-check-double" style="color:#10b981;"></i>';
-                setTimeout(() => { isSyncing = false; }, 1000); 
+            // Lấy dữ liệu hoặc coi như trống
+            const data = snapshot.exists() ? snapshot.val() : { type: 'none' };
+            
+            // XÓA QUEUE HOẶC RỖNG
+            if(data.type === 'none') {
+                if (player && typeof player.stopVideo === 'function') player.stopVideo();
+                document.getElementById('current-song-title').innerText = 'Chưa có bài hát nào';
+                document.getElementById('current-song-artist').innerText = 'Hãy nạp link YouTube để bắt đầu';
+                document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
+                document.getElementById('btn-play-pause').innerHTML = '<i class="fa-solid fa-play"></i>';
+                document.getElementById('vinyl-disc').classList.remove('playing');
+                renderEmptyQueue("Danh sách đang trống.<br>Hãy nạp nhạc vào nha!");
+                localState.type = 'none'; localState.ytId = '';
+                document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-satellite-dish" style="color:#c084fc;"></i>';
+                isSyncing = false;
+                return;
             }
+
+            // Chờ Youtube khởi tạo xong mới được ép đồng bộ
+            if (!player || typeof player.playVideo !== 'function') return;
+
+            isSyncing = true; 
+
+            if (data.ytId !== localState.ytId || data.type !== localState.type) {
+                localState.type = data.type;
+                localState.ytId = data.ytId;
+                
+                if (data.type === 'playlist') {
+                    player.loadPlaylist({list: data.ytId, index: data.index, startSeconds: data.time});
+                    renderEmptyQueue("Đang tải danh sách Playlist...");
+                } else {
+                    player.loadVideoById(data.ytId, data.time);
+                    updateVinylCover(data.ytId); 
+                }
+            } 
+            else if (data.type === 'playlist' && data.index !== player.getPlaylistIndex()) {
+                player.playVideoAt(data.index);
+            }
+            else {
+                const localTime = player.getCurrentTime() || 0;
+                if (Math.abs(data.time - localTime) > 2) player.seekTo(data.time);
+
+                if (data.state === YT.PlayerState.PLAYING) player.playVideo();
+                else if (data.state === YT.PlayerState.PAUSED) player.pauseVideo();
+            }
+
+            if(data.title && data.title !== "Đang tải dữ liệu...") {
+                document.getElementById('current-song-title').innerText = data.title;
+                document.getElementById('current-song-artist').innerText = data.type === 'playlist' ? 'Đang phát từ Playlist' : 'YouTube Music';
+            }
+
+            localState.isLoop = data.isLoop || false;
+            localState.isShuffle = data.isShuffle || false;
+            document.getElementById('btn-loop').classList.toggle('active', localState.isLoop);
+            document.getElementById('btn-shuffle').classList.toggle('active', localState.isShuffle);
+            player.setLoop(localState.isLoop);
+            player.setShuffle(localState.isShuffle);
+
+            document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-check-double" style="color:#10b981;"></i>';
+            setTimeout(() => { isSyncing = false; }, 1000); 
         });
 
         // ===============================================
@@ -677,12 +680,10 @@
         }
 
         // ===============================================
-        // XỬ LÝ NÚT BẤM (Bảng điều khiển & Xóa Queue)
+        // XỬ LÝ NÚT BẤM 
         // ===============================================
         document.getElementById('btn-clear-queue').addEventListener('click', () => {
-            update(roomRef, {
-                type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false, timestamp: serverTimestamp()
-            });
+            updateFirebaseState({ type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false });
             showToast('Thông báo', 'Đã dọn dẹp sạch sẽ Trạm Phát Nhạc!', 'info');
         });
 
@@ -693,36 +694,42 @@
             
             if(parsed.playlistId) {
                 updateFirebaseState({ type: 'playlist', ytId: parsed.playlistId, index: 0, time: 0, state: 1, title: 'Đang tải Playlist...' });
-                showToast('Thành công', 'Đã gửi lệnh tải Playlist lên Đa Vũ Trụ!', 'success');
+                showToast('Đang phát tín hiệu', 'Đã gửi lệnh tải Playlist lên Đa Vũ Trụ!', 'success');
             } else if (parsed.videoId) {
                 updateFirebaseState({ type: 'video', ytId: parsed.videoId, time: 0, state: 1, title: 'Đang tải Bài hát...' });
-                showToast('Thành công', 'Đã tải Bài Hát vào Trạm!', 'success');
+                showToast('Đang phát tín hiệu', 'Đã tải Bài Hát vào Trạm!', 'success');
             } else {
                 showToast('Lỗi', 'Link không hợp lệ, thử lại nhé!', 'error');
             }
-            document.getElementById('yt-url-input').value = ''; // Làm sạch ô nhập
+            document.getElementById('yt-url-input').value = ''; 
         });
 
         window.playPlaylistIndex = function(index) {
             if(localState.type === 'playlist') {
-                player.playVideoAt(index);
+                if(player && typeof player.playVideoAt === 'function') player.playVideoAt(index);
                 setTimeout(() => updateFirebaseState(), 500);
             }
         }
 
         document.getElementById('btn-play-pause').addEventListener('click', () => {
-            if(!player || !player.getPlayerState) return;
+            if(!player || typeof player.getPlayerState !== 'function') return;
             const state = player.getPlayerState();
             if (state === YT.PlayerState.PLAYING) player.pauseVideo();
             else player.playVideo();
         });
 
         document.getElementById('btn-next').addEventListener('click', () => {
-            if(localState.type === 'playlist') { player.nextVideo(); setTimeout(() => updateFirebaseState(), 500); } 
+            if(localState.type === 'playlist') { 
+                if(player && typeof player.nextVideo === 'function') player.nextVideo(); 
+                setTimeout(() => updateFirebaseState(), 500); 
+            } 
             else showToast('Thông báo', 'Cậu cần nạp Playlist để qua bài nha!', 'info');
         });
         document.getElementById('btn-prev').addEventListener('click', () => {
-            if(localState.type === 'playlist') { player.previousVideo(); setTimeout(() => updateFirebaseState(), 500); } 
+            if(localState.type === 'playlist') { 
+                if(player && typeof player.previousVideo === 'function') player.previousVideo(); 
+                setTimeout(() => updateFirebaseState(), 500); 
+            } 
             else showToast('Thông báo', 'Cậu cần nạp Playlist để lùi bài nha!', 'info');
         });
 
@@ -738,7 +745,6 @@
                 updateFirebaseState({ isShuffle: newState });
             } else showToast('Thông báo', 'Cậu cần nạp Playlist để trộn bài nha!', 'info');
         });
-
     </script>
 </body>
 </html>
