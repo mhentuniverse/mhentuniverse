@@ -9,12 +9,23 @@
     <link rel="apple-touch-icon" href="/assets/icon-web.png">
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/music/music-theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
+
+        /* =======================================================
+           BÙA CHÚ CHUYỂN CẢNH MƯỢT MÀ (SỬA LỖI JUMP CUT)
+           ======================================================= */
+        .navbar, .music-loader, .music-input, .music-main-layout, 
+        .player-section, .queue-section, .dj-controls, .queue-item, .dropdown-menu, .btn-clear-queue {
+            transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
+        }
+        .logo-name, .nav-links a, .music-header h1, .current-song-title, 
+        .queue-title, .queue-song-title, .empty-queue-msg, .music-subtitle, .control-btn {
+            transition: color 0.4s ease !important;
+        }
 
         /* GHI ĐÈ MÀU TÍM MUSIC HUB */
         :root {
@@ -46,7 +57,7 @@
         }
         .music-input { 
             flex: 1; padding: 12px 20px; border-radius: 50px; 
-            border: 2px solid transparent; font-size: 15px; outline: none; transition: 0.3s; background: #f8fafc; font-weight: 600;
+            border: 2px solid transparent; font-size: 15px; outline: none; background: #f8fafc; font-weight: 600;
         }
         .music-input:focus { border-color: #c084fc; background: #fff; }
         
@@ -69,7 +80,10 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative;
         }
 
-        #youtube-player-hidden { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+        /* LÁCH LUẬT AUTO-PLAY YOUTUBE: Không để width/height bằng 0, mà đá nó ra khỏi màn hình */
+        #youtube-player-hidden { 
+            position: absolute; left: -9999px; top: -9999px; width: 300px; height: 300px; opacity: 0; pointer-events: none; 
+        }
 
         .vinyl-record {
             width: 240px; height: 240px; border-radius: 50%;
@@ -108,7 +122,7 @@
         .control-btn {
             background: transparent; border: none; color: #94a3b8; font-size: 20px;
             width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s;
+            cursor: pointer;
         }
         .control-btn:hover { background: rgba(192, 132, 252, 0.1); color: #c084fc; transform: scale(1.1); }
         .control-btn.active { color: #c084fc; background: rgba(192, 132, 252, 0.15); }
@@ -124,13 +138,13 @@
         .queue-title { font-weight: 900; color: #1e293b; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;}
         .queue-title i { color: #c084fc;}
         
-        /* NÚT XÓA QUEUE */
+        /* NÚT XÓA QUEUE NỔI BẬT HƠN */
         .btn-clear-queue {
-            position: absolute; top: 25px; right: 25px; background: rgba(255, 77, 77, 0.1); 
-            color: #ff4d4d; border: none; width: 35px; height: 35px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
+            position: absolute; top: 15px; right: 15px; background: rgba(255, 77, 77, 0.1); 
+            color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); padding: 8px 12px; border-radius: 10px;
+            display: flex; align-items: center; gap: 6px; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px;
         }
-        .btn-clear-queue:hover { background: #ff4d4d; color: white; transform: scale(1.1); }
+        .btn-clear-queue:hover { background: #ff4d4d; color: white; transform: scale(1.05); }
         
         .queue-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; max-height: 400px;}
         .queue-list::-webkit-scrollbar { width: 6px; }
@@ -140,7 +154,7 @@
 
         .queue-item { 
             display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 15px;
-            cursor: pointer; transition: 0.3s; margin-bottom: 8px; border: 1px solid transparent; background: #f8fafc;
+            cursor: pointer; margin-bottom: 8px; border: 1px solid transparent; background: #f8fafc;
         }
         .queue-item:hover { background: #f1f5f9; border-color: rgba(192, 132, 252, 0.3); transform: translateX(5px);}
         .queue-item.active { background: rgba(192, 132, 252, 0.15); border-color: #c084fc; }
@@ -227,7 +241,7 @@
         <div class="nav-right">
             <div class="user-section">
                 <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
-                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Vũ Trụ MHEnt" style="cursor: pointer; transition: 0.3s; color: inherit;">
+                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Vũ Trụ MHEnt" style="cursor: pointer;">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                             <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
                             <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
@@ -305,12 +319,12 @@
             </section>
 
             <aside class="queue-section">
-                <h3 class="queue-title"><i class="fa-solid fa-list-music"></i> Danh sách chờ</h3>
-                
-                <button id="btn-clear-queue" class="btn-clear-queue" title="Xóa toàn bộ danh sách">
-                    <i class="fa-solid fa-trash-can"></i>
+                <button id="btn-clear-queue" class="btn-clear-queue" title="Dọn dẹp Trạm phát nhạc">
+                    <i class="fa-solid fa-trash-can"></i> Xóa
                 </button>
 
+                <h3 class="queue-title"><i class="fa-solid fa-list-music"></i> Danh sách chờ</h3>
+                
                 <ul class="queue-list" id="custom-queue-list">
                     <div class="empty-queue-msg">
                         <i class="fa-solid fa-compact-disc fa-2x" style="color: #cbd5e1; margin-bottom: 10px;"></i><br>
@@ -324,17 +338,6 @@
     <footer>
         <div class="footer-bottom">
             <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
-            <div class="footer-social">
-                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link">
-                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                    Fanpage MHEnt.
-                </a>
-                <span class="footer-dot">•</span>
-                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link">
-                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    Cộng đồng MHEnt.
-                </a>
-            </div>
         </div>
     </footer>
 
@@ -345,7 +348,9 @@
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
+        // ==========================================
         // CẤU HÌNH FIREBASE
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
             authDomain: "mhentuniverse.firebaseapp.com",
@@ -361,35 +366,96 @@
         const db = getDatabase(app);
 
         // ==========================================
-        // UI & AUTH (Giữ nguyên)
+        // UI & AUTH
         // ==========================================
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
+
         if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login.html'; });
-        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); }
-        window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
-        window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
-        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
-        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
-        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
-        window.onclick = function(e) {
-            if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); }
-            if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active');
+        if (btnLogout) { 
+            btnLogout.addEventListener('click', async () => { 
+                await signOut(auth); 
+                window.location.reload(); 
+            }); 
+        }
+
+        window.toggleAccount = function() {
+            const acc = document.getElementById('dropdown-account');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            if(switcher) switcher.classList.remove('show'); 
+            if(acc) acc.classList.toggle('show');
         };
-        window.showToast = function(title, msg, type = 'success') {
-            let container = document.getElementById('toast-container') || (()=>{let c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); return c;})();
-            let toast = document.createElement('div'); toast.className = `toast-msg ${type}`;
-            toast.innerHTML = `<div class="toast-icon">${type==='error'?'❌':(type==='info'?'⭐':'✅')}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${msg}</span></div>`;
+
+        window.toggleAppSwitcher = function() {
+            const switcher = document.getElementById('dropdown-app-switcher');
+            const acc = document.getElementById('dropdown-account');
+            if(acc) acc.classList.remove('show'); 
+            if(switcher) switcher.classList.toggle('show');
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-section')) {
+                const acc = document.getElementById('dropdown-account');
+                const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show');
+                if(switcher) switcher.classList.remove('show');
+            }
+            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                const navLinks = document.getElementById('nav-links');
+                if(navLinks) navLinks.classList.remove('active');
+            }
+        };
+
+        window.toggleMobileMenu = function() {
+            const navLinks = document.getElementById('nav-links');
+            const acc = document.getElementById('dropdown-account');
+            if(acc) acc.classList.remove('show'); 
+            if(navLinks) navLinks.classList.toggle('active');
+        };
+
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
+        };
+
+        if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
+
+        window.showToast = function(title, message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            let icon = type === 'error' ? '❌' : (type === 'info' ? '⭐' : '✅');
+            toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${message}</span></div>`;
             container.appendChild(toast);
-            setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutRight 0.3s ease-in forwards';
+                setTimeout(() => { toast.remove(); }, 300); 
+            }, 3000);
         };
 
         onAuthStateChanged(auth, (user) => {
+            const btnTheme = document.getElementById('btn-theme-toggle'); 
             if (user) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
-                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+
+                let finalName = user.displayName || user.email.split('@')[0];
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+
+                const avtElement = document.getElementById('user-avatar');
+                if (avtElement) {
+                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    avtElement.style.display = 'block'; 
+                }
+
+                // Tối ưu hóa: Đại sảnh không cần check quyền Admin/Uploader nữa vì đã xóa nút rồi, giúp web load nhanh hơn!
+
             } else {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
@@ -397,19 +463,28 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (V9.0)
+        // YOUTUBE & FIREBASE DJ LOGIC (V10 - BẢN HOÀN HẢO)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player = null;
+        let isPlayerReady = false; // Cờ kiểm tra Youtube API
         let isSyncing = false; 
+        let pendingFirebaseData = null; // Dữ liệu chờ đồng bộ nếu Youtube load chậm
         let localState = { type: 'none', ytId: '', index: 0, state: -1, isShuffle: false, isLoop: false };
 
+        // 1. KHỞI TẠO YOUTUBE
         window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('youtube-player-hidden', {
-                height: '0', width: '0', 
-                videoId: 't0Q2otsqC4I', // Hết Rickroll nha, Tom & Jerry mồi cho an toàn :))
+                height: '300', width: '300', // Đã lách luật tàng hình
+                videoId: 't0Q2otsqC4I', // ID mồi (Tom & Jerry)
                 playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0 },
-                events: { 'onStateChange': onPlayerStateChange }
+                events: { 
+                    'onReady': () => {
+                        isPlayerReady = true;
+                        if(pendingFirebaseData) syncPlayer(pendingFirebaseData);
+                    },
+                    'onStateChange': onPlayerStateChange 
+                }
             });
         };
 
@@ -427,7 +502,6 @@
             return { videoId, playlistId };
         }
 
-        // Nếu là video có hình, móc ảnh cover. Không thì nhét avatar mặc định
         function updateVinylCover(vid, isPlaylist = false) {
             if (isPlaylist) {
                 document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
@@ -437,12 +511,12 @@
             }
         }
 
-        // BẮN TÍN HIỆU LÊN FIREBASE 
+        // 2. BẮN LỆNH LÊN FIREBASE (BẰNG HÀM SET)
         function updateFirebaseState(forceUpdate = {}) {
             if (isSyncing) return;
             
             let currentState = -1, currentTime = 0, currentIndex = 0;
-            if (player && typeof player.getPlayerState === 'function') {
+            if (isPlayerReady && typeof player.getPlayerState === 'function') {
                 currentState = player.getPlayerState() || -1;
                 currentTime = player.getCurrentTime() || 0;
                 currentIndex = player.getPlaylistIndex() || 0;
@@ -463,11 +537,18 @@
             if(forceUpdate.ytId || forceUpdate.type) updateData.title = "Đang tải dữ liệu..."; 
 
             set(roomRef, updateData).catch((error) => {
-                console.error("Firebase Error:", error);
                 showToast('Lỗi Database', 'Cậu chưa Đăng Nhập hoặc Rules đang chặn rùi!', 'error');
             });
         }
 
+        function tryRenderPlaylist() {
+            if(!isPlayerReady || typeof player.getPlaylist !== 'function') return;
+            let pl = player.getPlaylist();
+            if (pl && pl.length > 0) renderPlaylistQueue(pl, player.getPlaylistIndex());
+            else setTimeout(tryRenderPlaylist, 1000); 
+        }
+
+        // 3. XỬ LÝ KHI YOUTUBE BÁO CÁO TRẠNG THÁI
         function onPlayerStateChange(event) {
             const playBtn = document.getElementById('btn-play-pause');
             const vinyl = document.getElementById('vinyl-disc');
@@ -476,7 +557,6 @@
                 playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
                 vinyl.classList.add('playing');
                 
-                // Cập nhật thông tin khi Video / Playlist đã load xong
                 if(localState.type === 'video' && player.getVideoData && player.getVideoData().title) {
                     const title = player.getVideoData().title;
                     const vidId = player.getVideoData().video_id;
@@ -492,10 +572,9 @@
                         const title = player.getVideoData().title;
                         document.getElementById('current-song-title').innerText = title;
                         document.getElementById('current-song-artist').innerText = "Đang phát từ Playlist";
-                        updateVinylCover(null, true); // Playlist lấy ảnh mồi
+                        updateVinylCover(null, true);
                         set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
                         
-                        // Lấy danh sách nhẹ nhàng (Có thì hiện, không thì báo đang phát)
                         if(typeof player.getPlaylist === 'function' && player.getPlaylist()) {
                             renderPlaylistQueue(player.getPlaylist(), player.getPlaylistIndex());
                         } else {
@@ -503,7 +582,6 @@
                         }
                     }
                 }
-
             } else {
                 playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
                 vinyl.classList.remove('playing');
@@ -512,15 +590,23 @@
             updateFirebaseState();
         }
 
-        // ===============================================
-        // ĐỒNG BỘ TỪ FIREBASE 
-        // ===============================================
+        // 4. LẮNG NGHE TỪ FIREBASE
         onValue(roomRef, (snapshot) => {
             const data = snapshot.exists() ? snapshot.val() : { type: 'none' };
             
-            // NẾU DANH SÁCH BỊ XÓA HOẶC RỖNG
+            // Nếu Youtube API chưa tải xong, cất dữ liệu đó đợi tí dùng
+            if (!isPlayerReady) {
+                pendingFirebaseData = data;
+                return;
+            }
+            syncPlayer(data);
+        });
+
+        // Hàm ĐỒNG BỘ MÁY PHÁT 
+        function syncPlayer(data) {
+            // KHI AI ĐÓ BẤM XÓA QUEUE (THÙNG RÁC)
             if(data.type === 'none') {
-                if (player && typeof player.stopVideo === 'function') player.stopVideo();
+                if (typeof player.stopVideo === 'function') player.stopVideo();
                 document.getElementById('current-song-title').innerText = 'Chưa có bài hát nào';
                 document.getElementById('current-song-artist').innerText = 'Hãy nạp link YouTube để bắt đầu';
                 document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
@@ -533,11 +619,9 @@
                 return;
             }
 
-            if (!player || typeof player.playVideo !== 'function') return;
-
             isSyncing = true; 
 
-            // Cập nhật khi có bài / playlist mới
+            // Cập nhật Bài / Playlist MỚI
             if (data.ytId !== localState.ytId || data.type !== localState.type) {
                 localState.type = data.type;
                 localState.ytId = data.ytId;
@@ -550,11 +634,11 @@
                     updateVinylCover(data.ytId, false); 
                 }
             } 
-            // Nếu người kia next bài trong playlist
+            // Nếu chỉ Next bài trong cùng Playlist
             else if (data.type === 'playlist' && data.index !== player.getPlaylistIndex()) {
                 player.playVideoAt(data.index);
             }
-            // Đồng bộ Play/Pause/Tua
+            // Đồng bộ Play/Pause và thời gian
             else {
                 const localTime = player.getCurrentTime() || 0;
                 if (Math.abs(data.time - localTime) > 2) player.seekTo(data.time);
@@ -563,12 +647,13 @@
                 else if (data.state === YT.PlayerState.PAUSED) player.pauseVideo();
             }
 
-            // Ghi đè text nếu Firebase đã cập nhật tên bài hát
+            // Cập nhật text Tên bài hát
             if(data.title && data.title !== "Đang tải dữ liệu...") {
                 document.getElementById('current-song-title').innerText = data.title;
                 document.getElementById('current-song-artist').innerText = data.type === 'playlist' ? 'Đang phát từ Playlist' : 'YouTube Music';
             }
 
+            // Đồng bộ Nút Lặp và Trộn
             localState.isLoop = data.isLoop || false;
             localState.isShuffle = data.isShuffle || false;
             document.getElementById('btn-loop').classList.toggle('active', localState.isLoop);
@@ -578,10 +663,10 @@
 
             document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-check-double" style="color:#10b981;"></i>';
             setTimeout(() => { isSyncing = false; }, 1000); 
-        });
+        }
 
         // ===============================================
-        // UI RENDER QUEUE
+        // HÀM RENDER HTML DANH SÁCH (QUEUE)
         // ===============================================
         function renderSingleQueue(vid, title) {
             document.getElementById('custom-queue-list').innerHTML = `
@@ -619,7 +704,7 @@
         }
 
         // ===============================================
-        // NÚT ĐIỀU KHIỂN DJ
+        // XỬ LÝ NÚT BẤM DJ
         // ===============================================
         document.getElementById('btn-clear-queue').addEventListener('click', () => {
             updateFirebaseState({ type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false });
@@ -631,7 +716,11 @@
             if(!urlInput) return;
             const parsed = parseUrl(urlInput);
             
-            // Ưu tiên nạp ID Playlist nếu có
+            // "Hack" trình duyệt: Bấm nút là ép Youtube phát 1s để lách luật khóa âm thanh auto-play
+            if (isPlayerReady && typeof player.playVideo === 'function') {
+                player.playVideo();
+            }
+
             if(parsed.playlistId) {
                 updateFirebaseState({ type: 'playlist', ytId: parsed.playlistId, index: 0, time: 0, state: 1, title: 'Đang tải Playlist...' });
                 showToast('Đang phát tín hiệu', 'Đã gửi lệnh tải Playlist!', 'success');
@@ -646,13 +735,13 @@
 
         window.playPlaylistIndex = function(index) {
             if(localState.type === 'playlist') {
-                if(player && typeof player.playVideoAt === 'function') player.playVideoAt(index);
+                if(isPlayerReady && typeof player.playVideoAt === 'function') player.playVideoAt(index);
                 setTimeout(() => updateFirebaseState(), 500);
             }
         }
 
         document.getElementById('btn-play-pause').addEventListener('click', () => {
-            if(!player || typeof player.getPlayerState !== 'function') return;
+            if(!isPlayerReady || typeof player.getPlayerState !== 'function') return;
             const state = player.getPlayerState();
             if (state === YT.PlayerState.PLAYING) player.pauseVideo();
             else player.playVideo();
@@ -660,14 +749,14 @@
 
         document.getElementById('btn-next').addEventListener('click', () => {
             if(localState.type === 'playlist') { 
-                if(player && typeof player.nextVideo === 'function') player.nextVideo(); 
+                if(isPlayerReady && typeof player.nextVideo === 'function') player.nextVideo(); 
                 setTimeout(() => updateFirebaseState(), 500); 
             } 
             else showToast('Thông báo', 'Cậu cần nạp Playlist để qua bài nha!', 'info');
         });
         document.getElementById('btn-prev').addEventListener('click', () => {
             if(localState.type === 'playlist') { 
-                if(player && typeof player.previousVideo === 'function') player.previousVideo(); 
+                if(isPlayerReady && typeof player.previousVideo === 'function') player.previousVideo(); 
                 setTimeout(() => updateFirebaseState(), 500); 
             } 
             else showToast('Thông báo', 'Cậu cần nạp Playlist để lùi bài nha!', 'info');
@@ -685,6 +774,7 @@
                 updateFirebaseState({ isShuffle: newState });
             } else showToast('Thông báo', 'Cậu cần nạp Playlist để trộn bài nha!', 'info');
         });
+
     </script>
 </body>
 </html>
