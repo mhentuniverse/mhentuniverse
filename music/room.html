@@ -16,36 +16,22 @@
     <style>
         body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
 
-        /* =======================================================
-           ĐOẠN CODE "PHÉP THUẬT" GHI ĐÈ MÀU HỒNG TỪ STYLE.CSS 
-           ======================================================= */
+        /* GHI ĐÈ MÀU TÍM MUSIC HUB */
         :root {
-            --hub-color: #c084fc; /* Tím Music */
-            --hub-color-light: #e879f9;
+            --hub-color: #c084fc; 
             --hub-bg: rgba(192, 132, 252, 0.15);
         }
-        
-        /* Đổi màu Nav Links & Logo */
         .logo-name { color: var(--hub-color) !important; }
         .nav-links a:hover { color: var(--hub-color) !important; }
-        
-        /* Đổi màu Avatar & Nút Dark Mode */
-        .avt-img { border-color: var(--hub-color) !important; }
-        .user-avatar { border-color: var(--hub-color) !important; }
+        .avt-img, .user-avatar { border-color: var(--hub-color) !important; }
         .btn-theme { border-color: var(--hub-color) !important; color: var(--hub-color) !important; }
         .btn-theme:hover { background: var(--hub-bg) !important; }
-        
-        /* Đổi màu Menu Mobile */
         .menu-toggle svg { stroke: var(--hub-color) !important; }
-        
-        /* Đổi màu Dropdown Profile */
         .dropdown-menu { border-color: rgba(192, 132, 252, 0.3) !important; }
         .dropdown-menu::before { border-top-color: rgba(192, 132, 252, 0.3) !important; border-left-color: rgba(192, 132, 252, 0.3) !important; }
         .dropdown-item:hover { color: var(--hub-color) !important; }
         .dropdown-item::before { background: var(--hub-color) !important; }
-        #btn-logout:hover { color: #ff4d4d !important; } /* Đăng xuất giữ màu đỏ */
-
-        /* ======================================================= */
+        #btn-logout:hover { color: #ff4d4d !important; } 
 
         .music-page-container { padding: 40px 20px; max-width: 1100px; margin: 0 auto; animation: fadeIn 0.8s ease-out; min-height: 75vh; }
         .music-header { text-align: center; margin-bottom: 40px; }
@@ -85,7 +71,6 @@
 
         #youtube-player-hidden { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
 
-        /* ĐĨA NHẠC CHỨA COVER */
         .vinyl-record {
             width: 240px; height: 240px; border-radius: 50%;
             background: linear-gradient(145deg, #111, #222);
@@ -98,14 +83,13 @@
         .vinyl-record.playing { animation-play-state: running; }
         
         .vinyl-center {
-            width: 130px; height: 130px; border-radius: 50%; /* Nới rộng tâm để hiển thị cover rõ hơn */
+            width: 130px; height: 130px; border-radius: 50%; 
             background: #e879f9; border: 4px solid #111; 
-            background-image: url('/assets/avt-web.jpg'); /* Mặc định là logo của nhóm */
+            background-image: url('/assets/avt-web.jpg'); 
             background-size: cover; background-position: center;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
             transition: background-image 0.5s ease;
         }
-        /* Cái núm nhỏ xíu giữa đĩa nhạc */
         .vinyl-center::after {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 15px; height: 15px; background: #fff; border-radius: 50%; border: 2px solid #555;
@@ -134,10 +118,19 @@
         .queue-section { 
             flex: 1; background: #fff; border-radius: 20px; 
             padding: 25px; border: 1px solid rgba(192, 132, 252, 0.2); display: flex; flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative;
         }
+        
         .queue-title { font-weight: 900; color: #1e293b; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px;}
         .queue-title i { color: #c084fc;}
+        
+        /* NÚT XÓA QUEUE */
+        .btn-clear-queue {
+            position: absolute; top: 25px; right: 25px; background: rgba(255, 77, 77, 0.1); 
+            color: #ff4d4d; border: none; width: 35px; height: 35px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
+        }
+        .btn-clear-queue:hover { background: #ff4d4d; color: white; transform: scale(1.1); }
         
         .queue-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; max-height: 400px;}
         .queue-list::-webkit-scrollbar { width: 6px; }
@@ -182,7 +175,7 @@
             .queue-list { max-height: 350px;}
         }
 
-        /* DARK MODE - TÍM */
+        /* DARK MODE */
         body.dark-mode .gradient-bg { background: linear-gradient(180deg, #111 0%, #000 100%) !important; }
         body.dark-mode .navbar { background: rgba(0, 0, 0, 0.9) !important; border-bottom: 1px solid rgba(192, 132, 252, 0.2) !important; }
         body.dark-mode .nav-links a { color: #e2e8f0 !important; }
@@ -241,12 +234,11 @@
                             <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
                         </svg>
                     </div>
-                    
                     <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
                         <a onclick="window.location.href='/'" class="app-item"><span class="app-name">Đại Sảnh</span></a>
                         <a onclick="window.location.href='/cinema/'" class="app-item"><span class="app-name">Cinema</span></a>
                         <a onclick="window.location.href='/music/room.html'" class="app-item active" style="border-color: #c084fc; background: rgba(192,132,252,0.15);">
-                            <span class="app-name" style="color:#c084fc;">Music</span>
+                            <span class="app-name" style="color:#c084fc;">Music Room</span>
                         </a>
                     </div>
                 </div>
@@ -254,7 +246,6 @@
                 <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
                     <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                 </button>
-                
                 <button id="btn-login" class="btn-login" style="display: flex;">Đăng nhập</button>
 
                 <div id="user-profile" class="user-profile" style="position: relative; display: none;">
@@ -262,17 +253,16 @@
                         <img id="user-avatar" src="/assets/avt-web.jpg" alt="User" class="user-avatar">
                         <span id="user-name" class="user-name">Đang tải...</span>
                     </div>
-                    
                     <div id="dropdown-account" class="dropdown-menu account-dropdown">
                         <div class="dropdown-item" onclick="window.location.href='/profile.html#info'"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="7" r="4"></circle></svg> Hồ sơ</div>
                         <div class="dropdown-divider"></div>
-                        <div id="btn-logout" class="dropdown-item"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
+                        <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
                     </div>
                 </div>
             </div>
 
             <div class="menu-toggle" onclick="toggleMobileMenu()">
-                <svg viewBox="0 0 24 24" width="28" height="28"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg viewBox="0 0 24 24" width="28" height="28" style="stroke: #c084fc;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </div>
         </div>
     </nav>
@@ -291,7 +281,6 @@
         </section>
 
         <div class="music-main-layout">
-            
             <section class="player-section">
                 <div id="sync-status-icon" title="Đang chờ tín hiệu..."><i class="fa-solid fa-satellite-dish fa-fade" style="color: #c084fc;"></i></div>
 
@@ -317,6 +306,11 @@
 
             <aside class="queue-section">
                 <h3 class="queue-title"><i class="fa-solid fa-list-music"></i> Danh sách chờ</h3>
+                
+                <button id="btn-clear-queue" class="btn-clear-queue" title="Xóa toàn bộ danh sách">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+
                 <ul class="queue-list" id="custom-queue-list">
                     <div class="empty-queue-msg">
                         <i class="fa-solid fa-compact-disc fa-2x" style="color: #cbd5e1; margin-bottom: 10px;"></i><br>
@@ -330,6 +324,17 @@
     <footer>
         <div class="footer-bottom">
             <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            <div class="footer-social">
+                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    Fanpage MHEnt.
+                </a>
+                <span class="footer-dot">•</span>
+                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Cộng đồng MHEnt.
+                </a>
+            </div>
         </div>
     </footer>
 
@@ -340,7 +345,7 @@
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getDatabase, ref, update, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // CẤU HÌNH FIREBASE 
+        // ĐIỀN CẤU HÌNH FIREBASE CỦA BẠN VÀO ĐÂY
         const firebaseConfig = {
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
             authDomain: "mhentuniverse.firebaseapp.com",
@@ -355,7 +360,9 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // UI & AUTH LOGIC
+        // ==========================================
+        // UI & AUTH
+        // ==========================================
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
 
@@ -451,7 +458,7 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC 
+        // YOUTUBE & FIREBASE DJ LOGIC (VÁ LỖI REGEX & AUTO-MIX)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player;
@@ -466,21 +473,30 @@
             });
         };
 
+        // HÀM QUÉT LINK SIÊU CẤP (BẮT MỌI THỂ LOẠI LINK YOUTUBE)
         function parseUrl(url) {
             let videoId = null, playlistId = null;
-            try {
-                const u = new URL(url);
-                videoId = u.searchParams.get('v');
-                playlistId = u.searchParams.get('list');
-            } catch(e) {
-                if(url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
-                else if(url.length === 11) videoId = url; 
-                else if(url.length > 20 && url.startsWith('PL')) playlistId = url;
+            
+            // Cố gắng tìm ID Video trước (11 ký tự)
+            const vidRegex = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/;
+            const vidMatch = url.match(vidRegex);
+            if (vidMatch && vidMatch[1]) {
+                videoId = vidMatch[1];
+            } else if (/^[\w-]{11}$/.test(url)) {
+                // Nhập thẳng 11 ký tự
+                videoId = url;
             }
+
+            // Tìm ID Playlist (Sau chữ list=)
+            const listRegex = /[?&]list=([\w-]+)/;
+            const listMatch = url.match(listRegex);
+            if (listMatch && listMatch[1]) {
+                playlistId = listMatch[1];
+            }
+
             return { videoId, playlistId };
         }
 
-        // CẬP NHẬT ẢNH COVER
         function updateVinylCover(vid) {
             if (!vid) return;
             const coverUrl = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
@@ -510,6 +526,16 @@
             update(roomRef, updateData);
         }
 
+        function tryRenderPlaylist() {
+            if(!player || !player.getPlaylist) return;
+            let pl = player.getPlaylist();
+            if (pl && pl.length > 0) {
+                renderPlaylistQueue(pl, player.getPlaylistIndex());
+            } else {
+                setTimeout(tryRenderPlaylist, 1000); 
+            }
+        }
+
         function onPlayerStateChange(event) {
             const playBtn = document.getElementById('btn-play-pause');
             const vinyl = document.getElementById('vinyl-disc');
@@ -518,10 +544,8 @@
                 playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
                 vinyl.classList.add('playing');
                 
-                // Móc ID của video ĐANG PHÁT (kể cả trong playlist) để lấy Cover
                 if(player.getVideoData && player.getVideoData().video_id) {
-                    const currentVidId = player.getVideoData().video_id;
-                    updateVinylCover(currentVidId);
+                    updateVinylCover(player.getVideoData().video_id);
                 }
 
                 if(localState.type === 'video' && player.getVideoData && player.getVideoData().title) {
@@ -531,12 +555,14 @@
                     update(roomRef, { title: title });
                     renderSingleQueue(localState.ytId, title);
                 } 
-                else if (localState.type === 'playlist' && player.getPlaylist) {
-                    const title = player.getVideoData().title;
-                    document.getElementById('current-song-title').innerText = title;
-                    document.getElementById('current-song-artist').innerText = "Đang phát từ Playlist";
-                    update(roomRef, { title: title });
-                    renderPlaylistQueue(player.getPlaylist(), player.getPlaylistIndex());
+                else if (localState.type === 'playlist') {
+                    if(player.getVideoData && player.getVideoData().title) {
+                        const title = player.getVideoData().title;
+                        document.getElementById('current-song-title').innerText = title;
+                        document.getElementById('current-song-artist').innerText = "Đang phát từ Playlist";
+                        update(roomRef, { title: title });
+                    }
+                    tryRenderPlaylist(); 
                 }
 
             } else {
@@ -547,11 +573,28 @@
             updateFirebaseState();
         }
 
+        // ===============================================
+        // ĐỒNG BỘ TỪ FIREBASE (LẮNG NGHE SỰ KIỆN)
+        // ===============================================
         onValue(roomRef, (snapshot) => {
             if (snapshot.exists() && player && player.playVideo) {
                 const data = snapshot.val();
                 
-                if(data.type === 'none') return;
+                // KHI AI ĐÓ XÓA QUEUE
+                if(data.type === 'none') {
+                    player.stopVideo();
+                    document.getElementById('current-song-title').innerText = 'Chưa có bài hát nào';
+                    document.getElementById('current-song-artist').innerText = 'Hãy nạp link YouTube để bắt đầu';
+                    document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
+                    document.getElementById('btn-play-pause').innerHTML = '<i class="fa-solid fa-play"></i>';
+                    document.getElementById('vinyl-disc').classList.remove('playing');
+                    renderEmptyQueue("Danh sách đang trống.<br>Hãy nạp nhạc vào nha!");
+                    localState.type = 'none';
+                    localState.ytId = '';
+                    document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-satellite-dish" style="color:#c084fc;"></i>';
+                    isSyncing = false;
+                    return;
+                }
 
                 isSyncing = true; 
 
@@ -561,10 +604,10 @@
                     
                     if (data.type === 'playlist') {
                         player.loadPlaylist({list: data.ytId, index: data.index, startSeconds: data.time});
-                        renderEmptyQueue("Đang tải danh sách Playlist...");
+                        renderEmptyQueue("Đang tải danh sách Playlist...<br><span style='font-size:12px'>(Có thể hơi lâu nếu là Mix tự động)</span>");
                     } else {
                         player.loadVideoById(data.ytId, data.time);
-                        updateVinylCover(data.ytId); // Cập nhật cover liền cho bài đơn
+                        updateVinylCover(data.ytId); 
                     }
                 } 
                 else if (data.type === 'playlist' && data.index !== player.getPlaylistIndex()) {
@@ -595,6 +638,9 @@
             }
         });
 
+        // ===============================================
+        // HÀM RENDER QUEUE
+        // ===============================================
         function renderSingleQueue(vid, title) {
             document.getElementById('custom-queue-list').innerHTML = `
                 <li class="queue-item active">
@@ -609,7 +655,6 @@
 
         function renderPlaylistQueue(playlistArray, activeIndex) {
             if(!playlistArray || playlistArray.length === 0) return;
-            
             let html = playlistArray.map((vid, index) => `
                 <li class="queue-item ${index === activeIndex ? 'active' : ''}" onclick="playPlaylistIndex(${index})">
                     <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" class="queue-thumb">
@@ -631,6 +676,16 @@
             `;
         }
 
+        // ===============================================
+        // XỬ LÝ NÚT BẤM (Bảng điều khiển & Xóa Queue)
+        // ===============================================
+        document.getElementById('btn-clear-queue').addEventListener('click', () => {
+            update(roomRef, {
+                type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false, timestamp: serverTimestamp()
+            });
+            showToast('Thông báo', 'Đã dọn dẹp sạch sẽ Trạm Phát Nhạc!', 'info');
+        });
+
         document.getElementById('btn-start-sync').addEventListener('click', () => {
             let urlInput = document.getElementById('yt-url-input').value.trim();
             if(!urlInput) return;
@@ -638,13 +693,14 @@
             
             if(parsed.playlistId) {
                 updateFirebaseState({ type: 'playlist', ytId: parsed.playlistId, index: 0, time: 0, state: 1, title: 'Đang tải Playlist...' });
-                showToast('Thành công', 'Đã tải Playlist Đa Vũ Trụ!', 'success');
+                showToast('Thành công', 'Đã gửi lệnh tải Playlist lên Đa Vũ Trụ!', 'success');
             } else if (parsed.videoId) {
                 updateFirebaseState({ type: 'video', ytId: parsed.videoId, time: 0, state: 1, title: 'Đang tải Bài hát...' });
                 showToast('Thành công', 'Đã tải Bài Hát vào Trạm!', 'success');
             } else {
                 showToast('Lỗi', 'Link không hợp lệ, thử lại nhé!', 'error');
             }
+            document.getElementById('yt-url-input').value = ''; // Làm sạch ô nhập
         });
 
         window.playPlaylistIndex = function(index) {
@@ -662,16 +718,12 @@
         });
 
         document.getElementById('btn-next').addEventListener('click', () => {
-            if(localState.type === 'playlist') {
-                player.nextVideo();
-                setTimeout(() => updateFirebaseState(), 500);
-            } else showToast('Thông báo', 'Cậu cần nạp một danh sách Playlist để qua bài nha!', 'info');
+            if(localState.type === 'playlist') { player.nextVideo(); setTimeout(() => updateFirebaseState(), 500); } 
+            else showToast('Thông báo', 'Cậu cần nạp Playlist để qua bài nha!', 'info');
         });
         document.getElementById('btn-prev').addEventListener('click', () => {
-            if(localState.type === 'playlist') {
-                player.previousVideo();
-                setTimeout(() => updateFirebaseState(), 500);
-            } else showToast('Thông báo', 'Cậu cần nạp một danh sách Playlist để lùi bài nha!', 'info');
+            if(localState.type === 'playlist') { player.previousVideo(); setTimeout(() => updateFirebaseState(), 500); } 
+            else showToast('Thông báo', 'Cậu cần nạp Playlist để lùi bài nha!', 'info');
         });
 
         document.getElementById('btn-loop').addEventListener('click', () => {
