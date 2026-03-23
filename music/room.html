@@ -343,11 +343,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        
-        // Đã đổi từ 'update' sang 'set' để sửa lỗi dữ liệu rỗng
         import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // ⚠️ CẤU HÌNH FIREBASE CỦA CẬU
+        // CẤU HÌNH FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
             authDomain: "mhentuniverse.firebaseapp.com",
@@ -363,97 +361,35 @@
         const db = getDatabase(app);
 
         // ==========================================
-        // UI & AUTH CƠ BẢN
+        // UI & AUTH (Giữ nguyên)
         // ==========================================
-
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
-
         if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login.html'; });
-        if (btnLogout) { 
-            btnLogout.addEventListener('click', async () => { 
-                await signOut(auth); 
-                window.location.reload(); 
-            }); 
-        }
-
-        window.toggleAccount = function() {
-            const acc = document.getElementById('dropdown-account');
-            const switcher = document.getElementById('dropdown-app-switcher');
-            if(switcher) switcher.classList.remove('show'); 
-            if(acc) acc.classList.toggle('show');
+        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); }
+        window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
+        window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
+        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
+        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
+        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+        window.onclick = function(e) {
+            if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); }
+            if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active');
         };
-
-        window.toggleAppSwitcher = function() {
-            const switcher = document.getElementById('dropdown-app-switcher');
-            const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show'); 
-            if(switcher) switcher.classList.toggle('show');
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.user-section')) {
-                const acc = document.getElementById('dropdown-account');
-                const switcher = document.getElementById('dropdown-app-switcher');
-                if(acc) acc.classList.remove('show');
-                if(switcher) switcher.classList.remove('show');
-            }
-            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
-                const navLinks = document.getElementById('nav-links');
-                if(navLinks) navLinks.classList.remove('active');
-            }
-        };
-
-        window.toggleMobileMenu = function() {
-            const navLinks = document.getElementById('nav-links');
-            const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show'); 
-            if(navLinks) navLinks.classList.toggle('active');
-        };
-
-        window.toggleDarkMode = function() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
-        };
-
-        if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
-
-        window.showToast = function(title, message, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-            }
-            const toast = document.createElement('div');
-            toast.className = `toast-msg ${type}`;
-            let icon = type === 'error' ? '❌' : (type === 'info' ? '⭐' : '✅');
-            toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${message}</span></div>`;
+        window.showToast = function(title, msg, type = 'success') {
+            let container = document.getElementById('toast-container') || (()=>{let c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); return c;})();
+            let toast = document.createElement('div'); toast.className = `toast-msg ${type}`;
+            toast.innerHTML = `<div class="toast-icon">${type==='error'?'❌':(type==='info'?'⭐':'✅')}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${msg}</span></div>`;
             container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'fadeOutRight 0.3s ease-in forwards';
-                setTimeout(() => { toast.remove(); }, 300); 
-            }, 3000);
+            setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
         onAuthStateChanged(auth, (user) => {
-            const btnTheme = document.getElementById('btn-theme-toggle'); 
             if (user) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-
-                let finalName = user.displayName || user.email.split('@')[0];
-                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
-
-                const avtElement = document.getElementById('user-avatar');
-                if (avtElement) {
-                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
-                    avtElement.style.display = 'block'; 
-                }
-
-                // Tối ưu hóa: Đại sảnh không cần check quyền Admin/Uploader nữa vì đã xóa nút rồi, giúp web load nhanh hơn!
-
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
+                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
             } else {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
@@ -461,7 +397,7 @@
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (V8.0)
+        // YOUTUBE & FIREBASE DJ LOGIC (V9.0)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player = null;
@@ -471,7 +407,7 @@
         window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('youtube-player-hidden', {
                 height: '0', width: '0', 
-                videoId: 'dQw4w9WgXcQ', // FIX LỖI 1: Phải có 1 ID mồi để Youtube không bị lỗi ngầm
+                videoId: 't0Q2otsqC4I', // Hết Rickroll nha, Tom & Jerry mồi cho an toàn :))
                 playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0 },
                 events: { 'onStateChange': onPlayerStateChange }
             });
@@ -491,17 +427,20 @@
             return { videoId, playlistId };
         }
 
-        function updateVinylCover(vid) {
-            if (!vid) return;
-            const coverUrl = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
-            document.getElementById('vinyl-cover').style.backgroundImage = `url('${coverUrl}')`;
+        // Nếu là video có hình, móc ảnh cover. Không thì nhét avatar mặc định
+        function updateVinylCover(vid, isPlaylist = false) {
+            if (isPlaylist) {
+                document.getElementById('vinyl-cover').style.backgroundImage = "url('/assets/avt-web.jpg')";
+            } else if (vid) {
+                const coverUrl = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+                document.getElementById('vinyl-cover').style.backgroundImage = `url('${coverUrl}')`;
+            }
         }
 
-        // BẮN TÍN HIỆU LÊN FIREBASE (FIX LỖI RỖNG BẰNG HÀM SET)
+        // BẮN TÍN HIỆU LÊN FIREBASE 
         function updateFirebaseState(forceUpdate = {}) {
             if (isSyncing) return;
             
-            // Ép lấy dữ liệu an toàn kể cả khi Youtube chưa load xong
             let currentState = -1, currentTime = 0, currentIndex = 0;
             if (player && typeof player.getPlayerState === 'function') {
                 currentState = player.getPlayerState() || -1;
@@ -523,19 +462,10 @@
 
             if(forceUpdate.ytId || forceUpdate.type) updateData.title = "Đang tải dữ liệu..."; 
 
-            // FIX LỖI 2: Dùng SET thay vì Update
             set(roomRef, updateData).catch((error) => {
                 console.error("Firebase Error:", error);
-                // FIX LỖI 3: Báo động đỏ nếu bị kẹt Rules
                 showToast('Lỗi Database', 'Cậu chưa Đăng Nhập hoặc Rules đang chặn rùi!', 'error');
             });
-        }
-
-        function tryRenderPlaylist() {
-            if(!player || typeof player.getPlaylist !== 'function') return;
-            let pl = player.getPlaylist();
-            if (pl && pl.length > 0) renderPlaylistQueue(pl, player.getPlaylistIndex());
-            else setTimeout(tryRenderPlaylist, 1000); 
         }
 
         function onPlayerStateChange(event) {
@@ -546,25 +476,32 @@
                 playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
                 vinyl.classList.add('playing');
                 
-                if(player.getVideoData && player.getVideoData().video_id) {
-                    updateVinylCover(player.getVideoData().video_id);
-                }
-
+                // Cập nhật thông tin khi Video / Playlist đã load xong
                 if(localState.type === 'video' && player.getVideoData && player.getVideoData().title) {
                     const title = player.getVideoData().title;
+                    const vidId = player.getVideoData().video_id;
+                    
                     document.getElementById('current-song-title').innerText = title;
                     document.getElementById('current-song-artist').innerText = player.getVideoData().author || "YouTube Music";
+                    updateVinylCover(vidId, false);
                     set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
-                    renderSingleQueue(localState.ytId, title);
+                    renderSingleQueue(vidId, title);
                 } 
                 else if (localState.type === 'playlist') {
                     if(player.getVideoData && player.getVideoData().title) {
                         const title = player.getVideoData().title;
                         document.getElementById('current-song-title').innerText = title;
                         document.getElementById('current-song-artist').innerText = "Đang phát từ Playlist";
+                        updateVinylCover(null, true); // Playlist lấy ảnh mồi
                         set(roomRef, { ...localState, title: title, state: event.data, time: player.getCurrentTime() }).catch(()=>{});
+                        
+                        // Lấy danh sách nhẹ nhàng (Có thì hiện, không thì báo đang phát)
+                        if(typeof player.getPlaylist === 'function' && player.getPlaylist()) {
+                            renderPlaylistQueue(player.getPlaylist(), player.getPlaylistIndex());
+                        } else {
+                            renderEmptyQueue("Đang phát Playlist tự động (Radio/Mix)...");
+                        }
                     }
-                    tryRenderPlaylist(); 
                 }
 
             } else {
@@ -579,10 +516,9 @@
         // ĐỒNG BỘ TỪ FIREBASE 
         // ===============================================
         onValue(roomRef, (snapshot) => {
-            // Lấy dữ liệu hoặc coi như trống
             const data = snapshot.exists() ? snapshot.val() : { type: 'none' };
             
-            // XÓA QUEUE HOẶC RỖNG
+            // NẾU DANH SÁCH BỊ XÓA HOẶC RỖNG
             if(data.type === 'none') {
                 if (player && typeof player.stopVideo === 'function') player.stopVideo();
                 document.getElementById('current-song-title').innerText = 'Chưa có bài hát nào';
@@ -597,26 +533,28 @@
                 return;
             }
 
-            // Chờ Youtube khởi tạo xong mới được ép đồng bộ
             if (!player || typeof player.playVideo !== 'function') return;
 
             isSyncing = true; 
 
+            // Cập nhật khi có bài / playlist mới
             if (data.ytId !== localState.ytId || data.type !== localState.type) {
                 localState.type = data.type;
                 localState.ytId = data.ytId;
                 
                 if (data.type === 'playlist') {
                     player.loadPlaylist({list: data.ytId, index: data.index, startSeconds: data.time});
-                    renderEmptyQueue("Đang tải danh sách Playlist...");
+                    renderEmptyQueue("Đang kết nối danh sách...");
                 } else {
                     player.loadVideoById(data.ytId, data.time);
-                    updateVinylCover(data.ytId); 
+                    updateVinylCover(data.ytId, false); 
                 }
             } 
+            // Nếu người kia next bài trong playlist
             else if (data.type === 'playlist' && data.index !== player.getPlaylistIndex()) {
                 player.playVideoAt(data.index);
             }
+            // Đồng bộ Play/Pause/Tua
             else {
                 const localTime = player.getCurrentTime() || 0;
                 if (Math.abs(data.time - localTime) > 2) player.seekTo(data.time);
@@ -625,6 +563,7 @@
                 else if (data.state === YT.PlayerState.PAUSED) player.pauseVideo();
             }
 
+            // Ghi đè text nếu Firebase đã cập nhật tên bài hát
             if(data.title && data.title !== "Đang tải dữ liệu...") {
                 document.getElementById('current-song-title').innerText = data.title;
                 document.getElementById('current-song-artist').innerText = data.type === 'playlist' ? 'Đang phát từ Playlist' : 'YouTube Music';
@@ -642,7 +581,7 @@
         });
 
         // ===============================================
-        // HÀM RENDER QUEUE
+        // UI RENDER QUEUE
         // ===============================================
         function renderSingleQueue(vid, title) {
             document.getElementById('custom-queue-list').innerHTML = `
@@ -680,7 +619,7 @@
         }
 
         // ===============================================
-        // XỬ LÝ NÚT BẤM 
+        // NÚT ĐIỀU KHIỂN DJ
         // ===============================================
         document.getElementById('btn-clear-queue').addEventListener('click', () => {
             updateFirebaseState({ type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false });
@@ -692,9 +631,10 @@
             if(!urlInput) return;
             const parsed = parseUrl(urlInput);
             
+            // Ưu tiên nạp ID Playlist nếu có
             if(parsed.playlistId) {
                 updateFirebaseState({ type: 'playlist', ytId: parsed.playlistId, index: 0, time: 0, state: 1, title: 'Đang tải Playlist...' });
-                showToast('Đang phát tín hiệu', 'Đã gửi lệnh tải Playlist lên Đa Vũ Trụ!', 'success');
+                showToast('Đang phát tín hiệu', 'Đã gửi lệnh tải Playlist!', 'success');
             } else if (parsed.videoId) {
                 updateFirebaseState({ type: 'video', ytId: parsed.videoId, time: 0, state: 1, title: 'Đang tải Bài hát...' });
                 showToast('Đang phát tín hiệu', 'Đã tải Bài Hát vào Trạm!', 'success');
