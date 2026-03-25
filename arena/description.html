@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin Hội Thi - MHEnt. Arena</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/arena/arena-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .desc-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .desc-box { background: #fff; border-radius: 20px; padding: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid rgba(255, 154, 85, 0.2); }
+        .quiz-title-big { font-size: 28px; font-weight: 900; color: #1e293b; margin-bottom: 15px; line-height: 1.3; }
+        .quiz-rules { background: #f8fafc; padding: 25px; border-radius: 12px; font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 25px; border-left: 4px solid var(--hub-color); white-space: pre-wrap; }
+        
+        .btn-trigger-popup { width: 100%; background: linear-gradient(135deg, #ff9a55, #ff7a22); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-trigger-popup:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 154, 85, 0.4); }
+        .btn-trigger-popup:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        /* =========================================
+           POPUP ĐIỀN THÔNG TIN
+           ========================================= */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(5px);
+            z-index: 10000; display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-content {
+            background: #fff; width: 90%; max-width: 500px; border-radius: 20px;
+            padding: 30px; position: relative;
+            transform: translateY(-20px); transition: transform 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        
+        .btn-close-modal {
+            position: absolute; top: 15px; right: 20px; font-size: 28px;
+            cursor: pointer; color: #94a3b8; transition: 0.2s; line-height: 1;
+        }
+        .btn-close-modal:hover { color: #ef4444; transform: scale(1.1); }
+
+        .form-title { font-size: 20px; font-weight: 900; color: #1e293b; margin-top: 0; margin-bottom: 5px; }
+        .form-subtitle { font-size: 14px; color: #64748b; margin-bottom: 20px; display: block; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 13.5px; }
+        .arena-input-form { width: 100%; padding: 12px 15px; border-radius: 10px; border: 2px solid #e2e8f0; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; outline: none; transition: 0.3s; box-sizing: border-box; }
+        .arena-input-form:focus { border-color: var(--hub-color); background: #fffcf8; }
+        
+        .btn-start-quiz { width: 100%; background: var(--hub-color); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-start-quiz:hover { background: #e8833e; }
+
+        /* DARK MODE */
+        body.dark-mode .desc-box, body.dark-mode .modal-content { background: #1e293b; border-color: #334155; }
+        body.dark-mode .quiz-title-big, body.dark-mode .form-title { color: #fff; }
+        body.dark-mode .quiz-rules { background: #0f172a; color: #cbd5e1; border-color: var(--hub-color); }
+        body.dark-mode .arena-input-form { background: #0f172a; border-color: #334155; color: white; }
+        body.dark-mode .form-subtitle, body.dark-mode .input-group label { color: #94a3b8; }
+    </style>
+</head>
+<body class="gradient-bg">
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/arena/'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                <span class="logo-name">MHEnt. Arena</span>
+            </a>
+        </div>
+        <div class="nav-right">
+            <button class="btn-theme" onclick="window.history.back()" title="Quay lại"><i class="fa-solid fa-arrow-left"></i></button>
+        </div>
+    </nav>
+
+    <main class="desc-container">
+        <div class="desc-box" id="quiz-details-box">
+            <div style="text-align: center; color: #888; padding: 40px;">
+                <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--hub-color); margin-bottom: 15px;"></i><br>
+                Đang tải thông tin cuộc thi...
+            </div>
+        </div>
+    </main>
+
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="btn-close-modal" onclick="closeModal()">&times;</span>
+            <h3 class="form-title">Sẵn sàng chưa?</h3>
+            <span class="form-subtitle">Điền thông tin để hệ thống ghi nhận kết quả nhé!</span>
+            
+            <form id="student-form">
+                <div class="input-group">
+                    <label>Họ và Tên đầy đủ *</label>
+                    <input type="text" id="inp-name" class="arena-input-form" placeholder="Ví dụ: Nguyễn Văn A" required autocomplete="off">
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="input-group" style="flex: 1;">
+                        <label>Mã Sinh Viên *</label>
+                        <input type="text" id="inp-mssv" class="arena-input-form" placeholder="Ví dụ: 26201234" required autocomplete="off">
+                    </div>
+                    <div class="input-group" style="flex: 1;">
+                        <label>Lớp / Chi đoàn *</label>
+                        <input type="text" id="inp-class" class="arena-input-form" placeholder="Ví dụ: 24DTH1" required autocomplete="off">
+                    </div>
+                </div>
+                <button type="submit" class="btn-start-quiz">
+                    VÀO PHÒNG THI NGAY <i class="fa-solid fa-paper-plane" style="margin-left: 5px;"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const quizId = urlParams.get('id');
+
+        // Hàm mở/đóng Modal
+        function openModal() {
+            document.getElementById('info-modal').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Khóa cuộn trang nền
+        }
+        function closeModal() {
+            document.getElementById('info-modal').classList.remove('active');
+            document.body.style.overflow = ''; // Mở lại cuộn trang
+        }
+
+        // Bấm ra ngoài vùng trắng cũng tự đóng Modal
+        document.getElementById('info-modal').addEventListener('click', function(e) {
+            if(e.target === this) closeModal();
+        });
+
+        async function loadQuizDetails() {
+            if (!quizId) {
+                document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Lỗi: Không tìm thấy mã cuộc thi!</h3>';
+                return;
+            }
+
+            try {
+                let response = await fetch(API_URL + "?action=getQuizList");
+                let result = await response.json();
+                
+                let quiz = result.data.find(q => q.id === quizId);
+
+                if (!quiz) {
+                    document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Hội thi không tồn tại hoặc chưa đến giờ mở!</h3>';
+                    return;
+                }
+
+                let btnDisabled = (quiz.status === 'closed') ? 'disabled' : '';
+                let btnText = '';
+                
+                if (quiz.status === 'closed') btnText = 'HỘI THI ĐANG ĐÓNG';
+                else if (quiz.status === 'test') btnText = 'VÀO CHẾ ĐỘ TEST ĐỀ <i class="fa-solid fa-vial"></i>';
+                else btnText = 'BẮT ĐẦU THI NGAY <i class="fa-solid fa-play"></i>';
+
+                // Trả giao diện vào Box
+                document.getElementById('quiz-details-box').innerHTML = `
+                    <h1 class="quiz-title-big">${quiz.title}</h1>
+                    <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+                        <span style="font-weight:bold; color:var(--hub-color); background:var(--hub-bg); padding:6px 16px; border-radius:20px; font-size: 13px;">Mã: ${quiz.id}</span>
+                        <span style="font-weight:bold; color:#64748b; background:#f1f5f9; padding:6px 16px; border-radius:20px; font-size: 13px;"><i class="fa-solid fa-list-ol"></i> ${quiz.questionCount} câu</span>
+                        <span style="font-weight:bold; color:#ef4444; background:#fee2e2; padding:6px 16px; border-radius:20px; font-size: 13px;"><i class="fa-solid fa-stopwatch"></i> ${quiz.timeLimit} phút</span>
+                    </div>
+                    
+                    <div class="quiz-rules"><strong>Mô tả & Thể lệ:</strong>\n${quiz.desc}</div>
+
+                    <button class="btn-trigger-popup" onclick="openModal()" ${btnDisabled}>
+                        ${btnText}
+                    </button>
+                `;
+
+                // Xử lý Form trong Modal
+                document.getElementById('student-form').addEventListener('submit', function(e) {
+                    e.preventDefault(); 
+                    
+                    let sName = document.getElementById('inp-name').value.trim();
+                    let sMSSV = document.getElementById('inp-mssv').value.trim();
+                    let sClass = document.getElementById('inp-class').value.trim();
+
+                    // Cất thông tin vào localStorage để lát chấm điểm xong gửi kèm
+                    let userInfo = { fullName: sName, studentId: sMSSV, className: sClass };
+                    localStorage.setItem('mhent_arena_user', JSON.stringify(userInfo));
+
+                    // Nút bấm xịn xò: Tắt modal và bay sang trang thi
+                    closeModal();
+                    
+                    // Thêm tham số test nếu đang ở chế độ test
+                    let extraParam = (quiz.status === 'test') ? '&mode=test' : '';
+                    window.location.href = `/arena/quiz.html?id=${quizId}${extraParam}`;
+                });
+
+            } catch (err) {
+                document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Lỗi kết nối máy chủ! Hãy thử F5 lại trang nhé.</h3>';
+            }
+        }
+
+        loadQuizDetails();
+    </script>
+</body>
+</html>

@@ -215,6 +215,17 @@
     <footer>
         <div class="footer-bottom">
             <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            <div class="footer-social">
+                <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    Fanpage MHEnt.
+                </a>
+                <span class="footer-dot">•</span>
+                <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer;" class="footer-link">
+                    <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Cộng đồng MHEnt.
+                </a>
+            </div>
         </div>
     </footer>
 
@@ -292,79 +303,78 @@
         });
 
         // ==========================================
-        // LOGIC MẶT TIỀN ARENA
+        // LOGIC MẶT TIỀN ARENA (ĐÃ KẾT NỐI API THẬT)
         // ==========================================
+        
+        // Link API Thần Thánh cậu vừa tạo
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
 
-        // Xử lý nút tham gia bằng Mã
+        // Sửa lại: Nhập mã xong sẽ bay sang trang Mô tả (Description) thay vì vào thẳng Quiz
         document.getElementById('btn-join-code').addEventListener('click', () => {
             let code = document.getElementById('quiz-code-input').value.trim();
             if (!code) {
                 showToast('Lỗi', 'Cậu chưa nhập mã cuộc thi!', 'error');
                 return;
             }
-            // Chuyển hướng sang phòng thi với mã ID trên URL
-            window.location.href = `/arena/quiz.html?id=${code.toUpperCase()}`;
+            window.location.href = `/arena/description.html?id=${code.toUpperCase()}`;
         });
 
         document.getElementById('quiz-code-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') document.getElementById('btn-join-code').click();
         });
 
-        // MÔ PHỎNG TẢI DANH SÁCH CUỘC THI TỪ APPS SCRIPT (Sau này sẽ nối API thật)
-        function loadFeaturedQuizzes() {
+        // HÚT DỮ LIỆU TỪ GOOGLE SHEETS
+        async function loadFeaturedQuizzes() {
             const container = document.getElementById('quiz-list-container');
-            
-            // Dữ liệu mô phỏng (Sau này Apps Script sẽ trả về y chang vầy)
-            const mockData = [
-                {
-                    id: "HOITHIDOAN",
-                    title: "Hội thi Bí thư Chi đoàn giỏi 2026",
-                    desc: "Kiểm tra kiến thức Đoàn - Hội và kỹ năng công tác thanh niên.",
-                    status: "open",
-                    questions: 50,
-                    timeLimit: 45
-                },
-                {
-                    id: "IQTEST",
-                    title: "Thử thách IQ MHEnt. Universe",
-                    desc: "Giải mã các câu đố hóc búa để nhận vé mời xem phim miễn phí!",
-                    status: "closed",
-                    questions: 15,
-                    timeLimit: 15
+            container.innerHTML = '<div style="width: 100%; text-align: center; grid-column: 1 / -1; color: #888; font-weight: 700; padding: 40px 0;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--hub-color); margin-bottom: 15px;"></i><br>Đang đồng bộ dữ liệu với máy chủ...</div>';
+
+            try {
+                // Gọi API lấy danh sách
+                let response = await fetch(API_URL + "?action=getQuizList");
+                let result = await response.json();
+
+                if (!result.success || result.data.length === 0) {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px; font-weight: bold;">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
+                    return;
                 }
-            ];
 
-            container.innerHTML = '';
-            
-            if (mockData.length === 0) {
-                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
-                return;
+                container.innerHTML = ''; // Xóa chữ loading
+                
+                // In từng hội thi ra màn hình
+                result.data.forEach(quiz => {
+                    let statusHtml = '';
+                    if (quiz.status === 'open' || quiz.status === 'challenge') {
+                        statusHtml = `<span class="quiz-status status-open">Đang mở</span>`;
+                    } else if (quiz.status === 'test') {
+                        statusHtml = `<span class="quiz-status" style="background: #fef08a; color: #ca8a04;">Đang Test</span>`;
+                    } else {
+                        statusHtml = `<span class="quiz-status status-closed">Đã đóng</span>`;
+                    }
+
+                    // Trỏ link về description.html
+                    container.innerHTML += `
+                        <a href="/arena/description.html?id=${quiz.id}" class="quiz-card">
+                            <div class="quiz-header">
+                                <div class="quiz-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                                ${statusHtml}
+                            </div>
+                            <h3 class="quiz-title">${quiz.title}</h3>
+                            <p class="quiz-desc">${quiz.desc}</p>
+                            <div class="quiz-meta">
+                                <span class="meta-item"><i class="fa-solid fa-list-ol"></i> ${quiz.questionCount} câu</span>
+                                <span class="meta-item"><i class="fa-solid fa-stopwatch"></i> ${quiz.timeLimit} phút</span>
+                            </div>
+                        </a>
+                    `;
+                });
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 40px; font-weight: bold;">Lỗi kết nối máy chủ! Vui lòng thử lại sau.</div>';
             }
-
-            mockData.forEach(quiz => {
-                let statusHtml = quiz.status === 'open' 
-                    ? `<span class="quiz-status status-open">Đang mở</span>`
-                    : `<span class="quiz-status status-closed">Đã đóng</span>`;
-
-                container.innerHTML += `
-                    <a href="/arena/quiz.html?id=${quiz.id}" class="quiz-card">
-                        <div class="quiz-header">
-                            <div class="quiz-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                            ${statusHtml}
-                        </div>
-                        <h3 class="quiz-title">${quiz.title}</h3>
-                        <p class="quiz-desc">${quiz.desc}</p>
-                        <div class="quiz-meta">
-                            <span class="meta-item"><i class="fa-solid fa-list-ol"></i> ${quiz.questions} câu</span>
-                            <span class="meta-item"><i class="fa-solid fa-stopwatch"></i> ${quiz.timeLimit} phút</span>
-                        </div>
-                    </a>
-                `;
-            });
         }
 
-        // Tạm thời gọi hàm mô phỏng
-        setTimeout(loadFeaturedQuizzes, 1000);
+        // Chạy hàm hút dữ liệu ngay khi tải trang
+        loadFeaturedQuizzes();
 
     </script>
 </body>
