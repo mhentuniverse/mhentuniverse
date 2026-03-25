@@ -191,22 +191,22 @@
             <form id="student-form">
                 <div class="input-group">
                     <label>Họ và Tên đầy đủ *</label>
-                    <input type="text" id="inp-name" class="arena-input-form" placeholder="Ví dụ: Nguyễn Văn A" required autocomplete="off">
+                    <input type="text" id="inp-name" class="arena-input-form" placeholder="Ví dụ: Phạm Huỳnh Lam Chi" required autocomplete="off">
                 </div>
                 
                 <div class="input-group">
                     <label>Email Sinh Viên *</label>
-                    <input type="email" id="inp-email" class="arena-input-form" placeholder="Ví dụ: sv26201234@st.mhent.edu.vn" required autocomplete="off">
+                    <input type="email" id="inp-email" class="arena-input-form" placeholder="Ví dụ: sv2511130080@mhent.edu.vn" required autocomplete="off">
                 </div>
 
                 <div style="display: flex; gap: 15px;">
                     <div class="input-group" style="flex: 1;">
                         <label>Mã Sinh Viên *</label>
-                        <input type="text" id="inp-mssv" class="arena-input-form" placeholder="Ví dụ: 26201234" required autocomplete="off">
+                        <input type="text" id="inp-mssv" class="arena-input-form" placeholder="Ví dụ: 2511130080" required autocomplete="off">
                     </div>
                     <div class="input-group" style="flex: 1;">
                         <label>Lớp / Chi đoàn *</label>
-                        <input type="text" id="inp-class" class="arena-input-form" placeholder="Ví dụ: 24DTH1" required autocomplete="off">
+                        <input type="text" id="inp-class" class="arena-input-form" placeholder="Ví dụ: DH25DTB" required autocomplete="off">
                     </div>
                 </div>
                 
@@ -279,6 +279,14 @@
         window.onclick = function(e) {
             if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); }
             if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active');
+        };
+
+        window.showToast = function(title, msg, type = 'success') {
+            let container = document.getElementById('toast-container') || (()=>{let c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); return c;})();
+            let toast = document.createElement('div'); toast.className = `toast-msg ${type}`;
+            toast.innerHTML = `<div class="toast-icon">${type==='error'?'❌':(type==='info'?'⭐':'✅')}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${msg}</span></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
         // KIỂM TRA ĐĂNG NHẬP
@@ -359,19 +367,62 @@
                     </button>
                 `;
 
-                document.getElementById('student-form').addEventListener('submit', function(e) {
+                // ==========================================
+                // XỬ LÝ KHI SINH VIÊN BẤM "VÀO PHÒNG THI"
+                // ==========================================
+                document.getElementById('student-form').addEventListener('submit', async function(e) {
                     e.preventDefault(); 
-                    localStorage.setItem('mhent_arena_user', JSON.stringify({
-                        fullName: document.getElementById('inp-name').value.trim(),
-                        email: document.getElementById('inp-email').value.trim(),
-                        studentId: document.getElementById('inp-mssv').value.trim(),
-                        className: document.getElementById('inp-class').value.trim(),
-                        faculty: document.getElementById('inp-faculty').value.trim()
-                    }));
-                    window.closeModal();
                     
-                    let extraParam = (quiz.status === 'test') ? '&mode=test' : '';
-                    window.location.href = `/arena/quiz.html?id=${quizId}${extraParam}`;
+                    let sName = document.getElementById('inp-name').value.trim();
+                    let sEmail = document.getElementById('inp-email').value.trim();
+                    let sMSSV = document.getElementById('inp-mssv').value.trim();
+                    let sClass = document.getElementById('inp-class').value.trim();
+                    let sFaculty = document.getElementById('inp-faculty').value.trim();
+
+                    let btn = document.querySelector('.btn-start-quiz');
+                    let originalText = btn.innerHTML;
+                    
+                    // Hiện hiệu ứng Đang tải để chờ Két Sắt check
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra hồ sơ...';
+                    btn.disabled = true;
+
+                    let isTest = (quiz.status === 'test');
+
+                    try {
+                        // GỌI API ĐỂ CHECK XEM MSSV HAY EMAIL NÀY THI CHƯA
+                        let payload = {
+                            action: 'checkParticipant',
+                            quizId: quizId,
+                            isTestMode: isTest,
+                            studentId: sMSSV,
+                            email: sEmail
+                        };
+
+                        let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                        let result = await res.json();
+
+                        // NẾU KÉT SẮT BÁO "ĐÃ THI RỒI" -> CHẶN LẠI NGAY
+                        if (result.success && result.eligible === false) {
+                            showToast("❌ TỪ CHỐI TRUY CẬP: " + result.message + "\nMỗi bạn chỉ được thi 1 lần duy nhất!");
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            return; // Dừng lại, không cho đi tiếp
+                        }
+
+                        // HỢP LỆ -> CHO VÀO PHÒNG THI
+                        localStorage.setItem('mhent_arena_user', JSON.stringify({
+                            fullName: sName, email: sEmail, studentId: sMSSV, className: sClass, faculty: sFaculty
+                        }));
+                        
+                        window.closeModal();
+                        let extraParam = isTest ? '&mode=test' : '';
+                        window.location.href = `/arena/quiz.html?id=${quizId}${extraParam}`;
+
+                    } catch (err) {
+                        showToast("❌ LỖI HỆ THỐNG", "Mạng yếu, không kiểm tra được hệ thống. Vui lòng F5 thử lại!");
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
                 });
 
             } catch (err) {
