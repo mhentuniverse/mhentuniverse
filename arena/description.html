@@ -23,26 +23,43 @@
         .btn-trigger-popup:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; transform: none; opacity: 0.7;}
 
         /* =========================================
-           POPUP ĐIỀN THÔNG TIN "MHENT TOURNAMENT CARD"
+           POPUP ĐIỀN THÔNG TIN "MHENT TOURNAMENT CARD V6"
+           ĐÃ FIX ANIMATION "BUNG LỤA" MƯỢT MÀ
            ========================================= */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
-            z-index: 10000; display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.4s ease;
+            background: rgba(15, 23, 42, 0); /* Bắt đầu bằng 0 để animate opacity */
+            backdrop-filter: blur(0px); /* Bắt đầu bằng 0 */
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            transition: all 0.4s ease; /* Animate nền */
+            pointer-events: none; /* Cấm bấm khi đang ẩn */
         }
-        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-overlay.active { 
+            background: rgba(15, 23, 42, 0.6); /* Hiện nền mờ */
+            backdrop-filter: blur(8px); /* Hiện backdrop blur */
+            pointer-events: auto; /* Cho bấm khi hiện */
+        }
         
         .modal-content {
             background: linear-gradient(135deg, #fffcf9 0%, #fff1e9 100%); /* Nền Cam tint mượt mà */
-            width: 92%; max-width: 450px; border-radius: 25px;
+            width: 92%; max-width: 480px; border-radius: 25px;
             padding: 45px; position: relative;
-            transform: scale(0.9) translateY(20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 30px 70px rgba(255, 154, 85, 0.15); /* Bóng Huge Soft Shadow */
             border: 1px solid rgba(255, 154, 85, 0.3);
             font-family: 'Nunito', sans-serif !important;
+            
+            /* CSS ANIMATION "BUNG LỤA" */
+            opacity: 0; 
+            transform: scale(0.7) translateY(50px) rotate(-5deg); /* Bắt đầu nhỏ, thấp, xoay nhẹ */
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nhún nhảy */
         }
-        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+        
+        /* Khi Modal Active thì "Bung" cái rụp ra giữa */
+        .modal-overlay.active .modal-content { 
+            opacity: 1; 
+            transform: scale(1) translateY(0) rotate(0deg); 
+            transition-delay: 0.1s; /* Chờ nền mờ hiện ra xíu rồi mới bung content */
+        }
         
         .btn-close-modal {
             position: absolute; top: 20px; right: 25px; font-size: 30px;
@@ -58,7 +75,7 @@
         .input-group label { display: block; font-weight: 800; color: #1e293b; margin-bottom: 8px; font-size: 14px; }
         .arena-input-form { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid transparent; background: rgba(255,255,255,0.7); font-family: 'Nunito', sans-serif !important; font-size: 15px; font-weight: 700; outline: none; transition: 0.3s; box-sizing: border-box; color: #1e293b; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
         .arena-input-form:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 15px rgba(255, 154, 85, 0.15);}
-        .arena-input-form::placeholder { color: #94a3b8; font-weight: 600; opacity: 0.7;}
+        .arena-input-form::placeholder { color: #94a3b8; font-weight: 600; opacity: 0.7; font-size: 13.5px;}
         
         .btn-start-quiz { width: 100%; background: var(--hub-color); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 16.5px; cursor: pointer; transition: 0.3s; margin-top: 15px; box-shadow: 0 6px 15px rgba(255, 154, 85, 0.3);}
         .btn-start-quiz:hover { background: #e8833e; box-shadow: 0 8px 20px rgba(255, 154, 85, 0.4); }
@@ -109,6 +126,12 @@
                     <label>Họ và Tên đầy đủ *</label>
                     <input type="text" id="inp-name" class="arena-input-form" placeholder="Ví dụ: Nguyễn Văn A" required autocomplete="off">
                 </div>
+                
+                <div class="input-group">
+                    <label>Email Sinh Viên (văn phòng trường cấp) *</label>
+                    <input type="email" id="inp-email" class="arena-input-form" placeholder="Ví dụ: sv26201234@st.mhent.edu.vn" required autocomplete="off">
+                </div>
+
                 <div style="display: flex; gap: 15px;">
                     <div class="input-group" style="flex: 1;">
                         <label>Mã Sinh Viên *</label>
@@ -119,6 +142,12 @@
                         <input type="text" id="inp-class" class="arena-input-form" placeholder="Ví dụ: 24DTH1" required autocomplete="off">
                     </div>
                 </div>
+                
+                <div class="input-group">
+                    <label>Khoa / Viện đào tạo *</label>
+                    <input type="text" id="inp-faculty" class="arena-input-form" placeholder="Ví dụ: Công nghệ Thông tin" required autocomplete="off">
+                </div>
+
                 <button type="submit" class="btn-start-quiz">
                     VÀO PHÒNG THI NGAY <i class="fa-solid fa-paper-plane" style="margin-left: 7px;"></i>
                 </button>
@@ -176,10 +205,14 @@
 
                 document.getElementById('student-form').addEventListener('submit', function(e) {
                     e.preventDefault(); 
+                    
+                    // LẤY TRỌN BỘ 5 THÔNG TIN V6
                     localStorage.setItem('mhent_arena_user', JSON.stringify({
                         fullName: document.getElementById('inp-name').value.trim(),
+                        email: document.getElementById('inp-email').value.trim(), // MỚI V6
                         studentId: document.getElementById('inp-mssv').value.trim(),
-                        className: document.getElementById('inp-class').value.trim()
+                        className: document.getElementById('inp-class').value.trim(),
+                        faculty: document.getElementById('inp-faculty').value.trim() // MỚI V6
                     }));
                     closeModal();
                     
