@@ -443,11 +443,22 @@
         window.openConfirmPopup = function(msg) { document.getElementById('confirm-msg').innerText = msg; document.getElementById('confirm-popup').classList.add('active'); }
         window.closeConfirmPopup = function() { document.getElementById('confirm-popup').classList.remove('active'); }
 
-        // ĐỒNG HỒ TỬ THẦN
+        // ĐỒNG HỒ TỬ THẦN (Đã cập nhật tính năng Không Giới Hạn)
         function startTimer() {
             let display = document.getElementById('time-text');
             let timerBox = document.getElementById('timer-display');
             
+            // NẾU KHÔNG CÓ THỜI GIAN HOẶC THỜI GIAN = 0 -> KHÔNG GIỚI HẠN
+            if (!timeLimit || timeLimit <= 0) {
+                display.innerHTML = "Không giới hạn";
+                timerBox.style.background = "#f1f5f9"; // Màu xám nhạt
+                timerBox.style.color = "#64748b";
+                timerBox.style.borderColor = "#cbd5e1";
+                document.querySelector('.timer-box i').className = "fa-solid fa-infinity";
+                return; // Dừng luôn, không đếm ngược nữa!
+            }
+            
+            // NẾU CÓ THỜI GIAN THÌ BẮT ĐẦU ĐẾM NGƯỢC
             timerInterval = setInterval(() => {
                 timeLimit--;
                 let m = Math.floor(timeLimit / 60);

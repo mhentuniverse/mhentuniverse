@@ -362,6 +362,15 @@
                     
                     <div class="quiz-rules"><strong>Mô tả & Thể lệ:</strong>\n${quiz.desc}</div>
 
+                    <div id="leaderboard-section" style="margin-top: 35px; border-top: 2px dashed #e2e8f0; padding-top: 25px;">
+                        <h3 style="font-weight: 900; color: #1e293b; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> BẢNG VÀNG THÀNH TÍCH (TOP 10)
+                        </h3>
+                        <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="text-align: center; color: #888; padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải bảng xếp hạng...</div>
+                        </div>
+                    </div>
+
                     <button class="btn-trigger-popup" onclick="window.openModal()" ${btnDisabled}>
                         ${btnText}
                     </button>
@@ -430,6 +439,64 @@
             }
         }
         loadQuizDetails();
+
+        // HÀM TẢI BẢNG XẾP HẠNG
+        async function loadLeaderboard() {
+            try {
+                let res = await fetch(API_URL + "?action=getLeaderboard&quizId=" + quizId);
+                let result = await res.json();
+                let listContainer = document.getElementById('leaderboard-list');
+
+                if (!result.success || result.data.length === 0) {
+                    listContainer.innerHTML = `<div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 10px; color: #64748b; font-weight: 700;">Chưa có ai ghi danh. Hãy là người đầu tiên!</div>`;
+                    return;
+                }
+
+                let html = '';
+                result.data.forEach((user, index) => {
+                    let rankIcon = '';
+                    let rankStyle = '';
+                    
+                    // Phân loại Huy chương
+                    if (index === 0) {
+                        rankIcon = '<i class="fa-solid fa-medal"></i> 1';
+                        rankStyle = 'background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #fbbf24; color: #d97706; font-size: 16px; padding: 15px;';
+                    } else if (index === 1) {
+                        rankIcon = '<i class="fa-solid fa-medal"></i> 2';
+                        rankStyle = 'background: #f1f5f9; border-color: #cbd5e1; color: #475569; padding: 12px;';
+                    } else if (index === 2) {
+                        rankIcon = '<i class="fa-solid fa-medal"></i> 3';
+                        rankStyle = 'background: #fff7ed; border-color: #fdba74; color: #c2410c; padding: 12px;';
+                    } else {
+                        rankIcon = `<span style="font-size: 14px; font-weight: 800; color: #94a3b8;">#${index + 1}</span>`;
+                        rankStyle = 'background: #fff; border-color: #e2e8f0; padding: 10px;';
+                    }
+
+                    html += `
+                        <div style="display: flex; align-items: center; justify-content: space-between; border: 2px solid transparent; border-radius: 12px; ${rankStyle}">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 40px; text-align: center; font-weight: 900; font-size: 18px;">${rankIcon}</div>
+                                <div>
+                                    <div style="font-weight: 800; color: #1e293b;">${user.name} <span style="font-size: 12px; color: #64748b; font-weight: 700; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; margin-left: 5px;">${user.className}</span></div>
+                                    <div style="font-size: 12px; font-weight: 700; color: #64748b; margin-top: 3px;"><i class="fa-regular fa-clock"></i> ${user.timeStr}</div>
+                                </div>
+                            </div>
+                            <div style="font-weight: 900; font-size: 18px; color: var(--hub-color); background: #fff; padding: 5px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                ${user.score} đ
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listContainer.innerHTML = html;
+
+            } catch (e) {
+                document.getElementById('leaderboard-list').innerHTML = `<div style="text-align: center; color: #ef4444; font-weight: 700;">Lỗi tải bảng xếp hạng!</div>`;
+            }
+        }
+        
+        // Gọi hàm tải Leaderboard ngay sau khi tải xong thông tin Quiz
+        loadLeaderboard();
     </script>
 </body>
 </html>
