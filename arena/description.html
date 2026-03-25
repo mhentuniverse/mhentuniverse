@@ -240,95 +240,22 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        // Lấy API URL
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        const quizId = urlParams.get('id');
 
-        // ==========================================
-        // CẤU HÌNH FIREBASE
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-            authDomain: "mhentuniverse.firebaseapp.com",
-            projectId: "mhentuniverse",
-            storageBucket: "mhentuniverse.firebasestorage.app",
-            messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // UI & AUTH CƠ BẢN
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
-        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login.html'; });
-        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); }
-        
-        window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
-        window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
-        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
-        
         window.toggleDarkMode = function() { 
             document.body.classList.toggle('dark-mode'); 
             localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
         };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
-        
-        window.onclick = function(e) {
-            if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); }
-            if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active');
-        };
-
-        window.showToast = function(title, msg, type = 'success') {
-            let container = document.getElementById('toast-container') || (()=>{let c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); return c;})();
-            let toast = document.createElement('div'); toast.className = `toast-msg ${type}`;
-            toast.innerHTML = `<div class="toast-icon">${type==='error'?'❌':(type==='info'?'⭐':'✅')}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${msg}</span></div>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
-        };
-
-        // KIỂM TRA ĐĂNG NHẬP
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
-                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
-
-                try {
-                    const userSnap = await getDoc(doc(db, "users", user.uid));
-                    if (userSnap.exists() && userSnap.data().role === 'admin') {
-                        document.getElementById('admin-panel-btn').style.display = 'block';
-                        document.getElementById('admin-divider').style.display = 'block';
-                    }
-                } catch(e) { console.log(e); }
-
-                // Auto-fill form nếu đã đăng nhập
-                if (document.getElementById('inp-name') && !document.getElementById('inp-name').value) {
-                    document.getElementById('inp-name').value = user.displayName || "";
-                }
-                if (document.getElementById('inp-email') && !document.getElementById('inp-email').value) {
-                    document.getElementById('inp-email').value = user.email || "";
-                }
-
-            } else {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
-            }
-        });
-
-        // ==========================================
-        // LOGIC LẤY DỮ LIỆU TỪ SHEETS
-        // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
-        const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get('id');
 
         window.openModal = function() { document.getElementById('info-modal').classList.add('active'); document.body.style.overflow = 'hidden'; }
         window.closeModal = function() { document.getElementById('info-modal').classList.remove('active'); document.body.style.overflow = ''; }
         document.getElementById('info-modal').addEventListener('click', function(e) { if(e.target === this) window.closeModal(); });
+
+        window.showToast = function(msg) { alert(msg); };
 
         async function loadQuizDetails() {
             if (!quizId) {
@@ -336,6 +263,7 @@
                 return;
             }
             try {
+                // 1. DỰNG KHUNG MÔ TẢ TRƯỚC
                 let response = await fetch(API_URL + "?action=getQuizList");
                 let result = await response.json();
                 let quiz = result.data.find(q => q.id === quizId);
@@ -357,17 +285,17 @@
                     <div class="quiz-meta-tag">
                         <span style="color:var(--hub-color); background:var(--hub-bg);"><i class="fa-solid fa-fingerprint"></i> Mã: ${quiz.id}</span>
                         <span style="color:#64748b; background:#f1f5f9;"><i class="fa-solid fa-list-ol"></i> ${quiz.questionCount} câu hỏi</span>
-                        <span style="color:#ef4444; background:#fee2e2;"><i class="fa-solid fa-stopwatch"></i> ${quiz.timeLimit} phút</span>
+                        <span style="color:#ef4444; background:#fee2e2;"><i class="fa-solid fa-stopwatch"></i> ${quiz.timeLimit ? quiz.timeLimit + ' phút' : 'Không giới hạn'}</span>
                     </div>
                     
                     <div class="quiz-rules"><strong>Mô tả & Thể lệ:</strong>\n${quiz.desc}</div>
 
-                    <div id="leaderboard-section" style="margin-top: 35px; border-top: 2px dashed #e2e8f0; padding-top: 25px;">
-                        <h3 style="font-weight: 900; color: #1e293b; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <div id="leaderboard-section" style="margin-bottom: 30px; border-top: 2px dashed #e2e8f0; padding-top: 25px;">
+                        <h3 style="font-weight: 900; color: ${document.body.classList.contains('dark-mode') ? '#fff' : '#1e293b'}; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> BẢNG VÀNG THÀNH TÍCH (TOP 10)
                         </h3>
                         <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px;">
-                            <div style="text-align: center; color: #888; padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải bảng xếp hạng...</div>
+                            <div style="text-align: center; color: #888; padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp danh sách...</div>
                         </div>
                     </div>
 
@@ -376,12 +304,12 @@
                     </button>
                 `;
 
-                // ==========================================
-                // XỬ LÝ KHI SINH VIÊN BẤM "VÀO PHÒNG THI"
-                // ==========================================
+                // 2. SAU KHI DỰNG XONG, MỚI BẮT ĐẦU GỌI API LẤY LEADERBOARD CHÈN VÀO
+                loadLeaderboard(quizId);
+
+                // 3. XỬ LÝ NÚT VÀO PHÒNG THI
                 document.getElementById('student-form').addEventListener('submit', async function(e) {
                     e.preventDefault(); 
-                    
                     let sName = document.getElementById('inp-name').value.trim();
                     let sEmail = document.getElementById('inp-email').value.trim();
                     let sMSSV = document.getElementById('inp-mssv').value.trim();
@@ -390,45 +318,28 @@
 
                     let btn = document.querySelector('.btn-start-quiz');
                     let originalText = btn.innerHTML;
-                    
-                    // Hiện hiệu ứng Đang tải để chờ Két Sắt check
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra hồ sơ...';
                     btn.disabled = true;
 
                     let isTest = (quiz.status === 'test');
 
                     try {
-                        // GỌI API ĐỂ CHECK XEM MSSV HAY EMAIL NÀY THI CHƯA
-                        let payload = {
-                            action: 'checkParticipant',
-                            quizId: quizId,
-                            isTestMode: isTest,
-                            studentId: sMSSV,
-                            email: sEmail
-                        };
-
+                        let payload = { action: 'checkParticipant', quizId: quizId, isTestMode: isTest, studentId: sMSSV, email: sEmail };
                         let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                         let result = await res.json();
 
-                        // NẾU KÉT SẮT BÁO "ĐÃ THI RỒI" -> CHẶN LẠI NGAY
                         if (result.success && result.eligible === false) {
                             showToast("❌ TỪ CHỐI TRUY CẬP: " + result.message + "\nMỗi bạn chỉ được thi 1 lần duy nhất!");
                             btn.innerHTML = originalText;
                             btn.disabled = false;
-                            return; // Dừng lại, không cho đi tiếp
+                            return; 
                         }
 
-                        // HỢP LỆ -> CHO VÀO PHÒNG THI
-                        localStorage.setItem('mhent_arena_user', JSON.stringify({
-                            fullName: sName, email: sEmail, studentId: sMSSV, className: sClass, faculty: sFaculty
-                        }));
-                        
+                        localStorage.setItem('mhent_arena_user', JSON.stringify({ fullName: sName, email: sEmail, studentId: sMSSV, className: sClass, faculty: sFaculty }));
                         window.closeModal();
-                        let extraParam = isTest ? '&mode=test' : '';
-                        window.location.href = `/arena/quiz.html?id=${quizId}${extraParam}`;
-
+                        window.location.href = `/arena/quiz.html?id=${quizId}${isTest ? '&mode=test' : ''}`;
                     } catch (err) {
-                        showToast("❌ LỖI HỆ THỐNG", "Mạng yếu, không kiểm tra được hệ thống. Vui lòng F5 thử lại!");
+                        showToast("❌ Mạng yếu, không kiểm tra được hệ thống. Vui lòng F5 thử lại!");
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     }
@@ -438,26 +349,23 @@
                 document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Mất kết nối với Két Sắt! Vui lòng F5 lại trang.</h3>';
             }
         }
-        loadQuizDetails();
 
-        // HÀM TẢI BẢNG XẾP HẠNG
-        async function loadLeaderboard() {
+        // HÀM TẢI BẢNG XẾP HẠNG ĐỘC LẬP
+        async function loadLeaderboard(qId) {
             try {
-                let res = await fetch(API_URL + "?action=getLeaderboard&quizId=" + quizId);
+                let res = await fetch(API_URL + "?action=getLeaderboard&quizId=" + qId);
                 let result = await res.json();
                 let listContainer = document.getElementById('leaderboard-list');
 
                 if (!result.success || result.data.length === 0) {
-                    listContainer.innerHTML = `<div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 10px; color: #64748b; font-weight: 700;">Chưa có ai ghi danh. Hãy là người đầu tiên!</div>`;
+                    listContainer.innerHTML = `<div style="text-align: center; padding: 20px; background: rgba(0,0,0,0.02); border-radius: 10px; color: #64748b; font-weight: 700;">Chưa có ai ghi danh. Hãy là người đầu tiên!</div>`;
                     return;
                 }
 
                 let html = '';
                 result.data.forEach((user, index) => {
-                    let rankIcon = '';
-                    let rankStyle = '';
+                    let rankIcon = ''; let rankStyle = '';
                     
-                    // Phân loại Huy chương
                     if (index === 0) {
                         rankIcon = '<i class="fa-solid fa-medal"></i> 1';
                         rankStyle = 'background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #fbbf24; color: #d97706; font-size: 16px; padding: 15px;';
@@ -469,7 +377,7 @@
                         rankStyle = 'background: #fff7ed; border-color: #fdba74; color: #c2410c; padding: 12px;';
                     } else {
                         rankIcon = `<span style="font-size: 14px; font-weight: 800; color: #94a3b8;">#${index + 1}</span>`;
-                        rankStyle = 'background: #fff; border-color: #e2e8f0; padding: 10px;';
+                        rankStyle = 'background: transparent; border-color: #e2e8f0; padding: 10px;';
                     }
 
                     html += `
@@ -477,8 +385,8 @@
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <div style="width: 40px; text-align: center; font-weight: 900; font-size: 18px;">${rankIcon}</div>
                                 <div>
-                                    <div style="font-weight: 800; color: #1e293b;">${user.name} <span style="font-size: 12px; color: #64748b; font-weight: 700; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; margin-left: 5px;">${user.className}</span></div>
-                                    <div style="font-size: 12px; font-weight: 700; color: #64748b; margin-top: 3px;"><i class="fa-regular fa-clock"></i> ${user.timeStr}</div>
+                                    <div style="font-weight: 800; color: ${index < 3 ? 'inherit' : (document.body.classList.contains('dark-mode') ? '#fff' : '#1e293b')};">${user.name} <span style="font-size: 12px; font-weight: 700; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; margin-left: 5px;">${user.className}</span></div>
+                                    <div style="font-size: 12px; font-weight: 700; margin-top: 3px; opacity: 0.8;"><i class="fa-regular fa-clock"></i> ${user.timeStr}</div>
                                 </div>
                             </div>
                             <div style="font-weight: 900; font-size: 18px; color: var(--hub-color); background: #fff; padding: 5px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
@@ -494,9 +402,8 @@
                 document.getElementById('leaderboard-list').innerHTML = `<div style="text-align: center; color: #ef4444; font-weight: 700;">Lỗi tải bảng xếp hạng!</div>`;
             }
         }
-        
-        // Gọi hàm tải Leaderboard ngay sau khi tải xong thông tin Quiz
-        loadLeaderboard();
+
+        loadQuizDetails();
     </script>
 </body>
 </html>
