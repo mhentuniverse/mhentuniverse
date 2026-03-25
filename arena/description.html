@@ -240,22 +240,86 @@
     </footer>
 
     <script type="module">
-        // Lấy API URL
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
-        const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get('id');
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // ==========================================
+        // CẤU HÌNH FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            projectId: "mhentuniverse",
+            storageBucket: "mhentuniverse.firebasestorage.app",
+            messagingSenderId: "377044322952",
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI & AUTH (CƠ BẢN)
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login.html'; });
+        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); }
+        
+        window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
+        window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
+        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
+        
         window.toggleDarkMode = function() { 
             document.body.classList.toggle('dark-mode'); 
             localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
         };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+        
+        window.onclick = function(e) {
+            if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); }
+            if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active');
+        };
+        
+        window.showToast = function(title, msg, type = 'success') {
+            let container = document.getElementById('toast-container') || (()=>{let c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); return c;})();
+            let toast = document.createElement('div'); toast.className = `toast-msg ${type}`;
+            toast.innerHTML = `<div class="toast-icon">${type==='error'?'❌':(type==='info'?'⭐':'✅')}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${msg}</span></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+
+        // KIỂM TRA ĐĂNG NHẬP & PHÂN QUYỀN ADMIN
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
+                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+
+                // Quét thẻ Admin
+                try {
+                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userSnap.exists() && userSnap.data().role === 'admin') {
+                        document.getElementById('admin-panel-btn').style.display = 'block';
+                        document.getElementById('admin-divider').style.display = 'block';
+                    }
+                } catch(e) { console.log(e); }
+
+            } else {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+            }
+        });
+
+        // Lấy API URL
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        const quizId = urlParams.get('id');
 
         window.openModal = function() { document.getElementById('info-modal').classList.add('active'); document.body.style.overflow = 'hidden'; }
         window.closeModal = function() { document.getElementById('info-modal').classList.remove('active'); document.body.style.overflow = ''; }
         document.getElementById('info-modal').addEventListener('click', function(e) { if(e.target === this) window.closeModal(); });
-
-        window.showToast = function(msg) { alert(msg); };
 
         async function loadQuizDetails() {
             if (!quizId) {
