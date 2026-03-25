@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đại Sảnh Khảo Thí - MHEnt. Arena</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff9a55">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/arena/arena-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
+
+        /* =======================================================
+           ARENA THEME - BÙA GHI ĐÈ MÀU CAM LỬA
+           ======================================================= */
+        :root {
+            --hub-color: #ff9a55; 
+            --hub-bg: rgba(255, 154, 85, 0.15);
+            --hub-hover: #e8833e;
+        }
+
+        .logo-name { color: var(--hub-color) !important; }
+        .nav-links a:hover { color: var(--hub-color) !important; }
+        .avt-img, .user-avatar { border-color: var(--hub-color) !important; }
+        .btn-theme { border-color: var(--hub-color) !important; color: var(--hub-color) !important; }
+        .btn-theme:hover { background: var(--hub-bg) !important; }
+        .menu-toggle svg { stroke: var(--hub-color) !important; }
+        
+        .dropdown-menu { border-color: rgba(255, 154, 85, 0.3) !important; }
+        .dropdown-menu::before { border-top-color: rgba(255, 154, 85, 0.3) !important; border-left-color: rgba(255, 154, 85, 0.3) !important; }
+        .dropdown-item:hover { color: var(--hub-color) !important; }
+        .dropdown-item::before { background: var(--hub-color) !important; }
+        #btn-logout:hover { color: #ff4d4d !important; } 
+
+        /* Nút đăng nhập đổi sang màu Cam */
+        .btn-login { background: var(--hub-color) !important; }
+        .btn-login:hover { background: var(--hub-hover) !important; }
+
+        /* ======================================================= */
+
+        .hero { background: linear-gradient(135deg, #fff5ee 0%, #ffe4d6 100%); padding: 70px 5%; text-align: center; }
+        .hero h1 { font-size: 38px; color: #1e293b; margin: 0 0 10px 0; font-weight: 900;}
+        .hero h1 span { color: var(--hub-color); }
+        .small-description { font-size: 15px; color: #64748b; margin: 0 0 35px 0; font-weight: 700; display: block; }
+        
+        /* KHU VỰC TÌM KIẾM MÃ CUỘC THI */
+        .arena-join-box {
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            padding: 15px; border-radius: 50px; box-shadow: 0 10px 30px rgba(255, 154, 85, 0.15);
+            border: 2px solid rgba(255, 154, 85, 0.3);
+            display: flex; gap: 10px; align-items: center; max-width: 600px; margin: 0 auto;
+        }
+        .arena-input { 
+            flex: 1; padding: 12px 20px; border-radius: 50px; 
+            border: 2px solid transparent; font-size: 16px; outline: none; background: #f8fafc; font-weight: 800; text-align: center; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .arena-input:focus { border-color: var(--hub-color); background: #fff; }
+        .arena-input::placeholder { text-transform: none; letter-spacing: 0; font-weight: 600;}
+        
+        .btn-join-arena {
+            background: linear-gradient(135deg, #ff9a55, #ff7a22); color: white; border: none;
+            padding: 12px 30px; border-radius: 50px; font-weight: 900; font-size: 15px; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;
+        }
+        .btn-join-arena:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 154, 85, 0.4); }
+
+        /* DANH SÁCH CUỘC THI */
+        .arena-section { max-width: 1100px; width: 95%; margin: 40px auto; }
+        .section-title { font-size: 24px; font-weight: 900; color: #1e293b; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        .section-title i { color: var(--hub-color); }
+        
+        .quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        
+        .quiz-card {
+            background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 154, 85, 0.2); transition: 0.3s; cursor: pointer; text-decoration: none; display: block;
+        }
+        .quiz-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(255, 154, 85, 0.15); border-color: var(--hub-color); }
+        
+        .quiz-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .quiz-status { font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+        .status-open { background: #dcfce7; color: #10b981; }
+        .status-closed { background: #fee2e2; color: #ef4444; }
+        .quiz-icon { width: 45px; height: 45px; border-radius: 12px; background: var(--hub-bg); color: var(--hub-color); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        
+        .quiz-title { font-size: 18px; font-weight: 900; color: #1e293b; margin: 0 0 8px 0; }
+        .quiz-desc { 
+            font-size: 14px; 
+            color: #64748b; 
+            margin: 0 0 20px 0; 
+            line-height: 1.5; 
+            
+            /* Code thực tế trình duyệt xài */
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            
+            /* Code dỗ ngọt VS Code khỏi báo vàng */
+            line-clamp: 2;
+            box-orient: vertical;
+            
+            overflow: hidden; 
+        }        
+        .quiz-meta { display: flex; align-items: center; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .meta-item { font-size: 13px; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 5px; }
+        .meta-item i { color: var(--hub-color); }
+
+        /* DARK MODE GHI ĐÈ */
+        body.dark-mode .hero { background: #1e293b; }
+        body.dark-mode .hero h1, body.dark-mode .section-title, body.dark-mode .quiz-title { color: #fff; }
+        body.dark-mode .arena-join-box { background: rgba(15, 23, 42, 0.9); border-color: rgba(255, 154, 85, 0.2); }
+        body.dark-mode .arena-input { background: #0f172a; border-color: #334155; color: white; }
+        body.dark-mode .quiz-card { background: #0f172a; border-color: #334155; }
+        body.dark-mode .quiz-card:hover { border-color: var(--hub-color); background: #1e293b; }
+        body.dark-mode .quiz-meta { border-color: #334155; }
+        body.dark-mode .status-open { background: rgba(16, 185, 129, 0.15); }
+        body.dark-mode .status-closed { background: rgba(239, 68, 68, 0.15); }
+
+        @media (max-width: 768px) {
+            .arena-join-box { flex-direction: column; border-radius: 20px; padding: 10px; }
+            .btn-join-arena { width: 100%; }
+        }
+    </style>
+</head>
+<body class="gradient-bg">
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                <span class="logo-name">MHEnt. Arena</span>
+            </a>
+        </div>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a onclick="window.location.href='/'" style="cursor: pointer;">Đại Sảnh</a></li>
+            <li><a onclick="window.location.href='/cinema/'" style="cursor: pointer;">Cinema</a></li>
+            <li><a onclick="window.location.href='/music/room.html'" style="cursor: pointer;">Music</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <div class="user-section">
+                <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
+                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Vũ Trụ MHEnt" style="cursor: pointer; transition: 0.3s; color: inherit;">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                            <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                            <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                            <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                        </svg>
+                    </div>
+                    <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                        <a onclick="window.location.href='/'" class="app-item"><span class="app-name">Đại Sảnh</span></a>
+                        <a onclick="window.location.href='/cinema/'" class="app-item"><span class="app-name">Cinema</span></a>
+                        <a onclick="window.location.href='/music/room.html'" class="app-item"><span class="app-name">Music Room</span></a>
+                        
+                        <a onclick="window.location.href='/arena/'" class="app-item active" style="border-color: #ff9a55; background: rgba(255,154,85,0.15);">
+                            <span class="app-name" style="color:#ff9a55;">Arena</span>
+                        </a>
+                        
+                        <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Manga đang xây dựng!', 'info'); return false;"><span class="app-name">Manga</span></a>
+                        <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Novel đang xây dựng!', 'info'); return false;"><span class="app-name">Novel</span></a>
+                    </div>
+                </div>
+
+                <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <button id="btn-login" class="btn-login" style="display: flex;">Đăng nhập</button>
+
+                <div id="user-profile" class="user-profile" style="position: relative; display: none;">
+                    <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <img id="user-avatar" src="/assets/avt-web.jpg" alt="User" class="user-avatar">
+                        <span id="user-name" class="user-name">Đang tải...</span>
+                    </div>
+                    <div id="dropdown-account" class="dropdown-menu account-dropdown">
+                        <div class="dropdown-item" onclick="window.location.href='/profile.html#info'"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="7" r="4"></circle></svg> Hồ sơ</div>
+                        <div class="dropdown-divider"></div>
+                        <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #ff9a55 !important;" onclick="window.location.href='/arena/admin.html'">
+                            <i class="fa-solid fa-user-shield" style="margin-right:8px;"></i> Quản lý Arena
+                        </div>
+                        <div class="dropdown-divider" id="admin-divider" style="display: none;"></div>
+                        <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-toggle" onclick="toggleMobileMenu()">
+                <svg viewBox="0 0 24 24" width="28" height="28" style="stroke: var(--hub-color);"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>MHEnt. <span>Arena</span></h1>
+        <p class="small-description">Hệ thống thi trắc nghiệm trực tuyến - Nhanh chóng, minh bạch & chính xác!</p>
+        
+        <div class="arena-join-box">
+            <input type="text" id="quiz-code-input" class="arena-input" placeholder="Nhập mã cuộc thi (Ví dụ: HOITHIDOAN)">
+            <button id="btn-join-code" class="btn-join-arena">
+                <i class="fa-solid fa-right-to-bracket"></i> Tham gia
+            </button>
+        </div>
+    </header>
+
+    <main class="arena-section">
+        <h2 class="section-title"><i class="fa-solid fa-fire-flame-curved"></i> Các hội thi đang mở</h2>
+        
+        <div class="quiz-grid" id="quiz-list-container">
+            <div style="width: 100%; text-align: center; grid-column: 1 / -1; color: #888; font-weight: 700; padding: 40px 0;">
+                <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--hub-color); margin-bottom: 15px;"></i><br>
+                Đang tải dữ liệu từ máy chủ...
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-bottom">
+            <p>©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // ==========================================
+        // CẤU HÌNH FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            projectId: "mhentuniverse",
+            storageBucket: "mhentuniverse.firebasestorage.app",
+            messagingSenderId: "377044322952",
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI & AUTH (CƠ BẢN)
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login.html'; });
+        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); }
+        
+        window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
+        window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
+        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
+        
+        window.toggleDarkMode = function() { 
+            document.body.classList.toggle('dark-mode'); 
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
+        };
+        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+        
+        window.onclick = function(e) {
+            if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); }
+            if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active');
+        };
+        
+        window.showToast = function(title, msg, type = 'success') {
+            let container = document.getElementById('toast-container') || (()=>{let c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); return c;})();
+            let toast = document.createElement('div'); toast.className = `toast-msg ${type}`;
+            toast.innerHTML = `<div class="toast-icon">${type==='error'?'❌':(type==='info'?'⭐':'✅')}</div><div class="toast-content"><span class="toast-title">${title}</span><span class="toast-desc">${msg}</span></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+
+        // KIỂM TRA ĐĂNG NHẬP & PHÂN QUYỀN ADMIN
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
+                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+
+                // Quét thẻ Admin
+                try {
+                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userSnap.exists() && userSnap.data().role === 'admin') {
+                        document.getElementById('admin-panel-btn').style.display = 'block';
+                        document.getElementById('admin-divider').style.display = 'block';
+                    }
+                } catch(e) { console.log(e); }
+
+            } else {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+            }
+        });
+
+        // ==========================================
+        // LOGIC MẶT TIỀN ARENA
+        // ==========================================
+
+        // Xử lý nút tham gia bằng Mã
+        document.getElementById('btn-join-code').addEventListener('click', () => {
+            let code = document.getElementById('quiz-code-input').value.trim();
+            if (!code) {
+                showToast('Lỗi', 'Cậu chưa nhập mã cuộc thi!', 'error');
+                return;
+            }
+            // Chuyển hướng sang phòng thi với mã ID trên URL
+            window.location.href = `/arena/quiz.html?id=${code.toUpperCase()}`;
+        });
+
+        document.getElementById('quiz-code-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('btn-join-code').click();
+        });
+
+        // MÔ PHỎNG TẢI DANH SÁCH CUỘC THI TỪ APPS SCRIPT (Sau này sẽ nối API thật)
+        function loadFeaturedQuizzes() {
+            const container = document.getElementById('quiz-list-container');
+            
+            // Dữ liệu mô phỏng (Sau này Apps Script sẽ trả về y chang vầy)
+            const mockData = [
+                {
+                    id: "HOITHIDOAN",
+                    title: "Hội thi Bí thư Chi đoàn giỏi 2026",
+                    desc: "Kiểm tra kiến thức Đoàn - Hội và kỹ năng công tác thanh niên.",
+                    status: "open",
+                    questions: 50,
+                    timeLimit: 45
+                },
+                {
+                    id: "IQTEST",
+                    title: "Thử thách IQ MHEnt. Universe",
+                    desc: "Giải mã các câu đố hóc búa để nhận vé mời xem phim miễn phí!",
+                    status: "closed",
+                    questions: 15,
+                    timeLimit: 15
+                }
+            ];
+
+            container.innerHTML = '';
+            
+            if (mockData.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
+                return;
+            }
+
+            mockData.forEach(quiz => {
+                let statusHtml = quiz.status === 'open' 
+                    ? `<span class="quiz-status status-open">Đang mở</span>`
+                    : `<span class="quiz-status status-closed">Đã đóng</span>`;
+
+                container.innerHTML += `
+                    <a href="/arena/quiz.html?id=${quiz.id}" class="quiz-card">
+                        <div class="quiz-header">
+                            <div class="quiz-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                            ${statusHtml}
+                        </div>
+                        <h3 class="quiz-title">${quiz.title}</h3>
+                        <p class="quiz-desc">${quiz.desc}</p>
+                        <div class="quiz-meta">
+                            <span class="meta-item"><i class="fa-solid fa-list-ol"></i> ${quiz.questions} câu</span>
+                            <span class="meta-item"><i class="fa-solid fa-stopwatch"></i> ${quiz.timeLimit} phút</span>
+                        </div>
+                    </a>
+                `;
+            });
+        }
+
+        // Tạm thời gọi hàm mô phỏng
+        setTimeout(loadFeaturedQuizzes, 1000);
+
+    </script>
+</body>
+</html>
