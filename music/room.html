@@ -175,6 +175,37 @@
 
         #sync-status-icon { position: absolute; top: 20px; right: 20px; font-size: 18px; color: #10b981;}
 
+        /* ===============================================
+           GIAO DIỆN LỜI BÀI HÁT (LYRIC PANEL)
+           =============================================== */
+        .lyric-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px);
+            z-index: 40; border-radius: 20px; display: flex; flex-direction: column;
+            padding: 25px; box-sizing: border-box;
+            opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(30px);
+        }
+        .lyric-overlay.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        body.dark-mode .lyric-overlay { background: rgba(15, 23, 42, 0.85); }
+        
+        .lyric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px dashed rgba(192, 132, 252, 0.3); padding-bottom: 15px;}
+        .lyric-header h3 { margin: 0; color: var(--hub-color); font-weight: 900; font-size: 20px; display: flex; align-items: center; gap: 8px;}
+        
+        .lyric-content { flex: 1; overflow-y: auto; text-align: center; font-size: 16px; line-height: 2.2; color: #475569; font-weight: 700; padding: 10px 20px; white-space: pre-wrap; }
+        body.dark-mode .lyric-content { color: #cbd5e1; }
+        .lyric-content::-webkit-scrollbar { width: 6px; }
+        .lyric-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        body.dark-mode .lyric-content::-webkit-scrollbar-thumb { background: #475569; }
+
+        .lyric-edit-input { 
+            flex: 1; width: 100%; border-radius: 15px; border: 2px dashed var(--hub-color); 
+            padding: 15px; font-size: 15px; background: rgba(255,255,255,0.5); 
+            color: #1e293b; font-family: inherit; resize: none; outline: none; line-height: 1.8; font-weight: 600;
+        }
+        .lyric-edit-input:focus { background: #fff; box-shadow: 0 5px 15px rgba(192,132,252,0.2); }
+        body.dark-mode .lyric-edit-input { background: rgba(15,23,42,0.5); color: #fff; }
+        body.dark-mode .lyric-edit-input:focus { background: #0f172a; }
+
         @media (max-width: 900px) {
             .music-page-container { padding: 20px 15px; }
             .music-loader { padding: 10px; flex-direction: column; border-radius: 20px; gap: 10px;}
@@ -347,6 +378,21 @@
                 </div>
 
                 <div id="sync-status-icon" title="Đang kết nối..."><i class="fa-solid fa-satellite-dish fa-fade" style="color: #c084fc;"></i></div>
+                
+                <div id="lyric-overlay" class="lyric-overlay">
+                    <div class="lyric-header">
+                        <h3><i class="fa-solid fa-microphone-lines"></i> Lời Bài Hát</h3>
+                        <button id="btn-close-lyric" class="control-btn" style="width:30px; height:30px; font-size:15px;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div id="lyric-content" class="lyric-content">
+                        <p id="lyric-text">Chưa có lời bài hát. Bấm "Thêm Lời" để đóng góp nhé!</p>
+                    </div>
+                    <textarea id="lyric-edit-input" class="lyric-edit-input" style="display:none;" placeholder="Dán lời bài hát của cậu vào đây cho mọi người cùng hát nha..."></textarea>
+                    <div class="lyric-footer" style="margin-top: 15px; display:flex; gap:10px;">
+                        <button id="btn-edit-lyric" class="btn-music-load" style="width:100%; border-radius:12px; font-size:13px; padding:10px;"><i class="fa-solid fa-pen"></i> Thêm / Sửa Lời</button>
+                        <button id="btn-save-lyric" class="btn-music-load" style="width:100%; border-radius:12px; font-size:13px; padding:10px; display:none; background: #10b981;"><i class="fa-solid fa-floppy-disk"></i> Lưu Lời</button>
+                    </div>
+                </div>
 
                 <div class="vinyl-record" id="vinyl-disc">
                     <div class="vinyl-center" id="vinyl-cover"></div>
@@ -375,6 +421,7 @@
                     <button class="control-btn play-btn" id="btn-play-pause" title="Phát/Dừng"><i class="fa-solid fa-play"></i></button>
                     <button class="control-btn" id="btn-next" title="Bài tiếp"><i class="fa-solid fa-forward-step"></i></button>
                     <button class="control-btn" id="btn-loop" title="Lặp lại"><i class="fa-solid fa-repeat"></i></button>
+                    <button class="control-btn" id="btn-toggle-lyric" title="Bật/Tắt Lời bài hát"><i class="fa-solid fa-file-audio"></i></button>
                 </div>
 
                 <div id="youtube-player-hidden"></div>
@@ -1015,6 +1062,61 @@
             let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
             broadcastToFirebase({ isShuffle: !currentRoomData.isShuffle, time: currentTime });
         });
+
+        // ===============================================
+        // BỘ NÃO ĐIỀU KHIỂN & ĐỒNG BỘ LỜI BÀI HÁT
+        // ===============================================
+        document.getElementById('btn-toggle-lyric').addEventListener('click', () => {
+            document.getElementById('lyric-overlay').classList.toggle('show');
+        });
+        document.getElementById('btn-close-lyric').addEventListener('click', () => {
+            document.getElementById('lyric-overlay').classList.remove('show');
+            // Đóng bảng thì tự động Reset về màn hình xem
+            document.getElementById('lyric-content').style.display = 'block';
+            document.getElementById('lyric-edit-input').style.display = 'none';
+            document.getElementById('btn-edit-lyric').style.display = 'block';
+            document.getElementById('btn-save-lyric').style.display = 'none';
+        });
+
+        document.getElementById('btn-edit-lyric').addEventListener('click', () => {
+            document.getElementById('lyric-content').style.display = 'none';
+            document.getElementById('lyric-edit-input').style.display = 'block';
+            document.getElementById('btn-edit-lyric').style.display = 'none';
+            document.getElementById('btn-save-lyric').style.display = 'block';
+            document.getElementById('lyric-edit-input').focus();
+        });
+
+        document.getElementById('btn-save-lyric').addEventListener('click', () => {
+            let text = document.getElementById('lyric-edit-input').value.trim();
+            if(!currentRoomData.ytId) {
+                showToast('Chưa có nhạc', 'Hãy bật 1 bài hát trước khi lưu lời nhé!', 'error');
+                return;
+            }
+            // Lưu lên Firebase: Nội dung lời + ID của bài hát hiện tại
+            broadcastToFirebase({ lyrics_text: text, lyrics_id: currentRoomData.ytId });
+            showToast('Thành công', 'Đã lưu lời bài hát cho mọi người!', 'success');
+            
+            document.getElementById('lyric-content').style.display = 'block';
+            document.getElementById('lyric-edit-input').style.display = 'none';
+            document.getElementById('btn-edit-lyric').style.display = 'block';
+            document.getElementById('btn-save-lyric').style.display = 'none';
+        });
+
+        // 🛠️ VÁ VÀO HÀM SYNC CHÍNH (Đồng bộ lời bài hát với Firebase theo thời gian thực)
+        // Lưu lại hàm syncPlayer cũ và ghi đè thêm tính năng Lyric vào cuối
+        const originalSyncPlayer = syncPlayer;
+        syncPlayer = function(data) {
+            originalSyncPlayer(data); // Chạy lệnh đồng bộ nhạc gốc
+            
+            // Xử lý đồng bộ Lời bài hát
+            if (data.lyrics_id === data.ytId && data.lyrics_text) {
+                document.getElementById('lyric-text').innerText = data.lyrics_text;
+                document.getElementById('lyric-edit-input').value = data.lyrics_text;
+            } else {
+                document.getElementById('lyric-text').innerText = "Chưa có lời bài hát.\nBấm 'Thêm / Sửa Lời' để đóng góp cho phòng nhé!";
+                document.getElementById('lyric-edit-input').value = "";
+            }
+        };
     </script>
 </body>
 </html>
