@@ -138,30 +138,35 @@
     </div>
 
     <div id="qr-popup" class="modal-overlay" style="z-index: 10001; opacity: 0; pointer-events: none;">
-        <div class="popup-box" style="max-width: 750px; padding: 35px; transform: scale(0.8); transition: 0.3s;" id="qr-box">
-            <span onclick="closeQRCode()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ef4444; font-weight: 900;">&times;</span>
-            <h2 style="margin-top:0; color: var(--hub-color);"><i class="fa-solid fa-qrcode"></i> Asset Truyền Thông</h2>
-            <p style="color:#64748b; font-size: 13px; margin-bottom: 25px; font-weight: 700;">Gửi cho Design dán lên Poster hoặc copy link gửi thẳng cho sinh viên!</p>
+        <div style="background: #fff; padding: 35px; border-radius: 20px; text-align: center; width: 90%; max-width: 750px; transform: scale(0.8); transition: 0.3s; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" id="qr-box" class="qr-specific-box">
             
-            <div style="display: flex; gap: 30px; margin-bottom: 25px;">
-                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border: 2px dashed #cbd5e1; text-align: center;">
-                    <img id="qr-image-bw" src="" alt="QR B&W" style="width: 100%; max-width: 300px; border-radius: 10px; display: block; margin: 0 auto 15px auto;">
+            <span onclick="closeQRCode()" style="position: absolute; top: 15px; right: 20px; font-size: 35px; cursor: pointer; color: #ef4444; font-weight: 900; z-index: 100; line-height: 1;">&times;</span>
+            
+            <h2 style="margin-top:0; color: var(--hub-color);"><i class="fa-solid fa-qrcode"></i> Asset Truyền Thông</h2>
+            <p style="color:#64748b; font-size: 14px; margin-bottom: 25px; font-weight: 700;">Gửi cho Design dán lên Poster hoặc copy link gửi thẳng cho sinh viên!</p>
+            
+            <div style="display: flex; gap: 25px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center;">
+                <div style="flex: 1; min-width: 250px; background: #f8fafc; padding: 20px; border-radius: 15px; border: 2px dashed #cbd5e1;">
+                    <img id="qr-image-bw" src="" alt="QR B&W" style="width: 100%; max-width: 280px; border-radius: 10px; display: block; margin: 0 auto 15px auto; background: white; padding: 10px;">
                     <button class="btn-admin" onclick="downloadQR('bw')" style="width: 100%; padding: 10px; font-size: 14px; background: #1e293b;"><i class="fa-solid fa-download"></i> Tải Đen Trắng</button>
                 </div>
-                <div style="flex: 1; background: #fffaf5; padding: 20px; border-radius: 15px; border: 2px dashed #ff9a55; text-align: center;">
-                    <img id="qr-image-color" src="" alt="QR Color" style="width: 100%; max-width: 300px; border-radius: 10px; display: block; margin: 0 auto 15px auto;">
+                <div style="flex: 1; min-width: 250px; background: #fffaf5; padding: 20px; border-radius: 15px; border: 2px dashed #ff9a55;">
+                    <img id="qr-image-color" src="" alt="QR Color" style="width: 100%; max-width: 280px; border-radius: 10px; display: block; margin: 0 auto 15px auto; background: white; padding: 10px;">
                     <button class="btn-admin" onclick="downloadQR('color')" style="width: 100%; padding: 10px; font-size: 14px;"><i class="fa-solid fa-download"></i> Tải Bản Màu</button>
                 </div>
             </div>
             
             <div class="input-group" style="margin-bottom: 15px;">
-                <input type="text" id="qr-link-input" class="admin-input" readonly style="text-align: center; font-size: 13px; color: #3b82f6; cursor: pointer;" onclick="this.select()">
+                <input type="text" id="qr-link-input" class="admin-input" readonly style="text-align: center; font-size: 15px; color: #3b82f6; cursor: pointer; background: #eff6ff; border-color: #bfdbfe;" onclick="this.select()">
             </div>
-            <button class="btn-admin" onclick="copyQuizLink(this)" style="width:100%; justify-content:center; background: #3b82f6;">
+            <button class="btn-admin" onclick="copyQuizLink(this)" style="width:100%; justify-content:center; background: #3b82f6; padding: 15px;">
                 <i class="fa-solid fa-copy"></i> Copy Link Ngay
             </button>
         </div>
     </div>
+    <style>
+        body.dark-mode .qr-specific-box { background: #1e293b !important; border: 1px solid #334155; }
+    </style>
 
     <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box;">
         <div class="nav-left">
@@ -495,33 +500,20 @@
             let l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); l.download = `KQ_${document.getElementById('select-view-res').value}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         }
 
-        // FIXED LOGIC TẠO MÃ QR (ĐỔI API ĐỂ ÉP LOGO TO HƠN)
+        // LOGIC TẠO MÃ QR (ĐÃ KHÓA KÍCH THƯỚC LOGO LỚN & NÉT)
         window.showQRCode = function() {
             let qId = document.getElementById('select-view-dash').value;
             if(!qId) { showPopup("Giám đốc chọn Hội thi trước đã nha!", true); return; }
             
             let quizLink = window.location.origin + "/arena/description.html?id=" + qId;
-            // Dùng logo của cậu nhưng đổi sang đuôi PNG không nền, kích thước vuông
             let logoUrl = "https://mhentuniverse.vercel.app/assets/icon-web.png";
             
-            // Đổi sang API goqr.me (Nó cho phép ép logo to hơn quickchart)
-            let qrBwUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(quizLink)}&size=500x500&ecc=H&margin=10`;
+            // Dùng Quickchart nhưng ép cứng width/height của logo là 120 (rất to) và ecc=H (chống lỗi mức cao nhất)
+            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageWidth=120&centerImageHeight=120`;
+            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageWidth=120&centerImageHeight=120`;
             
-            // Vì goqr.me không hỗ trợ tự dán logo trực tiếp vào API URL dễ dàng như quickchart (hay bị lỗi CORS)
-            // Nên tớ quay lại dùng API của QR Code Generator (cái này nhét logo vô tư mà siêu nét)
-            let qrColorUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&chof=png&icq=true`;
-            
-            // Cập nhật lại đường dẫn ảnh B&W (Dùng QR Code Generator luôn cho đồng bộ)
-             qrBwUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&chof=png`;
-
-            // Cập nhật lại URL QR với logo (Dùng image-charts API, cái này nhét logo đỉnh nhất)
-            let finalQrBwUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&icq=true`;
-            let finalQrColorUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&icq=true&chco=ff9a55`;
-            
-            // Đặt ảnh vào thẻ
-            document.getElementById('qr-image-bw').src = finalQrBwUrl;
-            document.getElementById('qr-image-color').src = finalQrColorUrl;
-            
+            document.getElementById('qr-image-bw').src = qrBwUrl;
+            document.getElementById('qr-image-color').src = qrColorUrl;
             document.getElementById('qr-link-input').value = quizLink;
             
             let modal = document.getElementById('qr-popup');
