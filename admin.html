@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - MHEnt. Universe</title>
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* TONE MÀU CHÀM (INDIGO) CHO TRỤ SỞ CHÍNH */
+        :root { --hub-color: #6366f1; --hub-bg: rgba(99, 102, 241, 0.15); }
+        
+        body, h1, h2, h3, h4, p, span, button, input, select, td, th { font-family: 'Nunito', sans-serif !important; }
+        body { background: #f8fafc; margin: 0; padding: 0; color: #1e293b; overflow-x: hidden; }
+        body.dark-mode { background: #0f172a; color: #fff; }
+
+        /* HEADER TỐI GIẢN */
+        .master-header { background: #fff; padding: 15px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--hub-color); }
+        body.dark-mode .master-header { background: #1e293b; border-color: #334155; }
+        .brand { font-size: 24px; font-weight: 900; color: var(--hub-color); display: flex; align-items: center; gap: 10px; }
+        
+        .btn-theme, .btn-action { background: transparent; border: 2px solid #e2e8f0; color: #64748b; padding: 10px 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-theme:hover, .btn-action:hover { border-color: var(--hub-color); color: var(--hub-color); background: var(--hub-bg); }
+        body.dark-mode .btn-theme, body.dark-mode .btn-action { border-color: #334155; color: #94a3b8; }
+        
+        /* NỘI DUNG CHÍNH */
+        .master-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .page-title { font-size: 32px; font-weight: 900; margin-bottom: 5px; }
+        .page-subtitle { color: #64748b; font-weight: 700; margin-bottom: 30px; font-size: 16px; }
+
+        /* BẢNG QUẢN LÝ USER */
+        .user-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        body.dark-mode .user-card { background: #1e293b; border-color: #334155; }
+        
+        .search-bar { width: 100%; max-width: 400px; padding: 12px 20px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 700; outline: none; transition: 0.3s; box-sizing: border-box; margin-bottom: 20px; }
+        .search-bar:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1); }
+        body.dark-mode .search-bar { background: #0f172a; border-color: #334155; color: #fff; }
+
+        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
+        body.dark-mode .table-container { border-color: #334155; }
+        .user-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .user-table th { background: #f1f5f9; padding: 15px 20px; font-weight: 900; color: #475569; font-size: 14px; text-transform: uppercase; white-space: nowrap;}
+        .user-table td { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; font-size: 15px; font-weight: 700; vertical-align: middle; }
+        body.dark-mode .user-table th { background: #0f172a; color: #94a3b8; }
+        body.dark-mode .user-table td { border-color: #334155; color: #cbd5e1; }
+        
+        .badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;}
+        .badge.admin { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; }
+        .badge.creator { background: #e0f2fe; color: #0ea5e9; border: 1px solid #7dd3fc; }
+        .badge.uploader { background: #fef08a; color: #d97706; border: 1px solid #fde047; }
+        .badge.user { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+        body.dark-mode .badge.user { background: #334155; color: #cbd5e1; border-color: #475569; }
+
+        .btn-edit { background: var(--hub-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .btn-edit:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
+
+        /* MODAL CHỈNH SỬA USER */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box { background: #fff; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; transform: scale(0.8); transition: 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.1); position: relative; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        body.dark-mode .modal-box { background: #1e293b; border: 1px solid #334155; }
+
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ef4444; font-weight: 900; background: none; border: none; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
+        body.dark-mode .input-group label { color: #cbd5e1; }
+        .modal-input, .modal-select { width: 100%; padding: 12px 15px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 700; outline: none; box-sizing: border-box; }
+        .modal-input:focus, .modal-select:focus { border-color: var(--hub-color); background: #fff; }
+        body.dark-mode .modal-input, body.dark-mode .modal-select { background: #0f172a; border-color: #334155; color: white; }
+        
+        .btn-save { background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-save:hover { background: #059669; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+
+        /* KHIÊN BẢO VỆ */
+        #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="security-shield">
+        <i class="fa-solid fa-fingerprint fa-beat fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i>
+        <h2 style="font-weight: 900;">XÁC THỰC QUYỀN LỰC TỐI CAO...</h2>
+        <p style="color: #94a3b8;">Chỉ dành cho Giám đốc điều hành MHEnt.</p>
+    </div>
+
+    <header class="master-header">
+        <div class="brand"><i class="fa-solid fa-chess-king"></i> MHEnt. Master</div>
+        <div style="display: flex; gap: 15px;">
+            <button class="btn-theme" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i></button>
+            <button class="btn-action" onclick="window.location.href='/'"><i class="fa-solid fa-house"></i> Về Đại Sảnh</button>
+        </div>
+    </header>
+
+    <div class="master-container">
+        <h1 class="page-title">Quản Lý Cư Dân</h1>
+        <p class="page-subtitle">Phân quyền, cấp phép và quản lý toàn bộ tài khoản trong Vũ trụ MHEnt.</p>
+
+        <div class="user-card">
+            <input type="text" id="search-input" class="search-bar" placeholder="🔍 Tìm theo Tên hoặc Email..." onkeyup="filterUsers()">
+            
+            <div class="table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Người Dùng</th>
+                            <th>Email</th>
+                            <th>Chức Danh</th>
+                            <th>Nhóm (Team)</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body">
+                        <tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp danh sách cư dân...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="color: var(--hub-color); margin-top: 0; margin-bottom: 20px;"><i class="fa-solid fa-user-pen"></i> Chỉnh Sửa Phân Quyền</h2>
+            
+            <input type="hidden" id="edit-uid">
+            
+            <div class="input-group">
+                <label>Email Tài Khoản (Không thể sửa)</label>
+                <input type="text" id="edit-email" class="modal-input" disabled style="opacity: 0.7; cursor: not-allowed;">
+            </div>
+
+            <div class="input-group">
+                <label>Cấp Quyền Lực (Role)</label>
+                <select id="edit-role" class="modal-select">
+                    <option value="user">User (Người dùng bình thường)</option>
+                    <option value="uploader">Uploader (Đối tác Cinema)</option>
+                    <option value="creator">Creator (Sáng tạo Arena)</option>
+                    <option value="admin">Admin (Quyền Lực Tối Cao)</option>
+                </select>
+            </div>
+
+            <div class="input-group" id="team-group">
+                <label>Tên Nhóm Dịch (Dành cho Uploader Cinema)</label>
+                <input type="text" id="edit-team" class="modal-input" placeholder="Ví dụ: MHEnt. Subtitle">
+                <span style="font-size: 12px; color: #94a3b8; margin-top: 5px; display: block;">* Chỉ có tác dụng khi chọn chức danh Uploader hoặc Admin.</span>
+            </div>
+
+            <button class="btn-save" id="btn-save-user" onclick="saveUser()">LƯU CẬP NHẬT <i class="fa-solid fa-floppy-disk"></i></button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            projectId: "mhentuniverse",
+            storageBucket: "mhentuniverse.firebasestorage.app",
+            messagingSenderId: "377044322952",
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let globalUsers = [];
+
+        window.toggleDarkMode = function() { 
+            document.body.classList.toggle('dark-mode'); 
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
+        };
+        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+
+        // BẢO VỆ CỔNG THÀNH (CHỈ ADMIN MỚI ĐƯỢC VÀO)
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = '/login.html'; } 
+            else {
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    if (!docSnap.exists() || docSnap.data().role !== 'admin') {
+                        alert("Cảnh báo: Cậu không phải Giám đốc! Trục xuất ngay lập tức!");
+                        window.location.href = '/';
+                    } else {
+                        document.getElementById('security-shield').style.opacity = '0';
+                        setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
+                        loadAllUsers();
+                    }
+                } catch (error) { 
+                    alert("Lỗi kết nối máy chủ an ninh!"); 
+                    window.location.href = '/'; 
+                }
+            }
+        });
+
+        // TẢI TOÀN BỘ NGƯỜI DÙNG TỪ FIRESTORE
+        async function loadAllUsers() {
+            const tbody = document.getElementById('user-table-body');
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                globalUsers = [];
+                querySnapshot.forEach((docSnap) => {
+                    globalUsers.push({ uid: docSnap.id, ...docSnap.data() });
+                });
+                renderUsers(globalUsers);
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Lỗi truy xuất dữ liệu! Kiểm tra lại Firebase Security Rules nha Giám đốc!</td></tr>';
+            }
+        }
+
+        // VẼ BẢNG
+        function renderUsers(usersArray) {
+            const tbody = document.getElementById('user-table-body');
+            if (usersArray.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">Không tìm thấy ai cả!</td></tr>';
+                return;
+            }
+
+            let html = '';
+            usersArray.forEach(u => {
+                let roleBadge = '';
+                let roleText = u.role || 'user';
+                
+                if (roleText === 'admin') roleBadge = '<span class="badge admin"><i class="fa-solid fa-crown"></i> Admin</span>';
+                else if (roleText === 'creator') roleBadge = '<span class="badge creator"><i class="fa-solid fa-wand-magic-sparkles"></i> Creator</span>';
+                else if (roleText === 'uploader') roleBadge = '<span class="badge uploader"><i class="fa-solid fa-film"></i> Uploader</span>';
+                else roleBadge = '<span class="badge user"><i class="fa-solid fa-user"></i> User</span>';
+
+                let teamText = u.teamName ? `<span style="color:#6366f1;">${u.teamName}</span>` : '<span style="color:#94a3b8;">Không có</span>';
+                let nameText = u.displayName || u.email.split('@')[0];
+
+                // Mã hóa dữ liệu để nhét vào nút Sửa
+                let safeData = encodeURIComponent(JSON.stringify(u));
+
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <img src="${u.photoURL || '/assets/avt-web.jpg'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+                                <strong>${nameText}</strong>
+                            </div>
+                        </td>
+                        <td style="color:#64748b;">${u.email || 'Không rõ'}</td>
+                        <td>${roleBadge}</td>
+                        <td>${teamText}</td>
+                        <td>
+                            <button class="btn-edit" onclick="openModal('${safeData}')"><i class="fa-solid fa-pen"></i> Chỉnh quyền</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // TÌM KIẾM
+        window.filterUsers = function() {
+            let keyword = document.getElementById('search-input').value.toLowerCase();
+            let filtered = globalUsers.filter(u => {
+                let name = (u.displayName || u.email.split('@')[0]).toLowerCase();
+                let email = (u.email || "").toLowerCase();
+                return name.includes(keyword) || email.includes(keyword);
+            });
+            renderUsers(filtered);
+        }
+
+        // MỞ ĐÓNG MODAL
+        window.openModal = function(encodedData) {
+            let u = JSON.parse(decodeURIComponent(encodedData));
+            document.getElementById('edit-uid').value = u.uid;
+            document.getElementById('edit-email').value = u.email || 'Không rõ';
+            document.getElementById('edit-role').value = u.role || 'user';
+            document.getElementById('edit-team').value = u.teamName || '';
+            document.getElementById('edit-modal').classList.add('active');
+        }
+        window.closeModal = function() {
+            document.getElementById('edit-modal').classList.remove('active');
+        }
+
+        // LƯU CẬP NHẬT LÊN FIRESTORE
+        window.saveUser = async function() {
+            let btn = document.getElementById('btn-save-user');
+            let originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+            btn.disabled = true;
+
+            let uid = document.getElementById('edit-uid').value;
+            let newRole = document.getElementById('edit-role').value;
+            let newTeam = document.getElementById('edit-team').value.trim();
+
+            try {
+                // Firebase: Chỉ cập nhật role và teamName trong document của user đó
+                await updateDoc(doc(db, "users", uid), {
+                    role: newRole,
+                    teamName: newTeam
+                });
+                
+                // Ẩn modal và tải lại bảng
+                closeModal();
+                await loadAllUsers();
+                
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi: Không thể lưu! Hãy chắc chắn Firebase Rules cho phép Admin (cậu) ghi đè collection 'users'.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
