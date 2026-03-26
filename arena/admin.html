@@ -75,7 +75,7 @@
         body.dark-mode .admin-sidebar, body.dark-mode .admin-card, body.dark-mode .admin-table-container, body.dark-mode .dash-card, body.dark-mode .popup-box { background: #1e293b; border-color: #334155; }
         body.dark-mode .admin-title, body.dark-mode .input-group label, body.dark-mode .dash-info h3 { color: #f8fafc; }
         body.dark-mode .admin-menu-item:hover { background: #334155; }
-        body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
+        body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; color-scheme: dark;}
         body.dark-mode .admin-table th { background: #0f172a; color: #94a3b8; border-color: #334155; }
         body.dark-mode .admin-table td { border-color: #334155; color: #cbd5e1; }
         body.dark-mode .admin-table tr:hover td { background: #0f172a; }
@@ -101,7 +101,6 @@
         <div class="admin-card" style="width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; position: relative; margin: 0; transform: scale(0.8); transition: 0.3s; box-sizing: border-box;" id="edit-box">
             <span onclick="closeEditModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ef4444; font-weight: 900;">&times;</span>
             <h2 style="margin-top: 0; color: var(--hub-color);"><i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Câu Hỏi</h2>
-            
             <form id="edit-question-form">
                 <input type="hidden" id="edit-row-index"> 
                 <div class="input-group full">
@@ -109,30 +108,13 @@
                     <textarea id="edit-question" class="admin-textarea" required></textarea>
                 </div>
                 <div class="form-grid">
-                    <div class="input-group">
-                        <label><i class="fa-solid fa-check" style="color:#10b981;"></i> Đáp án ĐÚNG <span style="color:red;">*</span></label>
-                        <input type="text" id="edit-correct" class="admin-input" style="border-color:#10b981;" required>
-                    </div>
-                    <div class="input-group">
-                        <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 1 <span style="color:red;">*</span></label>
-                        <input type="text" id="edit-wrong1" class="admin-input" required>
-                    </div>
-                    <div class="input-group">
-                        <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 2 <span style="color:red;">*</span></label>
-                        <input type="text" id="edit-wrong2" class="admin-input" required>
-                    </div>
-                    <div class="input-group">
-                        <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 3 <span style="color:red;">*</span></label>
-                        <input type="text" id="edit-wrong3" class="admin-input" required>
-                    </div>
+                    <div class="input-group"><label><i class="fa-solid fa-check" style="color:#10b981;"></i> Đáp án ĐÚNG</label><input type="text" id="edit-correct" class="admin-input" style="border-color:#10b981;" required></div>
+                    <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 1</label><input type="text" id="edit-wrong1" class="admin-input" required></div>
+                    <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 2</label><input type="text" id="edit-wrong2" class="admin-input" required></div>
+                    <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 3</label><input type="text" id="edit-wrong3" class="admin-input" required></div>
                 </div>
-                <div class="input-group full">
-                    <label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label>
-                    <textarea id="edit-exp" class="admin-textarea"></textarea>
-                </div>
-                <button type="submit" class="btn-admin btn-green" id="btn-save-edit" style="width: 100%; justify-content: center;">
-                    LƯU CHỈNH SỬA <i class="fa-solid fa-floppy-disk"></i>
-                </button>
+                <div class="input-group full"><label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label><textarea id="edit-exp" class="admin-textarea"></textarea></div>
+                <button type="submit" class="btn-admin btn-green" id="btn-save-edit" style="width: 100%; justify-content: center;">LƯU CHỈNH SỬA <i class="fa-solid fa-floppy-disk"></i></button>
             </form>
         </div>
     </div>
@@ -141,7 +123,7 @@
         <div class="nav-left">
             <a onclick="window.location.href='/arena/'" style="cursor: pointer;">
                 <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
-                <span class="logo-name">MHEnt. Arena - Admin Panel</span>
+                <span class="logo-name">MHEnt. Arena</span>
             </a>
         </div>
         <div class="nav-right">
@@ -157,6 +139,7 @@
             <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Quản Trị Hệ Thống</div>
             <a class="admin-menu-item active" id="menu-dash" onclick="switchTab('dash')"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
             <a class="admin-menu-item" id="menu-create" onclick="switchTab('create')"><i class="fa-solid fa-folder-plus"></i> Tạo Hội Thi Mới</a>
+            <a class="admin-menu-item" id="menu-editquiz" onclick="switchTab('editquiz')"><i class="fa-solid fa-sliders"></i> Cài Đặt Hội Thi</a>
             <a class="admin-menu-item" id="menu-add" onclick="switchTab('add')"><i class="fa-solid fa-plus-circle"></i> Thêm Câu Hỏi</a>
             <a class="admin-menu-item" id="menu-quest" onclick="switchTab('quest')"><i class="fa-solid fa-database"></i> Quản lý Kho Đề</a>
             <a class="admin-menu-item" id="menu-result" onclick="switchTab('result')"><i class="fa-solid fa-list-ol"></i> Báo Cáo Kết Quả</a>
@@ -173,20 +156,10 @@
                     </div>
                     <button class="btn-admin btn-purple" onclick="openLivescore()"><i class="fa-solid fa-satellite-dish"></i> BẬT LIVESCORE</button>
                 </div>
-                
                 <div class="dash-grid" id="dash-widgets" style="display: none;">
-                    <div class="dash-card">
-                        <div class="dash-icon"><i class="fa-solid fa-users"></i></div>
-                        <div class="dash-info"><h3 id="stat-total">0</h3><p>Tổng SV Tham gia</p></div>
-                    </div>
-                    <div class="dash-card">
-                        <div class="dash-icon" style="background:#dcfce7; color:#10b981;"><i class="fa-solid fa-check-double"></i></div>
-                        <div class="dash-info"><h3 id="stat-done">0</h3><p>Đã nộp bài</p></div>
-                    </div>
-                    <div class="dash-card">
-                        <div class="dash-icon" style="background:#fee2e2; color:#ef4444;"><i class="fa-solid fa-bullseye"></i></div>
-                        <div class="dash-info"><h3 id="stat-avg">0 đ</h3><p>Điểm Trung bình</p></div>
-                    </div>
+                    <div class="dash-card"><div class="dash-icon"><i class="fa-solid fa-users"></i></div><div class="dash-info"><h3 id="stat-total">0</h3><p>Tổng SV Tham gia</p></div></div>
+                    <div class="dash-card"><div class="dash-icon" style="background:#dcfce7; color:#10b981;"><i class="fa-solid fa-check-double"></i></div><div class="dash-info"><h3 id="stat-done">0</h3><p>Đã nộp bài</p></div></div>
+                    <div class="dash-card"><div class="dash-icon" style="background:#fee2e2; color:#ef4444;"><i class="fa-solid fa-bullseye"></i></div><div class="dash-info"><h3 id="stat-avg">0 đ</h3><p>Điểm Trung bình</p></div></div>
                 </div>
             </div>
 
@@ -195,43 +168,60 @@
                 <div class="admin-card">
                     <form id="create-quiz-form">
                         <div class="form-grid">
-                            <div class="input-group">
-                                <label>Mã Hội Thi (ID viết liền, không dấu) <span style="color:red;">*</span></label>
-                                <input type="text" id="inp-new-id" class="admin-input" placeholder="VD: HOITHIDOAN2026" required>
-                            </div>
-                            <div class="input-group">
-                                <label>Tên Hội Thi hiển thị <span style="color:red;">*</span></label>
-                                <input type="text" id="inp-new-title" class="admin-input" placeholder="VD: Hội thi Luật An Ninh Mạng" required>
-                            </div>
-                            <div class="input-group">
-                                <label>Tổng số câu hỏi <span style="color:red;">*</span></label>
-                                <input type="number" id="inp-new-count" class="admin-input" placeholder="VD: 20" required>
-                            </div>
-                            <div class="input-group">
-                                <label>Thời gian làm bài (Phút) <span style="color:red;">*</span></label>
-                                <input type="number" id="inp-new-time" class="admin-input" placeholder="VD: 15 (Nhập 0 nếu không giới hạn)" required>
-                            </div>
+                            <div class="input-group"><label>Mã Hội Thi (Viết liền) <span style="color:red;">*</span></label><input type="text" id="inp-new-id" class="admin-input" required></div>
+                            <div class="input-group"><label>Tên Hội Thi hiển thị <span style="color:red;">*</span></label><input type="text" id="inp-new-title" class="admin-input" required></div>
+                            <div class="input-group"><label>Tổng số câu hỏi <span style="color:red;">*</span></label><input type="number" id="inp-new-count" class="admin-input" required></div>
+                            <div class="input-group"><label>Thời gian làm bài (Phút) <span style="color:red;">*</span></label><input type="number" id="inp-new-time" class="admin-input" required></div>
+                            
+                            <div class="input-group"><label>Giờ Mở (Bỏ trống nếu luôn mở)</label><input type="datetime-local" id="inp-new-start" class="admin-input"></div>
+                            <div class="input-group"><label>Giờ Đóng (Bỏ trống nếu không đóng)</label><input type="datetime-local" id="inp-new-end" class="admin-input"></div>
+
                             <div class="input-group">
                                 <label>Trạng thái ban đầu</label>
                                 <select id="inp-new-status" class="admin-select">
-                                    <option value="test">Test Đề (Chỉ Admin test)</option>
-                                    <option value="open">Mở thi (Public)</option>
-                                    <option value="closed" selected>Đóng (Khóa)</option>
+                                    <option value="test">Test Đề</option><option value="open">Mở thi</option><option value="closed" selected>Đóng</option>
                                 </select>
                             </div>
                             <div class="input-group">
                                 <label>Chế độ thi</label>
-                                <select id="inp-new-mode" class="admin-select">
-                                    <option value="default">Truyền thống (Làm xong mới biết điểm)</option>
-                                    <option value="quizz">Đấu trường (Lật bài ngay từng câu)</option>
-                                </select>
+                                <select id="inp-new-mode" class="admin-select"><option value="default">Truyền thống</option><option value="quizz">Đấu trường</option></select>
                             </div>
                         </div>
-                        <div class="input-group full">
-                            <label>Mô tả & Thể lệ <span style="color:red;">*</span></label>
-                            <textarea id="inp-new-desc" class="admin-textarea" placeholder="Thể lệ cuộc thi..." required></textarea>
-                        </div>
+                        <div class="input-group full"><label>Mô tả & Thể lệ <span style="color:red;">*</span></label><textarea id="inp-new-desc" class="admin-textarea" required></textarea></div>
                         <button type="submit" class="btn-admin btn-green" id="btn-submit-quiz">TẠO HỘI THI <i class="fa-solid fa-folder-plus"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="tab-editquiz" class="admin-tab">
+                <h1 class="admin-title">Cài Đặt Hội Thi</h1>
+                <div class="admin-card">
+                    <form id="edit-quiz-form">
+                        <div class="input-group full">
+                            <label>Chọn Hội Thi cần sửa <span style="color:red;">*</span></label>
+                            <select id="inp-edit-quiz-id" class="admin-select" onchange="fillEditQuizForm()" required><option value="">Đang tải...</option></select>
+                        </div>
+                        <div class="form-grid">
+                            <div class="input-group"><label>Tên Hội Thi hiển thị <span style="color:red;">*</span></label><input type="text" id="inp-edit-title" class="admin-input" required></div>
+                            <div class="input-group"><label>Tổng số câu hỏi <span style="color:red;">*</span></label><input type="number" id="inp-edit-count" class="admin-input" required></div>
+                            <div class="input-group"><label>Thời gian làm bài (Phút) <span style="color:red;">*</span></label><input type="number" id="inp-edit-time" class="admin-input" required></div>
+                            
+                            <div class="input-group"><label>Giờ Mở</label><input type="datetime-local" id="inp-edit-start" class="admin-input"></div>
+                            <div class="input-group"><label>Giờ Đóng</label><input type="datetime-local" id="inp-edit-end" class="admin-input"></div>
+
+                            <div class="input-group">
+                                <label>Trạng thái</label>
+                                <select id="inp-edit-status" class="admin-select">
+                                    <option value="test">Test Đề</option><option value="open">Mở thi</option><option value="closed">Đóng</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Chế độ thi</label>
+                                <select id="inp-edit-mode" class="admin-select"><option value="default">Truyền thống</option><option value="quizz">Đấu trường</option></select>
+                            </div>
+                        </div>
+                        <div class="input-group full"><label>Mô tả & Thể lệ <span style="color:red;">*</span></label><textarea id="inp-edit-desc" class="admin-textarea" required></textarea></div>
+                        <button type="submit" class="btn-admin btn-purple" id="btn-save-quiz-edit">LƯU CÀI ĐẶT <i class="fa-solid fa-floppy-disk"></i></button>
                     </form>
                 </div>
             </div>
@@ -240,36 +230,15 @@
                 <h1 class="admin-title">Thêm Câu Hỏi Mới</h1>
                 <div class="admin-card">
                     <form id="add-question-form">
-                        <div class="input-group">
-                            <label>Chọn Hội Thi <span style="color:red;">*</span></label>
-                            <select id="inp-quiz-id" class="admin-select" required><option value="">Đang tải...</option></select>
-                        </div>
-                        <div class="input-group full">
-                            <label>Nội dung câu hỏi <span style="color:red;">*</span></label>
-                            <textarea id="inp-question" class="admin-textarea" placeholder="Nhập nội dung câu hỏi..." required></textarea>
-                        </div>
+                        <div class="input-group"><label>Chọn Hội Thi <span style="color:red;">*</span></label><select id="inp-quiz-id" class="admin-select" required><option value="">Đang tải...</option></select></div>
+                        <div class="input-group full"><label>Nội dung câu hỏi <span style="color:red;">*</span></label><textarea id="inp-question" class="admin-textarea" required></textarea></div>
                         <div class="form-grid">
-                            <div class="input-group">
-                                <label><i class="fa-solid fa-check" style="color:#10b981;"></i> Đáp án ĐÚNG <span style="color:red;">*</span></label>
-                                <input type="text" id="inp-correct" class="admin-input" style="border-color:#10b981;" required>
-                            </div>
-                            <div class="input-group">
-                                <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 1 <span style="color:red;">*</span></label>
-                                <input type="text" id="inp-wrong1" class="admin-input" required>
-                            </div>
-                            <div class="input-group">
-                                <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 2 <span style="color:red;">*</span></label>
-                                <input type="text" id="inp-wrong2" class="admin-input" required>
-                            </div>
-                            <div class="input-group">
-                                <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 3 <span style="color:red;">*</span></label>
-                                <input type="text" id="inp-wrong3" class="admin-input" required>
-                            </div>
+                            <div class="input-group"><label><i class="fa-solid fa-check" style="color:#10b981;"></i> Đáp án ĐÚNG <span style="color:red;">*</span></label><input type="text" id="inp-correct" class="admin-input" style="border-color:#10b981;" required></div>
+                            <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 1 <span style="color:red;">*</span></label><input type="text" id="inp-wrong1" class="admin-input" required></div>
+                            <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 2 <span style="color:red;">*</span></label><input type="text" id="inp-wrong2" class="admin-input" required></div>
+                            <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 3 <span style="color:red;">*</span></label><input type="text" id="inp-wrong3" class="admin-input" required></div>
                         </div>
-                        <div class="input-group full">
-                            <label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label>
-                            <textarea id="inp-exp" class="admin-textarea" placeholder="Giải thích vì sao lại chọn đáp án đúng..."></textarea>
-                        </div>
+                        <div class="input-group full"><label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label><textarea id="inp-exp" class="admin-textarea"></textarea></div>
                         <button type="submit" class="btn-admin" id="btn-submit-q">GHI VÀO KÉT SẮT <i class="fa-solid fa-cloud-arrow-up"></i></button>
                     </form>
                 </div>
@@ -277,12 +246,7 @@
 
             <div id="tab-quest" class="admin-tab">
                 <h1 class="admin-title">Ngân Hàng Câu Hỏi</h1>
-                <div class="admin-card" style="padding: 20px;">
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <label>Lọc theo Hội Thi</label>
-                        <select id="select-view-q" class="admin-select" onchange="loadQuestionsTable()"><option value="">Đang tải...</option></select>
-                    </div>
-                </div>
+                <div class="admin-card" style="padding: 20px;"><div class="input-group" style="margin-bottom: 0;"><label>Lọc theo Hội Thi</label><select id="select-view-q" class="admin-select" onchange="loadQuestionsTable()"><option value="">Đang tải...</option></select></div></div>
                 <div class="admin-table-container">
                     <table class="admin-table">
                         <thead><tr><th>STT</th><th style="width:30%;">Câu hỏi</th><th>Đáp án đúng</th><th>Các đáp án sai</th><th>Hành Động</th></tr></thead>
@@ -294,12 +258,9 @@
             <div id="tab-result" class="admin-tab">
                 <h1 class="admin-title">Báo Cáo Kết Quả Thi</h1>
                 <div class="admin-card" style="padding: 20px; display: flex; gap: 15px; align-items: flex-end;">
-                    <div class="input-group" style="margin-bottom: 0; flex: 1;">
-                        <label>Lọc theo Hội Thi</label>
-                        <select id="select-view-res" class="admin-select" onchange="loadResultsTable()"><option value="">Đang tải...</option></select>
-                    </div>
-                    <button class="btn-admin" onclick="sortResultsData()" title="Điểm cao -> Thời gian nhanh -> Nộp sớm"><i class="fa-solid fa-sort-amount-down"></i> Sắp xếp Bảng</button>
-                    <button class="btn-admin btn-green" onclick="downloadCSV()"><i class="fa-solid fa-file-excel"></i> Xuất Excel (CSV)</button>
+                    <div class="input-group" style="margin-bottom: 0; flex: 1;"><label>Lọc theo Hội Thi</label><select id="select-view-res" class="admin-select" onchange="loadResultsTable()"><option value="">Đang tải...</option></select></div>
+                    <button class="btn-admin" onclick="sortResultsData()"><i class="fa-solid fa-sort-amount-down"></i> Sắp xếp</button>
+                    <button class="btn-admin btn-green" onclick="downloadCSV()"><i class="fa-solid fa-file-excel"></i> Xuất Excel</button>
                 </div>
                 <div class="admin-table-container">
                     <table class="admin-table">
@@ -317,26 +278,12 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-            authDomain: "mhentuniverse.firebaseapp.com",
-            projectId: "mhentuniverse",
-            storageBucket: "mhentuniverse.firebasestorage.app",
-            messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
 
-        // BIẾN TOÀN CỤC CHỨA DỮ LIỆU
-        window.globalResultsData = []; 
-        window.globalQuestionsData = []; 
+        window.globalResultsData = []; window.globalQuestionsData = []; window.globalQuizList = [];
 
-        window.toggleDarkMode = function() { 
-            document.body.classList.toggle('dark-mode'); 
-            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
-        };
+        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
         onAuthStateChanged(auth, async (user) => {
@@ -353,7 +300,6 @@
         });
         function kickOut() { showPopup("⚠️ CẢNH BÁO: Khu vực cấm!", true); setTimeout(() => { window.location.href = '/arena/'; }, 2000); }
 
-        // LOGIC CHUYỂN TAB 
         window.switchTab = function(tabName) {
             document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
@@ -361,39 +307,22 @@
             document.getElementById('menu-' + tabName).classList.add('active');
         };
 
-        // HÀM POPUP CUSTOM CỦA GIÁM ĐỐC
         window.showPopup = function(message, isError = false) {
-            const popup = document.getElementById('custom-popup');
-            const icon = document.getElementById('popup-icon');
-            const title = document.getElementById('popup-title');
-            const msg = document.getElementById('popup-message');
-
-            if (isError) {
-                icon.innerText = "❌";
-                title.innerText = "Lỗi rùi!";
-                title.style.color = "#ef4444";
-            } else {
-                icon.innerText = "✨";
-                title.innerText = "Thành công!";
-                title.style.color = "#10b981";
-            }
-            msg.innerText = message;
-            popup.style.display = 'flex';
+            const popup = document.getElementById('custom-popup'); const icon = document.getElementById('popup-icon'); const title = document.getElementById('popup-title'); const msg = document.getElementById('popup-message');
+            if (isError) { icon.innerText = "❌"; title.innerText = "Lỗi rùi!"; title.style.color = "#ef4444"; } else { icon.innerText = "✨"; title.innerText = "Thành công!"; title.style.color = "#10b981"; }
+            msg.innerText = message; popup.style.display = 'flex';
         };
-
-        window.closePopup = function() {
-            document.getElementById('custom-popup').style.display = 'none';
-        };
+        window.closePopup = function() { document.getElementById('custom-popup').style.display = 'none'; };
 
         const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
 
-        // TẢI DANH SÁCH CUỘC THI LÊN 4 DROPDOWN
+        // TẢI DANH SÁCH CUỘC THI LÊN CÁC DROPDOWN
         async function loadAllQuizzesIntoSelects() {
             try {
                 let res = await fetch(API_URL + "?action=getQuizList&t=" + new Date().getTime());
                 let result = await res.json();
-                
                 if (result.success) {
+                    window.globalQuizList = result.data; // Lưu lại để dùng cho Form Cài Đặt
                     let optionsHTML = '<option value="" disabled selected>-- Chọn Hội thi --</option>';
                     result.data.forEach(q => { optionsHTML += `<option value="${q.id}">[${q.id}] ${q.title}</option>`; });
                     
@@ -401,202 +330,134 @@
                     document.getElementById('select-view-q').innerHTML = optionsHTML;
                     document.getElementById('select-view-res').innerHTML = optionsHTML;
                     document.getElementById('select-view-dash').innerHTML = optionsHTML;
+                    document.getElementById('inp-edit-quiz-id').innerHTML = optionsHTML;
                 }
-            } catch(e) { console.log("Lỗi tải danh sách quiz", e); }
+            } catch(e) { console.log(e); }
         }
 
-        // 1. TẠO HỘI THI MỚI
+        // TẠO HỘI THI
         document.getElementById('create-quiz-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            let btn = document.getElementById('btn-submit-quiz');
-            let oTxt = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khởi tạo...';
-            btn.disabled = true;
-
-            let payload = {
-                action: 'addQuiz',
-                quizId: document.getElementById('inp-new-id').value.trim().toUpperCase(),
-                title: document.getElementById('inp-new-title').value.trim(),
-                desc: document.getElementById('inp-new-desc').value.trim(),
-                qCount: document.getElementById('inp-new-count').value,
-                timeLimit: document.getElementById('inp-new-time').value,
-                status: document.getElementById('inp-new-status').value,
-                mode: document.getElementById('inp-new-mode').value
-            };
-
+            let btn = document.getElementById('btn-submit-quiz'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true;
+            let payload = { action: 'addQuiz', quizId: document.getElementById('inp-new-id').value.trim().toUpperCase(), title: document.getElementById('inp-new-title').value.trim(), desc: document.getElementById('inp-new-desc').value.trim(), qCount: document.getElementById('inp-new-count').value, timeLimit: document.getElementById('inp-new-time').value, status: document.getElementById('inp-new-status').value, mode: document.getElementById('inp-new-mode').value, startTime: document.getElementById('inp-new-start').value, endTime: document.getElementById('inp-new-end').value };
             try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                let result = await res.json();
-                if(result.success) { 
-                    showPopup(result.message); 
-                    document.getElementById('create-quiz-form').reset();
-                    loadAllQuizzesIntoSelects(); 
-                } 
-                else showPopup(result.error, true);
+                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
+                if(result.success) { showPopup(result.message); document.getElementById('create-quiz-form').reset(); loadAllQuizzesIntoSelects(); } else showPopup(result.error, true);
             } catch (err) { showPopup("Lỗi mạng!", true); }
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
-        // 2. THÊM CÂU HỎI MỚI
-        document.getElementById('add-question-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            let btn = document.getElementById('btn-submit-q');
-            let originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải lên...';
-            btn.disabled = true;
+        // ĐIỀN THÔNG TIN CŨ VÀO FORM CÀI ĐẶT
+        window.fillEditQuizForm = function() {
+            let qId = document.getElementById('inp-edit-quiz-id').value;
+            let q = window.globalQuizList.find(x => x.id === qId);
+            if(q) {
+                document.getElementById('inp-edit-title').value = q.title; document.getElementById('inp-edit-desc').value = q.desc;
+                document.getElementById('inp-edit-count').value = q.questionCount; document.getElementById('inp-edit-time').value = q.timeLimit;
+                document.getElementById('inp-edit-status').value = q.rawStatus || q.status; document.getElementById('inp-edit-mode').value = q.mode;
+                document.getElementById('inp-edit-start').value = q.startTime || ""; document.getElementById('inp-edit-end').value = q.endTime || "";
+            }
+        }
 
-            let payload = { action: 'addQuestion', quizId: document.getElementById('inp-quiz-id').value, question: document.getElementById('inp-question').value.trim(), correct: document.getElementById('inp-correct').value.trim(), wrong1: document.getElementById('inp-wrong1').value.trim(), wrong2: document.getElementById('inp-wrong2').value.trim(), wrong3: document.getElementById('inp-wrong3').value.trim(), explanation: document.getElementById('inp-exp').value.trim() };
+        // LƯU CÀI ĐẶT HỘI THI
+        document.getElementById('edit-quiz-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let btn = document.getElementById('btn-save-quiz-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true;
+            let payload = { action: 'editQuiz', quizId: document.getElementById('inp-edit-quiz-id').value, title: document.getElementById('inp-edit-title').value.trim(), desc: document.getElementById('inp-edit-desc').value.trim(), qCount: document.getElementById('inp-edit-count').value, timeLimit: document.getElementById('inp-edit-time').value, status: document.getElementById('inp-edit-status').value, mode: document.getElementById('inp-edit-mode').value, startTime: document.getElementById('inp-edit-start').value, endTime: document.getElementById('inp-edit-end').value };
             try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                let result = await res.json();
-                if(result.success) { showPopup(result.message); document.getElementById('add-question-form').reset(); } 
-                else { showPopup(result.error, true); }
-            } catch (err) { showPopup("Lỗi mạng, không gửi được!", true); }
-            btn.innerHTML = originalText; btn.disabled = false;
+                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
+                if(result.success) { showPopup(result.message); loadAllQuizzesIntoSelects(); } else showPopup(result.error, true);
+            } catch (err) { showPopup("Lỗi mạng!", true); }
+            btn.innerHTML = oTxt; btn.disabled = false;
         });
 
-        // 3. TẢI KHO ĐỀ & POPUP SỬA
+        // THÊM CÂU HỎI
+        document.getElementById('add-question-form').addEventListener('submit', async function(e) {
+            e.preventDefault(); let btn = document.getElementById('btn-submit-q'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true;
+            let payload = { action: 'addQuestion', quizId: document.getElementById('inp-quiz-id').value, question: document.getElementById('inp-question').value.trim(), correct: document.getElementById('inp-correct').value.trim(), wrong1: document.getElementById('inp-wrong1').value.trim(), wrong2: document.getElementById('inp-wrong2').value.trim(), wrong3: document.getElementById('inp-wrong3').value.trim(), explanation: document.getElementById('inp-exp').value.trim() };
+            try {
+                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
+                if(result.success) { showPopup(result.message); document.getElementById('add-question-form').reset(); } else showPopup(result.error, true);
+            } catch (err) { showPopup("Lỗi mạng!", true); }
+            btn.innerHTML = oTxt; btn.disabled = false;
+        });
+
+        // KHO ĐỀ & SỬA CÂU HỎI
         window.loadQuestionsTable = async function() {
-            let qId = document.getElementById('select-view-q').value;
-            let tbody = document.getElementById('table-body-quest');
-            if(!qId) return;
-            
+            let qId = document.getElementById('select-view-q').value; let tbody = document.getElementById('table-body-quest'); if(!qId) return;
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
             try {
-                let res = await fetch(API_URL + "?action=getQuestions&quizId=" + qId + "&t=" + new Date().getTime());
-                let result = await res.json();
+                let res = await fetch(API_URL + "?action=getQuestions&quizId=" + qId + "&t=" + new Date().getTime()); let result = await res.json();
                 if(result.success && result.data.length > 0) {
-                    window.globalQuestionsData = result.data; 
-                    let html = '';
+                    window.globalQuestionsData = result.data; let html = '';
                     result.data.forEach((q, idx) => {
                         let wrongs = q.wrongs.filter(w => w !== "").map(w => `<span style="display:block; margin-bottom:4px; font-size:13px; color:#ef4444;">• ${w}</span>`).join('');
-                        html += `<tr><td style="text-align:center; font-weight:900; color:var(--hub-color);">${idx + 1}</td><td><div style="font-weight:800;">${q.question}</div>${q.explanation ? `<div style="font-size:12px; color:#10b981; margin-top:5px;"><i class="fa-solid fa-lightbulb"></i> ${q.explanation}</div>` : ''}</td><td><span class="badge green"><i class="fa-solid fa-check"></i> ${q.correct}</span></td><td>${wrongs}</td><td><button class="btn-admin" style="padding: 8px 12px; font-size: 13px;" onclick="openEditModal(${idx})" title="Chỉnh sửa câu này"><i class="fa-solid fa-pen"></i> Sửa</button></td></tr>`;
+                        html += `<tr><td style="text-align:center; font-weight:900; color:var(--hub-color);">${idx + 1}</td><td><div style="font-weight:800;">${q.question}</div>${q.explanation ? `<div style="font-size:12px; color:#10b981; margin-top:5px;"><i class="fa-solid fa-lightbulb"></i> ${q.explanation}</div>` : ''}</td><td><span class="badge green"><i class="fa-solid fa-check"></i> ${q.correct}</span></td><td>${wrongs}</td><td><button class="btn-admin" style="padding: 8px 12px; font-size: 13px;" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Sửa</button></td></tr>`;
                     });
                     tbody.innerHTML = html;
                 } else tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Hội thi này chưa có câu hỏi nào!</td></tr>';
             } catch(e) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Lỗi kết nối máy chủ!</td></tr>'; }
         }
 
-        // LOGIC MỞ/ĐÓNG POPUP SỬA
         window.openEditModal = function(index) {
-            let q = window.globalQuestionsData[index];
-            document.getElementById('edit-row-index').value = index; 
-            document.getElementById('edit-question').value = q.question;
-            document.getElementById('edit-correct').value = q.correct;
-            document.getElementById('edit-wrong1').value = q.wrongs[0] || "";
-            document.getElementById('edit-wrong2').value = q.wrongs[1] || "";
-            document.getElementById('edit-wrong3').value = q.wrongs[2] || "";
-            document.getElementById('edit-exp').value = q.explanation || "";
-
-            let modal = document.getElementById('edit-modal');
-            modal.style.display = 'flex';
-            modal.style.pointerEvents = 'auto';
+            let q = window.globalQuestionsData[index]; document.getElementById('edit-row-index').value = index; 
+            document.getElementById('edit-question').value = q.question; document.getElementById('edit-correct').value = q.correct;
+            document.getElementById('edit-wrong1').value = q.wrongs[0] || ""; document.getElementById('edit-wrong2').value = q.wrongs[1] || ""; document.getElementById('edit-wrong3').value = q.wrongs[2] || ""; document.getElementById('edit-exp').value = q.explanation || "";
+            let modal = document.getElementById('edit-modal'); modal.style.display = 'flex'; modal.style.pointerEvents = 'auto';
             setTimeout(() => { modal.style.opacity = '1'; document.getElementById('edit-box').style.transform = 'scale(1)'; }, 10);
         }
-
-        window.closeEditModal = function() {
-            let modal = document.getElementById('edit-modal');
-            modal.style.opacity = '0';
-            modal.style.pointerEvents = 'none';
-            document.getElementById('edit-box').style.transform = 'scale(0.8)';
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
+        window.closeEditModal = function() { let modal = document.getElementById('edit-modal'); modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; document.getElementById('edit-box').style.transform = 'scale(0.8)'; setTimeout(() => modal.style.display = 'none', 300); }
 
         document.getElementById('edit-question-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            let btn = document.getElementById('btn-save-edit');
-            let originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
-            btn.disabled = true;
-
+            e.preventDefault(); let btn = document.getElementById('btn-save-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...'; btn.disabled = true;
             let payload = { action: 'editQuestion', quizId: document.getElementById('select-view-q').value, rowIndex: document.getElementById('edit-row-index').value, question: document.getElementById('edit-question').value.trim(), correct: document.getElementById('edit-correct').value.trim(), wrong1: document.getElementById('edit-wrong1').value.trim(), wrong2: document.getElementById('edit-wrong2').value.trim(), wrong3: document.getElementById('edit-wrong3').value.trim(), explanation: document.getElementById('edit-exp').value.trim() };
             try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                let result = await res.json();
-                if(result.success) { showPopup(result.message); closeEditModal(); loadQuestionsTable(); } 
-                else { showPopup(result.error, true); }
-            } catch (err) { showPopup("Lỗi mạng, không gửi được!", true); }
-            btn.innerHTML = originalText; btn.disabled = false;
+                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
+                if(result.success) { showPopup(result.message); closeEditModal(); loadQuestionsTable(); } else showPopup(result.error, true);
+            } catch (err) { showPopup("Lỗi mạng!", true); }
+            btn.innerHTML = oTxt; btn.disabled = false;
         });
 
-        // 4. BÁO CÁO KẾT QUẢ & DASHBOARD
-        window.loadResultsTable = async function(isDashboard = false) {
-            let qId = isDashboard ? document.getElementById('select-view-dash').value : document.getElementById('select-view-res').value;
-            let tbody = document.getElementById('table-body-res');
-            if(!qId) return;
-            
-            if(!isDashboard) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang lấy báo cáo...</td></tr>';
-            
+        // BÁO CÁO KẾT QUẢ & DASHBOARD & SORT
+        window.loadResultsTable = async function(isDash = false) {
+            let qId = isDash ? document.getElementById('select-view-dash').value : document.getElementById('select-view-res').value;
+            let tbody = document.getElementById('table-body-res'); if(!qId) return;
+            if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
             try {
-                let res = await fetch(API_URL + "?action=getAllResults&quizId=" + qId + "&t=" + new Date().getTime());
-                let result = await res.json();
-                if(result.success) {
-                    window.globalResultsData = result.data; 
-                    if(!isDashboard) renderResultsTable(window.globalResultsData);
-                    else calcDashboardStats(window.globalResultsData); 
-                }
-            } catch(e) { if(!isDashboard) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi kết nối máy chủ!</td></tr>'; }
+                let res = await fetch(API_URL + "?action=getAllResults&quizId=" + qId + "&t=" + new Date().getTime()); let result = await res.json();
+                if(result.success) { window.globalResultsData = result.data; if(!isDash) renderResultsTable(window.globalResultsData); else calcDashboardStats(window.globalResultsData); }
+            } catch(e) { if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi!</td></tr>'; }
         }
 
-        function renderResultsTable(dataArray) {
+        function renderResultsTable(data) {
             let tbody = document.getElementById('table-body-res');
-            if(dataArray.length > 0) {
+            if(data.length > 0) {
                 let html = '';
-                dataArray.forEach(u => {
-                    let progStyle = (u.progress === 'Hoàn thành') ? 'green' : 'orange';
-                    html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:#f1f5f9;">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${progStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;">${u.submitTime}</td></tr>`;
-                });
+                data.forEach(u => { let pStyle = (u.progress === 'Hoàn thành') ? 'green' : 'orange'; html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:#f1f5f9;">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${pStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;">${u.submitTime}</td></tr>`; });
                 tbody.innerHTML = html;
-            } else tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Chưa có sinh viên nào ghi danh!</td></tr>';
+            } else tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Chưa có ai thi!</td></tr>';
         }
 
-        window.loadDashboardStats = function() {
-            document.getElementById('dash-widgets').style.display = 'grid';
-            document.getElementById('stat-total').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            loadResultsTable(true); 
-        }
-        function calcDashboardStats(data) {
-            let total = data.length;
-            let done = data.filter(d => d.progress === 'Hoàn thành').length;
-            let sumScore = data.reduce((acc, curr) => acc + curr.score, 0);
-            let avg = total > 0 ? (sumScore / total).toFixed(1) : 0;
-            document.getElementById('stat-total').innerText = total;
-            document.getElementById('stat-done').innerText = done;
-            document.getElementById('stat-avg').innerText = avg + " đ";
-        }
-        window.openLivescore = function() {
-            let qId = document.getElementById('select-view-dash').value;
-            if(qId) window.open('/arena/livescore.html?id=' + qId, '_blank');
-            else showPopup("Vui lòng chọn Hội thi trước!", true);
-        }
+        window.loadDashboardStats = function() { document.getElementById('dash-widgets').style.display = 'grid'; document.getElementById('stat-total').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; loadResultsTable(true); }
+        function calcDashboardStats(data) { let total = data.length; let done = data.filter(d => d.progress === 'Hoàn thành').length; let sum = data.reduce((acc, curr) => acc + curr.score, 0); document.getElementById('stat-total').innerText = total; document.getElementById('stat-done').innerText = done; document.getElementById('stat-avg').innerText = total > 0 ? (sum/total).toFixed(1) + " đ" : "0 đ"; }
+        window.openLivescore = function() { let qId = document.getElementById('select-view-dash').value; if(qId) window.open('/arena/livescore.html?id=' + qId, '_blank'); else showPopup("Chọn Hội thi trước!", true); }
 
-        // 5. SORT VÀ EXCEL
         window.sortResultsData = function() {
             if(window.globalResultsData.length === 0) return;
             window.globalResultsData.sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score; 
-                let parseTime = (str) => { let m = str.match(/(\d+)\s*phút/); let s = str.match(/(\d+)\s*giây/); return (m ? parseInt(m[1]) : 0) * 60 + (s ? parseInt(s[1]) : 0); };
-                let timeA = parseTime(a.timeStr) || 999999;
-                let timeB = parseTime(b.timeStr) || 999999;
-                if (timeA !== timeB) return timeA - timeB; 
-                return new Date(a.submitTime) - new Date(b.submitTime); 
+                let pt = (str) => { let m = str.match(/(\d+)\s*phút/); let s = str.match(/(\d+)\s*giây/); return (m ? parseInt(m[1]) : 0) * 60 + (s ? parseInt(s[1]) : 0); };
+                let tA = pt(a.timeStr) || 999999; let tB = pt(b.timeStr) || 999999;
+                if (tA !== tB) return tA - tB; return new Date(a.submitTime) - new Date(b.submitTime); 
             });
             renderResultsTable(window.globalResultsData); 
         }
 
         window.downloadCSV = function() {
-            if(window.globalResultsData.length === 0) { showPopup("Không có dữ liệu để xuất!", true); return; }
-            let csvContent = "\uFEFF"; 
-            csvContent += "Ho Ten,MSSV,Email,Lop,Khoa,So Cau Dung,Diem,Thoi Gian Lam Bai,Tien Do,Gio Nop Bai\n";
-            window.globalResultsData.forEach(row => {
-                let r = [row.name, row.mssv, row.email, row.className, row.faculty, row.correct, row.score, row.timeStr, row.progress, row.submitTime];
-                csvContent += r.map(v => `"${v}"`).join(",") + "\n";
-            });
-            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            let link = document.createElement("a");
-            link.setAttribute("href", URL.createObjectURL(blob));
-            link.setAttribute("download", `KetQua_${document.getElementById('select-view-res').value}.csv`);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            if(window.globalResultsData.length === 0) { showPopup("Không có dữ liệu!", true); return; }
+            let csv = "\uFEFFHo Ten,MSSV,Email,Lop,Khoa,So Cau Dung,Diem,Thoi Gian Lam Bai,Tien Do,Gio Nop Bai\n";
+            window.globalResultsData.forEach(r => { csv += [r.name, r.mssv, r.email, r.className, r.faculty, r.correct, r.score, r.timeStr, r.progress, r.submitTime].map(v => `"${v}"`).join(",") + "\n"; });
+            let l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); l.download = `KQ_${document.getElementById('select-view-res').value}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         }
     </script>
 </body>
