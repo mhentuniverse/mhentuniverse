@@ -372,9 +372,16 @@
         window.selectOption = function(idx) {
             userAnswers[currentQIndex] = idx;
             
+            // SỬA Ở ĐÂY: CHỈ BẮN TIẾN ĐỘ NGẦM LÊN MÁY CHỦ NẾU LÀ QUIZZ MODE
+            if (quizMode === 'quizz') {
+                syncLiveProgress(false);
+            }
+
             if (quizMode === 'default') {
+                // DEFAULT MODE: Đổi màu nút bên bảng điều hướng
                 document.getElementById('nav-btn-' + currentQIndex).classList.add('answered');
             } else {
+                // QUIZZ MODE: Khóa nút, Lật bài ngửa ngay lập tức
                 let labels = document.querySelectorAll('.option-label');
                 labels.forEach(lb => lb.style.pointerEvents = 'none'); 
                 
@@ -398,6 +405,40 @@
                     btnNext.setAttribute('onclick', 'executeSubmit()'); // Bấm là nộp luôn!
                 }
             }
+        }
+
+        // BẮN TIẾN ĐỘ LÊN MÁY CHỦ (CHẠY NGẦM)
+        function syncLiveProgress(isFinal = false) {
+            let correctCount = 0;
+            userAnswers.forEach((ansIdx, qIdx) => {
+                if(ansIdx !== null && questions[qIdx].options[ansIdx].isCorrect) correctCount++;
+            });
+            let currentScore = Math.round((correctCount / questions.length) * 100);
+            let answeredCount = userAnswers.filter(a => a !== null).length;
+
+            let endTime = new Date();
+            let elapsedSec = Math.floor((endTime - startTime) / 1000);
+            let formattedTime = isFinal ? `${Math.floor(elapsedSec / 60)} phút ${elapsedSec % 60} giây` : "Đang làm...";
+
+            let payload = {
+                action: 'syncProgress',
+                quizId: quizId,
+                isTestMode: isTestMode,
+                fullName: userInfo.fullName,
+                email: userInfo.email || "",
+                studentId: userInfo.studentId,
+                className: userInfo.className,
+                faculty: userInfo.faculty || "",
+                correctAnswers: correctCount,
+                score: currentScore,
+                elapsedTime: formattedTime,
+                progress: answeredCount, // Gửi số câu đã trả lời
+                total: questions.length,
+                isFinal: isFinal
+            };
+
+            // Bắn API đi và không thèm chờ kết quả (Tránh lag web của sinh viên)
+            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(e => console.log("Lỗi sync:", e));
         }
 
         // CHUYỂN CÂU HỎI
@@ -490,12 +531,6 @@
             let eSec = elapsedSec % 60;
             let formattedTime = `${eMin} phút ${eSec} giây`;
 
-            let correctCount = 0;
-            userAnswers.forEach((ansIdx, qIdx) => {
-                if(ansIdx !== null && questions[qIdx].options[ansIdx].isCorrect) correctCount++;
-            });
-            let finalScore = Math.round((correctCount / questions.length) * 100);
-
             let mainCont = document.getElementById('main-container');
             mainCont.innerHTML = `
                 <div style="text-align: center; margin-top: 150px;">
@@ -505,29 +540,22 @@
             `;
             document.getElementById('timer-display').style.display = 'none';
 
-            let payload = {
-                action: 'submitQuiz',
-                quizId: quizId,
-                isTestMode: isTestMode,
-                fullName: userInfo.fullName,
-                email: userInfo.email || "",
-                studentId: userInfo.studentId,
-                className: userInfo.className,
-                faculty: userInfo.faculty || "",
-                correctAnswers: correctCount,
-                score: finalScore,
-                elapsedTime: formattedTime
-            };
+            // Gọi hàm syncLiveProgress với biến isFinal = true để chốt sổ
+            syncLiveProgress(true);
+            
+            // Xử lý giao diện ngay lập tức
+            let correctCount = 0;
+            userAnswers.forEach((ansIdx, qIdx) => { if(ansIdx !== null && questions[qIdx].options[ansIdx].isCorrect) correctCount++; });
+            let finalScore = Math.round((correctCount / questions.length) * 100);
 
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                let result = await res.json();
-                if(result.success) showFinalResultScreen(finalScore, formattedTime, correctCount);
-                else alert("Lỗi nộp bài: " + result.error);
-            } catch(e) {
-                alert("Mạng yếu, không lưu được lên máy chủ! Vui lòng chụp màn hình điểm số báo BTC.");
+            // Lưu lịch sử đã thi (Khóa mõm)
+            let completed = JSON.parse(localStorage.getItem('mhent_completed_quizzes') || '[]');
+            if(!completed.includes(quizId)) completed.push(quizId);
+            localStorage.setItem('mhent_completed_quizzes', JSON.stringify(completed));
+
+            setTimeout(() => {
                 showFinalResultScreen(finalScore, formattedTime, correctCount);
-            }
+            }, 1500); // Giả vờ loading 1.5s cho nguy hiểm
         }
 
         // MÀN HÌNH KẾT QUẢ CUỐI CÙNG
