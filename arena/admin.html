@@ -362,12 +362,35 @@
             document.getElementById('menu-' + tabName).classList.add('active');
         };
 
+        // HÀM POPUP CUSTOM (ĐÃ BỔ SUNG ANIMATION NẢY)
         window.showPopup = function(message, isError = false) {
-            const popup = document.getElementById('custom-popup'); const icon = document.getElementById('popup-icon'); const title = document.getElementById('popup-title'); const msg = document.getElementById('popup-message');
-            if (isError) { icon.innerText = "❌"; title.innerText = "Lỗi rùi!"; title.style.color = "#ef4444"; } else { icon.innerText = "✨"; title.innerText = "Thành công!"; title.style.color = "#10b981"; }
-            msg.innerText = message; popup.style.display = 'flex';
+            const popup = document.getElementById('custom-popup'); 
+            const box = popup.querySelector('.popup-box');
+            const icon = document.getElementById('popup-icon'); 
+            const title = document.getElementById('popup-title'); 
+            const msg = document.getElementById('popup-message');
+            
+            if (isError) { icon.innerText = "❌"; title.innerText = "Lỗi rùi!"; title.style.color = "#ef4444"; } 
+            else { icon.innerText = "✨"; title.innerText = "Thành công!"; title.style.color = "#10b981"; }
+            msg.innerText = message; 
+            
+            popup.style.opacity = '0';
+            popup.style.display = 'flex';
+            box.classList.remove('pop-active');
+            
+            setTimeout(() => {
+                popup.style.opacity = '1';
+                box.classList.add('pop-active');
+            }, 10);
         };
-        window.closePopup = function() { document.getElementById('custom-popup').style.display = 'none'; };
+
+        window.closePopup = function() { 
+            const popup = document.getElementById('custom-popup');
+            const box = popup.querySelector('.popup-box');
+            popup.style.opacity = '0';
+            box.classList.remove('pop-active');
+            setTimeout(() => { popup.style.display = 'none'; }, 300);
+        };
 
         const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
 
@@ -515,10 +538,10 @@
             let quizLink = window.location.origin + "/arena/description.html?id=" + qId;
             let logoUrl = window.location.origin + "/assets/icon-logo.png"; 
             
-            // Ép centerImageSize=0.25 (Nhỏ gọn lại) + nền trắng
-            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.25`;
-            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.25`;
-            
+            // Ép centerImageSize=0.2 (Thu nhỏ thêm tí nữa cho tinh tế)
+            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
+            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
+
             document.getElementById('qr-image-bw').src = qrBwUrl;
             document.getElementById('qr-image-color').src = qrColorUrl;
             document.getElementById('qr-link-input').value = quizLink;
