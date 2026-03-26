@@ -6,8 +6,8 @@
     <title>Admin Panel - MHEnt. Arena</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff9a55">
-    <link rel="apple-touch-icon" href="/assets/icon-web.png">
-    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link rel="apple-touch-icon" href="/assets/icon-logo.png">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-logo.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/arena/arena-theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -140,25 +140,21 @@
     <div id="qr-popup" class="modal-overlay" style="z-index: 10001; opacity: 0; pointer-events: none; user-select: none;">
         <div style="background: #fff; padding: 35px; border-radius: 20px; text-align: center; width: 90%; max-width: 700px; transform: scale(0.8); transition: 0.3s; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" id="qr-box" class="qr-specific-box">
             
-            <span onclick="closeQRCode()" style="position: absolute; top: 15px; right: 20px; font-size: 35px; cursor: pointer; color: #ef4444; font-weight: 900; z-index: 100; line-height: 1;">&times;</span>
+            <button onclick="window.closeQRCode()" style="position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; border-radius: 50%; background: #ef4444; color: white; border: 4px solid #fff; font-size: 20px; cursor: pointer; z-index: 99999; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(239,68,68,0.4); padding: 0; margin: 0; outline: none; transition: 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             
             <h2 style="margin-top:0; color: var(--hub-color);"><i class="fa-solid fa-qrcode"></i> Asset Truyền Thông</h2>
             <p style="color:#64748b; font-size: 14px; margin-bottom: 25px; font-weight: 700;">Gửi cho Design dán lên Poster hoặc copy link gửi thẳng cho sinh viên!</p>
             
             <div style="display: flex; gap: 25px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center;">
                 <div style="flex: 1; min-width: 250px; background: #f8fafc; padding: 20px; border-radius: 15px; border: 2px dashed #cbd5e1;">
-                    <div style="position: relative; width: 100%; max-width: 220px; margin: 0 auto 15px auto;">
-                        <img id="qr-image-bw" src="" alt="QR B&W" style="width: 100%; border-radius: 10px; display: block; background: white; padding: 5px;">
-                        <img src="https://mhentuniverse.vercel.app/assets/icon-web.png" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 55px; height: 55px; background: white; border-radius: 8px; padding: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.15);">
-                    </div>
-                    <button class="btn-admin" onclick="downloadCanvasQR('bw', event)" style="width: 100%; padding: 10px; font-size: 14px; background: #1e293b;"><i class="fa-solid fa-download"></i> Tải Đen Trắng</button>
+                    <img id="qr-image-bw" src="" alt="QR B&W" style="width: 100%; border-radius: 10px; display: block; background: white; padding: 5px; margin: 0 auto 15px auto;">
+                    <button class="btn-admin" onclick="downloadQR('bw')" style="width: 100%; padding: 10px; font-size: 14px; background: #1e293b;"><i class="fa-solid fa-download"></i> Tải Đen Trắng</button>
                 </div>
                 <div style="flex: 1; min-width: 250px; background: #fffaf5; padding: 20px; border-radius: 15px; border: 2px dashed #ff9a55;">
-                    <div style="position: relative; width: 100%; max-width: 220px; margin: 0 auto 15px auto;">
-                        <img id="qr-image-color" src="" alt="QR Color" style="width: 100%; border-radius: 10px; display: block; background: white; padding: 5px;">
-                        <img src="https://mhentuniverse.vercel.app/assets/icon-web.png" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 55px; height: 55px; background: white; border-radius: 8px; padding: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.15);">
-                    </div>
-                    <button class="btn-admin" onclick="downloadCanvasQR('color', event)" style="width: 100%; padding: 10px; font-size: 14px;"><i class="fa-solid fa-download"></i> Tải Bản Màu</button>
+                    <img id="qr-image-color" src="" alt="QR Color" style="width: 100%; border-radius: 10px; display: block; background: white; padding: 5px; margin: 0 auto 15px auto;">
+                    <button class="btn-admin" onclick="downloadQR('color')" style="width: 100%; padding: 10px; font-size: 14px;"><i class="fa-solid fa-download"></i> Tải Bản Màu</button>
                 </div>
             </div>
             
@@ -504,16 +500,19 @@
             let l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); l.download = `KQ_${document.getElementById('select-view-res').value}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         }
 
-        // LOGIC TẠO MÃ QR (DÙNG API GỐC, LOGO ĐƯỢC ĐÈ BẰNG CSS)
+        // LOGIC TẠO MÃ QR (QUAY LẠI API CŨ VỚI LOGO ĐÃ CẮT VIỀN)
         window.showQRCode = function() {
             let qId = document.getElementById('select-view-dash').value;
             if(!qId) { showPopup("Giám đốc chọn Hội thi trước đã nha!", true); return; }
             
             let quizLink = window.location.origin + "/arena/description.html?id=" + qId;
             
-            // Tạo mã QR nền tảng thuần túy (Mức chống lỗi H cao nhất để chịu được logo đè lên)
-            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=1&ecc=H`;
-            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=1&ecc=H&dark=ff9a55`;
+            // Lấy thẳng link file logo mới cậu vừa up lên
+            let logoUrl = window.location.origin + "/assets/icon-logo.png"; 
+            
+            // API Quickchart cũ, tự động nhét logo ở giữa siêu mượt
+            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}`;
+            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}`;
             
             document.getElementById('qr-image-bw').src = qrBwUrl;
             document.getElementById('qr-image-color').src = qrColorUrl;
@@ -530,52 +529,19 @@
             setTimeout(() => modal.style.display = 'none', 300);
         }
 
-        // THUẬT TOÁN GỘP ẢNH KHI TẢI VỀ
-        window.downloadCanvasQR = function(type, e) {
-            let btn = e.currentTarget; let oTxt = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang ghép ảnh...';
-            
-            let canvas = document.createElement('canvas');
-            canvas.width = 500; canvas.height = 500;
-            let ctx = canvas.getContext('2d');
-            
-            let qrImg = new Image(); qrImg.crossOrigin = "Anonymous";
-            qrImg.src = type === 'color' ? document.getElementById('qr-image-color').src : document.getElementById('qr-image-bw').src;
-            
-            qrImg.onload = function() {
-                // 1. Vẽ nền trắng và mã QR
-                ctx.fillStyle = "white"; ctx.fillRect(0, 0, 500, 500);
-                ctx.drawImage(qrImg, 0, 0, 500, 500);
-                
-                // 2. Vẽ Logo đè lên giữa
-                let logoImg = new Image(); logoImg.crossOrigin = "Anonymous";
-                logoImg.src = "https://mhentuniverse.vercel.app/assets/icon-web.png";
-                logoImg.onload = function() {
-                    let logoSize = 130; // Kích thước logo bự
-                    let center = 250 - (logoSize/2);
-                    
-                    // Vẽ nền trắng cho logo
-                    ctx.fillStyle = "white";
-                    ctx.fillRect(center - 10, center - 10, logoSize + 20, logoSize + 20);
-                    // Vẽ logo vào
-                    ctx.drawImage(logoImg, center, center, logoSize, logoSize);
-                    
-                    // 3. Tải về
-                    let link = document.createElement('a');
-                    link.download = `MHEnt_QR_${document.getElementById('select-view-dash').value}_${type}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                    
-                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã tải!';
-                    setTimeout(() => { btn.innerHTML = oTxt; }, 2000);
-                };
-            };
-        }
-
-        window.copyQuizLink = function(btn) {
-            let copyText = document.getElementById("qr-link-input"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value);
-            let originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã Copy!'; btn.style.background = '#10b981';
-            setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = '#3b82f6'; }, 2000);
+        // Khôi phục lại hàm tải QR đơn giản
+        window.downloadQR = async function(type) {
+            let imgUrl = type === 'color' ? document.getElementById('qr-image-color').src : document.getElementById('qr-image-bw').src;
+            try {
+                let response = await fetch(imgUrl);
+                let blob = await response.blob();
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `MHEnt_QR_${document.getElementById('select-view-dash').value}_${type}.png`;
+                link.click();
+            } catch (err) {
+                window.open(imgUrl, '_blank');
+            }
         }
 
         window.copyQuizLink = function(btn) {
