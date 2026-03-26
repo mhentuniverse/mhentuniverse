@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị MHEnt. Arena</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/arena/arena-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, h1, h2, h3, h4, p, span, button, input, select, textarea { font-family: 'Nunito', sans-serif !important; }
+        body { background: #f8fafc; overflow-x: hidden; margin: 0; padding: 0; }
+        body.dark-mode { background: #0f172a; color: #fff; }
+
+        /* BỐ CỤC DASHBOARD */
+        .admin-layout { display: flex; min-height: 100vh; padding-top: 70px; }
+        
+        /* SIDEBAR ADMIN */
+        .admin-sidebar {
+            width: 260px; background: #fff; border-right: 1px solid #e2e8f0;
+            padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto;
+        }
+        .admin-menu-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+            border-radius: 10px; color: #64748b; font-weight: 800; text-decoration: none;
+            transition: 0.3s; margin-bottom: 10px; cursor: pointer;
+        }
+        .admin-menu-item:hover { background: #f1f5f9; color: var(--hub-color); }
+        .admin-menu-item.active { background: var(--hub-bg); color: var(--hub-color); box-shadow: 0 4px 10px rgba(255,154,85,0.1); }
+        
+        /* CONTENT AREA */
+        .admin-content { flex: 1; margin-left: 260px; padding: 40px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .admin-title { font-size: 28px; font-weight: 900; color: #1e293b; margin: 0; }
+        
+        /* CARD & FORM */
+        .admin-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group.full { grid-column: 1 / -1; }
+        .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
+        
+        .admin-input, .admin-select, .admin-textarea {
+            width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0;
+            background: #f8fafc; font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; box-sizing: border-box;
+        }
+        .admin-input:focus, .admin-select:focus, .admin-textarea:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 12px rgba(255,154,85,0.1); }
+        .admin-textarea { resize: vertical; min-height: 100px; }
+
+        .btn-admin {
+            background: var(--hub-color); color: white; border: none; padding: 15px 30px;
+            border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 10px;
+        }
+        .btn-admin:hover { background: #e8833e; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,154,85,0.3); }
+
+        /* MÀN BẢO VỆ CỬA */
+        #security-shield {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a; z-index: 99999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white; transition: 0.5s;
+        }
+
+        /* DARK MODE */
+        body.dark-mode .admin-sidebar, body.dark-mode .admin-card { background: #1e293b; border-color: #334155; }
+        body.dark-mode .admin-title, body.dark-mode .input-group label { color: #f8fafc; }
+        body.dark-mode .admin-menu-item:hover { background: #334155; }
+        body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
+    </style>
+</head>
+<body class="gradient-bg">
+
+    <div id="security-shield">
+        <i class="fa-solid fa-shield-halved fa-beat fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i>
+        <h2 style="font-weight: 900;">ĐANG XÁC THỰC QUYỀN TRUY CẬP...</h2>
+        <p style="color: #94a3b8;">Khu vực cấm sự xâm nhập của sinh viên!</p>
+    </div>
+
+    <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box;">
+        <div class="nav-left">
+            <a onclick="window.location.href='/arena/'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                <span class="logo-name">MHEnt. Admin</span>
+            </a>
+        </div>
+        <div class="nav-right">
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <button class="btn-theme" onclick="window.location.href='/arena/'" style="border:none;"><i class="fa-solid fa-right-from-bracket"></i> Thoát Admin</button>
+        </div>
+    </nav>
+
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Bảng Điều Khiển</div>
+            <a class="admin-menu-item active"><i class="fa-solid fa-layer-group"></i> Ngân Hàng Câu Hỏi</a>
+            <a onclick="window.open('https://docs.google.com/spreadsheets/d/1WsY0kKNCsDvv7Ba7usMCZ8MgeDdQ5FlWfjCAsOkPHXo/edit', '_blank')" class="admin-menu-item"><i class="fa-solid fa-database"></i> Két Sắt Kho Đề</a>
+            <a onclick="window.open('https://docs.google.com/spreadsheets/d/1cfczeXuiYY0XWVeX9MJoZLNwtIl5gMBBvtq_yR9ghus/edit', '_blank')" class="admin-menu-item"><i class="fa-solid fa-chart-pie"></i> Két Sắt Kết Quả</a>
+        </aside>
+
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1 class="admin-title">Thêm Câu Hỏi Mới</h1>
+            </div>
+
+            <div class="admin-card">
+                <form id="add-question-form">
+                    <div class="input-group">
+                        <label>Chọn Hội Thi <span style="color:red;">*</span></label>
+                        <select id="inp-quiz-id" class="admin-select" required>
+                            <option value="">Đang tải danh sách Hội thi...</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group full">
+                        <label>Nội dung câu hỏi <span style="color:red;">*</span></label>
+                        <textarea id="inp-question" class="admin-textarea" placeholder="Nhập nội dung câu hỏi..." required></textarea>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-check" style="color:#10b981;"></i> Đáp án ĐÚNG <span style="color:red;">*</span></label>
+                            <input type="text" id="inp-correct" class="admin-input" style="border-color:#10b981;" required>
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 1 <span style="color:red;">*</span></label>
+                            <input type="text" id="inp-wrong1" class="admin-input" required>
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 2 <span style="color:red;">*</span></label>
+                            <input type="text" id="inp-wrong2" class="admin-input" required>
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 3 <span style="color:red;">*</span></label>
+                            <input type="text" id="inp-wrong3" class="admin-input" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group full">
+                        <label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích (Sẽ hiện khi chữa bài)</label>
+                        <textarea id="inp-exp" class="admin-textarea" placeholder="Giải thích vì sao lại chọn đáp án đúng này..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-admin" id="btn-submit-q">
+                        GHI VÀO KÉT SẮT <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            projectId: "mhentuniverse",
+            storageBucket: "mhentuniverse.firebasestorage.app",
+            messagingSenderId: "377044322952",
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // DARK MODE CƠ BẢN
+        window.toggleDarkMode = function() { 
+            document.body.classList.toggle('dark-mode'); 
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
+        };
+        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+
+        // BỨC TƯỜNG LỬA FIREBASE
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userSnap.exists() && userSnap.data().role === 'admin') {
+                        // CHÀO MỪNG GIÁM ĐỐC
+                        document.getElementById('security-shield').style.opacity = '0';
+                        setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
+                        loadQuizListForAdmin(); // Tải danh sách đổ vào thẻ Select
+                    } else {
+                        kickOut(); // Có đăng nhập nhưng không phải admin
+                    }
+                } catch(e) { kickOut(); }
+            } else {
+                kickOut(); // Chưa đăng nhập
+            }
+        });
+
+        function kickOut() {
+            showPopup("⚠️ CẢNH BÁO BẢO MẬT: Bạn không có quyền truy cập khu vực này!");
+            window.location.href = '/arena/';
+        }
+
+        // --- HÀM GỌI POPUP CHÍNH GIỮA ---
+            window.showPopup = function(message, isError = false) {
+                const popup = document.getElementById('custom-popup');
+                const box = document.querySelector('.popup-box');
+                const icon = document.getElementById('popup-icon');
+                const title = document.getElementById('popup-title');
+                const msg = document.getElementById('popup-message');
+
+                if (isError) {
+                    box.classList.add('error');
+                    icon.innerText = "❌";
+                    title.innerText = "Lỗi rùi!";
+                    title.style.color = "#ff85a2";
+                } else {
+                    box.classList.remove('error');
+                    icon.innerText = "✨";
+                    title.innerText = "Thành công!";
+                    title.style.color = "#00ffcc";
+                }
+                msg.innerText = message;
+                popup.style.display = 'flex';
+            };
+
+            window.closePopup = function() {
+                document.getElementById('custom-popup').style.display = 'none';
+            };
+
+            // --- HÀM GỌI POPUP XÁC NHẬN ---
+            window.showConfirmPopup = function(message, onConfirmCallback) {
+                document.getElementById('confirm-message').innerText = message;
+                document.getElementById('confirm-popup').style.display = 'flex';
+                
+                // Gán sự kiện cho nút "Chắc chắn"
+                const btnYes = document.getElementById('btn-confirm-yes');
+                // Xóa sự kiện cũ (nếu có) để tránh click đúp
+                btnYes.onclick = null; 
+                btnYes.onclick = function() {
+                    closeConfirmPopup();
+                    onConfirmCallback(); // Chạy lệnh khi Chủ tịch bấm Yes
+                };
+            };
+
+            window.closeConfirmPopup = function() {
+                document.getElementById('confirm-popup').style.display = 'none';
+            };
+
+        // LOGIC KẾT NỐI GOOGLE SHEETS
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
+
+        async function loadQuizListForAdmin() {
+            try {
+                let res = await fetch(API_URL + "?action=getQuizList&t=" + new Date().getTime());
+                let result = await res.json();
+                let select = document.getElementById('inp-quiz-id');
+                
+                if (result.success) {
+                    select.innerHTML = '<option value="" disabled selected>-- Hãy chọn một Hội thi --</option>';
+                    result.data.forEach(q => {
+                        select.innerHTML += `<option value="${q.id}">[${q.id}] - ${q.title}</option>`;
+                    });
+                }
+            } catch(e) { console.log(e); }
+        }
+
+        // XỬ LÝ GỬI FORM THÊM CÂU HỎI
+        document.getElementById('add-question-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let btn = document.getElementById('btn-submit-q');
+            let originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải lên...';
+            btn.disabled = true;
+
+            let payload = {
+                action: 'addQuestion',
+                quizId: document.getElementById('inp-quiz-id').value,
+                question: document.getElementById('inp-question').value.trim(),
+                correct: document.getElementById('inp-correct').value.trim(),
+                wrong1: document.getElementById('inp-wrong1').value.trim(),
+                wrong2: document.getElementById('inp-wrong2').value.trim(),
+                wrong3: document.getElementById('inp-wrong3').value.trim(),
+                explanation: document.getElementById('inp-exp').value.trim()
+            };
+
+            try {
+                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                let result = await res.json();
+                
+                if(result.success) {
+                    showPopup("✅ THÀNH CÔNG: " + result.message);
+                    document.getElementById('add-question-form').reset(); // Xóa trắng form để nhập câu tiếp
+                } else {
+                    showPopup("❌ LỖI: " + result.error);
+                }
+            } catch (err) {
+                showPopup("❌ Lỗi mạng, không gửi được!");
+            }
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    </script>
+</body>
+</html>
