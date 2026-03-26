@@ -137,7 +137,7 @@
     </div>
 
     <div id="qr-popup" class="modal-overlay" style="z-index: 10001; opacity: 0; pointer-events: none; user-select: none;">
-        <div style="background: #fff; padding: 35px; border-radius: 20px; text-align: center; width: 90%; max-width: 700px; transform: scale(0.8); transition: 0.3s; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" id="qr-box" class="qr-specific-box">
+        <div style="background: #fff; padding: 35px; border-radius: 20px; text-align: center; width: 90%; max-width: 650px; transition: 0.3s; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" id="qr-box" class="qr-specific-box">
             
             <button onclick="window.closeQRCode()" style="position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; border-radius: 50%; background: #ef4444; color: white; border: 4px solid #fff; font-size: 20px; cursor: pointer; z-index: 99999; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(239,68,68,0.4); padding: 0; margin: 0; outline: none; transition: 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                 <i class="fa-solid fa-xmark"></i>
@@ -165,8 +165,16 @@
             </button>
         </div>
     </div>
-    <style> body.dark-mode .qr-specific-box { background: #1e293b !important; border: 1px solid #334155; } </style>
-
+    <style> 
+        body.dark-mode .qr-specific-box { background: #1e293b !important; border: 1px solid #334155; } 
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-active { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    </style>
+    
     <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box;">
         <div class="nav-left">
             <a onclick="window.location.href='/arena/'" style="cursor: pointer;">
@@ -499,48 +507,37 @@
             let l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); l.download = `KQ_${document.getElementById('select-view-res').value}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         }
 
-        // LOGIC TẠO MÃ QR (QUAY LẠI API CŨ VỚI LOGO ĐÃ CẮT VIỀN)
+        // LOGIC TẠO MÃ QR (ĐÃ THU NHỎ WHITE BOX XUỐNG 25%)
         window.showQRCode = function() {
             let qId = document.getElementById('select-view-dash').value;
             if(!qId) { showPopup("Giám đốc chọn Hội thi trước đã nha!", true); return; }
             
             let quizLink = window.location.origin + "/arena/description.html?id=" + qId;
-            
-            // Lấy thẳng link file logo mới cậu vừa up lên
             let logoUrl = window.location.origin + "/assets/icon-logo.png"; 
             
-            // API Quickchart cũ, tự động nhét logo ở giữa siêu mượt
-            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}`;
-            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}`;
+            // Ép centerImageSize=0.25 (Nhỏ gọn lại) + nền trắng
+            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.25`;
+            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.25`;
             
             document.getElementById('qr-image-bw').src = qrBwUrl;
             document.getElementById('qr-image-color').src = qrColorUrl;
             document.getElementById('qr-link-input').value = quizLink;
             
             let modal = document.getElementById('qr-popup');
+            let box = document.getElementById('qr-box');
             modal.style.display = 'flex'; modal.style.pointerEvents = 'auto';
-            setTimeout(() => { modal.style.opacity = '1'; document.getElementById('qr-box').style.transform = 'scale(1)'; }, 10);
+            setTimeout(() => { 
+                modal.style.opacity = '1'; 
+                box.classList.add('pop-active'); // Gắn class kích hoạt Animation Nảy
+            }, 10);
         }
 
         window.closeQRCode = function() {
             let modal = document.getElementById('qr-popup');
-            modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; document.getElementById('qr-box').style.transform = 'scale(0.8)';
+            let box = document.getElementById('qr-box');
+            modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; 
+            box.classList.remove('pop-active'); // Xóa class để lần sau bật lại nó nảy tiếp
             setTimeout(() => modal.style.display = 'none', 300);
-        }
-
-        // Khôi phục lại hàm tải QR đơn giản
-        window.downloadQR = async function(type) {
-            let imgUrl = type === 'color' ? document.getElementById('qr-image-color').src : document.getElementById('qr-image-bw').src;
-            try {
-                let response = await fetch(imgUrl);
-                let blob = await response.blob();
-                let link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `MHEnt_QR_${document.getElementById('select-view-dash').value}_${type}.png`;
-                link.click();
-            } catch (err) {
-                window.open(imgUrl, '_blank');
-            }
         }
 
         window.copyQuizLink = function(btn) {
