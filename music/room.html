@@ -219,6 +219,36 @@
         body.dark-mode .time-text { color: #94a3b8; }
         body.dark-mode .btn-remove-item { color: #64748b; }
         body.dark-mode .btn-remove-item:hover { background: #ff4d4d; color: white; }
+
+        /* ===============================================
+           HIỆU ỨNG ANIMATION (POP-IN, MENU & QUEUE)
+           =============================================== */
+        /* Hiệu ứng Dropdown Menu trượt mượt mà */
+        .dropdown-menu { 
+            display: none; opacity: 0; transform: translateY(15px); 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; 
+        }
+        .dropdown-menu.show { 
+            display: block; opacity: 1; transform: translateY(0); 
+        }
+        
+        /* Hiệu ứng nảy Pop-in cho toàn bộ khung Music Room */
+        @keyframes popInRoom { 
+            0% { transform: scale(0.9); opacity: 0; } 
+            70% { transform: scale(1.02); opacity: 1; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+        .music-page-container { animation: popInRoom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        /* Hiệu ứng bay vào cho từng bài hát trong Hàng chờ (Queue) */
+        .queue-item { animation: fadeInRight 0.4s ease forwards; opacity: 0; transform: translateX(20px); }
+        @keyframes fadeInRight { to { opacity: 1; transform: translateX(0); } }
+        /* Delay nhẹ tạo hiệu ứng gợn sóng */
+        .queue-item:nth-child(1) { animation-delay: 0.1s; }
+        .queue-item:nth-child(2) { animation-delay: 0.2s; }
+        .queue-item:nth-child(3) { animation-delay: 0.3s; }
+        .queue-item:nth-child(4) { animation-delay: 0.4s; }
+        .queue-item:nth-child(n+5) { animation-delay: 0.5s; }
     </style>
 </head>
 <body class="gradient-bg">
@@ -830,6 +860,9 @@
 
             q.splice(indexToRemove, 1); // Cắt bài bị xóa
 
+            // 🛠️ VÁ LỖI: LẤY THỜI GIAN THỰC ĐỂ KHÔNG BỊ RESET BÀI ĐANG HÁT
+            let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
+
             if (q.length === 0) {
                 broadcastToFirebase({ type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false, customQueue: [] });
                 showToast('Thông báo', 'Danh sách chờ đã trống!', 'info');
@@ -840,7 +873,7 @@
             
             if (indexToRemove < currentIndex) {
                 currentIndex--;
-                broadcastToFirebase({ customQueue: q, index: currentIndex });
+                broadcastToFirebase({ customQueue: q, index: currentIndex, time: currentTime });
                 showToast('Đã xóa', 'Đã xóa bài hát khỏi danh sách!', 'success');
             } 
             else if (indexToRemove === currentIndex) {
@@ -856,7 +889,7 @@
                 showToast('Chuyển bài', 'Đang chuyển bài vì bài hiện tại đã bị xóa...', 'info');
             } 
             else {
-                broadcastToFirebase({ customQueue: q });
+                broadcastToFirebase({ customQueue: q, time: currentTime });
                 showToast('Đã xóa', 'Đã xóa bài hát khỏi danh sách!', 'success');
             }
         };
@@ -867,13 +900,16 @@
             showToast('Thông báo', 'Đã dọn dẹp sạch sẽ!', 'info');
         });
 
-        // NẠP BÀI HÁT / NỐI ĐUÔI (QUAN TRỌNG: CHỈ BÁO QUEUE, KHÔNG BÁO TIME HIỆN TẠI)
+        // NẠP BÀI HÁT / NỐI ĐUÔI
         document.getElementById('btn-start-sync').addEventListener('click', () => {
             let urlInput = document.getElementById('yt-url-input').value.trim();
             if(!urlInput) return;
             const parsed = parseUrl(urlInput);
 
             let q = currentRoomData.customQueue ? [...currentRoomData.customQueue] : [];
+            
+            // 🛠️ VÁ LỖI: LẤY THỜI GIAN THỰC TẠI THỜI ĐIỂM BẤM NÚT THÊM NHẠC
+            let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
 
             if(parsed.playlistId) {
                 if (parsed.playlistId.startsWith('RD') && parsed.videoId) {
@@ -893,8 +929,8 @@
                     broadcastToFirebase({ type: 'custom_queue', ytId: parsed.videoId, customQueue: q, index: 0, time: 0, state: 1, title: 'Đang tải...' });
                     showToast('Đang phát', 'Đã nạp Bài Hát vào Trạm!', 'success');
                 } else {
-                    // GIỮ NGUYÊN THỜI GIAN, CHỈ BƠM LIST MỚI LÊN
-                    broadcastToFirebase({ customQueue: q });
+                    // GIỮ NGUYÊN THỜI GIAN THỰC, CHỈ BƠM LIST MỚI LÊN
+                    broadcastToFirebase({ customQueue: q, time: currentTime });
                     showToast('Đã thêm', 'Bài hát đã được nối đuôi vào hàng chờ!', 'success');
                 }
             }
@@ -922,7 +958,6 @@
             let isPlaying = player.getPlayerState() === 1;
             let newState = isPlaying ? 2 : 1; 
             
-            // Xử lý Giao diện Local ngay cho mượt
             if(newState === 2) { player.pauseVideo(); document.getElementById('vinyl-disc').classList.remove('playing'); }
             else { player.playVideo(); document.getElementById('vinyl-disc').classList.add('playing'); }
 
@@ -971,11 +1006,14 @@
             }
         });
 
+        // 🛠️ VÁ LỖI: GIỮ NGUYÊN THỜI GIAN KHI BẬT/TẮT LOOP & SHUFFLE
         document.getElementById('btn-loop').addEventListener('click', () => {
-            broadcastToFirebase({ isLoop: !currentRoomData.isLoop });
+            let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
+            broadcastToFirebase({ isLoop: !currentRoomData.isLoop, time: currentTime });
         });
         document.getElementById('btn-shuffle').addEventListener('click', () => {
-            broadcastToFirebase({ isShuffle: !currentRoomData.isShuffle });
+            let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
+            broadcastToFirebase({ isShuffle: !currentRoomData.isShuffle, time: currentTime });
         });
     </script>
 </body>
