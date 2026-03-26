@@ -446,18 +446,44 @@
 
         window.downloadCSV = function() { if(window.globalResultsData.length === 0) { showPopup("Không có dữ liệu!", true); return; } let csv = "\uFEFFHo Ten,MSSV,Email,Lop,Khoa,So Cau Dung,Diem,Thoi Gian Lam Bai,Tien Do,Gio Nop Bai\n"; window.globalResultsData.forEach(r => { csv += [r.name, r.mssv, r.email, r.className, r.faculty, r.correct, r.score, r.timeStr, r.progress, r.submitTime].map(v => `"${v}"`).join(",") + "\n"; }); let l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); l.download = `KQ_${document.getElementById('select-view-res').value}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l); }
 
-        // LOGIC MÃ QR HDPE BO GÓC
+        // LOGIC TẠO MÃ QR (ĐÃ THU NHỎ WHITE BOX XUỐNG 25%)
         window.showQRCode = function() {
-            let qId = document.getElementById('select-view-dash').value; if(!qId) { showPopup("Vui lòng chọn bài thi trước!", true); return; }
-            let quizLink = window.location.origin + "/arena/description.html?id=" + qId; let logoUrl = window.location.origin + "/assets/icon-logo.png"; 
+            let qId = document.getElementById('select-view-dash').value;
+            if(!qId) { showPopup("Giám đốc chọn Hội thi trước đã nha!", true); return; }
+            
+            let quizLink = window.location.origin + "/arena/description.html?id=" + qId;
+            let logoUrl = window.location.origin + "/assets/icon-web.png"; 
+            
+            // Ép centerImageSize=0.2 (Thu nhỏ thêm tí nữa cho tinh tế.)
             let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
-            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=8b5cf6&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`; // Đổi màu QR thành tím Studio
-            document.getElementById('qr-image-bw').src = qrBwUrl; document.getElementById('qr-image-color').src = qrColorUrl; document.getElementById('qr-link-input').value = quizLink;
-            let modal = document.getElementById('qr-popup'); let box = document.getElementById('qr-box'); modal.style.display = 'flex'; modal.style.pointerEvents = 'auto'; setTimeout(() => { modal.style.opacity = '1'; box.classList.add('pop-active'); }, 10);
+            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
+
+            document.getElementById('qr-image-bw').src = qrBwUrl;
+            document.getElementById('qr-image-color').src = qrColorUrl;
+            document.getElementById('qr-link-input').value = quizLink;
+            
+            let modal = document.getElementById('qr-popup');
+            let box = document.getElementById('qr-box');
+            modal.style.display = 'flex'; modal.style.pointerEvents = 'auto';
+            setTimeout(() => { 
+                modal.style.opacity = '1'; 
+                box.classList.add('pop-active'); // Gắn class kích hoạt Animation Nảy
+            }, 10);
         }
-        window.closeQRCode = function() { let modal = document.getElementById('qr-popup'); let box = document.getElementById('qr-box'); modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; box.classList.remove('pop-active'); setTimeout(() => modal.style.display = 'none', 300); }
-        window.downloadQR = async function(type) { let imgUrl = type === 'color' ? document.getElementById('qr-image-color').src : document.getElementById('qr-image-bw').src; try { let response = await fetch(imgUrl); let blob = await response.blob(); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `MHEnt_Studio_QR_${document.getElementById('select-view-dash').value}_${type}.png`; link.click(); } catch (err) { window.open(imgUrl, '_blank'); } }
-        window.copyQuizLink = function(btn) { let copyText = document.getElementById("qr-link-input"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value); let originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã Copy!'; btn.style.background = '#10b981'; setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = '#8b5cf6'; }, 2000); }
+
+        window.closeQRCode = function() {
+            let modal = document.getElementById('qr-popup');
+            let box = document.getElementById('qr-box');
+            modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; 
+            box.classList.remove('pop-active'); // Xóa class để lần sau bật lại nó nảy tiếp
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        window.copyQuizLink = function(btn) {
+            let copyText = document.getElementById("qr-link-input"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value);
+            let originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã Copy!'; btn.style.background = '#10b981';
+            setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = '#3b82f6'; }, 2000);
+        }
     </script>
 </body>
 </html>
