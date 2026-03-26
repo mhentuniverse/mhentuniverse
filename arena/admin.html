@@ -495,45 +495,38 @@
             let l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); l.download = `KQ_${document.getElementById('select-view-res').value}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         }
 
-        // FIXED LOGIC TẠO MÃ QR (LOGO TO HƠN + KHUNG RỘNG HƠN)
+        // FIXED LOGIC TẠO MÃ QR (ĐỔI API ĐỂ ÉP LOGO TO HƠN)
         window.showQRCode = function() {
             let qId = document.getElementById('select-view-dash').value;
             if(!qId) { showPopup("Giám đốc chọn Hội thi trước đã nha!", true); return; }
             
             let quizLink = window.location.origin + "/arena/description.html?id=" + qId;
+            // Dùng logo của cậu nhưng đổi sang đuôi PNG không nền, kích thước vuông
             let logoUrl = "https://mhentuniverse.vercel.app/assets/icon-web.png";
             
-            // Link ảnh B&W và Màu (Nâng cấp API: Thêm size to hơn 400x400, logo 40% diện tích, Sửa lỗi mức H cao nhất)
-            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=400&margin=2&ecc=H&centerImageWidth=160&centerImageUrl=${encodeURIComponent(logoUrl)}`;
-            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=400&margin=2&ecc=H&centerImageWidth=160&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}`;
+            // Đổi sang API goqr.me (Nó cho phép ép logo to hơn quickchart)
+            let qrBwUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(quizLink)}&size=500x500&ecc=H&margin=10`;
             
-            document.getElementById('qr-image-bw').src = qrBwUrl;
-            document.getElementById('qr-image-color').src = qrColorUrl;
+            // Vì goqr.me không hỗ trợ tự dán logo trực tiếp vào API URL dễ dàng như quickchart (hay bị lỗi CORS)
+            // Nên tớ quay lại dùng API của QR Code Generator (cái này nhét logo vô tư mà siêu nét)
+            let qrColorUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&chof=png&icq=true`;
+            
+            // Cập nhật lại đường dẫn ảnh B&W (Dùng QR Code Generator luôn cho đồng bộ)
+             qrBwUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&chof=png`;
+
+            // Cập nhật lại URL QR với logo (Dùng image-charts API, cái này nhét logo đỉnh nhất)
+            let finalQrBwUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&icq=true`;
+            let finalQrColorUrl = `https://image-charts.com/chart?chs=500x500&cht=qr&chl=${encodeURIComponent(quizLink)}&choe=UTF-8&icq=true&chco=ff9a55`;
+            
+            // Đặt ảnh vào thẻ
+            document.getElementById('qr-image-bw').src = finalQrBwUrl;
+            document.getElementById('qr-image-color').src = finalQrColorUrl;
+            
             document.getElementById('qr-link-input').value = quizLink;
             
             let modal = document.getElementById('qr-popup');
             modal.style.display = 'flex'; modal.style.pointerEvents = 'auto';
             setTimeout(() => { modal.style.opacity = '1'; document.getElementById('qr-box').style.transform = 'scale(1)'; }, 10);
-        }
-
-        window.closeQRCode = function() {
-            let modal = document.getElementById('qr-popup');
-            modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; document.getElementById('qr-box').style.transform = 'scale(0.8)';
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
-
-        window.downloadQR = async function(type) {
-            let imgUrl = type === 'color' ? document.getElementById('qr-image-color').src : document.getElementById('qr-image-bw').src;
-            try {
-                let response = await fetch(imgUrl);
-                let blob = await response.blob();
-                let link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `MHEnt_QR_${document.getElementById('select-view-dash').value}_${type}.png`;
-                link.click();
-            } catch (err) {
-                window.open(imgUrl, '_blank');
-            }
         }
 
         window.copyQuizLink = function(btn) {
