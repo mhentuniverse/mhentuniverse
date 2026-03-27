@@ -162,7 +162,10 @@
                         <div class="dropdown-item" onclick="window.location.href='/profile#info'"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle fill="none" stroke="currentColor" stroke-width="2" cx="12" cy="7" r="4"></circle></svg> Hồ sơ</div>
                         <div class="dropdown-divider"></div>
                         <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: var(--hub-color) !important;" onclick="window.location.href='/arena/admin'">
-                            <i class="fa-solid fa-user-shield" style="margin-right:8px;"></i> Quản lý Arena
+                            <i class="fa-solid fa-user-shield" style="margin-right:8px;"></i> Admin Dashboard
+                        </div>
+                        <div id="studio-panel-btn" class="dropdown-item" style="display: none; color: var(--hub-color) !important;" onclick="window.location.href='/arena/studio'">
+                            <i class="fa-solid fa-gear" style="margin-right:8px;"></i> Studio Dashboard
                         </div>
                         <div class="dropdown-divider" id="admin-divider" style="display: none;"></div>
                         <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;"><svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline fill="none" stroke="currentColor" stroke-width="2" points="16 17 21 12 16 7"></polyline><line fill="none" stroke="currentColor" stroke-width="2" x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất</div>
@@ -314,13 +317,28 @@
                 // Quét thẻ Admin
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
-                    if (userSnap.exists() && userSnap.data().role.includes('admin')) {
-                        document.getElementById('admin-panel-btn').style.display = 'block';
-                        document.getElementById('admin-divider').style.display = 'block';
+                    if (userSnap.exists()) {
+                        let userRole = userSnap.data().role || 'user';
+                        
+                        // LƯU CẤP BẬC VÀO TRÌNH DUYỆT ĐỂ BỘ LỌC BÊN DƯỚI LẤY RA XÀI
+                        localStorage.setItem('mhent_user_role', userRole);
+
+                        if (userRole.includes('admin')) {
+                            document.getElementById('admin-panel-btn').style.display = 'block';
+                            document.getElementById('admin-divider').style.display = 'block';
+                            document.getElementById('studio-panel-btn').style.display = 'block';
+                        }
+                        if (userRole.includes('cinema')) {
+                            document.getElementById('studio-panel-btn').style.display = 'block';
+                            document.getElementById('admin-divider').style.display = 'block';
+                        }
+                    } else {
+                        localStorage.setItem('mhent_user_role', 'user');
                     }
-                } catch(e) { console.log(e); }
+                } catch(e) { console.log(e); localStorage.setItem('mhent_user_role', 'user'); }
 
             } else {
+                localStorage.setItem('mhent_user_role', 'guest'); // Chưa đăng nhập là khách
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
