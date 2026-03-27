@@ -84,6 +84,37 @@
         body.dark-mode .tag-btn.admin-tag.selected { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #f87171; }
 
         #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; text-align: center; }
+
+        /* =======================================
+           ANIMATION NẢY (POP) CHO DYNAMIC INPUT
+           ======================================= */
+        .dynamic-group { 
+            display: none; 
+            opacity: 0; 
+            transform: translateY(-15px) scale(0.95); 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            margin-top: 15px;
+            background: rgba(99, 102, 241, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid transparent;
+        }
+        .dynamic-group.show { 
+            display: block; 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+            animation: popField 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popField {
+            0% { transform: translateY(-15px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* Thêm màu viền cho từng phân khu */
+        #group-cinema.show { border-left-color: #e94560; }
+        #group-arena.show { border-left-color: #0ea5e9; }
+        #group-manga.show { border-left-color: #d97706; }
+        #group-novel.show { border-left-color: #65a30d; }
     </style>
 </head>
 <body>
@@ -152,10 +183,26 @@
                 <span style="font-size: 12px; color: #94a3b8; margin-top: 5px; display: block;">* Bỏ chọn tất cả sẽ tự động trở về cấp độ User bình thường.</span>
             </div>
 
-            <div class="input-group" id="team-group">
-                <label>Tên Nhóm Dịch / Hoạt động</label>
-                <input type="text" id="edit-team" class="modal-input" placeholder="Ví dụ: MHEnt. Subtitle">
-                <span style="font-size: 12px; color: #94a3b8; margin-top: 5px; display: block;">* Hệ thống sẽ tự gắn tên này sau tựa đề các tập phim/truyện.</span>
+            <div id="dynamic-fields-container">
+                <div id="group-cinema" class="dynamic-group">
+                    <label style="color: #e94560;"><i class="fa-solid fa-film"></i> Tên Nhóm Dịch (Cinema)</label>
+                    <input type="text" id="team-cinema" class="modal-input" placeholder="Ví dụ: MHEnt. Subtitle">
+                </div>
+                
+                <div id="group-arena" class="dynamic-group">
+                    <label style="color: #0ea5e9;"><i class="fa-solid fa-wand-magic-sparkles"></i> Tên Studio / Khoa (Arena)</label>
+                    <input type="text" id="team-arena" class="modal-input" placeholder="Ví dụ: Lớp DH25DTB">
+                </div>
+
+                <div id="group-manga" class="dynamic-group">
+                    <label style="color: #d97706;"><i class="fa-solid fa-book"></i> Tên Nhóm Scan (Manga)</label>
+                    <input type="text" id="team-manga" class="modal-input" placeholder="Ví dụ: MHEnt. Scan">
+                </div>
+
+                <div id="group-novel" class="dynamic-group">
+                    <label style="color: #65a30d;"><i class="fa-solid fa-pen-nib"></i> Bút danh / Tác giả (Novel)</label>
+                    <input type="text" id="team-novel" class="modal-input" placeholder="Ví dụ: Haruto">
+                </div>
             </div>
 
             <button class="btn-save" id="btn-save-user" onclick="saveUser()">LƯU CẬP NHẬT <i class="fa-solid fa-floppy-disk"></i></button>
@@ -282,36 +329,63 @@
             renderUsers(filtered);
         }
 
-        // LOGIC CHỌN NHIỀU TAG QUYỀN
+        // LOGIC CHỌN TAG -> NẢY BỤP Ô NHẬP LIỆU
         window.toggleRole = function(btn, val) {
             if (val === 'admin') {
-                // Nếu chọn Admin thì gỡ hết các thẻ khác
+                // Nếu chọn Admin thì gỡ hết thẻ khác và giấu hết các ô nhập liệu
                 document.querySelectorAll('#role-picker .tag-btn').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
+                document.querySelectorAll('.dynamic-group').forEach(g => g.classList.remove('show'));
             } else {
-                // Nếu chọn thẻ khác thì gỡ thẻ Admin
+                // Nếu chọn phân khu
                 document.querySelector('#role-picker .tag-btn[onclick*="admin"]').classList.remove('selected');
                 btn.classList.toggle('selected');
+                
+                // Tìm cái Ô nhập liệu tương ứng và bật/tắt class .show để nó Nảy lên
+                let group = document.getElementById('group-' + val);
+                if(group) {
+                    if(btn.classList.contains('selected')) group.classList.add('show');
+                    else group.classList.remove('show');
+                }
             }
         }
 
+        // KHI MỞ BẢNG LÊN -> HIỂN THỊ ĐÚNG CÁC Ô ĐÃ LƯU
         window.openModal = function(encodedData) {
             let u = JSON.parse(decodeURIComponent(encodedData));
             document.getElementById('edit-uid').value = u.uid;
             document.getElementById('edit-email').value = u.email || 'Không rõ';
-            document.getElementById('edit-team').value = u.teamName || '';
             
-            // Xử lý làm sáng các Nút Tag
+            // Lấy dữ liệu tên nhóm từng phân khu (teamName là tên cũ của Cinema)
+            document.getElementById('team-cinema').value = u.teamCinema || u.teamName || '';
+            document.getElementById('team-arena').value = u.teamArena || '';
+            document.getElementById('team-manga').value = u.teamManga || '';
+            document.getElementById('team-novel').value = u.teamNovel || '';
+            
             let roleStr = u.role || 'user';
             document.querySelectorAll('#role-picker .tag-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.dynamic-group').forEach(g => g.classList.remove('show'));
             
             if (roleStr.includes('admin')) {
                 document.querySelector('#role-picker .tag-btn[onclick*="admin"]').classList.add('selected');
             } else {
-                if (roleStr.includes('arena') || roleStr.includes('creator')) document.querySelector('#role-picker .tag-btn[onclick*="arena"]').classList.add('selected');
-                if (roleStr.includes('cinema') || roleStr.includes('uploader')) document.querySelector('#role-picker .tag-btn[onclick*="cinema"]').classList.add('selected');
-                if (roleStr.includes('manga')) document.querySelector('#role-picker .tag-btn[onclick*="manga"]').classList.add('selected');
-                if (roleStr.includes('novel')) document.querySelector('#role-picker .tag-btn[onclick*="novel"]').classList.add('selected');
+                // Check từng quyền và nảy cái ô nhập liệu của quyền đó ra
+                if (roleStr.includes('arena') || roleStr.includes('creator')) {
+                    document.querySelector('#role-picker .tag-btn[onclick*="arena"]').classList.add('selected');
+                    document.getElementById('group-arena').classList.add('show');
+                }
+                if (roleStr.includes('cinema') || roleStr.includes('uploader')) {
+                    document.querySelector('#role-picker .tag-btn[onclick*="cinema"]').classList.add('selected');
+                    document.getElementById('group-cinema').classList.add('show');
+                }
+                if (roleStr.includes('manga')) {
+                    document.querySelector('#role-picker .tag-btn[onclick*="manga"]').classList.add('selected');
+                    document.getElementById('group-manga').classList.add('show');
+                }
+                if (roleStr.includes('novel')) {
+                    document.querySelector('#role-picker .tag-btn[onclick*="novel"]').classList.add('selected');
+                    document.getElementById('group-novel').classList.add('show');
+                }
             }
             
             document.getElementById('edit-modal').classList.add('active');
@@ -321,6 +395,7 @@
             document.getElementById('edit-modal').classList.remove('active');
         }
 
+        // LƯU CẬP NHẬT LÊN FIRESTORE
         window.saveUser = async function() {
             let btn = document.getElementById('btn-save-user');
             let originalText = btn.innerHTML;
@@ -328,9 +403,13 @@
             btn.disabled = true;
 
             let uid = document.getElementById('edit-uid').value;
-            let newTeam = document.getElementById('edit-team').value.trim();
+            
+            // Hút dữ liệu từ 4 ô
+            let teamCinema = document.getElementById('team-cinema').value.trim();
+            let teamArena = document.getElementById('team-arena').value.trim();
+            let teamManga = document.getElementById('team-manga').value.trim();
+            let teamNovel = document.getElementById('team-novel').value.trim();
 
-            // Gom các tag đang được chọn tạo thành chuỗi, VD: "arena / cinema"
             let roles = [];
             document.querySelectorAll('#role-picker .tag-btn.selected').forEach(tagBtn => {
                 if(tagBtn.getAttribute('onclick').includes('admin')) roles.push('admin');
@@ -345,7 +424,11 @@
             try {
                 await updateDoc(doc(db, "users", uid), {
                     role: finalRoleString,
-                    teamName: newTeam
+                    teamName: teamCinema, // Mẹo nhỏ: Giữ biến teamName cho Cinema cũ khỏi bị lỗi
+                    teamCinema: teamCinema,
+                    teamArena: teamArena,
+                    teamManga: teamManga,
+                    teamNovel: teamNovel
                 });
                 
                 closeModal();
