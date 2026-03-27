@@ -922,28 +922,29 @@
         };
 
         // ==========================================
-        // HÀM TẢI ẢNH QR VỀ MÁY (VƯỢT TƯỜNG LỬA CORS)
+        // HÀM TẢI ẢNH QR VỀ MÁY (VƯỢT TƯỜNG LỬA CORS PROXY)
         // ==========================================
         window.downloadQR = async function(type) {
-            // Xác định xem user muốn tải bản trắng đen hay bản màu
             let imgId = type === 'bw' ? 'qr-image-bw' : 'qr-image-color';
             let imgSrc = document.getElementById(imgId).src;
-            let quizId = document.getElementById('select-view-dash').value;
+            let quizId = document.getElementById('select-view-dash').value || "MHEnt";
 
-            // Kiểm tra xem có ảnh chưa
             if (!imgSrc || imgSrc === window.location.href) {
                 return showToast('Lỗi', 'Chưa có ảnh QR để tải!', 'error');
             }
 
             try {
-                showToast('Thông báo', 'Đang xử lý ảnh QR...', 'info');
+                showToast('Thông báo', 'Đang kết nối đường hầm tải ảnh...', 'info');
                 
-                // Fetch ảnh dưới dạng Blob để ép trình duyệt tải file thay vì mở tab mới
-                let response = await fetch(imgSrc);
+                // VŨ KHÍ MỚI: DÙNG PROXY ĐỂ XUYÊN THỦNG LỚP BẢO VỆ CORS
+                let proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(imgSrc);
+                
+                let response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error("Proxy bị chặn");
+                
                 let blob = await response.blob();
                 let blobUrl = window.URL.createObjectURL(blob);
 
-                // Tạo một cái thẻ <a> ẩn để kích hoạt lệnh tải
                 let a = document.createElement('a');
                 a.href = blobUrl;
                 a.download = `QR_Code_${quizId}_${type.toUpperCase()}.png`;
@@ -951,15 +952,14 @@
                 a.click();
                 document.body.removeChild(a);
                 
-                // Dọn dẹp bộ nhớ
                 window.URL.revokeObjectURL(blobUrl);
-                showToast('Thành công', 'Đã lưu mã QR vào máy!', 'success');
+                showToast('Thành công', 'Đã lưu mã QR thẳng vào máy!', 'success');
                 
             } catch (error) {
                 console.error("Lỗi tải QR:", error);
-                // Phương án dự phòng: Nếu mạng bị chặn, mở ảnh ra Tab mới để tự click chuột phải -> Save Image
+                // Phương án dự phòng cuối cùng nếu mạng chặn luôn Proxy
                 window.open(imgSrc, '_blank');
-                showToast('Thông báo', 'Đã mở ảnh sang Tab mới, cậu có thể Click chuột phải để lưu!', 'info');
+                showToast('Thông báo', 'Trình duyệt quá cứng, cậu chuột phải Lưu ảnh nha!', 'info');
             }
         };
     </script>
