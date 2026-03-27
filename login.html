@@ -83,6 +83,31 @@
             .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
             .login-box { max-width: 90% !important; padding: 30px 20px !important; }
         }
+
+        /* =======================================
+           GIAO DIỆN FORM EMAIL / MẬT KHẨU
+           ======================================= */
+        .login-input { 
+            width: 100%; padding: 14px 15px; border-radius: 12px; 
+            border: 2px solid transparent; background: #f1f5f9; 
+            font-size: 14px; font-weight: 700; outline: none; transition: 0.3s; box-sizing: border-box; color: #1e293b; 
+        }
+        .login-input:focus { border-color: #ff85a2; background: #fff; box-shadow: 0 4px 15px rgba(255, 133, 162, 0.15); }
+        body.dark-mode .login-input { background: #0f172a; border-color: #334155; color: white; }
+        body.dark-mode .login-input:focus { border-color: #ff85a2; background: #1e293b; }
+        
+        .btn-email { 
+            width: 100%; background: linear-gradient(135deg, #ff85a2, #ff5c8a); color: white; border: none; 
+            padding: 14px; border-radius: 12px; font-weight: 900; font-size: 15px; cursor: pointer; 
+            transition: 0.3s; box-shadow: 0 6px 15px rgba(255, 92, 138, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; 
+        }
+        .btn-email:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 92, 138, 0.4); }
+        .btn-email:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        
+        .login-divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: #94a3b8; font-size: 12px; font-weight: 800; letter-spacing: 1px;}
+        .login-divider::before, .login-divider::after { content: ''; flex: 1; border-bottom: 2px dashed #e2e8f0; }
+        .login-divider span { padding: 0 15px; }
+        body.dark-mode .login-divider::before, body.dark-mode .login-divider::after { border-color: #334155; }
     </style>
 </head>
 <body class="gradient-bg">
@@ -166,7 +191,22 @@
             <img src="assets/avt-web.jpg" alt="MHEnt Logo" style="width: 80px; border-radius: 50%; margin-bottom: 15px; border: 2px solid #ff85a2;">
             <h1 style="color: #ff5c8a; font-size: 28px; margin: 0 0 5px 0;">CỔNG ĐỊNH DANH</h1>
             <p style="color: #64748b; font-weight: bold; margin-bottom: 25px;">Khởi tạo Hộ chiếu Đa Vũ Trụ của cậu!</p>
+            <form id="email-login-form" style="margin-bottom: 15px;">
+                <div style="text-align: left; margin-bottom: 15px;">
+                    <label style="display: block; font-weight: 800; color: #64748b; margin-bottom: 8px; font-size: 13px;">Email của cậu</label>
+                    <input type="email" id="inp-email" class="login-input" required placeholder="Ví dụ: haruto@mhent.com" autocomplete="email">
+                </div>
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 800; color: #64748b; margin-bottom: 8px; font-size: 13px;">Mật khẩu (Từ 6 ký tự trở lên)</label>
+                    <input type="password" id="inp-password" class="login-input" required placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <div id="recaptcha-container" style="display: flex; justify-content: center; margin-bottom: 15px;"></div>
+                <button type="submit" id="btn-email-login" class="btn-email">
+                    <i class="fa-solid fa-paper-plane"></i> ĐĂNG NHẬP / ĐĂNG KÝ
+                </button>
+            </form>
             
+            <div class="login-divider"><span>HOẶC TIẾP TỤC VỚI</span></div>
             <button id="btn-login-google" class="btn-google">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
                 Tiếp tục với Google
@@ -198,8 +238,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
@@ -257,6 +297,96 @@
                 }
             } catch (error) { window.location.href = '/'; }
         }
+
+        // ==========================================
+        // ÁO GIÁP BẢO VỆ (RECAPTCHA CHECKBOX)
+        // ==========================================
+        auth.languageCode = 'vi';
+        
+        // Trỏ vào cái id 'recaptcha-container' thay vì nút bấm, và đổi size thành 'normal'
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'normal',
+            'callback': (response) => {
+                // Nút đăng nhập sẽ bị khóa cho đến khi tích xanh. Tích xong thì mở khóa!
+                console.log("Xác nhận là con người!");
+                document.getElementById('btn-email-login').disabled = false;
+            },
+            'expired-callback': () => {
+                // Hết hạn thì khóa nút lại bắt tích tiếp
+                document.getElementById('btn-email-login').disabled = true;
+                showPopup("Phiên bảo mật đã hết hạn. Vui lòng tích lại!", true);
+            }
+        });
+        
+        // Gọi lệnh render để nó vẽ cái ô Checkbox ra màn hình
+        window.recaptchaVerifier.render();
+
+        // Ban đầu khóa nút đăng nhập lại để bắt buộc phải tích
+        document.getElementById('btn-email-login').disabled = true;
+
+        // ==========================================
+        // XỬ LÝ ĐĂNG NHẬP BẰNG EMAIL / MẬT KHẨU
+        // ==========================================
+        document.getElementById('email-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            let email = document.getElementById('inp-email').value.trim();
+            let password = document.getElementById('inp-password').value.trim();
+            let btn = document.getElementById('btn-email-login');
+            let originalText = btn.innerHTML;
+            
+            const loadingScreen = document.getElementById('loading-overlay');
+            loadingScreen.style.display = 'flex';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+            btn.disabled = true;
+
+            try {
+                // Kích hoạt Khiên
+                const appVerifier = window.recaptchaVerifier;
+                
+                // THỬ ĐĂNG NHẬP TRƯỚC
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    loadingScreen.style.display = 'none';
+                    await handleLoginSuccess(userCredential.user);
+                } 
+                // NẾU TÀI KHOẢN CHƯA TỒN TẠI -> TỰ ĐỘNG ĐĂNG KÝ
+                catch (loginError) {
+                    if (loginError.code === 'auth/user-not-found' || loginError.code === 'auth/invalid-credential') {
+                        const newUser = await createUserWithEmailAndPassword(auth, email, password);
+                        
+                        // Đổ data vào Két sắt Firestore
+                        await setDoc(doc(db, "users", newUser.user.uid), {
+                            email: email,
+                            role: "user",
+                            createdAt: new Date().toISOString()
+                        });
+                        
+                        loadingScreen.style.display = 'none';
+                        await handleLoginSuccess(newUser.user);
+                    } else {
+                        throw loginError; // Ném các lỗi khác xuống hàm Catch tổng
+                    }
+                }
+            } catch (error) {
+                console.error("Lỗi Auth:", error);
+                loadingScreen.style.display = 'none';
+                
+                // Nếu dính bẫy lỗi, reset lại khiên để cho phép click lần nữa
+                if (window.recaptchaVerifier) {
+                    window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+                }
+                
+                let errorMsg = "Tài khoản hoặc mật khẩu không chính xác rùi!";
+                if (error.code === 'auth/wrong-password') errorMsg = "Sai mật khẩu mất rồi!";
+                if (error.code === 'auth/weak-password') errorMsg = "Mật khẩu phải từ 6 ký tự trở lên nha!";
+                if (error.code === 'auth/too-many-requests') errorMsg = "Cậu thử sai nhiều quá, hệ thống tạm khóa. Chờ xíu nha!";
+                
+                showPopup(errorMsg, true);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
 
         // 1. Đăng nhập Google 
         document.getElementById('btn-login-google').addEventListener('click', async () => {
