@@ -922,9 +922,9 @@
         };
 
         // ==========================================
-        // HÀM TẢI ẢNH QR VỀ MÁY (VƯỢT TƯỜNG LỬA CORS PROXY)
+        // HÀM TẢI ẢNH QR VỀ MÁY (TUYỆT CHIÊU CANVAS ĐỔI TÊN)
         // ==========================================
-        window.downloadQR = async function(type) {
+        window.downloadQR = function(type) {
             let imgId = type === 'bw' ? 'qr-image-bw' : 'qr-image-color';
             let imgSrc = document.getElementById(imgId).src;
             let quizId = document.getElementById('select-view-dash').value || "MHEnt";
@@ -933,34 +933,53 @@
                 return showToast('Lỗi', 'Chưa có ảnh QR để tải!', 'error');
             }
 
-            try {
-                showToast('Thông báo', 'Đang kết nối đường hầm tải ảnh...', 'info');
-                
-                // VŨ KHÍ MỚI: DÙNG PROXY ĐỂ XUYÊN THỦNG LỚP BẢO VỆ CORS
-                let proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(imgSrc);
-                
-                let response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error("Proxy bị chặn");
-                
-                let blob = await response.blob();
-                let blobUrl = window.URL.createObjectURL(blob);
+            showToast('Thông báo', 'Đang kết xuất ảnh QR xịn xò...', 'info');
 
-                let a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = `QR_Code_${quizId}_${type.toUpperCase()}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                window.URL.revokeObjectURL(blobUrl);
-                showToast('Thành công', 'Đã lưu mã QR thẳng vào máy!', 'success');
-                
-            } catch (error) {
-                console.error("Lỗi tải QR:", error);
-                // Phương án dự phòng cuối cùng nếu mạng chặn luôn Proxy
+            // 1. Tạo một đối tượng ảnh ảo
+            let img = new Image();
+            
+            // Chìa khóa vàng: Xin phép server cho dùng ảnh thoải mái
+            img.crossOrigin = "Anonymous"; 
+            
+            // Thêm đuôi thời gian để đánh lừa cache trình duyệt
+            img.src = imgSrc + (imgSrc.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+
+            // 2. Khi ảnh ảo đã load xong, bắt đầu vẽ
+            img.onload = function() {
+                try {
+                    // Tạo một khung tranh ảo (Canvas)
+                    let canvas = document.createElement("canvas");
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    let ctx = canvas.getContext("2d");
+                    
+                    // Vẽ ảnh lên khung tranh
+                    ctx.drawImage(img, 0, 0);
+
+                    // Biến bức tranh thành dữ liệu ảnh thật sự trên máy cậu
+                    let dataURL = canvas.toDataURL("image/png");
+
+                    // Ép tải xuống với CÁI TÊN ĐÃ ĐỊNH
+                    let a = document.createElement('a');
+                    a.href = dataURL;
+                    a.download = `QR_Code_${quizId}_${type.toUpperCase()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    showToast('Thành công', `Đã lưu file QR_Code_${quizId}_${type.toUpperCase()}.png!`, 'success');
+                } catch (e) {
+                    console.error("Canvas error:", e);
+                    window.open(imgSrc, '_blank');
+                    showToast('Cảnh báo', 'Vẫn bị chặn! Đã mở Tab mới.', 'info');
+                }
+            };
+
+            // Lỡ có lỗi mạng không load được ảnh ảo
+            img.onerror = function() {
                 window.open(imgSrc, '_blank');
-                showToast('Thông báo', 'Trình duyệt quá cứng, cậu chuột phải Lưu ảnh nha!', 'info');
-            }
+                showToast('Cảnh báo', 'Mạng chặn tải ngầm, đã mở Tab mới!', 'info');
+            };
         };
     </script>
 </body>
