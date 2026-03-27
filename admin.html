@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - MHEnt. Universe</title>
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <meta name="theme-color" content="#ff85a2">
+    <link rel="apple-touch-icon" href="assets/icon-web.png">
+    <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -20,7 +23,7 @@
         .brand { font-size: 24px; font-weight: 900; color: var(--hub-color); display: flex; align-items: center; gap: 10px; }
         
         .btn-theme, .btn-action { background: transparent; border: 2px solid #e2e8f0; color: #64748b; padding: 10px 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-theme:hover, .btn-action:hover { border-color: var(--hub-color); color: var(--hub-color); background: var(--hub-bg); }
+        .btn-theme:hover, .btn-action:hover { border-color: var(--hub-color); color: var(--hub-color); background: var(--hub-bg); transform: translateY(-2px); }
         body.dark-mode .btn-theme, body.dark-mode .btn-action { border-color: #334155; color: #94a3b8; }
         
         .master-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
@@ -48,53 +51,69 @@
         .badge.cinema { background: #fce7f3; color: #e94560; border: 1px solid #fbcfe8; }
         .badge.manga { background: #fef08a; color: #d97706; border: 1px solid #fde047; }
         .badge.novel { background: #ecfccb; color: #65a30d; border: 1px solid #d9f99d; }
+        .badge.music { background: #f3e8ff; color: #a855f7; border: 1px solid #d8b4fe; } /* Thêm badge Music */
         .badge.user { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
         body.dark-mode .badge.user { background: #334155; color: #cbd5e1; border-color: #475569; }
 
-        .btn-edit { background: var(--hub-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .btn-edit { background: var(--hub-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; }
         .btn-edit:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
+        .btn-edit:active { transform: scale(0.95); } /* Animation khi bấm */
 
         /* MODAL CHỈNH SỬA USER */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-box { background: #fff; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; transform: scale(0.8); transition: 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.1); position: relative; }
-        .modal-overlay.active .modal-box { transform: scale(1); }
+        
+        /* ĐÃ SỬA LỖI SCROLL KẸT CỨNG TẠI ĐÂY */
+        .modal-box { 
+            background: #fff; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; 
+            max-height: 85vh; /* Giới hạn chiều cao */
+            overflow-y: auto; /* Bật thanh cuộn dọc nếu dài quá */
+            transform: scale(0.8) translateY(20px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); position: relative; 
+        }
+        .modal-overlay.active .modal-box { transform: scale(1) translateY(0); } /* Animation bung lụa */
         body.dark-mode .modal-box { background: #1e293b; border: 1px solid #334155; }
 
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ef4444; font-weight: 900; background: none; border: none; }
+        /* Làm đẹp thanh cuộn của Modal */
+        .modal-box::-webkit-scrollbar { width: 6px; }
+        .modal-box::-webkit-scrollbar-track { background: transparent; }
+        .modal-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        body.dark-mode .modal-box::-webkit-scrollbar-thumb { background: #475569; }
+
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ef4444; font-weight: 900; background: none; border: none; transition: 0.2s;}
+        .close-btn:hover { transform: scale(1.1) rotate(90deg); }
+
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
         body.dark-mode .input-group label { color: #cbd5e1; }
-        .modal-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 700; outline: none; box-sizing: border-box; }
-        .modal-input:focus { border-color: var(--hub-color); background: #fff; }
+        .modal-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 700; outline: none; box-sizing: border-box; transition: 0.3s; }
+        .modal-input:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1); }
         body.dark-mode .modal-input { background: #0f172a; border-color: #334155; color: white; }
         
         .btn-save { background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn-save:hover { background: #059669; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .btn-save:hover { background: #059669; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); transform: translateY(-2px);}
+        .btn-save:active { transform: scale(0.98); }
 
         /* TAG PICKER CHO CHỨC DANH */
         .tag-picker { display: flex; flex-wrap: wrap; gap: 8px; }
         .tag-btn { background: #f8fafc; color: #64748b; border: 2px solid #e2e8f0; padding: 8px 15px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: 0.3s; user-select: none; font-weight: 800; }
-        .tag-btn:hover { background: #e2e8f0; }
-        .tag-btn.selected { background: var(--hub-bg); color: var(--hub-color); border-color: var(--hub-color); transform: scale(1.05); }
-        .tag-btn.admin-tag.selected { background: #fee2e2; color: #ef4444; border-color: #ef4444; }
+        .tag-btn:hover { background: #e2e8f0; transform: translateY(-2px); }
+        .tag-btn:active { transform: scale(0.95); }
+        .tag-btn.selected { background: var(--hub-bg); color: var(--hub-color); border-color: var(--hub-color); transform: scale(1.05); box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);}
+        .tag-btn.admin-tag.selected { background: #fee2e2; color: #ef4444; border-color: #ef4444; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);}
         body.dark-mode .tag-btn { background: #0f172a; border-color: #334155; color: #94a3b8; }
         body.dark-mode .tag-btn:hover { background: #1e293b; }
         body.dark-mode .tag-btn.selected { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: #818cf8; }
         body.dark-mode .tag-btn.admin-tag.selected { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #f87171; }
 
-        #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; text-align: center; }
-
-        /* =======================================
-           ANIMATION NẢY (POP) CHO DYNAMIC INPUT
-           ======================================= */
+        /* ANIMATION NẢY (POP) CHO DYNAMIC INPUT */
         .dynamic-group { 
             display: none; 
             opacity: 0; 
             transform: translateY(-15px) scale(0.95); 
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
             margin-top: 15px;
-            background: rgba(99, 102, 241, 0.05);
+            background: rgba(99, 102, 241, 0.02);
             padding: 15px;
             border-radius: 12px;
             border-left: 4px solid transparent;
@@ -115,6 +134,9 @@
         #group-arena.show { border-left-color: #0ea5e9; }
         #group-manga.show { border-left-color: #d97706; }
         #group-novel.show { border-left-color: #65a30d; }
+        #group-music.show { border-left-color: #a855f7; } /* Cho Music */
+
+        #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; text-align: center; }
     </style>
 </head>
 <body>
@@ -126,7 +148,7 @@
     </div>
 
     <header class="master-header">
-        <div class="brand"><i class="fa-solid fa-chess-king"></i> MHEnt. Universe</div>
+        <div class="brand"><i class="fa-solid fa-chess-king"></i> Admin - MHEnt. Universe</div>
         <div style="display: flex; gap: 15px;">
             <button class="btn-theme" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i></button>
             <button class="btn-action" onclick="window.location.href='/'"><i class="fa-solid fa-house"></i> Về Đại Sảnh</button>
@@ -146,7 +168,7 @@
                         <tr>
                             <th>Người Dùng</th>
                             <th>Email</th>
-                            <th style="min-width: 200px;">Thẻ Quyền Truy Cập</th>
+                            <th style="min-width: 250px;">Thẻ Quyền Truy Cập</th>
                             <th>Tên Nhóm (Team)</th>
                             <th>Hành Động</th>
                         </tr>
@@ -179,6 +201,7 @@
                     <div class="tag-btn" onclick="toggleRole(this, 'cinema')"><i class="fa-solid fa-film"></i> Cinema Uploader</div>
                     <div class="tag-btn" onclick="toggleRole(this, 'manga')"><i class="fa-solid fa-book"></i> Manga Uploader</div>
                     <div class="tag-btn" onclick="toggleRole(this, 'novel')"><i class="fa-solid fa-pen-nib"></i> Novel Uploader</div>
+                    <div class="tag-btn" onclick="toggleRole(this, 'music')"><i class="fa-solid fa-headphones"></i> Music DJ</div>
                 </div>
                 <span style="font-size: 12px; color: #94a3b8; margin-top: 5px; display: block;">* Bỏ chọn tất cả sẽ tự động trở về cấp độ User bình thường.</span>
             </div>
@@ -203,9 +226,14 @@
                     <label style="color: #65a30d;"><i class="fa-solid fa-pen-nib"></i> Bút danh / Tác giả (Novel)</label>
                     <input type="text" id="team-novel" class="modal-input" placeholder="Ví dụ: Haruto">
                 </div>
+
+                <div id="group-music" class="dynamic-group">
+                    <label style="color: #a855f7;"><i class="fa-solid fa-headphones"></i> Nghệ danh DJ (Music)</label>
+                    <input type="text" id="team-music" class="modal-input" placeholder="Ví dụ: DJ Haruto">
+                </div>
             </div>
 
-            <button class="btn-save" id="btn-save-user" onclick="saveUser()">LƯU CẬP NHẬT <i class="fa-solid fa-floppy-disk"></i></button>
+            <button class="btn-save" id="btn-save-user" style="margin-top: 20px;" onclick="saveUser()">LƯU CẬP NHẬT <i class="fa-solid fa-floppy-disk"></i></button>
         </div>
     </div>
 
@@ -240,7 +268,6 @@
             else {
                 try {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
-                    // Check xem trong chuỗi phân quyền có chữ admin không
                     if (!docSnap.exists() || !docSnap.data().role.includes('admin')) {
                         alert("Cảnh báo: Cậu không phải Giám đốc! Trục xuất ngay lập tức!");
                         window.location.href = '/';
@@ -288,14 +315,22 @@
                 } else if (roleText === 'user' || roleText === '') {
                     roleBadgesHTML = '<span class="badge user"><i class="fa-solid fa-user"></i> User</span>';
                 } else {
-                    // Dịch các chức danh cũ + Phân tích chuỗi tag mới
                     if (roleText.includes('arena') || roleText.includes('creator')) roleBadgesHTML += '<span class="badge arena"><i class="fa-solid fa-wand-magic-sparkles"></i> Arena</span>';
                     if (roleText.includes('cinema') || roleText.includes('uploader')) roleBadgesHTML += '<span class="badge cinema"><i class="fa-solid fa-film"></i> Cinema</span>';
                     if (roleText.includes('manga')) roleBadgesHTML += '<span class="badge manga"><i class="fa-solid fa-book"></i> Manga</span>';
                     if (roleText.includes('novel')) roleBadgesHTML += '<span class="badge novel"><i class="fa-solid fa-pen-nib"></i> Novel</span>';
+                    if (roleText.includes('music')) roleBadgesHTML += '<span class="badge music"><i class="fa-solid fa-headphones"></i> Music</span>';
                 }
 
-                let teamText = u.teamName ? `<span style="color:#6366f1; font-weight:800;">${u.teamName}</span>` : '<span style="color:#94a3b8;">---</span>';
+                // Gom chung tên các nhóm thành chuỗi để hiển thị
+                let teams = [];
+                if(u.teamCinema || u.teamName) teams.push(`<span style="color:#e94560;">${u.teamCinema || u.teamName}</span>`);
+                if(u.teamArena) teams.push(`<span style="color:#0ea5e9;">${u.teamArena}</span>`);
+                if(u.teamManga) teams.push(`<span style="color:#d97706;">${u.teamManga}</span>`);
+                if(u.teamNovel) teams.push(`<span style="color:#65a30d;">${u.teamNovel}</span>`);
+                if(u.teamMusic) teams.push(`<span style="color:#a855f7;">${u.teamMusic}</span>`);
+
+                let teamText = teams.length > 0 ? teams.join(' | ') : '<span style="color:#94a3b8;">---</span>';
                 let nameText = u.displayName || u.email.split('@')[0];
                 let safeData = encodeURIComponent(JSON.stringify(u));
 
@@ -309,7 +344,7 @@
                         </td>
                         <td style="color:#64748b;">${u.email || 'Không rõ'}</td>
                         <td>${roleBadgesHTML}</td>
-                        <td>${teamText}</td>
+                        <td><div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${teams.join(' | ').replace(/<[^>]*>?/gm, '')}">${teamText}</div></td>
                         <td>
                             <button class="btn-edit" onclick="openModal('${safeData}')"><i class="fa-solid fa-tags"></i> Gắn thẻ</button>
                         </td>
@@ -332,16 +367,16 @@
         // LOGIC CHỌN TAG -> NẢY BỤP Ô NHẬP LIỆU
         window.toggleRole = function(btn, val) {
             if (val === 'admin') {
-                // Nếu chọn Admin thì gỡ hết thẻ khác và giấu hết các ô nhập liệu
+                // Nếu chọn Admin: Gỡ hết thẻ khác, NHƯNG BUNG LỤA TẤT CẢ Ô NHẬP LIỆU
                 document.querySelectorAll('#role-picker .tag-btn').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
-                document.querySelectorAll('.dynamic-group').forEach(g => g.classList.remove('show'));
+                document.querySelectorAll('.dynamic-group').forEach(g => g.classList.add('show'));
             } else {
-                // Nếu chọn phân khu
+                // Nếu chọn phân khu: Tắt thẻ Admin
                 document.querySelector('#role-picker .tag-btn[onclick*="admin"]').classList.remove('selected');
                 btn.classList.toggle('selected');
                 
-                // Tìm cái Ô nhập liệu tương ứng và bật/tắt class .show để nó Nảy lên
+                // Hiển thị/Ẩn ô nhập liệu của phân khu đó
                 let group = document.getElementById('group-' + val);
                 if(group) {
                     if(btn.classList.contains('selected')) group.classList.add('show');
@@ -350,17 +385,17 @@
             }
         }
 
-        // KHI MỞ BẢNG LÊN -> HIỂN THỊ ĐÚNG CÁC Ô ĐÃ LƯU
         window.openModal = function(encodedData) {
             let u = JSON.parse(decodeURIComponent(encodedData));
             document.getElementById('edit-uid').value = u.uid;
             document.getElementById('edit-email').value = u.email || 'Không rõ';
             
-            // Lấy dữ liệu tên nhóm từng phân khu (teamName là tên cũ của Cinema)
+            // Hút dữ liệu tên nhóm
             document.getElementById('team-cinema').value = u.teamCinema || u.teamName || '';
             document.getElementById('team-arena').value = u.teamArena || '';
             document.getElementById('team-manga').value = u.teamManga || '';
             document.getElementById('team-novel').value = u.teamNovel || '';
+            document.getElementById('team-music').value = u.teamMusic || '';
             
             let roleStr = u.role || 'user';
             document.querySelectorAll('#role-picker .tag-btn').forEach(b => b.classList.remove('selected'));
@@ -368,24 +403,13 @@
             
             if (roleStr.includes('admin')) {
                 document.querySelector('#role-picker .tag-btn[onclick*="admin"]').classList.add('selected');
+                document.querySelectorAll('.dynamic-group').forEach(g => g.classList.add('show'));
             } else {
-                // Check từng quyền và nảy cái ô nhập liệu của quyền đó ra
-                if (roleStr.includes('arena') || roleStr.includes('creator')) {
-                    document.querySelector('#role-picker .tag-btn[onclick*="arena"]').classList.add('selected');
-                    document.getElementById('group-arena').classList.add('show');
-                }
-                if (roleStr.includes('cinema') || roleStr.includes('uploader')) {
-                    document.querySelector('#role-picker .tag-btn[onclick*="cinema"]').classList.add('selected');
-                    document.getElementById('group-cinema').classList.add('show');
-                }
-                if (roleStr.includes('manga')) {
-                    document.querySelector('#role-picker .tag-btn[onclick*="manga"]').classList.add('selected');
-                    document.getElementById('group-manga').classList.add('show');
-                }
-                if (roleStr.includes('novel')) {
-                    document.querySelector('#role-picker .tag-btn[onclick*="novel"]').classList.add('selected');
-                    document.getElementById('group-novel').classList.add('show');
-                }
+                if (roleStr.includes('arena') || roleStr.includes('creator')) { document.querySelector('#role-picker .tag-btn[onclick*="arena"]').classList.add('selected'); document.getElementById('group-arena').classList.add('show'); }
+                if (roleStr.includes('cinema') || roleStr.includes('uploader')) { document.querySelector('#role-picker .tag-btn[onclick*="cinema"]').classList.add('selected'); document.getElementById('group-cinema').classList.add('show'); }
+                if (roleStr.includes('manga')) { document.querySelector('#role-picker .tag-btn[onclick*="manga"]').classList.add('selected'); document.getElementById('group-manga').classList.add('show'); }
+                if (roleStr.includes('novel')) { document.querySelector('#role-picker .tag-btn[onclick*="novel"]').classList.add('selected'); document.getElementById('group-novel').classList.add('show'); }
+                if (roleStr.includes('music')) { document.querySelector('#role-picker .tag-btn[onclick*="music"]').classList.add('selected'); document.getElementById('group-music').classList.add('show'); }
             }
             
             document.getElementById('edit-modal').classList.add('active');
@@ -395,7 +419,6 @@
             document.getElementById('edit-modal').classList.remove('active');
         }
 
-        // LƯU CẬP NHẬT LÊN FIRESTORE
         window.saveUser = async function() {
             let btn = document.getElementById('btn-save-user');
             let originalText = btn.innerHTML;
@@ -404,11 +427,12 @@
 
             let uid = document.getElementById('edit-uid').value;
             
-            // Hút dữ liệu từ 4 ô
+            // Hút dữ liệu
             let teamCinema = document.getElementById('team-cinema').value.trim();
             let teamArena = document.getElementById('team-arena').value.trim();
             let teamManga = document.getElementById('team-manga').value.trim();
             let teamNovel = document.getElementById('team-novel').value.trim();
+            let teamMusic = document.getElementById('team-music').value.trim();
 
             let roles = [];
             document.querySelectorAll('#role-picker .tag-btn.selected').forEach(tagBtn => {
@@ -417,6 +441,7 @@
                 if(tagBtn.getAttribute('onclick').includes('cinema')) roles.push('cinema');
                 if(tagBtn.getAttribute('onclick').includes('manga')) roles.push('manga');
                 if(tagBtn.getAttribute('onclick').includes('novel')) roles.push('novel');
+                if(tagBtn.getAttribute('onclick').includes('music')) roles.push('music');
             });
             
             let finalRoleString = roles.length > 0 ? roles.join(' / ') : 'user';
@@ -424,11 +449,12 @@
             try {
                 await updateDoc(doc(db, "users", uid), {
                     role: finalRoleString,
-                    teamName: teamCinema, // Mẹo nhỏ: Giữ biến teamName cho Cinema cũ khỏi bị lỗi
+                    teamName: teamCinema, 
                     teamCinema: teamCinema,
                     teamArena: teamArena,
                     teamManga: teamManga,
-                    teamNovel: teamNovel
+                    teamNovel: teamNovel,
+                    teamMusic: teamMusic
                 });
                 
                 closeModal();
