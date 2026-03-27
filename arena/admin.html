@@ -446,7 +446,7 @@
                 <div class="admin-card" style="padding: 20px; display: flex; gap: 15px; align-items: flex-end;">
                     <div class="input-group" style="margin-bottom: 0; flex: 1;"><label>Lọc theo Hội Thi</label><select id="select-view-res" class="admin-select" onchange="loadResultsTable()"><option value="">Đang tải...</option></select></div>
                     <button class="btn-admin" onclick="sortResultsData()"><i class="fa-solid fa-sort-amount-down"></i> Sắp xếp</button>
-                    <button class="btn-admin btn-green" onclick="downloadCSV()"><i class="fa-solid fa-file-excel"></i> Xuất Excel</button>
+                    <button id="btn-download-results" class="btn-admin btn-green" onclick="exportCSVWithMHEntBrand()">Tải danh sách (CSV)</button>
                 </div>
                 <div class="admin-table-container">
                     <table class="admin-table">
@@ -669,6 +669,7 @@
             if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
             try {
                 let res = await fetch(API_URL + "?action=getAllResults&quizId=" + qId + "&t=" + new Date().getTime()); let result = await res.json();
+                window.currentExportData = result.data;
                 if(result.success) { window.globalResultsData = result.data; if(!isDash) renderResultsTable(window.globalResultsData); else calcDashboardStats(window.globalResultsData); }
             } catch(e) { if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi!</td></tr>'; }
         }
@@ -801,6 +802,57 @@
                 modal.style.display = 'none';
             }
         });
+
+        // ==========================================
+        // HÀM XUẤT FILE CSV CÓ ĐÓNG DẤU MIENT
+        // ==========================================
+        window.exportCSVWithMHEntBrand = function() {
+            // 1. Lấy mã hội thi đang xem và dữ liệu
+            const quizId = document.getElementById('select-view-results').value;
+            const resultsArray = window.currentExportData; // Biến này tụi mình sẽ tạo ở Bước 2
+
+            if (!quizId) {
+                return showToast('Lỗi', 'Cậu chưa chọn Hội thi nào để tải!', 'error');
+            }
+            if (!resultsArray || resultsArray.length === 0) {
+                return showToast('Lỗi', 'Hội thi này chưa có thí sinh nào nộp bài!', 'error');
+            }
+
+            // 2. Thêm BOM \uFEFF để Excel không bị lỗi font tiếng Việt
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+            
+            // 3. ĐÓNG DẤU BẢN QUYỀN
+            csvContent += "👑 MHEnt. Universe - DANH SÁCH KẾT QUẢ THÍ SINH\r\n";
+            csvContent += "© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved.\r\n";
+            csvContent += `Mã Hội Thi: ${quizId}\r\n`;
+            csvContent += `Ngày xuất dữ liệu: ${new Date().toLocaleString('vi-VN')}\r\n`;
+            csvContent += "------------------------------------------------------\r\n\r\n";
+            
+            // 4. TIÊU ĐỀ CỘT
+            csvContent += "Thời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
+            
+            // 5. ĐỔ DỮ LIỆU TỪ MẢNG VÀO FILE
+            resultsArray.forEach(row => {
+                // Bọc trong ngoặc kép "" để lỡ tên/lớp có dấu phẩy (,) thì file CSV không bị vỡ cột
+                let rowData = [
+                    `"${row.submitTime}"`, `"${row.name}"`, `"${row.email}"`, 
+                    `"${row.mssv}"`, `"${row.className}"`, `"${row.faculty}"`, 
+                    `"${row.correct}"`, `"${row.score}"`, `"${row.timeStr}"`, `"${row.progress}"`
+                ];
+                csvContent += rowData.join(",") + "\r\n";
+            });
+            
+            // 6. TẠO LỆNH TẢI XUỐNG
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `KetQua_${quizId}_MHEnt.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('Thành công', 'Đã tải xong danh sách thí sinh!', 'success');
+        };
     </script>
 </body>
 </html>
