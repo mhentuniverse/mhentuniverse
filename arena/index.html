@@ -241,9 +241,9 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         // ==========================================
         // CẤU HÌNH FIREBASE
@@ -265,7 +265,7 @@
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
         if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
-        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); }
+        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); localStorage.removeItem('mhent_user_role'); window.location.reload(); }); }
         
         window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
         window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
@@ -290,7 +290,7 @@
             setTimeout(() => { toast.style.animation = 'fadeOutRight 0.3s ease-in forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
-        // KIỂM TRA ĐĂNG NHẬP & PHÂN QUYỀN ADMIN
+        // BƯỚC 1: KIỂM TRA ĐĂNG NHẬP & LẤY THẺ BÀI LƯU VÀO TRÌNH DUYỆT
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
@@ -298,35 +298,39 @@
                 if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
                 if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
 
-                // Quét thẻ Admin
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
-                    if (userSnap.exists() && userSnap.data().role.includes('admin')) {
-                        document.getElementById('admin-panel-btn').style.display = 'block';
-                        document.getElementById('admin-divider').style.display = 'block';
+                    if (userSnap.exists()) {
+                        let userRole = userSnap.data().role || 'user';
+                        
+                        // LƯU CẤP BẬC VÀO TRÌNH DUYỆT ĐỂ BỘ LỌC BÊN DƯỚI LẤY RA XÀI
+                        localStorage.setItem('mhent_user_role', userRole);
+
+                        if (userRole.includes('admin')) {
+                            document.getElementById('admin-panel-btn').style.display = 'block';
+                            document.getElementById('admin-divider').style.display = 'block';
+                        }
+                    } else {
+                        localStorage.setItem('mhent_user_role', 'user');
                     }
-                } catch(e) { console.log(e); }
+                } catch(e) { console.log(e); localStorage.setItem('mhent_user_role', 'user'); }
 
             } else {
+                localStorage.setItem('mhent_user_role', 'guest'); // Chưa đăng nhập là khách
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
         });
 
         // ==========================================
-        // LOGIC MẶT TIỀN ARENA (ĐÃ KẾT NỐI API THẬT)
+        // LOGIC MẶT TIỀN ARENA (CÓ MẮT THẦN PHÂN QUYỀN)
         // ==========================================
         
-        // Link API Thần Thánh cậu vừa tạo
         const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
 
-        // Sửa lại: Nhập mã xong sẽ bay sang trang Mô tả (Description) thay vì vào thẳng Quiz
         document.getElementById('btn-join-code').addEventListener('click', () => {
             let code = document.getElementById('quiz-code-input').value.trim();
-            if (!code) {
-                showToast('Lỗi', 'Cậu chưa nhập mã cuộc thi!', 'error');
-                return;
-            }
+            if (!code) { showToast('Lỗi', 'Cậu chưa nhập mã cuộc thi!', 'error'); return; }
             window.location.href = `/arena/description.html?id=${code.toUpperCase()}`;
         });
 
@@ -334,13 +338,11 @@
             if (e.key === 'Enter') document.getElementById('btn-join-code').click();
         });
 
-        // HÚT DỮ LIỆU TỪ GOOGLE SHEETS
         async function loadFeaturedQuizzes() {
             const container = document.getElementById('quiz-list-container');
             container.innerHTML = '<div style="width: 100%; text-align: center; grid-column: 1 / -1; color: #888; font-weight: 700; padding: 40px 0;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--hub-color); margin-bottom: 15px;"></i><br>Đang đồng bộ dữ liệu với máy chủ...</div>';
 
             try {
-                // Gọi API lấy danh sách
                 let response = await fetch(API_URL + "?action=getQuizList");
                 let result = await response.json();
 
@@ -349,10 +351,23 @@
                     return;
                 }
 
-                container.innerHTML = ''; // Xóa chữ loading
+                container.innerHTML = ''; 
                 
-                // In từng hội thi ra màn hình
+                // Lấy thẻ bài của người dùng hiện tại
+                let currentUserRole = localStorage.getItem('mhent_user_role') || 'guest';
+                let hasTestAccess = currentUserRole.includes('admin') || currentUserRole.includes('tester');
+
+                let displayCount = 0; // Đếm số bài được hiện ra
+
                 result.data.forEach(quiz => {
+                    // BƯỚC 2: MẮT THẦN QUÉT (BỘ LỌC)
+                    // Nếu đề đang test, và người dùng KHÔNG CÓ thẻ bài thì lướt qua luôn không in ra màn hình
+                    if (quiz.status === 'test' && !hasTestAccess) {
+                        return; 
+                    }
+
+                    // Nếu qua được ải kiểm duyệt, in thẻ ra màn hình
+                    displayCount++;
                     let statusHtml = '';
                     if (quiz.status === 'open' || quiz.status === 'challenge') {
                         statusHtml = `<span class="quiz-status status-open">Đang mở</span>`;
@@ -362,13 +377,10 @@
                         statusHtml = `<span class="quiz-status status-closed">Đã đóng</span>`;
                     }
 
-                    // PHÂN LOẠI OFFICIAL / COMMUNITY
-                    // PHÂN LOẠI OFFICIAL / COMMUNITY
                     let verifiedBadge = (quiz.verified === true || quiz.verified === "TRUE")
                         ? `<span style="background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #bae6fd;"><i class="fa-solid fa-circle-check"></i> OFFICIAL</span>`
                         : `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e2e8f0;"><i class="fa-solid fa-users"></i> COMMUNITY</span>`;
 
-                    // PHÂN LOẠI THẺ ACADEMIC
                     let schoolBadge = (quiz.mode && (quiz.mode.includes('_aca') || quiz.mode.includes('_academic') || quiz.mode.includes('_school'))) 
                         ? `<span style="background: #fef08a; color: #a16207; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #fde047;"><i class="fa-solid fa-school-flag"></i> ACADEMIC</span>` 
                         : '';
@@ -395,14 +407,20 @@
                         </a>
                     `;
                 });
+
+                // Nếu sau khi lọc mà không còn bài nào để hiện (Ví dụ chỉ có 1 bài Test mà user là Guest)
+                if (displayCount === 0) {
+                    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px; font-weight: bold;">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
+                }
+
             } catch (error) {
                 console.error(error);
                 container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 40px; font-weight: bold;">Lỗi kết nối máy chủ! Vui lòng thử lại sau.</div>';
             }
         }
 
-        // Chạy hàm hút dữ liệu ngay khi tải trang
-        loadFeaturedQuizzes();
+        // Delay nhẹ 300ms để Firebase kịp load Role vào LocalStorage rồi mới kéo data đề thi
+        setTimeout(loadFeaturedQuizzes, 300);
 
     </script>
 </body>
