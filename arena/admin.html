@@ -406,7 +406,7 @@
             if (user) {
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
-                    if (userSnap.exists() && userSnap.data().role === 'admin') {
+                    if (userSnap.exists() && userSnap.data().role.includes('admin')) {
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
                         loadAllQuizzesIntoSelects(); 

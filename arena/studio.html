@@ -376,7 +376,7 @@
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
                     let role = userSnap.exists() ? userSnap.data().role : null;
-                    if (role === 'admin' || role === 'creator') {
+                    if (role.includes('admin') || role.includes('creator')) {
                         window.studioUserEmail = user.email;
                         window.studioUserRole = role;
                         
@@ -413,7 +413,7 @@
                 let result = await res.json();
                 if (result.success) {
                     // LỌC: Nếu là admin thì thấy hết, nếu là creator thì chỉ thấy bài do email mình tạo
-                    window.globalQuizList = result.data.filter(q => q.creatorEmail === window.studioUserEmail || window.studioUserRole === 'admin');
+                    window.globalQuizList = result.data.filter(q => q.creatorEmail === window.studioUserEmail || window.studioUserRole.includes('admin'));
                     
                     let optionsHTML = '<option value="" disabled selected>-- Chọn Bài thi của bạn --</option>';
                     window.globalQuizList.forEach(q => { optionsHTML += `<option value="${q.id}">[${q.id}] ${q.title}</option>`; });
