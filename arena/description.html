@@ -382,13 +382,14 @@
                     </button>
                 `;
 
-                // 2. SAU KHI DỰNG XONG, MỚI BẮT ĐẦU GỌI API LẤY LEADERBOARD CHÈN VÀO
-                loadLeaderboard(quizId);
+                // 2. GỌI API LẤY ĐIỂM (Tách riêng biệt để không lây bệnh cho nhau)
+                loadLeaderboard(quizId).catch(e => console.log("Lỗi bảng vàng:", e));
 
-                // --- GIẢI MÃ CHẾ ĐỘ ĐỘC LẬP TỪNG Ô (DÁN VÀO CHỖ NÀY) ---
+                // --- GIẢI MÃ CHẾ ĐỘ ĐỘC LẬP TỪNG Ô ---
                 let modeStr = quiz.mode || '';
                 let isAcademic = modeStr.includes('_aca') || modeStr.includes('_academic') || modeStr.includes('_school');
                 
+                // Giải mã dữ liệu
                 let isLegacyReq = modeStr.includes('_req') || (!modeStr.includes('_opt') && !modeStr.includes('_hid') && !modeStr.includes('_m'));
                 let isLegacyOpt = modeStr.includes('_opt');
                 let isLegacyHid = modeStr.includes('_hid');
@@ -398,81 +399,88 @@
                 let facMode = modeStr.includes('_fH') ? 'H' : (modeStr.includes('_fO') ? 'O' : (modeStr.includes('_fR') ? 'R' : (isLegacyHid ? 'H' : (isLegacyOpt ? 'O' : 'R'))));
 
                 window.fieldModes = { mssv: mssvMode, cls: classMode, fac: facMode };
-
                 let extraFieldsBox = document.getElementById('academic-fields');
                 
-                if (mssvMode === 'H' && classMode === 'H' && facMode === 'H') {
-                    extraFieldsBox.style.display = 'none';
-                } else {
-                    extraFieldsBox.style.display = 'block';
-                    let setupField = (id, labelId, groupId, mode, acaLabel, defLabel, acaPh, defPh) => {
-                        let group = document.getElementById(groupId);
-                        let input = document.getElementById(id);
-                        let label = document.getElementById(labelId);
-                        
-                        if (mode === 'H') {
-                            group.style.display = 'none'; input.required = false;
-                        } else {
-                            group.style.display = 'block'; input.required = (mode === 'R');
-                            let reqMark = (mode === 'R') ? " <span style='color:#ef4444;'>*</span>" : " <span style='color:#94a3b8; font-weight:normal;'>(Bỏ qua nếu không có)</span>";
-                            label.innerHTML = (isAcademic ? acaLabel : defLabel) + reqMark;
-                            input.placeholder = isAcademic ? acaPh : defPh;
-                        }
-                    };
-                    setupField('inp-mssv', 'label-mssv', 'group-mssv', mssvMode, 'Mã Sinh Viên', 'Mã Định Danh (CCCD/SĐT)', 'Ví dụ: 2511130080', 'Ví dụ: 07920400...');
-                    setupField('inp-class', 'label-class', 'group-class', classMode, 'Lớp / Chi đoàn', 'Đơn vị / Phòng ban', 'Ví dụ: DH25DTB', 'Ví dụ: Team Subtitle');
-                    setupField('inp-faculty', 'label-faculty', 'group-faculty', facMode, 'Khoa / Viện đào tạo', 'Tổ chức / Nơi công tác', 'Ví dụ: Công nghệ Thông tin', 'Ví dụ: Miyazaki Haruto Ent.');
+                // BỌC GIÁP CHỐNG LỖI
+                if (extraFieldsBox) {
+                    if (mssvMode === 'H' && classMode === 'H' && facMode === 'H') {
+                        extraFieldsBox.style.display = 'none';
+                    } else {
+                        extraFieldsBox.style.display = 'block';
+                        let setupField = (id, labelId, groupId, mode, acaLabel, defLabel, acaPh, defPh) => {
+                            let group = document.getElementById(groupId);
+                            let input = document.getElementById(id);
+                            let label = document.getElementById(labelId);
+                            
+                            // CHỈ THỰC THI NẾU TÌM THẤY ĐỦ 3 PHẦN TỬ
+                            if (group && input && label) {
+                                if (mode === 'H') {
+                                    group.style.display = 'none'; input.required = false;
+                                } else {
+                                    group.style.display = 'block'; input.required = (mode === 'R');
+                                    let reqMark = (mode === 'R') ? " <span style='color:#ef4444;'>*</span>" : " <span style='color:#94a3b8; font-weight:normal;'>(Bỏ qua nếu không có)</span>";
+                                    label.innerHTML = (isAcademic ? acaLabel : defLabel) + reqMark;
+                                    input.placeholder = isAcademic ? acaPh : defPh;
+                                }
+                            }
+                        };
+                        setupField('inp-mssv', 'label-mssv', 'group-mssv', mssvMode, 'Mã Sinh Viên', 'Mã Định Danh (CCCD/SĐT)', 'Ví dụ: 2511130080', 'Ví dụ: 07920400...');
+                        setupField('inp-class', 'label-class', 'group-class', classMode, 'Lớp / Chi đoàn', 'Đơn vị / Phòng ban', 'Ví dụ: DH25DTB', 'Ví dụ: Team Subtitle');
+                        setupField('inp-faculty', 'label-faculty', 'group-faculty', facMode, 'Khoa / Viện đào tạo', 'Tổ chức / Nơi công tác', 'Ví dụ: Công nghệ Thông tin', 'Ví dụ: Miyazaki Haruto Ent.');
+                    }
                 }
-                // --------------------------------------------------------
 
                 // 3. XỬ LÝ NÚT VÀO PHÒNG THI
-                document.getElementById('student-form').addEventListener('submit', async function(e) {
-                    e.preventDefault(); 
-                    
-                    // --- DÁN ĐÈ VÀO CHỖ NÀY NÈ ---
-                    let sName = document.getElementById('inp-name').value.trim();
-                    let sEmail = document.getElementById('inp-email').value.trim();
-                    
-                    let rawMSSV = document.getElementById('inp-mssv').value.trim();
-                    let rawClass = document.getElementById('inp-class').value.trim();
-                    let rawFaculty = document.getElementById('inp-faculty').value.trim();
+                let studentForm = document.getElementById('student-form');
+                if (studentForm) {
+                    studentForm.addEventListener('submit', async function(e) {
+                        e.preventDefault(); 
+                        
+                        let sName = document.getElementById('inp-name').value.trim();
+                        let sEmail = document.getElementById('inp-email').value.trim();
+                        
+                        // Hút an toàn chống null
+                        let rawMSSV = document.getElementById('inp-mssv') ? document.getElementById('inp-mssv').value.trim() : "";
+                        let rawClass = document.getElementById('inp-class') ? document.getElementById('inp-class').value.trim() : "";
+                        let rawFaculty = document.getElementById('inp-faculty') ? document.getElementById('inp-faculty').value.trim() : "";
 
-                    // TỰ ĐỘNG CHỮA CHÁY THEO CẤU HÌNH CỦA TỪNG Ô
-                    let sMSSV = (window.fieldModes.mssv === 'H' || (window.fieldModes.mssv === 'O' && rawMSSV === '')) ? "Khách Tự Do" : rawMSSV;
-                    let sClass = (window.fieldModes.cls === 'H' || (window.fieldModes.cls === 'O' && rawClass === '')) ? "Tự do" : rawClass;
-                    let sFaculty = (window.fieldModes.fac === 'H' || (window.fieldModes.fac === 'O' && rawFaculty === '')) ? "Cộng đồng" : rawFaculty;
-                    // -----------------------------
+                        // Chữa cháy theo cấu hình
+                        let sMSSV = (window.fieldModes.mssv === 'H' || (window.fieldModes.mssv === 'O' && rawMSSV === '')) ? "Khách Tự Do" : rawMSSV;
+                        let sClass = (window.fieldModes.cls === 'H' || (window.fieldModes.cls === 'O' && rawClass === '')) ? "Tự do" : rawClass;
+                        let sFaculty = (window.fieldModes.fac === 'H' || (window.fieldModes.fac === 'O' && rawFaculty === '')) ? "Cộng đồng" : rawFaculty;
 
-                    let btn = document.querySelector('.btn-start-quiz');
-                    let originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra hồ sơ...';
-                    btn.disabled = true;
+                        let btn = document.querySelector('.btn-start-quiz');
+                        let originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra hồ sơ...';
+                        btn.disabled = true;
 
-                    let isTest = (quiz.status === 'test');
+                        let isTest = (quiz.status === 'test');
 
-                    try {
-                        let payload = { action: 'checkParticipant', quizId: quizId, isTestMode: isTest, studentId: sMSSV, email: sEmail };
-                        let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                        let result = await res.json();
+                        try {
+                            let payload = { action: 'checkParticipant', quizId: quizId, isTestMode: isTest, studentId: sMSSV, email: sEmail };
+                            let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                            let result = await res.json();
 
-                        if (result.success && result.eligible === false) {
-                            showToast("❌ TỪ CHỐI TRUY CẬP: " + result.message + "\nMỗi bạn chỉ được thi 1 lần duy nhất!");
+                            if (result.success && result.eligible === false) {
+                                showToast("❌ TỪ CHỐI TRUY CẬP: " + result.message + "\nMỗi bạn chỉ được thi 1 lần duy nhất!");
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                                return; 
+                            }
+
+                            localStorage.setItem('mhent_arena_user', JSON.stringify({ fullName: sName, email: sEmail, studentId: sMSSV, className: sClass, faculty: sFaculty }));
+                            window.closeModal();
+                            window.location.href = `/arena/quiz.html?id=${quizId}${isTest ? '&mode=test' : ''}`;
+                        } catch (err) {
+                            showToast("❌ Mạng yếu, không kiểm tra được hệ thống. Vui lòng F5 thử lại!");
                             btn.innerHTML = originalText;
                             btn.disabled = false;
-                            return; 
                         }
-
-                        localStorage.setItem('mhent_arena_user', JSON.stringify({ fullName: sName, email: sEmail, studentId: sMSSV, className: sClass, faculty: sFaculty }));
-                        window.closeModal();
-                        window.location.href = `/arena/quiz.html?id=${quizId}${isTest ? '&mode=test' : ''}`;
-                    } catch (err) {
-                        showToast("❌ Mạng yếu, không kiểm tra được hệ thống. Vui lòng F5 thử lại!");
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }
-                });
+                    });
+                }
 
             } catch (err) {
+                console.error("Lỗi ngầm được giấu kín nay đã lộ diện:", err); // In thẳng lỗi ra màn hình F12
                 document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Mất kết nối với Két Sắt! Vui lòng F5 lại trang.</h3>';
             }
         }
