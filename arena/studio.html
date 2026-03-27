@@ -372,8 +372,15 @@
                             </div>
                         </div>
                         <div class="input-group full"><label>Mô tả & Lời nhắc <span style="color:red;">*</span></label><textarea id="inp-edit-desc" class="admin-textarea" required></textarea></div>
-                        <button type="submit" class="btn-admin" id="btn-save-quiz-edit">LƯU CÀI ĐẶT <i class="fa-solid fa-floppy-disk"></i></button>
-                        <button type="button" id="btn-delete-quiz-action" class="btn-admin" style="flex: 1; justify-content: center; background: #ef4444; display: none;" title="Xóa toàn bộ Hội thi này">XÓA HỘI THI <i class="fa-solid fa-trash-can"></i></button>
+                        <div style="display: flex; gap: 15px; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px; margin-top: 20px;">
+                            <button type="button" id="btn-delete-quiz-action" class="btn-admin" style="display: none; padding: 10px 18px; font-weight: bold; border-radius: 10px; border: 2px solid #ef4444; background: transparent; color: #ef4444; transition: 0.3s; cursor: pointer; align-items: center; gap: 8px; white-space: nowrap; font-size: 13px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.05)'" onmouseout="this.style.background='transparent'">
+                                <i class="fa-solid fa-trash-can"></i> XÓA HỘI THI
+                            </button>
+                            
+                            <button type="submit" class="btn-admin btn-purple" id="btn-save-quiz-edit" style="justify-content: center; min-width: 150px; font-weight: 900; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);">
+                                LƯU CÀI ĐẶT <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -404,6 +411,9 @@
                         <thead><tr><th>STT</th><th style="width:30%;">Câu hỏi</th><th>Đáp án đúng</th><th>Các đáp án sai</th><th>Hành Động</th></tr></thead>
                         <tbody id="table-body-quest"><tr><td colspan="5" style="text-align:center;">Vui lòng chọn bài thi...</td></tr></tbody>
                     </table>
+                    <button class="btn-admin" style="background: #8b5cf6; color: white;" onclick="exportQuizQuestionsCSV()" title="Tải toàn bộ câu hỏi và đáp án về máy">
+                        <i class="fa-solid fa-file-arrow-down"></i> Tải Kho Đề
+                    </button>
                 </div>
             </div>
 
@@ -589,6 +599,7 @@
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
             try {
                 let res = await fetch(API_URL + "?action=getQuestions&quizId=" + qId + "&t=" + new Date().getTime()); let result = await res.json();
+                window.currentQuizQuestions = result.data;
                 if(result.success && result.data.length > 0) {
                     window.globalQuestionsData = result.data; let html = '';
                     result.data.forEach((q, idx) => { let wrongs = q.wrongs.filter(w => w !== "").map(w => `<span style="display:block; margin-bottom:4px; font-size:13px; color:#ef4444;">• ${w}</span>`).join(''); html += `<tr><td style="text-align:center; font-weight:900; color:var(--studio-color);">${idx + 1}</td><td><div style="font-weight:800;">${q.question}</div>${q.explanation ? `<div style="font-size:12px; color:#10b981; margin-top:5px;"><i class="fa-solid fa-lightbulb"></i> ${q.explanation}</div>` : ''}</td><td><span class="badge green"><i class="fa-solid fa-check"></i> ${q.correct}</span></td><td>${wrongs}</td><td><button class="btn-admin" style="padding: 8px 12px; font-size: 13px;" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Sửa</button></td></tr>` + `<button class="btn-admin" style="padding: 8px 12px; font-size: 13px; background: #fee2e2; color: #ef4444;" onclick="triggerDelete('question', '${document.getElementById('select-view-q').value}', 'Câu số ${idx + 1}')" data-row="${idx}"><i class="fa-solid fa-trash-can"></i></button>`;
@@ -777,6 +788,62 @@
             document.body.removeChild(link);
             
             showToast('Thành công', 'Đã tải xong danh sách thí sinh!', 'success');
+        };
+
+        // ==========================================
+        // HÀM XUẤT FILE CSV SAO LƯU KHO ĐỀ (CÓ BẢN QUYỀN)
+        // ==========================================
+        window.exportQuizQuestionsCSV = function() {
+            // Lấy ID kho đề đang xem (dựa vào id của thẻ select trong tab Kho đề của cậu)
+            const quizId = document.getElementById('select-view-q').value; 
+            const questionsArray = window.currentQuizQuestions; // Biến này tạo ở Bước 2
+
+            if (!quizId) {
+                return showToast('Lỗi', 'Cậu chưa chọn Kho đề nào để tải!', 'error');
+            }
+            if (!questionsArray || questionsArray.length === 0) {
+                return showToast('Lỗi', 'Kho đề này đang trống không có gì để tải!', 'error');
+            }
+
+            // Thêm BOM \uFEFF cho tiếng Việt
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+            
+            // ĐÓNG DẤU BẢN QUYỀN
+            csvContent += "👑 MHEnt. Universe - KHO ĐỀ TRẮC NGHIỆM\r\n";
+            csvContent += "© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved.\r\n";
+            csvContent += `Mã Kho Đề: ${quizId}\r\n`;
+            csvContent += `Ngày xuất dữ liệu: ${new Date().toLocaleString('vi-VN')}\r\n`;
+            csvContent += "------------------------------------------------------\r\n\r\n";
+            
+            // TIÊU ĐỀ CỘT
+            csvContent += "Câu Hỏi,Đáp án Đúng,Đáp án Sai 1,Đáp án Sai 2,Đáp án Sai 3,Giải thích\r\n";
+            
+            // Hàm xử lý chuỗi an toàn (Tránh lỗi vỡ cột nếu câu hỏi có chứa dấu phẩy hoặc dấu ngoặc kép)
+            const safeText = (text) => `"${(text || "").toString().replace(/"/g, '""')}"`;
+
+            // ĐỔ DỮ LIỆU TỪ MẢNG VÀO FILE
+            questionsArray.forEach(q => {
+                let rowData = [
+                    safeText(q.question),
+                    safeText(q.correct),
+                    safeText(q.wrongs[0]),
+                    safeText(q.wrongs[1]),
+                    safeText(q.wrongs[2]),
+                    safeText(q.explanation)
+                ];
+                csvContent += rowData.join(",") + "\r\n";
+            });
+            
+            // LỆNH TẢI XUỐNG
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `KhoDe_${quizId}_MHEnt.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('Thành công', 'Đã tải xong toàn bộ câu hỏi!', 'success');
         };
     </script>
 </body>
