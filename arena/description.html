@@ -369,6 +369,23 @@
                     return;
                 }
 
+                // ====================================================
+                // 🛑 VÁ LỖ HỔNG: ÔNG BẢO VỆ GÁC CỬA PHÒNG CHỜ
+                // ====================================================
+                let currentUserRole = localStorage.getItem('mhent_user_role') || 'guest';
+                // Nhớ thêm chữ 'creator' vào nữa vì hệ thống cậu có role creator
+                let hasTestAccess = currentUserRole.includes('admin') || currentUserRole.includes('creator') || currentUserRole.includes('tester');
+
+                if (quiz.status === 'test' && !hasTestAccess) {
+                    showToast('CẢNH BÁO BẢO MẬT', 'Khu vực này đang được phong tỏa để thử nghiệm nội bộ!', 'error');
+                    // Giấu luôn cái hộp thông tin đi không cho xem lén
+                    document.getElementById('quiz-details-box').style.display = 'none'; 
+                    // Đá văng ra ngoài sau 2 giây
+                    setTimeout(() => { window.location.href = '/arena'; }, 2000);
+                    return; 
+                }
+                // ====================================================
+
                 let btnDisabled = (quiz.status === 'closed') ? 'disabled' : '';
                 let btnText = '';
                 
