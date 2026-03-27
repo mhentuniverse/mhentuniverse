@@ -400,27 +400,27 @@
                     avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "assets/avt-web.jpg";
                     avtElement.style.display = 'block'; 
                 }
+
+                const userRef = doc(db, "users", user?.uid || 'guest');
+                if(user) {
+                    getDoc(userRef).then((docSnap) => {
+                        const adminBtn = document.getElementById('admin-panel-btn');
+                        
+                        if (adminBtn) adminBtn.style.display = 'none';
+
+                        if (docSnap.exists() && docSnap.data().role) {
+                            const userRole = docSnap.data().role; 
+
+                            // Chỉ cần trong chuỗi quyền có chứa chữ 'admin' là hiện nút!
+                            if (userRole.includes('admin')) {
+                                if (adminBtn) adminBtn.style.display = 'flex';
+                            }
+                        }
+                    }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+                }
             } else {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
-            }
-
-            const userRef = doc(db, "users", user?.uid || 'guest');
-            if(user) {
-                getDoc(userRef).then((docSnap) => {
-                    const adminBtn = document.getElementById('admin-panel-btn');
-                    
-                    if (adminBtn) adminBtn.style.display = 'none';
-
-                    if (docSnap.exists() && docSnap.data().role) {
-                        const userRole = docSnap.data().role; 
-
-                        // Chỉ cần trong chuỗi quyền có chứa chữ 'admin' là hiện nút!
-                        if (userRole.includes('admin')) {
-                            if (adminBtn) adminBtn.style.display = 'flex';
-                        }
-                    }
-                }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
             }
         });
 
