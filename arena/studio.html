@@ -845,6 +845,48 @@
             
             showToast('Thành công', 'Đã tải xong toàn bộ câu hỏi!', 'success');
         };
+
+        // ==========================================
+        // HÀM TẢI ẢNH QR VỀ MÁY (VƯỢT TƯỜNG LỬA CORS)
+        // ==========================================
+        window.downloadQR = async function(type) {
+            // Xác định xem user muốn tải bản trắng đen hay bản màu
+            let imgId = type === 'bw' ? 'qr-image-bw' : 'qr-image-color';
+            let imgSrc = document.getElementById(imgId).src;
+            let quizId = document.getElementById('select-view-dash').value;
+
+            // Kiểm tra xem có ảnh chưa
+            if (!imgSrc || imgSrc === window.location.href) {
+                return showToast('Lỗi', 'Chưa có ảnh QR để tải!', 'error');
+            }
+
+            try {
+                showToast('Thông báo', 'Đang xử lý ảnh QR...', 'info');
+                
+                // Fetch ảnh dưới dạng Blob để ép trình duyệt tải file thay vì mở tab mới
+                let response = await fetch(imgSrc);
+                let blob = await response.blob();
+                let blobUrl = window.URL.createObjectURL(blob);
+
+                // Tạo một cái thẻ <a> ẩn để kích hoạt lệnh tải
+                let a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `QR_Code_${quizId}_${type.toUpperCase()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Dọn dẹp bộ nhớ
+                window.URL.revokeObjectURL(blobUrl);
+                showToast('Thành công', 'Đã lưu mã QR vào máy!', 'success');
+                
+            } catch (error) {
+                console.error("Lỗi tải QR:", error);
+                // Phương án dự phòng: Nếu mạng bị chặn, mở ảnh ra Tab mới để tự click chuột phải -> Save Image
+                window.open(imgSrc, '_blank');
+                showToast('Thông báo', 'Đã mở ảnh sang Tab mới, cậu có thể Click chuột phải để lưu!', 'info');
+            }
+        };
     </script>
 </body>
 </html>
