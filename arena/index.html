@@ -363,18 +363,26 @@
                     }
 
                     // PHÂN LOẠI OFFICIAL / COMMUNITY
+                    // PHÂN LOẠI OFFICIAL / COMMUNITY
                     let verifiedBadge = (quiz.verified === true || quiz.verified === "TRUE")
                         ? `<span style="background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #bae6fd;"><i class="fa-solid fa-circle-check"></i> OFFICIAL</span>`
                         : `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e2e8f0;"><i class="fa-solid fa-users"></i> COMMUNITY</span>`;
 
-                    // Trỏ link về description.html
+                    // PHÂN LOẠI THẺ ACADEMIC
+                    let schoolBadge = (quiz.mode && (quiz.mode.includes('_aca') || quiz.mode.includes('_academic') || quiz.mode.includes('_school'))) 
+                        ? `<span style="background: #fef08a; color: #a16207; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #fde047;"><i class="fa-solid fa-school-flag"></i> ACADEMIC</span>` 
+                        : '';
+
                     container.innerHTML += `
                         <a href="/arena/description.html?id=${quiz.id}" class="quiz-card">
                             <div class="quiz-header">
                                 <div class="quiz-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
                                     ${statusHtml}
-                                    ${verifiedBadge}
+                                    <div style="display: flex; gap: 4px;">
+                                        ${verifiedBadge}
+                                        ${schoolBadge}
+                                    </div>
                                 </div>
                             </div>
                             <h3 class="quiz-title">${quiz.title}</h3>

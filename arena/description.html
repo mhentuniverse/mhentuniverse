@@ -201,32 +201,23 @@
                 <span class="form-subtitle">Điền thông tin để ghi danh trên bảng vàng MHEnt nhé!</span>
             </div>
             
-            <form id="student-form">
-                <div class="input-group">
-                    <label>Họ và Tên đầy đủ *</label>
-                    <input type="text" id="inp-name" class="arena-input-form" placeholder="Ví dụ: Phạm Huỳnh Lam Chi" required autocomplete="off">
-                </div>
-                
-                <div class="input-group">
-                    <label>Email Sinh Viên *</label>
-                    <input type="email" id="inp-email" class="arena-input-form" placeholder="Ví dụ: sv2511130080@mhent.edu.vn" required autocomplete="off">
-                </div>
-
-                <div style="display: flex; gap: 15px;">
-                    <div class="input-group" style="flex: 1;">
-                        <label>Mã Sinh Viên *</label>
-                        <input type="text" id="inp-mssv" class="arena-input-form" placeholder="Ví dụ: 2511130080" required autocomplete="off">
+            <div id="academic-fields" style="display: none; padding: 15px; border-radius: 12px; border: 1px dashed rgba(251, 191, 36, 0.4); margin-bottom: 15px; background: rgba(251, 191, 36, 0.05);">
+                <p id="extra-info-notice" style="margin: 0 0 10px 0; font-size: 13px; font-weight: 800;"><i class="fa-solid fa-circle-info"></i> Thông tin bổ sung:</p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div class="input-group" id="group-mssv" style="flex: 1; min-width: 150px; margin-bottom: 10px;">
+                        <label id="label-mssv">Mã Định Danh</label>
+                        <input type="text" id="inp-mssv" class="arena-input-form" autocomplete="off">
                     </div>
-                    <div class="input-group" style="flex: 1;">
-                        <label>Lớp / Chi đoàn *</label>
-                        <input type="text" id="inp-class" class="arena-input-form" placeholder="Ví dụ: DH25DTB" required autocomplete="off">
+                    <div class="input-group" id="group-class" style="flex: 1; min-width: 150px; margin-bottom: 10px;">
+                        <label id="label-class">Đơn vị</label>
+                        <input type="text" id="inp-class" class="arena-input-form" autocomplete="off">
                     </div>
                 </div>
-                
-                <div class="input-group">
-                    <label>Khoa / Viện đào tạo *</label>
-                    <input type="text" id="inp-faculty" class="arena-input-form" placeholder="Ví dụ: Công nghệ Thông tin" required autocomplete="off">
+                <div class="input-group" id="group-faculty" style="margin-bottom: 0;">
+                    <label id="label-faculty">Tổ chức</label>
+                    <input type="text" id="inp-faculty" class="arena-input-form" autocomplete="off">
                 </div>
+            </div>
 
                 <button type="submit" class="btn-start-quiz">
                     VÀO PHÒNG THI <i class="fa-solid fa-paper-plane" style="margin-left: 5px;"></i>
@@ -384,14 +375,63 @@
                 // 2. SAU KHI DỰNG XONG, MỚI BẮT ĐẦU GỌI API LẤY LEADERBOARD CHÈN VÀO
                 loadLeaderboard(quizId);
 
+                // --- GIẢI MÃ CHẾ ĐỘ ĐỘC LẬP TỪNG Ô (DÁN VÀO CHỖ NÀY) ---
+                let modeStr = quiz.mode || '';
+                let isAcademic = modeStr.includes('_aca') || modeStr.includes('_academic') || modeStr.includes('_school');
+                
+                let isLegacyReq = modeStr.includes('_req') || (!modeStr.includes('_opt') && !modeStr.includes('_hid') && !modeStr.includes('_m'));
+                let isLegacyOpt = modeStr.includes('_opt');
+                let isLegacyHid = modeStr.includes('_hid');
+
+                let mssvMode = modeStr.includes('_mH') ? 'H' : (modeStr.includes('_mO') ? 'O' : (modeStr.includes('_mR') ? 'R' : (isLegacyHid ? 'H' : (isLegacyOpt ? 'O' : 'R'))));
+                let classMode = modeStr.includes('_cH') ? 'H' : (modeStr.includes('_cO') ? 'O' : (modeStr.includes('_cR') ? 'R' : (isLegacyHid ? 'H' : (isLegacyOpt ? 'O' : 'R'))));
+                let facMode = modeStr.includes('_fH') ? 'H' : (modeStr.includes('_fO') ? 'O' : (modeStr.includes('_fR') ? 'R' : (isLegacyHid ? 'H' : (isLegacyOpt ? 'O' : 'R'))));
+
+                window.fieldModes = { mssv: mssvMode, cls: classMode, fac: facMode };
+
+                let extraFieldsBox = document.getElementById('academic-fields');
+                
+                if (mssvMode === 'H' && classMode === 'H' && facMode === 'H') {
+                    extraFieldsBox.style.display = 'none';
+                } else {
+                    extraFieldsBox.style.display = 'block';
+                    let setupField = (id, labelId, groupId, mode, acaLabel, defLabel, acaPh, defPh) => {
+                        let group = document.getElementById(groupId);
+                        let input = document.getElementById(id);
+                        let label = document.getElementById(labelId);
+                        
+                        if (mode === 'H') {
+                            group.style.display = 'none'; input.required = false;
+                        } else {
+                            group.style.display = 'block'; input.required = (mode === 'R');
+                            let reqMark = (mode === 'R') ? " <span style='color:#ef4444;'>*</span>" : " <span style='color:#94a3b8; font-weight:normal;'>(Bỏ qua nếu không có)</span>";
+                            label.innerHTML = (isAcademic ? acaLabel : defLabel) + reqMark;
+                            input.placeholder = isAcademic ? acaPh : defPh;
+                        }
+                    };
+                    setupField('inp-mssv', 'label-mssv', 'group-mssv', mssvMode, 'Mã Sinh Viên', 'Mã Định Danh (CCCD/SĐT)', 'Ví dụ: 2511130080', 'Ví dụ: 07920400...');
+                    setupField('inp-class', 'label-class', 'group-class', classMode, 'Lớp / Chi đoàn', 'Đơn vị / Phòng ban', 'Ví dụ: DH25DTB', 'Ví dụ: Team Subtitle');
+                    setupField('inp-faculty', 'label-faculty', 'group-faculty', facMode, 'Khoa / Viện đào tạo', 'Tổ chức / Nơi công tác', 'Ví dụ: Công nghệ Thông tin', 'Ví dụ: Miyazaki Haruto Ent.');
+                }
+                // --------------------------------------------------------
+
                 // 3. XỬ LÝ NÚT VÀO PHÒNG THI
                 document.getElementById('student-form').addEventListener('submit', async function(e) {
                     e.preventDefault(); 
+                    
+                    // --- DÁN ĐÈ VÀO CHỖ NÀY NÈ ---
                     let sName = document.getElementById('inp-name').value.trim();
                     let sEmail = document.getElementById('inp-email').value.trim();
-                    let sMSSV = document.getElementById('inp-mssv').value.trim();
-                    let sClass = document.getElementById('inp-class').value.trim();
-                    let sFaculty = document.getElementById('inp-faculty').value.trim();
+                    
+                    let rawMSSV = document.getElementById('inp-mssv').value.trim();
+                    let rawClass = document.getElementById('inp-class').value.trim();
+                    let rawFaculty = document.getElementById('inp-faculty').value.trim();
+
+                    // TỰ ĐỘNG CHỮA CHÁY THEO CẤU HÌNH CỦA TỪNG Ô
+                    let sMSSV = (window.fieldModes.mssv === 'H' || (window.fieldModes.mssv === 'O' && rawMSSV === '')) ? "Khách Tự Do" : rawMSSV;
+                    let sClass = (window.fieldModes.cls === 'H' || (window.fieldModes.cls === 'O' && rawClass === '')) ? "Tự do" : rawClass;
+                    let sFaculty = (window.fieldModes.fac === 'H' || (window.fieldModes.fac === 'O' && rawFaculty === '')) ? "Cộng đồng" : rawFaculty;
+                    // -----------------------------
 
                     let btn = document.querySelector('.btn-start-quiz');
                     let originalText = btn.innerHTML;
