@@ -17,11 +17,35 @@
         html { scroll-behavior: smooth; scroll-padding-top: 100px; }
         body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.7; margin: 0; padding: 0; transition: 0.3s; }
         
+        html, body { overflow-x: visible !important; }
+
         /* --- LAYOUT CHÍNH --- */
         .terms-layout { display: flex; max-width: 1100px; margin: 100px auto 60px auto; gap: 30px; align-items: flex-start; padding: 0 20px; }
 
         /* --- SIDEBAR MỤC LỤC --- */
-        .terms-sidebar { width: 280px; background: white; border-radius: 15px; padding: 25px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: sticky; top: 100px; flex-shrink: 0; transition: 0.3s; border: 1px solid #e2e8f0; }
+        .terms-sidebar { 
+            width: 280px; 
+            background: white; 
+            border-radius: 15px; 
+            padding: 25px 20px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+            
+            /* Bộ combo ép dính chặt (Sticky) */
+            position: -webkit-sticky; /* Hỗ trợ Safari */
+            position: sticky; 
+            top: 100px; /* Cách mép trên 100px */
+            align-self: flex-start; /* Bắt buộc phải có để sticky hoạt động trong flexbox */
+            max-height: calc(100vh - 120px); /* Chiều cao tối đa bằng màn hình trừ đi khoảng không */
+            overflow-y: auto; /* Tự cuộn bên trong nếu mục lục quá dài */
+            
+            flex-shrink: 0; 
+            transition: 0.3s; 
+            border: 1px solid #e2e8f0; 
+        }
+        
+        /* Ẩn thanh cuộn xấu xí của sidebar (chỉ hiện mờ mờ cho đẹp) */
+        .terms-sidebar::-webkit-scrollbar { width: 4px; }
+        .terms-sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .terms-sidebar h3 { margin-top: 0; color: var(--hub-color); font-weight: 900; padding-bottom: 10px; border-bottom: 2px dashed #f1f5f9; font-size: 16px; text-transform: uppercase; }
         .toc-list { list-style: none; padding: 0; margin: 0; }
         .toc-list li { margin-bottom: 8px; }
