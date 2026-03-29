@@ -163,10 +163,19 @@
                     <label>Tên hiển thị</label>
                     <input type="text" id="profile-name" class="profile-input" placeholder="Cậu muốn mọi người gọi là gì?">
                 </div>
+                
                 <div class="form-group">
-                    <label style="margin-bottom: -4px;">Đường dẫn ảnh đại diện (URL)</label>
-                    <span style="font-size: 12.5px; color: #888; font-weight: normal; font-style: italic; line-height: 1.4;">Bạn có thể sử dụng các dịch vụ lưu trữ ảnh như Imgur, Google Drive (đã mở public), ảnh Google (bấm chuột phải chọn Copy Image Address)...</span>
-                    <input type="text" id="profile-avatar-url" class="profile-input" placeholder="Dán link ảnh vào đây nha...">
+                    <label style="margin-bottom: -4px;">Ảnh đại diện (Avatar)</label>
+                    <span style="font-size: 12.5px; color: #888; font-weight: normal; font-style: italic; line-height: 1.4;">Cậu có thể tải ảnh từ máy lên hoặc dán URL ảnh trực tiếp vào ô bên dưới nhé.</span>
+                    <div style="display: flex; gap: 10px; margin-top: 8px;" class="url-input-group">
+                        <input type="text" id="profile-avatar-url" class="profile-input" placeholder="Dán link ảnh vào đây nha..." style="flex: 1; margin: 0;">
+                        
+                        <button type="button" id="btn-upload-avatar" class="btn-upload" onclick="triggerAvatarUpload()">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Tải ảnh lên
+                        </button>
+                    </div>
+                    <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="handleAvatarFile(event)">
                 </div>
                 
                 <button class="btn-save-profile" onclick="updateUserProfile()">
@@ -435,6 +444,93 @@
         };
 
         if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
+
+        // ==========================================
+        // KHU VỰC ĐỘ LẠI: TẢI ẢNH LÊN GOOGLE DRIVE
+        // ==========================================
+        
+        // GIÁM ĐỐC NHỚ DÁN CÁI LINK APPS SCRIPT VÀO ĐÂY NHA!!!
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw5GLP4H2cVVz836JU7rU5u2c6IJu2-0kkduFFkG1I0Ntd8LMJ-lZxS4QerHHjA3HSOtQ/exec"; 
+
+        window.triggerAvatarUpload = function() {
+            document.getElementById('avatar-file-input').click();
+        };
+
+        window.handleAvatarFile = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Kiểm tra dung lượng (Tối đa 5MB trước khi nén)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Lỗi dung lượng', 'Ảnh này bự quá cậu ơi! Cậu chọn ảnh nào dưới 5MB giúp tớ nha.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-upload-avatar');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i> Đang xử lý...';
+            btn.disabled = true;
+
+            // Bắt đầu ép xung (Nén ảnh) bằng công cụ Canvas của trình duyệt
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = async function() {
+                    const canvas = document.createElement('canvas');
+                    // Ép khung hình về tối đa 300x300 (Dư sức để làm avatar nét căng)
+                    const MAX_WIDTH = 300;
+                    const MAX_HEIGHT = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Nén lại thành JPEG với chất lượng 80% (Dung lượng siêu nhẹ)
+                    const base64String = canvas.toDataURL('image/jpeg', 0.8);
+
+                    // Bắt đầu đẩy lên Apps Script
+                    try {
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i> Đang đẩy lên Mây...';
+                        const response = await fetch(GAS_WEB_APP_URL, {
+                            method: "POST",
+                            body: JSON.stringify({
+                                base64: base64String,
+                                fileName: `avatar_${Date.now()}.jpg`
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.status === "success") {
+                            // Dùng link CDN siêu tốc độ của Googleusercontent
+                            const avatarUrl = `https://lh3.googleusercontent.com/u/0/d/$${result.fileId}`;
+                            document.getElementById('profile-avatar-url').value = avatarUrl;
+                            document.getElementById('profile-avatar-preview').src = avatarUrl;
+                            showToast('Thành công', 'Đã tải ảnh lên Drive! Bấm nút "Cập nhật hồ sơ" để lưu lại nhé.', 'success');
+                        } else {
+                            showToast('Lỗi', 'Không thể tải lên: ' + result.message, 'error');
+                        }
+                    } catch (error) {
+                        showToast('Lỗi', 'Tên miền chưa được cấp phép hoặc mất mạng rùi!', 'error');
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        event.target.value = ''; // Reset lại nút chọn file
+                    }
+                }
+            };
+        };
     </script>
+    <script src="/bot-shield.js"></script>
 </body>
 </html>
