@@ -106,6 +106,50 @@ body { font-family: 'Nunito', sans-serif; margin: 0; padding: 0; padding-top: 75
 .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
 .app-item:hover .app-icon svg { transform: scale(1.1); }
 body.dark-mode .app-icon svg { color: #e2e8f0; }
+
+/* ======================================================
+   TÙY CHỈNH THANH CUỘN (SCROLLBAR) TOÀN HỆ THỐNG
+   ====================================================== */
+
+/* 1. Dành cho Chrome, Edge, Safari, Cốc Cốc... */
+::-webkit-scrollbar {
+    width: 8px; /* Độ mỏng của thanh cuộn dọc */
+    height: 8px; /* Độ mỏng của thanh cuộn ngang (nếu có) */
+}
+
+/* Phần rãnh trượt (Nền của thanh cuộn) */
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03); /* Trong suốt mờ mờ cho sang */
+    border-radius: 10px;
+}
+
+/* Phần tay cầm (Cục lăn) */
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1; /* Màu xám nhạt tinh tế lúc bình thường */
+    border-radius: 10px;
+}
+
+/* Hiệu ứng khi di chuột vào cục lăn */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--hub-color, #ff5c8a); /* Biến thành màu hồng MHEnt khi người dùng chạm vào */
+}
+
+/* 2. Dành cho Firefox (Firefox dùng chuẩn CSS riêng) */
+html {
+    scrollbar-width: thin; /* Biến thanh cuộn thành nét thanh mảnh */
+    scrollbar-color: #cbd5e1 rgba(0, 0, 0, 0.03); /* Màu cục lăn + Màu nền */
+}
+
+/* --- Tương thích với Dark Mode (Tùy chọn) --- */
+body.dark-mode ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: var(--hub-color, #ff5c8a);
+}
 /* =========================================
    2. TRANG CHỦ & TÌM KIẾM (LIVE SEARCH)
    ========================================= */
