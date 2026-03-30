@@ -64,94 +64,136 @@
         }
     </style>
 </head>
-<body class="dark-mode"> <nav class="navbar">
-        <div class="nav-left">
-            <a onclick="window.location.href='/cinema'" style="cursor: pointer;">
-                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
-                <span class="logo-name">MHEnt. Cinema</span>
-            </a>
-        </div>
+<body class="dark-mode"> 
+    <nav class="navbar">
+            <div class="nav-left">
+                <a onclick="window.location.href='/cinema'" style="cursor: pointer;">
+                    <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                    <span class="logo-name">MHEnt. Cinema</span>
+                </a>
+            </div>
 
-        <ul class="nav-links" id="nav-links">
-            <li><a onclick="window.location.href='/cinema'" style="cursor: pointer;">Trang chủ</a></li>
-            <li><a onclick="window.location.href='/cinema#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
-            <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
-        </ul>
+            <ul class="nav-links" id="nav-links">
+                <li><a onclick="window.location.href='/cinema'" style="cursor: pointer;">Trang chủ</a></li>
+                <li><a onclick="window.location.href='/cinema#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
+                <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
+            </ul>
 
-        <div class="nav-right">
-            <div class="user-section">
-                <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
-                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                            <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
-                            <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
-                            <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
-                        </svg>
+            <div class="nav-right">
+                <div class="nav-search-container" id="nav-search-wrapper">
+                    <input type="text" id="nav-search-box" placeholder="Tìm phim..." 
+                           oninput="window.renderNavLiveSearch()" 
+                           onfocus="window.renderNavLiveSearch()">
+                    <div class="nav-search-icon" onclick="toggleNavSearch()" title="Tìm kiếm">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                    <div id="nav-search-dropdown" class="search-dropdown"></div>
+                </div>
+
+                <div class="user-section">
+                    <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
+                        <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='#ff85a2'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                                <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                                <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                            </svg>
+                        </div>
+                        
+                        <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                            <a onclick="window.location.href='/'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
+                                <span class="app-name">Đại Sảnh</span>
+                            </a>
+                            <a onclick="window.location.href='/cinema'" class="app-item active">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                                <span class="app-name">Cinema</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Manga đang xây dựng!', 'info'); return false;">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                                <span class="app-name">Manga</span>
+                            </a>
+                            <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Novel đang xây dựng!', 'info'); return false;">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+                                <span class="app-name">Novel</span>
+                            </a>
+                            <a onclick="window.location.href='#'" class="app-item"> 
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
+                                <span class="app-name">Music</span>
+                            </a>
+                            <a onclick="window.location.href='/arena'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg></span>
+                                <span class="app-name">Arena</span>
+                            </a>
+                        </div>
                     </div>
                     
-                    <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
-                        <a onclick="window.location.href='/'" class="app-item">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
-                            <span class="app-name">Đại Sảnh</span>
-                        </a>
-                        <a onclick="window.location.href='/cinema'" class="app-item active">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
-                            <span class="app-name">Cinema</span>
-                        </a>
-                        <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Manga đang xây dựng!', 'info'); return false;">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
-                            <span class="app-name">Manga</span>
-                        </a>
-                        <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Novel đang xây dựng!', 'info'); return false;">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
-                            <span class="app-name">Novel</span>
-                        </a>
-                        <a onclick="window.location.href='#'" class="app-item"> 
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
-                            <span class="app-name">Music</span>
-                        </a>
-                        <a onclick="window.location.href='/arena'" class="app-item">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg></span>
-                            <span class="app-name">Arena</span>
-                        </a>
+                    <div id="bell-container" style="display: none; position: relative;">
+                        <div class="notif-bell" onclick="toggleNotif()" style="cursor: pointer;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" class="svg-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="notif-dot"></span>
+                        </div>
+                        <div id="dropdown-notif" class="dropdown-menu notif-dropdown">
+                            <div class="notif-header">
+                                <span class="notif-title-text">Thông báo</span>
+                                <span class="notif-mark-read" onclick="markAllAsRead()">Đánh dấu tất cả là đã đọc</span>
+                            </div>
+                            <div id="notif-list" class="notif-body"></div>
+                            <div class="notif-footer">
+                                <button class="btn-view-all" onclick="window.location.href='/cinema/notification'">Xem tất cả ></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    
+                    <button id="btn-login" class="btn-login btn-with-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                        Đăng nhập
+                    </button>
+
+                    <div id="user-profile" class="user-profile" style="position: relative; display: none;">
+                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <img id="user-avatar" src="" alt="User" class="user-avatar">
+                            <span id="user-name" class="user-name">Tên User</span>
+                        </div>
+                        
+                        <div id="dropdown-account" class="dropdown-menu account-dropdown">
+                            <div class="dropdown-item" onclick="window.location.href='/profile#info'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
+                            </div>
+                            <div class="dropdown-item" onclick="window.location.href='/cinema/library'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện
+                            </div>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode
+                            </div>
+                            <div class="dropdown-item" onclick="window.location.href='/profile#settings'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Cài đặt
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #28a745 !important;" onclick="window.open('/cinema/admin', '_blank')">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Admin
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="studio-panel-btn" class="dropdown-item" style="display: none; color: #ff9a00 !important;" onclick="window.open('/cinema/studio', '_blank')">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Phòng Studio
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <button id="btn-login" class="btn-login btn-with-icon">
-                    <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
-                    Đăng nhập
-                </button>
-
-                <div id="user-profile" class="user-profile" style="position: relative; display: none;">
-                    <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <img id="user-avatar" src="" alt="User" class="user-avatar">
-                        <span id="user-name" class="user-name">Đang tải...</span>
-                    </div>
-                    
-                    <div id="dropdown-account" class="dropdown-menu account-dropdown">
-                        <div class="dropdown-item" onclick="window.location.href='/profile#info'">
-                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
-                        </div>
-                        <div class="dropdown-item" onclick="window.location.href='/cinema/library'">
-                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #28a745 !important;" onclick="window.open('/cinema/admin', '_blank')">
-                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Admin
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
-                        </div>
-                    </div>
+                <div class="menu-toggle" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </div>
             </div>
-
-            <div class="menu-toggle" onclick="toggleMobileMenu()">
-                <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </div>
-        </div>
-    </nav>
+        </nav>
 
     <div class="room-layout">
         <div class="video-section">
@@ -212,11 +254,10 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // ⚠️ GIÁM ĐỐC NHỚ DÁN CONFIG CỦA CẬU VÀO ĐÂY NHA (Nhớ có dòng databaseURL)
+        // ⚠️ GIÁM ĐỐC NHỚ DÁN CONFIG CỦA CẬU VÀO ĐÂY NHA 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
             authDomain: "mhentuniverse.firebaseapp.com",
@@ -224,96 +265,701 @@
             projectId: "mhentuniverse",
             storageBucket: "mhentuniverse.firebasestorage.app",
             messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
-            measurementId: "G-YE217QW296"
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const dbFirestore = getFirestore(app);
         const dbRTDB = getDatabase(app);
 
         // ==========================================
-        // SCRIPT GIAO DIỆN TỪ ĐẠI SẢNH (Navbar & Auth)
-        // ==========================================
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
+            // 1. HỆ THỐNG USER & NAVBAR
+            // ==========================================
+            const btnLogin = document.getElementById('btn-login');
+            const btnLogout = document.getElementById('btn-logout');
 
-        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
-        if (btnLogout) { 
-            btnLogout.addEventListener('click', async () => { 
-                await signOut(auth); 
-                window.location.reload(); 
-            }); 
-        }
+            if (btnLogin) { btnLogin.addEventListener('click', () => { window.location.href = '/login'; }); }
+            if (btnLogout) { 
+                btnLogout.addEventListener('click', async () => { 
+                    await signOut(auth); 
+                    window.location.href = 'index'; 
+                }); 
+            }
 
-        window.toggleAccount = function() {
-            const acc = document.getElementById('dropdown-account');
-            const switcher = document.getElementById('dropdown-app-switcher');
-            if(switcher) switcher.classList.remove('show'); 
-            if(acc) acc.classList.toggle('show');
-        };
+            // Mở bảng này thì vả bảng kia đóng lại
+            window.toggleAccount = function() {
+                const acc = document.getElementById('dropdown-account');
+                const notif = document.getElementById('dropdown-notif');
+                const switcher = document.getElementById('dropdown-app-switcher'); 
+                
+                if(notif) notif.classList.remove('show'); 
+                if(switcher) switcher.classList.remove('show'); 
+                if(acc) acc.classList.toggle('show');
+            };
 
-        window.toggleAppSwitcher = function() {
-            const switcher = document.getElementById('dropdown-app-switcher');
-            const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show'); 
-            if(switcher) switcher.classList.toggle('show');
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.user-section')) {
+            window.toggleNotif = function() {
+                const notif = document.getElementById('dropdown-notif');
                 const acc = document.getElementById('dropdown-account');
                 const switcher = document.getElementById('dropdown-app-switcher');
+                
+                if(acc) acc.classList.remove('show'); 
+                if(switcher) switcher.classList.remove('show'); 
+                if(notif) notif.classList.toggle('show');
+            };
+
+            window.toggleAppSwitcher = function() {
+                const switcher = document.getElementById('dropdown-app-switcher');
+                const notif = document.getElementById('dropdown-notif');
+                const acc = document.getElementById('dropdown-account');
+                
+                if(notif) notif.classList.remove('show');
                 if(acc) acc.classList.remove('show');
-                if(switcher) switcher.classList.remove('show');
-            }
-            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                if(switcher) switcher.classList.toggle('show');
+            };
+
+            window.onclick = function(event) {
+                if (!event.target.closest('.user-section') && !event.target.closest('.cinema-overlay') && !event.target.closest('.modal')) {
+                    const acc = document.getElementById('dropdown-account');
+                    const notif = document.getElementById('dropdown-notif');
+                    const switcher = document.getElementById('dropdown-app-switcher');
+                    
+                    if(acc) acc.classList.remove('show');
+                    if(notif) notif.classList.remove('show');
+                    if(switcher) switcher.classList.remove('show');
+                }
+                
+                if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                    const navLinks = document.getElementById('nav-links');
+                    if(navLinks) navLinks.classList.remove('active');
+                }
+            };
+
+            window.toggleMobileMenu = function() {
                 const navLinks = document.getElementById('nav-links');
-                if(navLinks) navLinks.classList.remove('active');
+                const acc = document.getElementById('dropdown-account');
+                const notif = document.getElementById('dropdown-notif');
+                const switcher = document.getElementById('dropdown-app-switcher');
+                
+                if(acc) acc.classList.remove('show'); 
+                if(notif) notif.classList.remove('show'); 
+                if(switcher) switcher.classList.remove('show');
+                if(navLinks) navLinks.classList.toggle('active');
+            };
+
+            window.toggleDarkMode = function() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
+            };
+
+            if (localStorage.getItem('mhent_dark_mode') === 'on') {
+                document.body.classList.add('dark-mode');
             }
-        };
 
-        window.toggleMobileMenu = function() {
-            const navLinks = document.getElementById('nav-links');
-            const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show'); 
-            if(navLinks) navLinks.classList.toggle('active');
-        };
+            // --- THEO DÕI TRẠNG THÁI ĐĂNG NHẬP ---
+            window.userLastWatched = {}; 
+            window.latestWatchedId = null; 
+        
+            onAuthStateChanged(auth, async (user) => {
+                const btnTheme = document.getElementById('btn-theme-toggle'); 
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+                if (user) {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                    if(btnTheme) btnTheme.style.display = 'none'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+                    if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'block';
 
-                let finalName = user.displayName || user.email.split('@')[0];
-                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+                    let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                    if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
 
-                const avtElement = document.getElementById('user-avatar');
-                if (avtElement) {
-                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
-                    avtElement.style.display = 'block'; 
+                    const avtElement = document.getElementById('user-avatar');
+                    if (avtElement) {
+                        avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                        avtElement.style.display = 'block'; 
+                    }        
+
+                    if (typeof loadNotifications === "function") loadNotifications();
+
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", user.uid));
+                        if (userSnap.exists()) {
+                            window.userLastWatched = userSnap.data().lastWatched || {};
+                            window.latestWatchedId = userSnap.data().latestWatchedId || null; 
+                        }
+                        if(typeof window.renderContinueWatching === "function") window.renderContinueWatching();
+                    } catch(e) { console.error("Lỗi tải lịch sử:", e); }
+
+                } else {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                    if(btnTheme) btnTheme.style.display = 'flex'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+                    if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'none';
+                    
+                    window.userLastWatched = {};
+                    if(typeof window.renderContinueWatching === "function") window.renderContinueWatching();
                 }
 
-                // Check Role hiển thị nút Admin
-                const userRef = doc(dbFirestore, "users", user.uid);
-                getDoc(userRef).then((docSnap) => {
-                    const adminBtn = document.getElementById('admin-panel-btn');
-                    if (adminBtn) adminBtn.style.display = 'none';
-                    if (docSnap.exists() && docSnap.data().role) {
-                        if (docSnap.data().role.includes('admin')) {
-                            if (adminBtn) adminBtn.style.display = 'flex';
+                    const userRef = doc(db, "users", user?.uid || 'guest');
+                    if(user) {
+                        getDoc(userRef).then((docSnap) => {
+                            const adminBtn = document.getElementById('admin-panel-btn');
+                            const studioBtn = document.getElementById('studio-panel-btn');
+                            
+                            if (adminBtn) adminBtn.style.display = 'none';
+                            if (studioBtn) studioBtn.style.display = 'none';
+
+                            if (docSnap.exists() && docSnap.data().role) {
+                                const userRole = docSnap.data().role; 
+
+                                if (userRole.includes('admin')) {
+                                    if (adminBtn) adminBtn.style.display = 'flex';
+                                    if (studioBtn) studioBtn.style.display = 'flex'; 
+                                } else if (userRole.includes('uploader')) {
+                                    if (studioBtn) studioBtn.style.display = 'flex';
+                                }
+                            }
+                        }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+                    }
+            });
+
+            // ==========================================
+            // 2. HỆ THỐNG TẢI PHIM & BỘ LỌC TÌM KIẾM
+            // ==========================================
+            
+            window.allMoviesData = [];
+            window.activeTags = []; 
+
+            document.addEventListener("DOMContentLoaded", async function() {
+                const container = document.getElementById('movie-list-container');
+                container.innerHTML = '<p style="text-align:center; color:#ff85a2; width:100%;">🌟 Đang kết nối với vệ tinh MHEnt...</p>'; 
+
+                try {
+                    const querySnapshot = await getDocs(collection(db, "movies"));
+                    window.allMoviesData = [];
+                    querySnapshot.forEach((doc) => { window.allMoviesData.push({ id: doc.id, ...doc.data() }); });
+                    window.allMoviesData.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+                    // Đã tắt render tag bằng JS để dùng HTML cứng
+                    window.renderTagButtons(); 
+                    
+                    window.renderMoviesList(window.allMoviesData);
+                    window.renderContinueWatching(); 
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const searchKeyword = urlParams.get('search');
+                    if (searchKeyword) {
+                        const mainSearch = document.getElementById('search-box');
+                        if (mainSearch) {
+                            mainSearch.value = searchKeyword;
+                            window.applyFilters(); 
+                            setTimeout(() => {
+                                window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' });
+                            }, 300);
                         }
                     }
-                }).catch(e => console.log("Lỗi quét thẻ:", e));
-            } else {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+
+                } catch (error) {
+                    console.error("Lỗi tải phim: ", error);
+                    container.innerHTML = `<p style="color:red;">❌ Rạp gặp sự cố kết nối: ${error.message}</p>`;
+                }
+            });
+
+            window.renderContinueWatching = function() {
+                const cwSection = document.getElementById('continue-watching-section');
+                const cwContainer = document.getElementById('continue-watching-container');
+                if (!cwSection || !cwContainer) return;
+
+                if (!auth.currentUser || !window.latestWatchedId || Object.keys(window.userLastWatched).length === 0 || window.allMoviesData.length === 0) {
+                    cwSection.style.display = 'none';
+                    return;
+                }
+
+                let movie = window.allMoviesData.find(m => m.id === window.latestWatchedId);
+                let epIndex = window.userLastWatched[window.latestWatchedId];
+
+                if (!movie || epIndex === undefined) {
+                    cwSection.style.display = 'none';
+                    return;
+                }
+
+                cwContainer.innerHTML = '';
+                let firstTag = movie.tag ? movie.tag.split('/')[0].trim() : "Phim";
+                
+                let subTitle = "";
+                let progressRowHTML = "";
+                let actionText = "";
+
+                if (movie.type === 'series') {
+                    let totalEps = movie.episodes ? movie.episodes.length : 1;
+                    let epNumber = parseInt(epIndex) + 1;
+                    let progress = Math.min((epNumber / totalEps) * 100, 100);
+                    
+                    let currentEpData = movie.episodes[epIndex];
+                    subTitle = (currentEpData && currentEpData.title) ? currentEpData.title : (movie.altTitle || "Đang theo dõi series này");
+                    
+                    actionText = "▶ Tiếp tục xem";
+                    progressRowHTML = `
+                        <div class="cw-progress-row">
+                            <span class="cw-ep-text">Tập ${epNumber} / ${totalEps}</span>
+                            <div class="cw-progress-bg"><div class="cw-progress-bar" style="width: ${progress}%"></div></div>
+                        </div>
+                    `;
+                } else {
+                    subTitle = movie.altTitle || "Phim chiếu rạp (Eiga)";
+                    actionText = "▶ Vào rạp xem lại";
+                    progressRowHTML = `
+                        <div class="cw-progress-row">
+                            <span class="cw-ep-text" style="color: #ff85a2;">✨ Bạn đang/đã xem Eiga này!</span>
+                        </div>
+                    `;
+                }
+
+                const cardHTML = `
+                    <a onclick="window.location.href='/cinema/watch?id=${movie.id}&ep=${epIndex}'" style="cursor: pointer;" class="cw-card">
+                        <img src="${movie.poster}" alt="${movie.title}" class="cw-poster" loading="lazy">
+                        <div class="cw-info">
+                            <span class="cw-tag">${firstTag}</span>
+                            <h3 class="cw-title" title="${movie.title}">${movie.title}</h3>
+                            <div class="cw-subtitle" title="${subTitle}">${subTitle}</div>
+                            
+                            ${progressRowHTML}
+
+                            <div class="cw-action">
+                                ${actionText}
+                            </div>
+                        </div>
+                    </a>
+                `;
+                cwContainer.innerHTML = cardHTML;
+                cwSection.style.display = 'block';
+            };
+
+            // [ĐÃ SỬA] HÀM TỰ ĐỘNG TẠO NÚT TAG VỚI TỪ ĐIỂN ICON
+            window.renderTagButtons = function() {
+                let allTags = new Set();
+                window.allMoviesData.forEach(m => {
+                    if (m.tag) {
+                        m.tag.split('/').forEach(t => {
+                            let cleanTag = t.trim();
+                            if (cleanTag) allTags.add(cleanTag);
+                        });
+                    }
+                });
+
+                const tagContainer = document.getElementById('homepage-tags');
+                if (tagContainer) {
+                    let tagsHTML = `<button class="filter-btn active" id="btn-tag-all" onclick="filterMovies('All', this)">Tất cả</button>`;
+                    
+                    // TỪ ĐIỂN ICON VECTOR CHO TỪNG TAG
+                    const tagIcons = {
+                        'Phép thuật': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+                        'Hành động': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+                        'Đời thường': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>',
+                        'Idol': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>',
+                        'Movie': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+                        'Phim rạp': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>'
+                    };
+                    
+                    // ICON MẶC ĐỊNH DÀNH CHO CÁC TAG MỚI HOẶC CHƯA CÓ TRONG TỪ ĐIỂN
+                    const defaultIcon = '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>';
+
+                    allTags.forEach(tag => {
+                        let icon = tagIcons[tag] || defaultIcon; // Nếu có từ điển thì dùng, không thì dùng mặc định
+                        tagsHTML += `<button class="filter-btn" onclick="filterMovies('${tag}', this)">${icon} ${tag}</button>`;
+                    });
+                    
+                    tagContainer.innerHTML = tagsHTML;
+                }
+            };
+
+            // [ĐÃ SỬA] HÀM BẬT/TẮT NHIỀU TAG CÙNG LÚC (CHUẨN 100%)
+            window.filterMovies = function(tag, btnElement) {
+                const tagContainer = document.getElementById('homepage-tags');
+                if (tagContainer) {
+                    const allBtn = tagContainer.children[0];
+
+                    if (tag === 'All') {
+                        // Nếu bấm "Tất cả": Xóa sạch mảng, bật sáng nút "Tất cả", tắt hết nút khác
+                        window.activeTags = [];
+                        allBtn.classList.add('active');
+                        
+                        const otherBtns = Array.from(tagContainer.querySelectorAll('.filter-btn')).slice(1);
+                        otherBtns.forEach(b => b.classList.remove('active'));
+                    } else {
+                        // Nếu bấm Tag thường: Tắt nút "Tất cả"
+                        allBtn.classList.remove('active');
+                        
+                        // Toggle logic cho chính cái nút đang bấm
+                        if (btnElement.classList.contains('active')) {
+                            btnElement.classList.remove('active'); // Bấm lần 2 -> Tắt sáng
+                            window.activeTags = window.activeTags.filter(t => t !== tag); // Xóa khỏi mảng
+                        } else {
+                            btnElement.classList.add('active'); // Bấm lần 1 -> Bật sáng
+                            if (!window.activeTags.includes(tag)) {
+                                window.activeTags.push(tag); // Thêm vào mảng
+                            }
+                        }
+                        
+                        // Nếu lỡ tay tắt hết sạch Tag, tự động bật lại nút "Tất cả"
+                        if (window.activeTags.length === 0) {
+                            allBtn.classList.add('active');
+                        }
+                    }
+                }
+                
+                // Sau khi tính toán Tag xong thì chạy bộ lọc
+                window.applyFilters();
+            };
+
+            // [ĐÃ SỬA] HÀM BỘ LỌC TỔNG HỢP (Kết hợp cả Gõ Chữ + Bấm Nhiều Tag)
+            window.applyFilters = function() {
+                let searchText = document.getElementById('search-box').value.toLowerCase().trim();
+                let filtered = window.allMoviesData;
+
+                // 1. Lọc theo chữ gõ vào (Search)
+                if (searchText) {
+                    filtered = filtered.filter(m => {
+                        let titleMatch = m.title.toLowerCase().includes(searchText);
+                        let altMatch = m.altTitle && m.altTitle.toLowerCase().includes(searchText);
+                        return titleMatch || altMatch;
+                    });
+                }
+
+                // 2. Lọc theo Tag đã bấm (Dùng mảng window.activeTags)
+                if (window.activeTags.length > 0) {
+                    filtered = filtered.filter(m => {
+                        if (!m.tag) return false;
+                        let movieTags = m.tag.split('/').map(t => t.trim());
+                        // Phim phải chứa ÍT NHẤT MỘT trong số các Tag đang được bấm
+                        return window.activeTags.some(activeT => movieTags.includes(activeT)); 
+                    });
+                }
+
+                window.renderMoviesList(filtered);
+            };
+
+            window.renderMoviesList = function(moviesArray) {
+                const container = document.getElementById('movie-list-container');
+                container.innerHTML = ''; 
+
+                if (moviesArray.length === 0) {
+                    container.innerHTML = '<div style="width:100%; text-align:center; padding: 40px 0;"><h3 style="color:#ff85a2;">Ui, rạp chưa chiếu phim này rùi... 🥲</h3><p style="color:#888;">Cậu thử đổi từ khóa hoặc bỏ bớt tag xem sao nhé!</p></div>';
+                    return;
+                }
+
+                moviesArray.forEach((movie) => {
+                    let currentStatus = "";
+                    const epCount = movie.episodes ? movie.episodes.length : 0;
+                    if (movie.type === 'movie') {
+                        currentStatus = epCount > 0 ? "Current: Full" : "Current: None";
+                    } else {
+                        currentStatus = `Current: Episode ${epCount}`;
+                    }
+
+                    const cardHTML = `
+                        <div class="movie-card">
+                            <a onclick="window.location.href='/cinema/description?id=${movie.id}'" style="cursor: pointer;">
+                                <img src="${movie.poster}" alt="${movie.title}" class="anime-poster" loading="lazy">
+                            </a>
+                            <div class="movie-info">
+                                <h3>${movie.title}</h3>
+                                <p>${currentStatus}</p>
+                                <a onclick="window.location.href='/cinema/watch?id=${movie.id}'" style="cursor: pointer;" class="watch-link">▶ Xem phim</a>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += cardHTML;
+                });
+                
+                const comingSoonHTML = `
+                    <div class="movie-card" id="coming-soon-card">
+                        <div class="anime-poster bg-gray placeholder-img" style="cursor: not-allowed;">Coming Soon...</div>
+                        <div class="movie-info">
+                            <h3>Coming Soon...</h3>
+                            <p>Coming Soon...</p>
+                            <span class="watch-link disabled">Đang tải...</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += comingSoonHTML;
+            };
+
+            // ==========================================
+            // 🔔 HỆ THỐNG THÔNG BÁO V5 
+            // ==========================================
+            window.currentLoadedNotifs = [];
+
+            window.loadNotifications = async function() {
+                const notifList = document.getElementById('notif-list');
+                const dot = document.querySelector('.notif-dot'); 
+                if(!notifList) return; 
+                
+                const user = auth.currentUser;
+                if (!user) {
+                    notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center;">Đăng nhập để nhận thông báo phim nhé!</p>';
+                    return;
+                }
+
+                try {
+                    const userRef = doc(db, "users", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    const userData = userSnap.data() || {};
+                    const savedMovies = userData.savedMovies || [];
+
+                    if (savedMovies.length === 0) {
+                        notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center; font-size:13px;">Cậu chưa lưu phim nào. Hãy thêm vào Thư viện để tớ báo cho cậu nha! ⭐</p>';
+                        if(dot) dot.style.display = 'none';
+                        return;
+                    }
+
+                    const querySnapshot = await getDocs(collection(db, "movies"));
+                    let myNotifMovies = [];
+                    
+                    querySnapshot.forEach(docSnap => {
+                        if (savedMovies.includes(docSnap.id)) {
+                            myNotifMovies.push({id: docSnap.id, ...docSnap.data()});
+                        }
+                    });
+                    
+                    myNotifMovies.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                    window.currentLoadedNotifs = myNotifMovies; 
+
+                    let readHistory = userData.readHistory || {}; 
+                    let hasUnread = false;
+                    notifList.innerHTML = '';
+                    
+                    myNotifMovies.slice(0, 5).forEach(movie => {
+                        const hasEpisodes = movie.episodes && movie.episodes.length > 0;
+                        const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!";
+                        const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
+                        
+                        const targetUrl = hasEpisodes ? `/cinema/watch?id=${movie.id}&ep=${lastEpIndex}` : `/cinema/description?id=${movie.id}`;
+                        let movieTime = movie.updatedAt || 0;
+                        let isUnread = false;
+
+                        if (!readHistory[movie.id] || readHistory[movie.id] < movieTime) {
+                            isUnread = true;
+                            hasUnread = true; 
+                        }
+
+                        const itemClass = isUnread ? "notif-item unread" : "notif-item";
+
+                        notifList.innerHTML += `
+                            <div class="${itemClass}" onclick="markAsReadAndGo('${movie.id}', ${movieTime}, '${targetUrl}')">
+                                <img src="${movie.poster}" class="notif-poster">
+                                <div class="notif-info">
+                                    <div class="notif-title">${movie.title}</div>
+                                    <div class="notif-desc">🎬 ${lastEpTitle}<br>Bấm để xem ngay!</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    if (dot) dot.style.display = hasUnread ? 'block' : 'none';
+
+                } catch (e) { console.error("Lỗi Tải Thông Báo:", e); }
+            };
+
+            window.markAsReadAndGo = async function(movieId, movieTime, targetUrl) {
+                const user = auth.currentUser;
+                if(user) {
+                    try {
+                        const userRef = doc(db, "users", user.uid);
+                        const userSnap = await getDoc(userRef);
+                        let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {};
+                        readHistory[movieId] = movieTime; 
+                        await setDoc(userRef, { readHistory: readHistory }, { merge: true });
+                    } catch (error) { console.error("Lỗi đồng bộ:", error); }
+                }
+                window.location.href = targetUrl; 
+            };
+
+            window.markAllAsRead = async function() {
+                const user = auth.currentUser;
+                if(!user || !window.currentLoadedNotifs) return;
+
+                try {
+                    const userRef = doc(db, "users", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {};
+
+                    window.currentLoadedNotifs.forEach(movie => {
+                        readHistory[movie.id] = movie.updatedAt || 0;
+                    });
+
+                    await setDoc(userRef, { readHistory: readHistory }, { merge: true });
+
+                    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+                    const dot = document.querySelector('.notif-dot');
+                    if(dot) dot.style.display = 'none';
+                } catch (error) { console.error("Lỗi đồng bộ:", error); }
+            };
+
+            // ==========================================
+            // 4. BÙA CHÚ & HIỆU ỨNG CƠ BẢN
+            // ==========================================
+            if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+            window.scrollTo(0, 0);
+
+            const backToTopBtn = document.getElementById("btn-back-to-top");
+            if (backToTopBtn) { 
+                window.addEventListener("scroll", () => {
+                    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                        backToTopBtn.style.display = "block";
+                    } else { backToTopBtn.style.display = "none"; }
+                });
+                backToTopBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
             }
-        });
+
+            // ==========================================
+            // HỆ THỐNG KÍNH LÚP NAVBAR
+            // ==========================================
+            window.navMoviesData = []; 
+
+            window.renderNavLiveSearch = async function() {
+                const searchBox = document.getElementById('nav-search-box');
+                const dropdown = document.getElementById('nav-search-dropdown');
+                if (!searchBox || !dropdown) return;
+                
+                let keyword = searchBox.value.toLowerCase().trim();
+
+                if (!keyword) {
+                    dropdown.classList.remove('show');
+                    return;
+                }
+
+                if (window.navMoviesData.length === 0) {
+                    try {
+                        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+                        const querySnapshot = await getDocs(collection(db, "movies"));
+                        window.navMoviesData = [];
+                        querySnapshot.forEach((doc) => { window.navMoviesData.push({ id: doc.id, ...doc.data() }); });
+                    } catch (e) { console.log("Lỗi tải data Navbar:", e); }
+                }
+
+                let filtered = window.navMoviesData.filter(m => {
+                    let titleMatch = m.title.toLowerCase().includes(keyword);
+                    let altMatch = m.altTitle && m.altTitle.toLowerCase().includes(keyword);
+                    return titleMatch || altMatch;
+                }).slice(0, 4);
+
+                dropdown.innerHTML = '';
+                
+                if (filtered.length > 0) {
+                    filtered.forEach(movie => {
+                        let firstTag = movie.tag ? movie.tag.split('/')[0].trim() : "Phim";
+                        dropdown.innerHTML += `
+                            <a onclick="window.location.href='/cinema/description?id=${movie.id}'" class="search-dropdown-item">
+                                <img src="${movie.poster}" alt="${movie.title}" class="search-mini-poster">
+                                <div class="search-item-info">
+                                    <span class="search-item-title">${movie.title}</span>
+                                    <span class="search-item-tag">${firstTag}</span>
+                                </div>
+                            </a>
+                        `;
+                    });
+                } else {
+                    dropdown.innerHTML = '<div style="padding: 15px; text-align: center; color: #888; font-size: 13.5px; font-weight: bold;">Ui, không tìm thấy phim này 🥲</div>';
+                }
+
+                dropdown.innerHTML += `
+                    <div class="search-view-all" onclick="window.executeNavSearch('${keyword}')">
+                        🔍 Tìm tất cả kết quả cho "${keyword}"
+                    </div>
+                `;
+                
+                dropdown.classList.add('show');
+            };
+
+            window.hideNavLiveSearch = function() {
+                const dropdown = document.getElementById('nav-search-dropdown');
+                if (dropdown) dropdown.classList.remove('show');
+            };
+
+            document.addEventListener('click', function(e) {
+                const wrapper = document.getElementById('nav-search-wrapper');
+                if (wrapper && !wrapper.contains(e.target)) {
+                    window.hideNavLiveSearch();
+                }
+            });
+
+            window.toggleNavSearch = function() {
+                const searchBox = document.getElementById('nav-search-box');
+                if (searchBox.classList.contains('active')) {
+                    if (searchBox.value.trim() !== "") { window.executeNavSearch(searchBox.value.trim()); } 
+                    else { searchBox.classList.remove('active'); window.hideNavLiveSearch(); }
+                } else {
+                    searchBox.classList.add('active'); searchBox.focus();
+                }
+            };
+
+            const navSearchBoxObj = document.getElementById('nav-search-box');
+            if (navSearchBoxObj) {
+                navSearchBoxObj.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') { window.executeNavSearch(this.value.trim()); }
+                });
+            }
+
+            window.executeNavSearch = function(keyword) {
+                if (!keyword) return;
+                if (window.location.pathname.includes('index') || window.location.pathname.endsWith('/')) {
+                    const mainSearch = document.getElementById('search-box');
+                    if (mainSearch) {
+                        mainSearch.value = keyword;
+                        mainSearch.dispatchEvent(new Event('input'));
+                        window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' });
+                    }
+                } else {
+                    window.location.href = `/cinema?search=${encodeURIComponent(keyword)}`;
+                }
+            };
+
+            window.toggleClearBtn = function(inputElement, btnId) {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.style.display = inputElement.value.length > 0 ? 'flex' : 'none';
+            };
+
+            window.clearSearch = function(inputId, btnId) {
+                const input = document.getElementById(inputId);
+                const btn = document.getElementById(btnId);
+                if (input) { input.value = ''; input.focus(); }
+                if (btn) { btn.style.display = 'none'; }
+                if (typeof window.applyFilters === "function") { window.applyFilters(); }
+            };
+
+            window.showToast = function(title, message, type = 'success') {
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    document.body.appendChild(container);
+                }
+
+                const toast = document.createElement('div');
+                toast.className = `toast-msg ${type}`;
+                
+                let icon = '✅';
+                if (type === 'error') icon = '❌';
+                else if (type === 'info') icon = '⭐';
+
+                toast.innerHTML = `
+                    <div class="toast-icon">${icon}</div>
+                    <div class="toast-content">
+                        <span class="toast-title">${title}</span>
+                        <span class="toast-desc">${message}</span>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOutRight 0.3s ease-in forwards';
+                    setTimeout(() => { toast.remove(); }, 300); 
+                }, 3000);
+            };
 
         // ==========================================
-        // SCRIPT ĐỒNG BỘ YOUTUBE (RTDB)
+        // SCRIPT ĐỒNG BỘ YOUTUBE VÀ ĐỔI PHIM
         // ==========================================
         const ROOM_ID = "phong-vip-couple"; 
         const roomRef = ref(dbRTDB, 'watch_parties/' + ROOM_ID);
@@ -322,15 +968,41 @@
         let isPlayerReady = false;
         let isSyncing = false;     
         let hasJoined = false;     
-        let currentRoomData = { state: -1, time: 0, updatedAt: 0 }; 
+        let currentRoomData = { state: -1, time: 0, updatedAt: 0, videoId: 'dQw4w9WgXcQ' }; // Mặc định có videoId
+        let currentVideoId = ''; // ID video máy đang chạy hiện tại
 
         window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('player', {
-                videoId: 'dQw4w9WgXcQ', // Link test
+                videoId: currentVideoId || 'dQw4w9WgXcQ', 
                 playerVars: { 'playsinline': 1, 'controls': 1, 'rel': 0 },
                 events: { 'onReady': () => { isPlayerReady = true; }, 'onStateChange': onPlayerStateChange }
             });
         };
+
+        // 🌟 BỘ LỌC TÁCH ID YOUTUBE TỪ LINK
+        function extractVideoID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // NÚT BẤM GỬI LINK ĐỔI PHIM LÊN MÂY
+        document.getElementById('btn-change-vid').addEventListener('click', () => {
+            const url = document.getElementById('yt-link-input').value.trim();
+            const vidId = extractVideoID(url);
+            
+            if (vidId) {
+                update(roomRef, {
+                    videoId: vidId,
+                    time: 0,          // Trả về giây thứ 0
+                    state: 1,         // Tự động Play luôn
+                    updatedAt: Date.now()
+                });
+                document.getElementById('yt-link-input').value = ''; // Xóa ô nhập sau khi gửi
+            } else {
+                alert("Cậu copy nhầm link rồi, kiểm tra lại xem có đúng link YouTube không nha!");
+            }
+        });
 
         document.getElementById('btn-join-audio').addEventListener('click', () => {
             document.getElementById('join-audio-overlay').style.opacity = '0';
@@ -338,7 +1010,14 @@
             hasJoined = true;
 
             if (isPlayerReady) {
-                player.playVideo(); 
+                // Nếu video lúc mới vào phòng khác với video trên Mây -> Tải video mới
+                if (currentRoomData.videoId && currentRoomData.videoId !== currentVideoId) {
+                    currentVideoId = currentRoomData.videoId;
+                    player.loadVideoById(currentVideoId, currentRoomData.time);
+                } else {
+                    player.playVideo(); 
+                }
+                
                 document.getElementById('status-text').innerText = "Đã kết nối";
                 syncPlayerToDatabase(currentRoomData);
             }
@@ -347,11 +1026,24 @@
         onValue(roomRef, (snapshot) => {
             if (snapshot.exists()) {
                 currentRoomData = snapshot.val();
+                
+                // KIỂM TRA ĐỔI PHIM TỪ MÂY
+                if (currentRoomData.videoId && currentRoomData.videoId !== currentVideoId) {
+                    currentVideoId = currentRoomData.videoId;
+                    // Chỉ tải phim mới nếu người dùng đã bấm VÀO PHÒNG
+                    if (hasJoined && isPlayerReady) {
+                        player.loadVideoById(currentVideoId, currentRoomData.time);
+                        // Cập nhật chữ trên Playlist cho hợp với ID (Hiển thị ID tạm thời)
+                        document.getElementById('current-vid-title').innerHTML = `<i class="fa-brands fa-youtube" style="margin-right: 8px;"></i>Đang chiếu Video: ${currentVideoId}`;
+                    }
+                }
+
                 if (hasJoined && isPlayerReady) {
                     syncPlayerToDatabase(currentRoomData);
                 }
             } else {
-                currentRoomData = { state: -1, time: 0, updatedAt: Date.now() };
+                // Nếu phòng trống, tạo phòng với ID mặc định
+                update(roomRef, { state: -1, time: 0, updatedAt: Date.now(), videoId: 'dQw4w9WgXcQ' });
             }
         });
 
@@ -366,6 +1058,7 @@
             if (data.state === 1 && player.getPlayerState() !== 1) player.playVideo();
             else if (data.state === 2 && player.getPlayerState() !== 2) player.pauseVideo();
 
+            // Nếu lệch 2 giây thì tua
             if (Math.abs(expectedTime - localTime) > 2) {
                 player.seekTo(expectedTime, true);
             }
@@ -404,6 +1097,18 @@
                 update(roomRef, { time: player.getCurrentTime(), updatedAt: Date.now() });
             }
         }, 5000);
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then((registration) => {
+                    console.log('🚀 PWA Khởi động thành công!');
+                }).catch((error) => {
+                    console.log('❌ Lỗi khởi động PWA: ', error);
+                });
+            });
+        }
     </script>
 </body>
 </html>
