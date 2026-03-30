@@ -210,7 +210,12 @@
 
                     <div class="input-group full">
                         <label>Link ảnh Poster</label>
-                        <input type="text" id="input-poster" class="admin-input" placeholder="Dán link ảnh (Ví dụ link Drive)">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="edit-poster" class="admin-input" style="flex: 1; margin: 0;">
+                            <button type="button" class="btn-admin btn-cyan" id="btn-upload-poster-edit" onclick="triggerPosterUpload('edit-poster', 'btn-upload-poster-edit')" style="width: auto; white-space: nowrap;">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh lên
+                            </button>
+                        </div>
                     </div>
                     <div class="input-group full">
                         <label>Link Trailer (Iframe URL - Có thể để trống)</label>
@@ -559,6 +564,88 @@
         };
 
         window.loadGlobalTags();
+    </script>
+
+    <input type="file" id="global-poster-input" accept="image/*" style="display: none;">
+
+    <script>
+        // GIÁM ĐỐC NHỚ DÁN LINK APPS SCRIPT VÀO ĐÂY NHA!!!
+        const ADMIN_GAS_URL = "https://script.google.com/macros/s/AKfycbw5GLP4H2cVVz836JU7rU5u2c6IJu2-0kkduFFkG1I0Ntd8LMJ-lZxS4QerHHjA3HSOtQ/exec";
+        let currentPosterInputId = '';
+        let currentPosterBtnId = '';
+
+        window.triggerPosterUpload = function(inputId, btnId) {
+            currentPosterInputId = inputId;
+            currentPosterBtnId = btnId;
+            document.getElementById('global-poster-input').click();
+        };
+
+        document.getElementById('global-poster-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showPopup('Ảnh quá lớn! Xin chọn ảnh dưới 5MB.', true); return;
+            }
+
+            const btn = document.getElementById(currentPosterBtnId);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
+            btn.disabled = true;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = async function() {
+                    const canvas = document.createElement('canvas');
+                    // Ép khung hình Poster (To hơn Avatar)
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 1200;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const base64String = canvas.toDataURL('image/jpeg', 0.85); // Nén chất lượng 85%
+
+                    try {
+                        const response = await fetch(ADMIN_GAS_URL, {
+                            method: "POST",
+                            body: JSON.stringify({
+                                base64: base64String,
+                                fileName: `poster_${Date.now()}.jpg`,
+                                type: "poster" // ĐÁNH DẤU ĐÂY LÀ POSTER ĐỂ APPS SCRIPT BIẾT
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        if (result.status === "success") {
+                            const posterUrl = `https://lh3.googleusercontent.com/u/0/d/${result.fileId}`;
+                            document.getElementById(currentPosterInputId).value = posterUrl;
+                            showPopup('Đã tải Poster lên hệ thống Mây!');
+                        } else {
+                            showPopup('Lỗi: ' + result.message, true);
+                        }
+                    } catch (error) {
+                        showPopup('Lỗi mạng hoặc chưa cấu hình Apps Script!', true);
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        event.target.value = ''; 
+                    }
+                }
+            };
+        });
     </script>
 </body>
 </html>
