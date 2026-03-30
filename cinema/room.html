@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phòng Chiếu Private - MHEnt Universe</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff85a2">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Tối ưu riêng cho phòng xem phim */
+        body { background: #0f172a; color: #f8fafc; font-family: 'Nunito', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        
+        .room-layout { display: flex; min-height: calc(100vh - 150px); padding: 90px 20px 20px 20px; box-sizing: border-box; gap: 20px; max-width: 1400px; margin: 0 auto; }
+
+        .video-section { flex: 3; display: flex; flex-direction: column; background: #1e293b; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #334155; position: relative; }
+        .video-wrapper { position: relative; width: 100%; padding-bottom: 56.25%; background: #000; }
+        .video-wrapper iframe, .video-wrapper #player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        /* LỚP PHỦ KẾT NỐI */
+        .join-audio-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50; transition: opacity 0.4s ease;
+        }
+        .btn-join-audio {
+            background: #ff85a2; color: white; border: none; padding: 15px 35px;
+            border-radius: 50px; font-weight: 900; font-size: 18px; cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 133, 162, 0.4); transition: 0.3s; display: flex; align-items: center; gap: 10px;
+        }
+        .btn-join-audio:hover { transform: scale(1.05); background: #ff5c8a; }
+
+        .room-controls { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; }
+        .room-title { margin: 0; font-size: 20px; font-weight: 900; color: #ff85a2; }
+        .room-status { font-size: 14px; color: #94a3b8; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .status-dot { width: 10px; height: 10px; background: #64748b; border-radius: 50%; transition: 0.3s; }
+
+        .playlist-section { flex: 1; background: #1e293b; border-radius: 15px; display: flex; flex-direction: column; border: 1px solid #334155; }
+        .playlist-header { padding: 15px 20px; border-bottom: 1px solid #334155; font-weight: 900; font-size: 18px; color: #f8fafc; display: flex; justify-content: space-between; align-items: center; }
+        .playlist-list { list-style: none; padding: 10px; margin: 0; overflow-y: auto; flex: 1; }
+        .playlist-list::-webkit-scrollbar { width: 6px; }
+        .playlist-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+
+        .playlist-item { padding: 15px; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid transparent; }
+        .playlist-item:hover { background: rgba(255, 133, 162, 0.1); border-color: rgba(255, 133, 162, 0.3); }
+        .playlist-item.active { background: rgba(255, 133, 162, 0.15); border-color: #ff85a2; }
+        .vid-title { font-weight: 700; font-size: 15px; color: #cbd5e1; }
+        .playlist-item.active .vid-title { color: #ff85a2; }
+        .now-watching { font-size: 11px; background: #ff5c8a; color: white; padding: 3px 8px; border-radius: 20px; font-weight: 900; display: none; text-transform: uppercase; }
+        .playlist-item.active .now-watching { display: block; }
+
+        /* Ép Navbar thành nền tối khi ở phòng này để không bị chói */
+        .navbar { background: rgba(15,23,42,0.95) !important; border-bottom: 1px solid #334155 !important; position: fixed; width: 100%; top: 0; z-index: 1000; }
+        .logo-name, .nav-links a { color: #f8fafc !important; }
+        .menu-toggle svg { stroke: #f8fafc !important; }
+        #search-box { background: #1e293b; border-color: #334155; color: white; }
+
+        @media (max-width: 900px) {
+            .room-layout { flex-direction: column; height: auto; padding-top: 80px; }
+            .playlist-section { height: 400px; } 
+        }
+    </style>
+</head>
+<body class="dark-mode"> <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/cinema'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                <span class="logo-name">MHEnt. Cinema</span>
+            </a>
+        </div>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a onclick="window.location.href='/cinema'" style="cursor: pointer;">Trang chủ</a></li>
+            <li><a onclick="window.location.href='/cinema#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
+            <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <div class="user-section">
+                <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
+                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                            <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                            <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                            <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                        </svg>
+                    </div>
+                    
+                    <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                        <a onclick="window.location.href='/'" class="app-item">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
+                            <span class="app-name">Đại Sảnh</span>
+                        </a>
+                        <a onclick="window.location.href='/cinema'" class="app-item active">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                            <span class="app-name">Cinema</span>
+                        </a>
+                        <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Manga đang xây dựng!', 'info'); return false;">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                            <span class="app-name">Manga</span>
+                        </a>
+                        <a href="#" class="app-item disabled" onclick="showToast('Thông báo', 'Vũ trụ Novel đang xây dựng!', 'info'); return false;">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+                            <span class="app-name">Novel</span>
+                        </a>
+                        <a onclick="window.location.href='#'" class="app-item"> 
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
+                            <span class="app-name">Music</span>
+                        </a>
+                        <a onclick="window.location.href='/arena'" class="app-item">
+                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg></span>
+                            <span class="app-name">Arena</span>
+                        </a>
+                    </div>
+                </div>
+
+                <button id="btn-login" class="btn-login btn-with-icon">
+                    <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                    Đăng nhập
+                </button>
+
+                <div id="user-profile" class="user-profile" style="position: relative; display: none;">
+                    <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <img id="user-avatar" src="" alt="User" class="user-avatar">
+                        <span id="user-name" class="user-name">Đang tải...</span>
+                    </div>
+                    
+                    <div id="dropdown-account" class="dropdown-menu account-dropdown">
+                        <div class="dropdown-item" onclick="window.location.href='/profile#info'">
+                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
+                        </div>
+                        <div class="dropdown-item" onclick="window.location.href='/cinema/library'">
+                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Thư viện
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #28a745 !important;" onclick="window.open('/cinema/admin', '_blank')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Admin
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-toggle" onclick="toggleMobileMenu()">
+                <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+        </div>
+    </nav>
+
+    <div class="room-layout">
+        <div class="video-section">
+            <div class="video-wrapper">
+                <div id="player"></div>
+                
+                <div id="join-audio-overlay" class="join-audio-overlay">
+                    <button id="btn-join-audio" class="btn-join-audio">
+                        <i class="fa-solid fa-video"></i> Bấm để Vào Phòng & Đồng Bộ
+                    </button>
+                </div>
+            </div>
+            
+            <div class="room-controls">
+                <div>
+                    <h2 class="room-title">Phòng Chiếu Kín Đáo 🍿</h2>
+                    <p style="margin: 5px 0 0 0; color: #94a3b8; font-size: 13px;">Chủ phòng: Giám đốc Lam Chi</p>
+                </div>
+                <div class="room-status">
+                    <div class="status-dot"></div> <span id="status-text">Đang chờ kết nối...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="playlist-section">
+            <div class="playlist-header">Danh sách phát <i class="fa-solid fa-list" style="color: #94a3b8;"></i></div>
+            <ul class="playlist-list">
+                <li class="playlist-item active">
+                    <span class="vid-title"><i class="fa-brands fa-youtube" style="margin-right: 8px;"></i>Phim Đang Chiếu</span>
+                    <span class="now-watching">Now Watching</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-bottom">
+            <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
+                    <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer" class="footer-link">
+                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg> Fanpage MHEnt.
+                    </a>
+                    <span style="opacity: 0.4; font-size: 10px;">•</span>
+                    <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer" class="footer-link">
+                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Cộng đồng MHEnt.
+                    </a>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
+                    <a onclick="window.location.href='/terms'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600;">Điều khoản dịch vụ</a>
+                    <span style="opacity: 0.3;">|</span>
+                    <a onclick="window.location.href='/terms#community'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600;">Nguyên tắc cộng đồng</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        // ⚠️ GIÁM ĐỐC NHỚ DÁN CONFIG CỦA CẬU VÀO ĐÂY NHA (Nhớ có dòng databaseURL)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            databaseURL: "https://mhentuniverse-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mhentuniverse",
+            storageBucket: "mhentuniverse.firebasestorage.app",
+            messagingSenderId: "377044322952",
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
+            measurementId: "G-YE217QW296"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const dbFirestore = getFirestore(app);
+        const dbRTDB = getDatabase(app);
+
+        // ==========================================
+        // SCRIPT GIAO DIỆN TỪ ĐẠI SẢNH (Navbar & Auth)
+        // ==========================================
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
+        if (btnLogout) { 
+            btnLogout.addEventListener('click', async () => { 
+                await signOut(auth); 
+                window.location.reload(); 
+            }); 
+        }
+
+        window.toggleAccount = function() {
+            const acc = document.getElementById('dropdown-account');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            if(switcher) switcher.classList.remove('show'); 
+            if(acc) acc.classList.toggle('show');
+        };
+
+        window.toggleAppSwitcher = function() {
+            const switcher = document.getElementById('dropdown-app-switcher');
+            const acc = document.getElementById('dropdown-account');
+            if(acc) acc.classList.remove('show'); 
+            if(switcher) switcher.classList.toggle('show');
+        };
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-section')) {
+                const acc = document.getElementById('dropdown-account');
+                const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show');
+                if(switcher) switcher.classList.remove('show');
+            }
+            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                const navLinks = document.getElementById('nav-links');
+                if(navLinks) navLinks.classList.remove('active');
+            }
+        };
+
+        window.toggleMobileMenu = function() {
+            const navLinks = document.getElementById('nav-links');
+            const acc = document.getElementById('dropdown-account');
+            if(acc) acc.classList.remove('show'); 
+            if(navLinks) navLinks.classList.toggle('active');
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+
+                let finalName = user.displayName || user.email.split('@')[0];
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+
+                const avtElement = document.getElementById('user-avatar');
+                if (avtElement) {
+                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    avtElement.style.display = 'block'; 
+                }
+
+                // Check Role hiển thị nút Admin
+                const userRef = doc(dbFirestore, "users", user.uid);
+                getDoc(userRef).then((docSnap) => {
+                    const adminBtn = document.getElementById('admin-panel-btn');
+                    if (adminBtn) adminBtn.style.display = 'none';
+                    if (docSnap.exists() && docSnap.data().role) {
+                        if (docSnap.data().role.includes('admin')) {
+                            if (adminBtn) adminBtn.style.display = 'flex';
+                        }
+                    }
+                }).catch(e => console.log("Lỗi quét thẻ:", e));
+            } else {
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+            }
+        });
+
+        // ==========================================
+        // SCRIPT ĐỒNG BỘ YOUTUBE (RTDB)
+        // ==========================================
+        const ROOM_ID = "phong-vip-couple"; 
+        const roomRef = ref(dbRTDB, 'watch_parties/' + ROOM_ID);
+        
+        let player;
+        let isPlayerReady = false;
+        let isSyncing = false;     
+        let hasJoined = false;     
+        let currentRoomData = { state: -1, time: 0, updatedAt: 0 }; 
+
+        window.onYouTubeIframeAPIReady = function() {
+            player = new YT.Player('player', {
+                videoId: 'dQw4w9WgXcQ', // Link test
+                playerVars: { 'playsinline': 1, 'controls': 1, 'rel': 0 },
+                events: { 'onReady': () => { isPlayerReady = true; }, 'onStateChange': onPlayerStateChange }
+            });
+        };
+
+        document.getElementById('btn-join-audio').addEventListener('click', () => {
+            document.getElementById('join-audio-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('join-audio-overlay').style.display = 'none', 400);
+            hasJoined = true;
+
+            if (isPlayerReady) {
+                player.playVideo(); 
+                document.getElementById('status-text').innerText = "Đã kết nối";
+                syncPlayerToDatabase(currentRoomData);
+            }
+        });
+
+        onValue(roomRef, (snapshot) => {
+            if (snapshot.exists()) {
+                currentRoomData = snapshot.val();
+                if (hasJoined && isPlayerReady) {
+                    syncPlayerToDatabase(currentRoomData);
+                }
+            } else {
+                currentRoomData = { state: -1, time: 0, updatedAt: Date.now() };
+            }
+        });
+
+        function syncPlayerToDatabase(data) {
+            isSyncing = true; 
+            let elapsed = (Date.now() - (data.updatedAt || Date.now())) / 1000;
+            if (elapsed < 0 || elapsed > 86400) elapsed = 0;
+
+            let expectedTime = data.time + (data.state === 1 ? elapsed : 0);
+            let localTime = player.getCurrentTime() || 0;
+
+            if (data.state === 1 && player.getPlayerState() !== 1) player.playVideo();
+            else if (data.state === 2 && player.getPlayerState() !== 2) player.pauseVideo();
+
+            if (Math.abs(expectedTime - localTime) > 2) {
+                player.seekTo(expectedTime, true);
+            }
+
+            updateStatusUI(data.state);
+            setTimeout(() => isSyncing = false, 1000);
+        }
+
+        function onPlayerStateChange(event) {
+            if (!hasJoined || isSyncing) return;
+            if (event.data === 1 || event.data === 2) {
+                update(roomRef, {
+                    state: event.data,
+                    time: player.getCurrentTime(),
+                    updatedAt: Date.now()
+                });
+                updateStatusUI(event.data);
+            }
+        }
+
+        function updateStatusUI(state) {
+            const dot = document.querySelector('.status-dot');
+            if (state === 1) { 
+                dot.style.background = '#10b981';
+                dot.style.boxShadow = '0 0 10px #10b981';
+                document.getElementById('status-text').innerText = "Đang xem chung";
+            } else if (state === 2) { 
+                dot.style.background = '#f59e0b';
+                dot.style.boxShadow = '0 0 10px #f59e0b';
+                document.getElementById('status-text').innerText = "Tạm dừng";
+            }
+        }
+
+        setInterval(() => {
+            if (hasJoined && isPlayerReady && player.getPlayerState() === 1 && !isSyncing) {
+                update(roomRef, { time: player.getCurrentTime(), updatedAt: Date.now() });
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
