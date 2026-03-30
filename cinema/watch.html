@@ -773,8 +773,8 @@
                             }
                             window.playVideo(startEp);
 
-                        } else { alert("Không tìm thấy dữ liệu phim!"); window.location.href = 'index'; }
-                    } catch (error) { console.error("Lỗi:", error); alert("Lỗi kết nối vệ tinh!"); }
+                        } else { showToast("Không tìm thấy dữ liệu phim!"); window.location.href = 'index'; }
+                    } catch (error) { console.error("Lỗi:", error); showToast("Lỗi kết nối vệ tinh!"); }
                 } else { window.location.href = 'index'; }
             });
 
@@ -902,7 +902,7 @@
                 setTimeout(() => {
                     const tapPhim = window.currentMovieData.episodes[window.currentEpIndex];
                     if(tapPhim[serverType]) { window.applyVideoSource(tapPhim[serverType]); } 
-                    else { alert("Tập này chưa có nguồn này nha!"); }
+                    else { showToast("Tập này chưa có nguồn này nha!"); }
                     overlay.style.display = 'none';
                 }, 500); 
             };
@@ -921,19 +921,19 @@
 
             window.reportEpisode = async function() {
                 const user = auth.currentUser;
-                if (!user) { alert("Cậu đăng nhập để gửi báo cáo lỗi nha! 🕵️‍♂️"); return; }
+                if (!user) { showToast("Cậu đăng nhập để gửi báo cáo lỗi nha! 🕵️‍♂️"); return; }
                 let isConfirm = confirm("Tập này bị lỗi không xem được hả cậu? Tớ sẽ báo cho Admin ngay!");
                 if (isConfirm) {
                     try {
                         await addDoc(collection(db, "reports"), { movieId: window.currentMovieId, movieName: window.currentMovieData.title, epIndex: window.currentEpIndex, server: window.currentServerType, userId: user.uid, userName: user.displayName || user.email, time: new Date().toISOString(), status: "Chưa xử lý" });
-                        alert("Cảm ơn cậu! Báo cáo đã bay thẳng đến bàn làm việc của Giám đốc Kỹ thuật 🚀");
-                    } catch (e) { console.error("Lỗi:", e); alert("Ui, có lỗi mạng rồi, cậu thử lại sau nha."); }
+                        showToast("Cảm ơn cậu! Báo cáo đã bay thẳng đến bàn làm việc của Giám đốc Kỹ thuật 🚀");
+                    } catch (e) { console.error("Lỗi:", e); showToast("Ui, có lỗi mạng rồi, cậu thử lại sau nha."); }
                 }
             };
 
             window.rateMovie = async function(stars) {
                 const user = auth.currentUser;
-                if (!user) { alert("Cậu đăng nhập để đánh giá phim nha! ⭐"); return; }
+                if (!user) { showToast("Cậu đăng nhập để đánh giá phim nha! ⭐"); return; }
                 let starElements = document.querySelectorAll('.star');
                 starElements.forEach((s, index) => { s.innerText = (index < stars) ? '★' : '☆'; });
                 document.getElementById('rating-text').innerText = `Cảm ơn cậu đã cho ${stars} sao! 💖`;

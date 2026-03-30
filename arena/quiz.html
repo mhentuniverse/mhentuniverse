@@ -204,7 +204,7 @@
         
         const userInfoStr = localStorage.getItem('mhent_arena_user');
         if (!userInfoStr) {
-            alert("Lỗi bảo mật: Vui lòng điền thông tin trước khi vào thi!");
+            showToast("Lỗi bảo mật: Vui lòng điền thông tin trước khi vào thi!");
             window.location.href = `/arena/description.html?id=${quizId || ''}`;
         }
         const userInfo = JSON.parse(userInfoStr);
@@ -259,7 +259,7 @@
                 document.getElementById('btn-start-fullscreen').style.display = 'flex';
 
             } catch (err) {
-                alert("Lỗi tải đề: " + err.message);
+                showToast("Lỗi tải đề: " + err.message);
                 window.location.href = `/arena/`;
             }
         }
@@ -530,7 +530,7 @@
                 if (timeLimit <= 0) {
                     clearInterval(timerInterval);
                     closeConfirmPopup();
-                    alert("Hết giờ làm bài! Hệ thống tự động thu bài.");
+                    showToast("Hết giờ làm bài! Hệ thống tự động thu bài.");
                     executeSubmit();
                 }
             }, 1000);

@@ -270,7 +270,7 @@
                 try {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
                     if (!docSnap.exists() || !docSnap.data().role.includes('admin')) {
-                        alert("Cảnh báo: Cậu không phải Giám đốc! Trục xuất ngay lập tức!");
+                        showPopup("Cảnh báo: Cậu không phải Giám đốc! Trục xuất ngay lập tức!");
                         window.location.href = '/';
                     } else {
                         document.getElementById('security-shield').style.opacity = '0';
@@ -278,7 +278,7 @@
                         loadAllUsers();
                     }
                 } catch (error) { 
-                    alert("Lỗi kết nối máy chủ an ninh!"); 
+                    showPopup("Lỗi kết nối máy chủ an ninh!"); 
                     window.location.href = '/'; 
                 }
             }
@@ -472,7 +472,7 @@
                 
             } catch (error) {
                 console.error(error);
-                alert("Lỗi! Cậu kiểm tra lại mạng xem.");
+                showPopup("Lỗi! Cậu kiểm tra lại mạng xem.");
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
