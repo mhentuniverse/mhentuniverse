@@ -696,7 +696,7 @@
 
         window.loadDashboardStats = function() { document.getElementById('dash-widgets').style.display = 'grid'; document.getElementById('stat-total').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; loadResultsTable(true); }
         function calcDashboardStats(data) { let total = data.length; let done = data.filter(d => d.progress === 'Hoàn thành').length; let sum = data.reduce((acc, curr) => acc + curr.score, 0); document.getElementById('stat-total').innerText = total; document.getElementById('stat-done').innerText = done; document.getElementById('stat-avg').innerText = total > 0 ? (sum/total).toFixed(1) + " đ" : "0 đ"; }
-        window.openLivescore = function() { let qId = document.getElementById('select-view-dash').value; if(qId) window.open('/arena/livescore.html?id=' + qId, '_blank'); else showPopup("Chọn Hội thi trước!", true); }
+        window.openLivescore = function() { let qId = document.getElementById('select-view-dash').value; if(qId) window.open('/arena/livescore?id=' + qId, '_blank'); else showPopup("Chọn Hội thi trước!", true); }
 
         window.sortResultsData = function() {
             if(window.globalResultsData.length === 0) return;
@@ -721,7 +721,7 @@
             let qId = document.getElementById('select-view-dash').value;
             if(!qId) { showPopup("Giám đốc chọn Hội thi trước đã nha!", true); return; }
             
-            let quizLink = window.location.origin + "/arena/description.html?id=" + qId;
+            let quizLink = window.location.origin + "/arena/description?id=" + qId;
             let logoUrl = window.location.origin + "/assets/icon-web.png"; 
             
             // Ép centerImageSize=0.2 (Thu nhỏ thêm tí nữa cho tinh tế.)

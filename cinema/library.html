@@ -41,7 +41,7 @@
 
         <ul class="nav-links" id="nav-links">
             <li><a onclick="window.location.href='/cinema'" style="cursor: pointer;">Trang chủ</a></li>
-            <li><a onclick="window.location.href='/cinema/index.html#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
+            <li><a onclick="window.location.href='/cinema#phim-dang-chieu'" style="cursor: pointer;">Danh sách Phim</a></li>
             <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
         </ul>
 
@@ -358,7 +358,7 @@
                     filtered.forEach(movie => {
                         let firstTag = movie.tag ? movie.tag.split('/')[0].trim() : "Phim";
                         dropdown.innerHTML += `
-                            <a href="description.html?id=${movie.id}" class="search-dropdown-item">
+                            <a onclick="window.location.href='/cinema/description?id=${movie.id}'" class="search-dropdown-item">
                                 <img src="${movie.poster}" alt="${movie.title}" class="search-mini-poster">
                                 <div class="search-item-info">
                                     <span class="search-item-title">${movie.title}</span>
@@ -423,7 +423,7 @@
                         window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' });
                     }
                 } else {
-                    window.location.href = `index.html?search=${encodeURIComponent(keyword)}`;
+                    window.location.href = `/cinema?search=${encodeURIComponent(keyword)}`;
                 }
             };
 
@@ -471,7 +471,7 @@
 
                                 const cardHTML = `
                                     <div class="movie-card" id="lib-card-${movieId}" style="position: relative;">
-                                        <a href="description.html?id=${movieId}">
+                                        <a onclick="window.location.href='/cinema/description?id=${movieId}'" style="cursor: pointer;">
                                             <img src="${movie.poster}" alt="${movie.title}" class="anime-poster">
                                         </a>
                                         <button onclick="removeFromLibrary('${movieId}')" class="btn-remove-lib" title="Xóa khỏi thư viện">❌</button>
@@ -650,7 +650,7 @@
                     const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!";
                     const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
                     
-                    const targetUrl = hasEpisodes ? `watch.html?id=${movie.id}&ep=${lastEpIndex}` : `description.html?id=${movie.id}`;
+                    const targetUrl = hasEpisodes ? `/cinema/watch?id=${movie.id}&ep=${lastEpIndex}` : `/cinema/description?id=${movie.id}`;
                     let movieTime = movie.updatedAt || 0;
                     let isUnread = false;
 

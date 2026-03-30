@@ -174,7 +174,7 @@
         <header class="hero">
             <h1>Chào mừng đến với Miyazaki Haruto Entertainment Cinema!! 🌟</h1>
             <p class="small-description">Vũ trụ điện ảnh thu nhỏ – Trải nghiệm bản dịch tâm huyết từ MHEnt. và hơn cả thế! 🎬</p>
-            <a onclick="window.location.href='index.html#phim-dang-chieu'" class="btn-primary" style="cursor: pointer;">Khám phá ngay </a>
+            <a onclick="window.location.href='/cinema#phim-dang-chieu'" class="btn-primary" style="cursor: pointer;">Khám phá ngay </a>
         </header>
 
         <section id="continue-watching-section" class="movie-section" style="display: none; padding-bottom: 0; padding-top: 20px;">
@@ -732,7 +732,7 @@
                         const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!";
                         const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
                         
-                        const targetUrl = hasEpisodes ? `watch.html?id=${movie.id}&ep=${lastEpIndex}` : `description.html?id=${movie.id}`;
+                        const targetUrl = hasEpisodes ? `/cinema/watch?id=${movie.id}&ep=${lastEpIndex}` : `/cinema/description?id=${movie.id}`;
                         let movieTime = movie.updatedAt || 0;
                         let isUnread = false;
 
@@ -848,7 +848,7 @@
                     filtered.forEach(movie => {
                         let firstTag = movie.tag ? movie.tag.split('/')[0].trim() : "Phim";
                         dropdown.innerHTML += `
-                            <a window.location.href="description.html?id=${movie.id}" class="search-dropdown-item">
+                            <a onclick="window.location.href='/cinema/description?id=${movie.id}'" class="search-dropdown-item">
                                 <img src="${movie.poster}" alt="${movie.title}" class="search-mini-poster">
                                 <div class="search-item-info">
                                     <span class="search-item-title">${movie.title}</span>
@@ -909,7 +909,7 @@
                         window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' });
                     }
                 } else {
-                    window.location.href = `index.html?search=${encodeURIComponent(keyword)}`;
+                    window.location.href = `/cinema?search=${encodeURIComponent(keyword)}`;
                 }
             };
 

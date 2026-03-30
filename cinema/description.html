@@ -334,24 +334,24 @@
                             if (movieInfo.type === 'series') {
                                 mainBtn.onclick = function() {
                                     localStorage.setItem(localKey, 0); 
-                                    window.location.href = 'watch.html?id=' + movieId;
+                                    window.location.href = '/cinema/watch?id=' + movieId;
                                 };
 
                                 if (lastEpIndex !== null) {
                                     let epNumber = parseInt(lastEpIndex) + 1;
                                     mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem từ đầu';
                                     continueBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Tiếp tục xem Tập ' + epNumber;
-                                    continueBtn.href = 'watch.html?id=' + movieId;
+                                    continueBtn.href = '/cinema/watch?id=' + movieId;
                                     continueBtn.style.display = 'inline-flex';
                                 } else {
                                     mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem từ đầu';
-                                    mainBtn.href = 'watch.html?id=' + movieId;
+                                    mainBtn.href = '/cinema/watch?id=' + movieId;
                                     mainBtn.onclick = null; 
                                 }
                             } else {
                                 // Nếu là Phim Lẻ (Eiga)
                                 mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem Phim';
-                                mainBtn.href = 'watch.html?id=' + movieId;
+                                mainBtn.href = '/cinema/watch?id=' + movieId;
                             }
 
                             // 2. TẠO DANH SÁCH TẬP HOẶC DANH SÁCH BẢN DỊCH
@@ -614,7 +614,7 @@
                     filtered.forEach(movie => {
                         let firstTag = movie.tag ? movie.tag.split('/')[0].trim() : "Phim";
                         dropdown.innerHTML += `
-                            <a href="description.html?id=${movie.id}" class="search-dropdown-item">
+                            <a onclick="window.location.href='/cinema/description?id=${movie.id}'" class="search-dropdown-item">
                                 <img src="${movie.poster}" alt="${movie.title}" class="search-mini-poster">
                                 <div class="search-item-info">
                                     <span class="search-item-title">${movie.title}</span>
@@ -679,7 +679,7 @@
                         window.scrollTo({ top: document.getElementById('phim-dang-chieu').offsetTop - 80, behavior: 'smooth' });
                     }
                 } else {
-                    window.location.href = `index.html?search=${encodeURIComponent(keyword)}`;
+                    window.location.href = `/cinema?search=${encodeURIComponent(keyword)}`;
                 }
             };
 
@@ -736,11 +736,11 @@
                                     if (mainBtn && continueBtn) {
                                         // Đổi nút chính thành Xem từ đầu (Bắt buộc chạy Tập 1)
                                         mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem từ đầu';
-                                        mainBtn.onclick = function() { window.location.href = 'watch.html?id=' + currentMovieId + '&ep=0'; };
+                                        mainBtn.onclick = function() { window.location.href = '/cinema/watch?id=' + currentMovieId + '&ep=0'; };
                                         
                                         // Hiển thị nút Xem tiếp tập lấy từ Mây
                                         continueBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Tiếp tục xem Tập ' + epNumber;
-                                        continueBtn.href = 'watch.html?id=' + currentMovieId + '&ep=' + cloudEpIndex;
+                                        continueBtn.href = '/cinema/watch?id=' + currentMovieId + '&ep=' + cloudEpIndex;
                                         continueBtn.style.display = 'inline-flex';
                                     }
                                 }
@@ -857,7 +857,7 @@
                         const lastEpTitle = hasEpisodes ? movie.episodes[movie.episodes.length - 1].title : "Vừa cập nhật hồ sơ mới!";
                         const lastEpIndex = hasEpisodes ? (movie.episodes.length - 1) : 0;
                         
-                        const targetUrl = hasEpisodes ? `watch.html?id=${movie.id}&ep=${lastEpIndex}` : `description.html?id=${movie.id}`;
+                        const targetUrl = hasEpisodes ? `/cinema/watch?id=${movie.id}&ep=${lastEpIndex}` : `/cinema/description?id=${movie.id}`;
                         let movieTime = movie.updatedAt || 0;
                         let isUnread = false;
 
