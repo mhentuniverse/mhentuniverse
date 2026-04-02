@@ -1,4 +1,4 @@
-# 🎬 MHEnt. Universe
+# 🎬 Miyazaki Haruto Entertainment Universe
 **Hệ thống đa vũ trụ giải trí phi lợi nhuận của Miyazaki Haruto Entertainment Co., Ltd.**
 
 ![MHEnt Banner](assets/banner-web.png)
