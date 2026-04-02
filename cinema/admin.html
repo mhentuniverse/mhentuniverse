@@ -351,23 +351,23 @@
         // --- HÀM GỌI POPUP ARENA STYLE ---
         window.showPopup = function(message, isError = false) {
             const popup = document.getElementById('custom-popup');
-            const box = popup.querySelector('.popup-box');
+            const box = document.querySelector('.popup-box');
             const icon = document.getElementById('popup-icon');
             const title = document.getElementById('popup-title');
             const msg = document.getElementById('popup-message');
-            const btn = document.getElementById('btn-popup-ok');
+
+            const successSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+            const errorSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
 
             if (isError) {
-                icon.innerText = "❌"; title.innerText = "Lỗi rùi!"; title.style.color = "#ef4444";
-                btn.style.background = "#ef4444";
+                box.classList.add('error'); icon.innerHTML = errorSVG; title.innerText = "Lỗi rùi!";
             } else {
-                icon.innerText = "✨"; title.innerText = "Thành công!"; title.style.color = "#10b981";
-                btn.style.background = "var(--hub-color)";
+                box.classList.remove('error'); icon.innerHTML = successSVG; title.innerText = "Thành công!";
             }
             msg.innerText = message;
-            
-            popup.style.opacity = '0'; popup.style.display = 'flex'; box.classList.remove('pop-active');
-            setTimeout(() => { popup.style.opacity = '1'; box.classList.add('pop-active'); }, 10);
+            popup.style.display = 'flex';
+
+            if (isError) { setTimeout(() => { popup.style.display = 'none'; }, 3000); }
         };
 
         window.closePopup = function() {
