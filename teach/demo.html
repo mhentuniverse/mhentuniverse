@@ -13,10 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --hub-color: #0ea5e9; --hub-bg: rgba(14, 165, 233, 0.1); }
         body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
-        /* MÀN HÌNH CHỜ */
+        /* MÀN HÌNH CHỜ (START SCREEN) */
         #start-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         .lesson-title { font-size: 40px; font-weight: 900; color: var(--hub-color); margin-bottom: 10px; }
         .lesson-desc { font-size: 18px; color: #94a3b8; margin-bottom: 40px; max-width: 600px; line-height: 1.6; }
@@ -25,7 +24,7 @@
         .btn-start.challenge { background: #f59e0b; color: white; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3); }
         .btn-start:hover { transform: translateY(-5px); filter: brightness(1.1); }
 
-        /* MÀN HÌNH CHƠI */
+        /* MÀN HÌNH CHƠI (GAME SCREEN) */
         #game-screen { display: none; height: 100vh; flex-direction: column; }
         .present-header { text-align: center; padding: 20px 20px 0 20px; }
         #present-meaning { font-size: 32px; font-weight: 900; color: white; min-height: 45px; background: var(--hub-bg); display: inline-block; padding: 15px 40px; border-radius: 15px; border: 2px solid var(--hub-color); margin-bottom: 10px; }
@@ -35,20 +34,22 @@
         .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 1100px; margin: 0 auto; width: 100%; }
         
         .word-card { background: #1e293b; border: 3px solid #334155; padding: 25px 15px; border-radius: 12px; font-size: 26px; font-weight: 900; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
-        .word-card:hover { border-color: var(--hub-color); transform: translateY(-3px); }
+        .word-card:hover { border-color: var(--hub-color); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(14,165,233,0.3); }
         
-        /* TRẠNG THÁI HIỆN TẠI (SAU KHI QUA CÂU MỚI SẼ BỊ RESET HẾT) */
+        /* TRẠNG THÁI CARD TRONG VÁN CHƠI */
         .word-card.correct { background: #10b981 !important; border-color: #059669 !important; transform: scale(1.05); }
         .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.8; pointer-events: none; }
         .word-card.disabled { pointer-events: none; }
+        /* 💡 KHÔNG CÒN CLASS .solved-past Ở ĐÂY NỮA, 100% LÀ ĐẠN MÙ */
 
-        /* SƯƠNG MÙ CHALLENGE */
+        /* CHẾ ĐỘ SƯƠNG MÙ */
         .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 15px 15px; background-size: 30px 30px; box-shadow: none; pointer-events: auto !important;}
         .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; pointer-events: auto; transform: scale(1.05); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
 
+        /* NÚT CHUYỂN CÂU */
         .controls { text-align: center; padding-bottom: 30px; }
         #btn-next { display: none; background: var(--hub-color); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 900; font-size: 18px; cursor: pointer; transition: 0.3s; font-family: inherit; }
-        #btn-next:hover { background: #0284c7; transform: scale(1.05); }
+        #btn-next:hover { background: #0284c7; transform: scale(1.05); box-shadow: 0 10px 20px rgba(14,165,233,0.3); }
     </style>
 </head>
 <body>
@@ -56,7 +57,7 @@
     <div id="start-screen">
         <div style="font-size: 16px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px;">Giáo án MHEnt. Edu</div>
         <h1 class="lesson-title">Chủ đề: Thần Tượng & Thám Tử</h1>
-        <p class="lesson-desc">Đây là bản Demo (Solo Mode). Các từ đã trả lời đúng vẫn sẽ ở đó để "gài bẫy" bạn ở những câu sau! Hãy cẩn thận!</p>
+        <p class="lesson-desc">Đây là bản Demo (Solo Mode) giúp bạn trải nghiệm công cụ Vocab Arena. Hãy tìm từ vựng tiếng Anh tương ứng với mô tả tiếng Việt nhé!</p>
         
         <div>
             <button class="btn-start normal" onclick="startGame('normal')"><i class="fa-solid fa-play"></i> Chơi Chế Độ Thường</button>
@@ -81,20 +82,25 @@
     </div>
 
     <script>
-        // 📚 DỮ LIỆU BÀI GIẢNG (Giáo viên tự nhập)
+        // ==========================================
+        // 📚 NƠI GIÁO VIÊN NHẬP GIÁO ÁN
+        // ==========================================
         const LESSON_DATA = [
             { id: 'w_1', word: 'PriTicket', meaning: 'Tấm vé diệu kỳ để bước vào Thiên đường Thần tượng' },
             { id: 'w_2', word: 'Kashikoma', meaning: 'Câu cửa miệng siêu đáng yêu có nghĩa là "Đã rõ!"' },
             { id: 'w_3', word: 'Microphone', meaning: 'Dụng cụ không thể thiếu để Idol hát trên sân khấu' },
             { id: 'w_4', word: 'Detective', meaning: 'Người điều tra và phá giải các vụ án bí ẩn' },
-            { id: 'w_5', word: 'Evidence', meaning: 'Bằng chứng thu thập được tại hiện trường' },
+            { id: 'w_5', word: 'Evidence', meaning: 'Bằng chứng hoặc vật chứng thu thập được tại hiện trường' },
             { id: 'w_6', word: 'Concert', meaning: 'Buổi biểu diễn âm nhạc hoành tráng' },
-            { id: 'w_7', word: 'Lightstick', meaning: 'Gậy phát sáng để fan cổ vũ' },
+            { id: 'w_7', word: 'Lightstick', meaning: 'Gậy phát sáng để fan cổ vũ dưới khán đài' },
             { id: 'w_8', word: 'Suspect', meaning: 'Kẻ tình nghi trong một vụ án' }
         ];
 
+        // ==========================================
+        // LOGIC VẬN HÀNH BẢN SOLO
+        // ==========================================
         let gameMode = 'normal';
-        const strikesAllowed = 1; // Mặc định sai 1 lần là lật bài luôn
+        const strikesAllowed = 1; // Số mạng được phép sai
         
         let questionQueue = [];
         let currentTarget = null;
@@ -103,17 +109,50 @@
         let challengeTimer = null;
         let gridOrder = [];
 
+        // Thuật toán xáo trộn Fisher-Yates (Tuyệt đối ngẫu nhiên, xáo trộn mạnh nhất)
+        function shuffleArray(array) {
+            let curId = array.length;
+            while (0 !== curId) {
+                let randId = Math.floor(Math.random() * curId);
+                curId -= 1;
+                let tmp = array[curId];
+                array[curId] = array[randId];
+                array[randId] = tmp;
+            }
+            return array;
+        }
+
         function startGame(mode) {
             gameMode = mode;
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'flex';
             
-            questionQueue = [...LESSON_DATA].sort(() => 0.5 - Math.random());
-            gridOrder = [...LESSON_DATA].sort(() => 0.5 - Math.random());
+            // Xáo trộn 1: Trộn thứ tự câu hỏi
+            questionQueue = shuffleArray([...LESSON_DATA]);
             
-            // Vẽ bảng MỘT LẦN DUY NHẤT để duy trì thứ tự 16 chữ
-            renderGrid();
+            // Xáo trộn 2: Trộn thứ tự thẻ bài trên bảng
+            gridOrder = shuffleArray([...LESSON_DATA]);
+            
             loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            if (questionQueue.length === 0) {
+                endGame();
+                return;
+            }
+
+            currentTarget = questionQueue.shift();
+            strikesCurrent = 0;
+            isQuestionActive = true;
+            document.getElementById('btn-next').style.display = 'none';
+
+            // Hiển thị Nghĩa từ vựng
+            document.getElementById('present-meaning').innerText = currentTarget.meaning;
+            document.getElementById('present-status').innerText = "HÃY TÌM TỪ CHÍNH XÁC!";
+            document.getElementById('present-status').style.color = "var(--hub-color)";
+
+            renderGrid();
         }
 
         function renderGrid() {
@@ -125,25 +164,12 @@
                 card.className = 'word-card'; 
                 card.innerText = item.word; 
                 card.dataset.id = item.id;
+                
+                // 💡 Không có bất kỳ lệnh gán class "solved-past" hay "mờ đi" nào ở đây. Toàn bộ 16 thẻ đều sáng!
                 card.onclick = () => handleClick(card, item.id);
                 grid.appendChild(card);
             });
-        }
-
-        function loadNextQuestion() {
-            if (questionQueue.length === 0) { endGame(); return; }
-
-            currentTarget = questionQueue.shift();
-            strikesCurrent = 0;
-            isQuestionActive = true;
-            document.getElementById('btn-next').style.display = 'none';
-
-            document.getElementById('present-meaning').innerText = currentTarget.meaning;
-            document.getElementById('present-status').innerText = "HÃY TÌM TỪ CHÍNH XÁC!";
-            document.getElementById('present-status').style.color = "var(--hub-color)";
-
-            // ĐIỂM SẤU YẾU: XÓA SẠCH MỌI TRẠNG THÁI! CẢ 16 TỪ TRỞ LẠI NHƯ BÌNH THƯỜNG!
-            document.querySelectorAll('.word-card').forEach(card => card.classList.remove('incorrect', 'correct', 'disabled'));
+            
             applyFog();
         }
 
@@ -151,43 +177,51 @@
             if(!isQuestionActive || card.classList.contains('disabled')) return;
             card.classList.remove('covered');
 
-            if(selectedId === currentTarget.id) { // CHỌN ĐÚNG
+            if(selectedId === currentTarget.id) { // ĐÚNG
                 clearInterval(challengeTimer);
                 if(gameMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                 
-                card.classList.add('correct'); isQuestionActive = false; 
+                card.classList.add('correct'); 
+                isQuestionActive = false;
+                
                 document.getElementById('present-status').innerText = "🎉 XUẤT SẮC! CÂU TRẢ LỜI CHÍNH XÁC!"; 
                 document.getElementById('present-status').style.color = "#10b981";
                 document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
-                document.getElementById('btn-next').style.display = 'inline-block'; 
-            } else { // CHỌN SAI (Kể cả bấm nhầm từ của câu cũ vẫn bị tính sai)
-                card.classList.add('incorrect', 'disabled'); strikesCurrent++;
+                
+                document.getElementById('btn-next').style.display = 'inline-block';
+            } else { // SAI (Bấm nhầm Đạn mù cũng tính là Sai nha!)
+                card.classList.add('incorrect', 'disabled'); 
+                strikesCurrent++;
 
                 if(strikesCurrent > strikesAllowed) { // HẾT MẠNG
                     clearInterval(challengeTimer);
                     if(gameMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                     
                     document.querySelector(`.word-card[data-id="${currentTarget.id}"]`).classList.add('correct');
-                    isQuestionActive = false; 
+                    isQuestionActive = false;
+                    
                     document.getElementById('present-status').innerText = "RẤT TIẾC! LƯỢT CHỌN ĐÃ KẾT THÚC!"; 
                     document.getElementById('present-status').style.color = "#ef4444";
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
+                    
                     document.getElementById('btn-next').style.display = 'inline-block';
                 } else {
-                    document.getElementById('present-status').innerText = `SAI RỒI! CÒN ${strikesAllowed - strikesCurrent + 1} LƯỢT!`;
+                    document.getElementById('present-status').innerText = `SAI RỒI! CÒN ${strikesAllowed - strikesCurrent + 1} LƯỢT CHỌN!`;
                     document.getElementById('present-status').style.color = "#f59e0b";
                 }
             }
         }
 
+        // 💡 ĐÂY LÀ ĐIỂM CHỐT: HÀM SHUFFLE MỖI KHI BẤM CÂU TIẾP THEO
         function nextQuestion() {
-            // KHÔNG XÁO TRỘN BẢNG nữa để học sinh bị dính bẫy "Trí nhớ" (Nhớ lộn từ cũ là tạch)
+            // Dùng thuật toán Fisher-Yates xáo tung đội hình
+            gridOrder = shuffleArray([...gridOrder]);
             loadNextQuestion();
         }
 
         function endGame() {
             document.getElementById('present-meaning').innerText = "CHÚC MỪNG BẠN ĐÃ HOÀN THÀNH BÀI HỌC!";
-            document.getElementById('present-status').innerText = "Hãy báo cáo lại kết quả cho giáo viên nhé!";
+            document.getElementById('present-status').innerText = "Hãy chụp màn hình báo cáo kết quả nhé!";
             document.getElementById('present-status').style.color = "#10b981";
             document.getElementById('present-grid').innerHTML = '';
             document.getElementById('btn-next').style.display = 'none';
@@ -197,18 +231,17 @@
             clearInterval(challengeTimer);
             if(gameMode !== 'challenge' || !isQuestionActive) { document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp')); return; }
 
-            // PHỦ SƯƠNG LÊN TOÀN BỘ CÁC TỪ TRONG BẢNG
+            // PHỦ SƯƠNG MÙ LÊN TẤT CẢ TỪ (BAO GỒM CẢ ĐẠN MÙ)
             const cards = Array.from(document.querySelectorAll('.word-card'));
             cards.forEach(c => c.classList.add('covered'));
 
             challengeTimer = setInterval(() => {
                 if(!isQuestionActive) { clearInterval(challengeTimer); return; }
                 cards.forEach(c => c.classList.remove('revealed-temp'));
-                
-                // Chỉ bỏ qua những từ đang bị bầm đỏ SAI ở CÂU NÀY
                 const available = cards.filter(c => !c.classList.contains('incorrect'));
                 if(available.length > 0) {
                     let num = Math.max(1, Math.round(available.length / 5));
+                    // Shuffle nhẹ mảng có sẵn để chớp tắt
                     available.sort(() => 0.5 - Math.random()).slice(0, num).forEach(c => c.classList.add('revealed-temp'));
                 }
             }, 1500);
