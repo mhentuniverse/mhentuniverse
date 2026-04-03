@@ -3,323 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHEnt. Edu - Vocab Arena</title>
+    <title>MHEnt. Edu - Vocab Arena V2 (Dual Screen)</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
+        body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
-        /* HEADER */
-        .header { background: #1e293b; padding: 15px 30px; border-bottom: 2px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { margin: 0; color: #0ea5e9; font-weight: 900; font-size: 24px; }
-        .header span { color: #ff85a2; }
-        
-        /* CONTAINER */
-        .container { flex: 1; padding: 30px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* MÀN HÌNH SETUP */
-        #setup-screen { width: 100%; max-width: 800px; background: #1e293b; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: 700; margin-bottom: 8px; color: #94a3b8; }
-        textarea { width: 100%; height: 150px; padding: 15px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; resize: vertical; box-sizing: border-box;}
-        select, input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; font-size: 16px; box-sizing: border-box;}
-        
-        .btn { padding: 15px 30px; border: none; border-radius: 8px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 10px; }
-        .btn-primary { background: #0ea5e9; color: white; }
-        .btn-primary:hover { background: #0284c7; transform: translateY(-2px); }
-        .btn-success { background: #10b981; color: white; }
-        .btn-success:hover { background: #059669; }
-        .btn-warning { background: #f59e0b; color: white; }
-        
-        /* MÀN HÌNH GAME */
-        #game-screen { display: none; width: 100%; max-width: 1000px; text-align: center; }
-        
-        .question-box { background: #1e293b; padding: 30px; border-radius: 15px; margin-bottom: 30px; border: 2px dashed #0ea5e9; }
-        .question-box h2 { margin: 0 0 10px 0; color: #f8fafc; font-size: 28px; }
-        .status-text { font-size: 18px; color: #ff85a2; font-weight: 700; min-height: 25px; }
+        /* MÀN HÌNH CHỌN VAI TRÒ */
+        #role-select-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .role-btn { padding: 20px 40px; font-size: 20px; font-weight: 900; margin: 15px; border-radius: 15px; border: none; cursor: pointer; transition: 0.3s; width: 350px; display: flex; align-items: center; justify-content: center; gap: 15px; font-family: inherit;}
+        .role-btn-admin { background: #ff85a2; color: white; box-shadow: 0 10px 20px rgba(255, 133, 162, 0.3); }
+        .role-btn-admin:hover { transform: translateY(-5px); background: #ff5c8a; }
+        .role-btn-present { background: #0ea5e9; color: white; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3); }
+        .role-btn-present:hover { transform: translateY(-5px); background: #0284c7; }
 
-        /* GRID TỪ VỰNG */
-        .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .word-card { 
-            background: #334155; border: 2px solid #475569; padding: 20px; border-radius: 12px; 
-            font-size: 20px; font-weight: 800; color: white; cursor: pointer; 
-            transition: all 0.3s; display: flex; align-items: center; justify-content: center;
-            min-height: 80px; text-align: center; user-select: none;
-        }
-        .word-card:hover { border-color: #0ea5e9; transform: scale(1.02); }
+        /* ================= BẢNG ĐIỀU KHIỂN (ADMIN) ================= */
+        #admin-panel { display: none; padding: 20px; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .admin-header { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #ff85a2; }
+        .form-group { margin-bottom: 15px; }
+        textarea { width: 100%; height: 120px; padding: 15px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; resize: vertical; box-sizing: border-box;}
+        select, input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; font-size: 14px; box-sizing: border-box;}
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* TRẠNG THÁI ĐÚNG / SAI */
+        /* KHU VỰC CHỌN CÂU HỎI (ADMIN) */
+        #admin-question-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+        .q-btn { background: #334155; color: white; padding: 15px; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; }
+        .q-btn:hover { border-color: #ff85a2; }
+        .q-btn.active { background: #ff85a2; border-color: #ff5c8a; color: white; }
+        .q-btn.solved { background: #10b981; border-color: #059669; opacity: 0.5; pointer-events: none; text-decoration: line-through; }
+
+        /* ================= MÀN HÌNH TRÌNH CHIẾU ================= */
+        #presentation-panel { display: none; height: 100vh; flex-direction: column; }
+        .present-header { flex: 0 0 auto; text-align: center; padding: 40px 20px 20px 20px; }
+        #present-meaning { font-size: 40px; font-weight: 900; color: #f8fafc; margin: 0; min-height: 120px; display: flex; align-items: center; justify-content: center; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+        #present-status { font-size: 22px; font-weight: 700; color: #0ea5e9; min-height: 30px; margin-top: 10px; }
+        
+        .present-board { flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center; }
+        .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+        
+        .word-card { 
+            background: #1e293b; border: 3px solid #334155; padding: 30px 20px; border-radius: 15px; 
+            font-size: 28px; font-weight: 900; color: white; cursor: pointer; 
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+            text-align: center; user-select: none; box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+        }
+        .word-card:hover { border-color: #0ea5e9; transform: translateY(-5px); box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4); }
+        .word-card:active { transform: translateY(0); }
+        
+        /* TRẠNG THÁI CARD */
         .word-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white !important; transform: scale(1.05); }
-        .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; opacity: 0.7; }
+        .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; opacity: 0.5; pointer-events: none; }
+        .word-card.solved-past { background: #0f172a !important; border-color: #1e293b !important; color: #475569 !important; pointer-events: none; opacity: 0.3; }
         .word-card.disabled { pointer-events: none; }
         
-        /* CHẾ ĐỘ CHALLENGE (KHỐI CHE TỪ) */
-        .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 10px 10px; background-size: 20px 20px; }
-        .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; }
+        /* CHẾ ĐỘ CHALLENGE */
+        .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 15px 15px; background-size: 30px 30px; box-shadow: none; pointer-events: none;}
+        .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; pointer-events: auto; transform: scale(1.05); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
 
-        /* ĐIỀU KHIỂN */
-        .controls { display: flex; justify-content: center; gap: 15px; }
+        /* Nút chờ */
+        #waiting-msg { text-align: center; font-size: 30px; color: #64748b; font-weight: 800; margin-top: 100px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>MHEnt. <span>Edu</span></h1>
-        <div id="game-info" style="display: none; font-weight: 700; color: #cbd5e1;">
-            Câu: <span id="current-q-num">1</span>/<span id="total-q-num">10</span> | 
-            Sai cho phép: <span id="strike-count">0</span>
-        </div>
+    <div id="role-select-screen">
+        <h1 style="font-size: 40px; margin-bottom: 10px; color: #0ea5e9;">MHEnt. Edu <span style="color: #ff85a2;">Vocab Arena</span></h1>
+        <p style="color: #94a3b8; margin-bottom: 40px;">Hãy mở công cụ này trên 2 tab. Một tab để điều khiển, một tab kéo sang máy chiếu.</p>
+        
+        <button class="role-btn role-btn-present" onclick="initRole('presentation')">
+            <i class="fa-solid fa-desktop"></i> MÀN HÌNH TRÌNH CHIẾU
+        </button>
+        <button class="role-btn role-btn-admin" onclick="initRole('admin')">
+            <i class="fa-solid fa-sliders"></i> BẢNG ĐIỀU KHIỂN (ADMIN)
+        </button>
     </div>
 
-    <div class="container">
-        <div id="setup-screen">
-            <h2 style="margin-top:0; color: #0ea5e9;">Thiết lập Game Từ Vựng</h2>
-            
+    <div id="admin-panel">
+        <div class="admin-header">
+            <h2 style="margin:0 0 15px 0; color: #ff85a2;"><i class="fa-solid fa-gear"></i> Trạm Chỉ Huy (Giáo viên)</h2>
             <div class="form-group">
-                <label>1. Nhập danh sách từ (Cú pháp: Từ vựng | Ý nghĩa)</label>
-                <textarea id="data-input" placeholder="Ví dụ:&#10;a pizza | This is usually round and hot with tomatoes on top&#10;an apple | A red or green fruit that keeps the doctor away&#10;a dog | A loyal pet that barks">a pizza | This is usually round and hot with tomatoes on top
+                <textarea id="data-input" placeholder="Nhập Từ vựng | Ý nghĩa vào đây...">a pizza | This is usually round and hot with tomatoes on top
 an apple | A red or green fruit that keeps the doctor away
 a dog | A loyal pet that barks
 a book | You open it to read stories
 the sun | It shines in the sky during the day
-a teacher | A person who helps you learn
-water | You drink it when you are thirsty
-a bed | A piece of furniture you sleep on</textarea>
-                <small style="color: #64748b;">* Có thể copy trực tiếp từ Excel dán vào (chữ ngăn cách bằng dấu tab hoặc dấu | đều được).</small>
+a teacher | A person who helps you learn</textarea>
             </div>
-
-            <div style="display: flex; gap: 20px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>2. Chế độ chơi</label>
-                    <select id="mode-select">
-                        <option value="normal">🟢 Normal (Hiện tất cả từ)</option>
-                        <option value="challenge">🔥 Challenge (Ẩn từ, lâu lâu chớp hiện)</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>3. Số lần được chọn sai (Strike)</label>
-                    <input type="number" id="strike-input" value="1" min="0" title="0 = Chọn sai 1 cái là hiện đáp án đúng luôn.">
-                </div>
+            <div style="display: flex; gap: 15px;">
+                <select id="mode-select" style="flex: 2;">
+                    <option value="normal">🟢 Normal (Hiện tất cả từ)</option>
+                    <option value="challenge">🔥 Challenge (Lớp sương mù ẩn từ)</option>
+                </select>
+                <input type="number" id="strike-input" value="1" min="0" style="flex: 1;" title="Số lần chọn sai tối đa">
+                <button class="btn" style="background: #0ea5e9; color: white; flex: 1;" onclick="adminSyncData()">
+                    <i class="fa-solid fa-paper-plane"></i> TẠO & GỬI TỪ VỰNG
+                </button>
             </div>
-
-            <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="initGame()">
-                <i class="fa-solid fa-play"></i> BẮT ĐẦU VÀO LỚP
-            </button>
         </div>
 
-        <div id="game-screen">
-            <div class="question-box">
-                <h2 id="meaning-display">The meaning will appear here...</h2>
-                <div class="status-text" id="status-display">Hãy tìm từ chính xác!</div>
+        <div style="background: #1e293b; padding: 20px; border-radius: 12px; border-left: 5px solid #0ea5e9;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0; color: white;">Điều khiển Trình Chiếu</h3>
+                <button class="btn" style="background: #f59e0b; color: white;" onclick="adminShuffle()">
+                    <i class="fa-solid fa-shuffle"></i> Xáo Trộn Bảng Từ
+                </button>
             </div>
-
-            <div class="word-grid" id="word-grid">
+            <p style="color: #94a3b8; font-size: 13px; margin-bottom: 0;">Bấm vào một từ dưới đây để hiển thị câu hỏi lên Màn hình chính:</p>
+            
+            <div id="admin-question-list">
                 </div>
+        </div>
+    </div>
 
-            <div class="controls">
-                <button class="btn btn-warning" onclick="shuffleGrid()"><i class="fa-solid fa-shuffle"></i> Xáo trộn (Shuffle)</button>
-                <button class="btn btn-success" id="btn-next" style="display: none;" onclick="nextQuestion()"><i class="fa-solid fa-forward-step"></i> Câu tiếp theo</button>
-                <button class="btn btn-primary" onclick="location.reload()" style="background: #475569;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Thoát</button>
+    <div id="presentation-panel">
+        <div id="waiting-msg">
+            <i class="fa-solid fa-satellite-dish fa-beat"></i><br><br>
+            Đang chờ Giáo viên gửi dữ liệu từ Bảng Điều Khiển...
+        </div>
+
+        <div id="game-container" style="display: none; height: 100%; flex-direction: column;">
+            <div class="present-header">
+                <h2 id="present-meaning">Sẵn sàng! Chờ giáo viên chọn câu hỏi...</h2>
+                <div id="present-status"></div>
+            </div>
+            
+            <div class="present-board">
+                <div class="word-grid" id="present-grid">
+                    </div>
             </div>
         </div>
     </div>
 
     <script>
-        // DATA & BIẾN TOÀN CỤC
-        let wordList = [];
-        let currentQuestionIndex = 0;
-        let strikesAllowed = 0;
-        let strikesCurrent = 0;
-        let gameMode = 'normal';
+        // CÔNG CỤ TRUYỀN TIN CROSS-TAB (LOCALSTORAGE)
+        function sendCmd(action, payload) {
+            localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: action, payload: payload, rand: Math.random() }));
+        }
+
+        // BIẾN TOÀN CỤC CỦA GAME
+        let appRole = ''; 
+        let globalWordList = [];
+        let globalMode = 'normal';
+        let globalStrikes = 0;
         
+        // Biến của Admin
+        let activeWordId = null;
+
+        // Biến của Present
+        let targetWord = null;
+        let strikesCurrent = 0;
+        let isQuestionActive = false;
+        let solvedWords = []; // Lưu lại những từ đã giải quyết để tô mờ
         let challengeTimer = null;
-        let targetWord = '';
-        let isAnswered = false;
 
-        // Âm thanh (Optional - có thể bỏ nếu chưa cần)
-        const audioCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
-        const audioIncorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg');
+        // 1. CHỌN VAI TRÒ
+        function initRole(role) {
+            appRole = role;
+            document.getElementById('role-select-screen').style.display = 'none';
+            if(role === 'admin') {
+                document.getElementById('admin-panel').style.display = 'block';
+            } else {
+                document.getElementById('presentation-panel').style.display = 'flex';
+                // Xóa rác dữ liệu cũ khi mới bật màn hình trình chiếu
+                localStorage.removeItem('mhent_edu_cmd');
+            }
+        }
 
-        // 1. HÀM KHỞI TẠO GAME
-        function initGame() {
-            const rawData = document.getElementById('data-input').value.trim();
-            const rawLines = rawData.split('\n');
-            wordList = [];
-
-            // Parse dữ liệu (hỗ trợ dấu | hoặc Tab của Excel)
-            rawLines.forEach(line => {
+        // ==========================================
+        // KHU VỰC LOGIC DÀNH CHO: BẢNG ĐIỀU KHIỂN (ADMIN)
+        // ==========================================
+        function adminSyncData() {
+            const rawLines = document.getElementById('data-input').value.trim().split('\n');
+            globalWordList = [];
+            rawLines.forEach((line, index) => {
                 let parts = line.split('|');
-                if(parts.length < 2) parts = line.split('\t'); // Thử cắt bằng Tab nếu copy từ excel
+                if(parts.length < 2) parts = line.split('\t');
                 if(parts.length >= 2) {
-                    wordList.push({
-                        word: parts[0].trim(),
-                        meaning: parts[1].trim()
-                    });
+                    globalWordList.push({ id: 'w_' + index, word: parts[0].trim(), meaning: parts[1].trim() });
                 }
             });
 
-            if(wordList.length < 2) {
-                alert("Vui lòng nhập ít nhất 2 từ vựng!"); return;
-            }
+            if(globalWordList.length < 2) { alert("Nhập ít nhất 2 từ nhé!"); return; }
 
-            strikesAllowed = parseInt(document.getElementById('strike-input').value) || 0;
-            gameMode = document.getElementById('mode-select').value;
+            globalMode = document.getElementById('mode-select').value;
+            globalStrikes = parseInt(document.getElementById('strike-input').value) || 0;
+            
+            // Vẽ nút câu hỏi
+            const qList = document.getElementById('admin-question-list');
+            qList.innerHTML = '';
+            globalWordList.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'q-btn';
+                btn.id = 'admin-btn-' + item.id;
+                btn.innerHTML = `<span style="color:#94a3b8; font-size:11px;">TÌM TỪ:</span><br><span style="font-size:18px;">${item.word}</span>`;
+                btn.onclick = () => adminSelectQuestion(item);
+                qList.appendChild(btn);
+            });
 
-            // Xáo trộn thứ tự câu hỏi ngẫu nhiên
-            wordList.sort(() => Math.random() - 0.5);
-            currentQuestionIndex = 0;
-
-            // Cập nhật UI
-            document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
-            document.getElementById('game-info').style.display = 'block';
-            document.getElementById('total-q-num').innerText = wordList.length;
-
-            loadQuestion();
+            // Gửi lệnh sang tab Trình chiếu
+            sendCmd('SYNC_DATA', { list: globalWordList, mode: globalMode, strikes: globalStrikes });
+            alert("Đã đẩy dữ liệu sang Màn hình Trình Chiếu!");
         }
 
-        // 2. TẢI CÂU HỎI MỚI
-        function loadQuestion() {
-            if(currentQuestionIndex >= wordList.length) {
-                document.getElementById('meaning-display').innerText = "🎉 BÀI HỌC KẾT THÚC! XUẤT SẮC!";
-                document.getElementById('word-grid').innerHTML = '';
-                document.getElementById('status-display').innerText = '';
-                return;
+        function adminSelectQuestion(item) {
+            // Xóa highlight cũ
+            if(activeWordId) {
+                const oldBtn = document.getElementById('admin-btn-' + activeWordId);
+                if(oldBtn) oldBtn.classList.remove('active');
             }
-
-            const currentItem = wordList[currentQuestionIndex];
-            targetWord = currentItem.word;
-            strikesCurrent = 0;
-            isAnswered = false;
-
-            // Render Header
-            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
-            document.getElementById('strike-count').innerText = `${strikesCurrent}/${strikesAllowed}`;
-            document.getElementById('meaning-display').innerText = currentItem.meaning;
-            document.getElementById('status-display').innerText = "Hãy tìm từ chính xác!";
-            document.getElementById('status-display').style.color = "#0ea5e9";
-            document.getElementById('btn-next').style.display = 'none';
-
-            renderGrid();
+            activeWordId = item.id;
+            document.getElementById('admin-btn-' + item.id).classList.add('active');
+            
+            // Gửi lệnh set câu hỏi
+            sendCmd('SET_QUESTION', item);
         }
 
-        // 3. RENDER VÀ XÁO TRỘN GRID
-        function renderGrid() {
-            const grid = document.getElementById('word-grid');
+        function adminShuffle() {
+            sendCmd('SHUFFLE', {});
+        }
+
+        // Lắng nghe Tab Trình Chiếu báo cáo về (để đánh dấu tick những câu đã làm)
+        window.addEventListener('storage', function(e) {
+            if(appRole !== 'admin' || e.key !== 'mhent_edu_cmd') return;
+            const data = JSON.parse(e.newValue);
+            
+            if(data.action === 'REPORT_SOLVED') {
+                const btn = document.getElementById('admin-btn-' + data.payload.id);
+                if(btn) {
+                    btn.classList.remove('active');
+                    btn.classList.add('solved');
+                    btn.innerHTML = `<i class="fa-solid fa-check"></i> Đã hoàn thành`;
+                }
+            }
+        });
+
+
+        // ==========================================
+        // KHU VỰC LOGIC DÀNH CHO: MÀN HÌNH TRÌNH CHIẾU
+        // ==========================================
+        window.addEventListener('storage', function(e) {
+            if(appRole !== 'presentation' || e.key !== 'mhent_edu_cmd') return;
+            const data = JSON.parse(e.newValue);
+            
+            if(data.action === 'SYNC_DATA') { presentInitGrid(data.payload); }
+            if(data.action === 'SET_QUESTION') { presentLoadQuestion(data.payload); }
+            if(data.action === 'SHUFFLE') { presentShuffle(); }
+        });
+
+        function presentInitGrid(payload) {
+            document.getElementById('waiting-msg').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            document.getElementById('present-meaning').innerText = "Sẵn sàng! Chờ giáo viên chọn câu hỏi...";
+            document.getElementById('present-status').innerText = "";
+            
+            globalWordList = payload.list;
+            globalMode = payload.mode;
+            globalStrikes = payload.strikes;
+            solvedWords = []; // Reset lại game
+            targetWord = null;
+
+            const grid = document.getElementById('present-grid');
             grid.innerHTML = '';
 
-            // Clone mảng word để vẽ lên grid (sắp xếp ABC lần đầu)
-            let displayWords = [...wordList].map(item => item.word).sort();
+            // Sắp xếp ABC lần đầu
+            let sortedList = [...globalWordList].sort((a,b) => a.word.localeCompare(b.word));
 
-            displayWords.forEach(word => {
+            sortedList.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'word-card';
-                card.innerText = word;
-                card.dataset.word = word;
+                card.innerText = item.word;
+                card.dataset.id = item.id;
+                card.dataset.word = item.word;
                 
-                // Nếu là Challenge mode -> Ẩn từ đi
-                if(gameMode === 'challenge') {
-                    card.classList.add('covered');
-                }
-
-                card.onclick = () => checkAnswer(card, word);
+                card.onclick = () => handleStudentClick(card, item.id);
                 grid.appendChild(card);
             });
+            
+            applyChallengeFog();
+        }
 
-            // Nếu Challenge -> Bật bộ đếm giờ chớp tắt
-            clearInterval(challengeTimer);
-            if(gameMode === 'challenge') {
-                startChallengeFlasher();
+        function presentLoadQuestion(payload) {
+            targetWord = payload;
+            strikesCurrent = 0;
+            isQuestionActive = true;
+            
+            document.getElementById('present-meaning').innerText = payload.meaning;
+            document.getElementById('present-status').innerText = "Vui lòng chọn từ chính xác!";
+            document.getElementById('present-status').style.color = "#0ea5e9";
+
+            // Xóa các trạng thái bầm đỏ/xanh cũ, chừa lại các từ đã solved
+            const cards = document.querySelectorAll('.word-card');
+            cards.forEach(card => {
+                card.classList.remove('incorrect', 'correct', 'disabled');
+                if(solvedWords.includes(card.dataset.id)) {
+                    card.classList.add('solved-past');
+                }
+            });
+
+            applyChallengeFog();
+        }
+
+        function handleStudentClick(card, selectedId) {
+            if(!isQuestionActive || card.classList.contains('disabled') || card.classList.contains('solved-past')) return;
+
+            // Chế độ Challenge: Lật sương mù ra
+            if(globalMode === 'challenge') {
+                clearInterval(challengeTimer);
+                document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
+            }
+
+            // TRÚNG ĐÍCH
+            if(selectedId === targetWord.id) {
+                card.classList.add('correct');
+                document.getElementById('present-status').innerText = "🎉 XUẤT SẮC! CÂU TRẢ LỜI CHÍNH XÁC!";
+                document.getElementById('present-status').style.color = "#10b981";
+                
+                isQuestionActive = false;
+                solvedWords.push(targetWord.id);
+                
+                // Khóa các ô khác
+                document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
+
+                // Báo cáo về cho Admin
+                sendCmd('REPORT_SOLVED', targetWord);
+            } 
+            // TRẬT LẤT
+            else {
+                card.classList.add('incorrect');
+                card.classList.add('disabled');
+                strikesCurrent++;
+
+                if(strikesCurrent > globalStrikes) {
+                    // Hết mạng -> Tự bôi xanh đáp án đúng
+                    document.querySelector(`.word-card[data-id="${targetWord.id}"]`).classList.add('correct');
+                    document.getElementById('present-status').innerText = "Rất tiếc! Lượt này đã kết thúc.";
+                    document.getElementById('present-status').style.color = "#ef4444";
+                    isQuestionActive = false;
+                    document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
+                    
+                    // Nếu muốn câu này không hiện lại nữa thì push vào solvedWords. Ở đây giả sử sai thì vẫn gạch bỏ.
+                    solvedWords.push(targetWord.id);
+                    sendCmd('REPORT_SOLVED', targetWord);
+
+                } else {
+                    let left = globalStrikes - strikesCurrent + 1;
+                    document.getElementById('present-status').innerText = `Oái, sai rồi! Học sinh còn ${left} cơ hội để chọn lại!`;
+                    document.getElementById('present-status').style.color = "#f59e0b";
+                }
             }
         }
 
-        function shuffleGrid() {
-            if(isAnswered) return; // Đã trả lời thì cấm xáo trộn
-            const grid = document.getElementById('word-grid');
+        function presentShuffle() {
+            if(isQuestionActive && globalMode === 'challenge') return; // Đang lật sương mù thì không cho xáo trộn
+            const grid = document.getElementById('present-grid');
             for (let i = grid.children.length; i >= 0; i--) {
                 grid.appendChild(grid.children[Math.random() * i | 0]);
             }
         }
 
-        // 4. KIỂM TRA ĐÁP ÁN
-        function checkAnswer(cardElement, selectedWord) {
-            if(isAnswered || cardElement.classList.contains('disabled')) return;
-
-            // Nếu mode Challenge -> Lật mở tất cả bài
-            if(gameMode === 'challenge') {
-                clearInterval(challengeTimer);
-                document.querySelectorAll('.word-card').forEach(el => {
-                    el.classList.remove('covered', 'revealed-temp');
-                });
+        // ================= HIỆU ỨNG SƯƠNG MÙ (CHALLENGE) =================
+        function applyChallengeFog() {
+            clearInterval(challengeTimer);
+            if(globalMode !== 'challenge' || !isQuestionActive) {
+                document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
+                return;
             }
 
-            // TRƯỜNG HỢP: ĐÚNG
-            if(selectedWord === targetWord) {
-                audioCorrect.play().catch(e=>console.log(e));
-                cardElement.classList.add('correct');
-                endTurn("Chính xác! Làm tốt lắm!", "#10b981");
-            } 
-            // TRƯỜNG HỢP: SAI
-            else {
-                audioIncorrect.play().catch(e=>console.log(e));
-                cardElement.classList.add('incorrect');
-                cardElement.classList.add('disabled'); // Khóa ô sai lại
-                strikesCurrent++;
-                
-                document.getElementById('strike-count').innerText = `${strikesCurrent}/${strikesAllowed}`;
+            const cards = Array.from(document.querySelectorAll('.word-card')).filter(c => !c.classList.contains('solved-past'));
+            cards.forEach(c => c.classList.add('covered'));
 
-                // Hết lượt sai cho phép -> Kết thúc lượt, lật đáp án đúng
-                if(strikesCurrent > strikesAllowed) {
-                    highlightCorrectWord();
-                    endTurn("Rất tiếc! Đã hết lượt chọn.", "#ef4444");
-                } else {
-                    document.getElementById('status-display').innerText = `Sai rồi! Cậu còn ${strikesAllowed - strikesCurrent + 1} cơ hội.`;
-                    document.getElementById('status-display').style.color = "#f59e0b";
-                }
-            }
-        }
-
-        // Tô xanh từ đúng nếu học sinh sai quá số lần
-        function highlightCorrectWord() {
-            const cards = document.querySelectorAll('.word-card');
-            cards.forEach(card => {
-                if(card.dataset.word === targetWord) {
-                    card.classList.add('correct');
-                }
-            });
-        }
-
-        // Khóa màn chơi, hiện nút Next
-        function endTurn(msg, color) {
-            isAnswered = true;
-            document.getElementById('status-display').innerText = msg;
-            document.getElementById('status-display').style.color = color;
-            document.getElementById('btn-next').style.display = 'inline-flex';
-            
-            // Khóa tất cả card còn lại
-            document.querySelectorAll('.word-card').forEach(card => card.classList.add('disabled'));
-        }
-
-        function nextQuestion() {
-            currentQuestionIndex++;
-            loadQuestion();
-        }
-
-        // 5. HIỆU ỨNG THÁCH THỨC (CHALLENGE MODE)
-        function startChallengeFlasher() {
             challengeTimer = setInterval(() => {
-                if(isAnswered) { clearInterval(challengeTimer); return; }
-
-                const cards = document.querySelectorAll('.word-card');
-                // Tắt từ cũ
-                cards.forEach(c => c.classList.remove('revealed-temp'));
+                if(!isQuestionActive) { clearInterval(challengeTimer); return; }
                 
-                // Random mở 1 từ mới
-                const randomCard = cards[Math.floor(Math.random() * cards.length)];
-                randomCard.classList.add('revealed-temp');
-
-            }, 2000); // Mặc định 2 giây nhảy 1 từ (cậu có thể chỉnh số 2000 thành 3000 cho 3s)
+                cards.forEach(c => c.classList.remove('revealed-temp'));
+                // Chọn ngẫu nhiên 1 ô (không bị bầm đỏ, không bị giải quyết)
+                const availableCards = cards.filter(c => !c.classList.contains('incorrect'));
+                if(availableCards.length > 0) {
+                    const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+                    randomCard.classList.add('revealed-temp');
+                }
+            }, 1500); // 1.5 giây chớp 1 lần
         }
     </script>
 </body>
