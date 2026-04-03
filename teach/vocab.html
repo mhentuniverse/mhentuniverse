@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHEnt. Edu - Vocab Arena V5 (Final Edition)</title>
+    <title>MHEnt. Edu - Vocab Arena V5 (Ultimate Sync)</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -18,20 +18,45 @@
         .role-btn-present:hover { transform: translateY(-5px); background: #0284c7; }
 
         /* ================= BẢNG ĐIỀU KHIỂN (ADMIN) ================= */
-        #admin-panel { display: none; padding: 20px; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        #admin-panel { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         .admin-header { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #ff85a2; }
-        .form-group { margin-bottom: 15px; }
-        textarea { width: 100%; height: 120px; padding: 15px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; resize: vertical; box-sizing: border-box;}
+        
+        /* CẬP NHẬT GIAO DIỆN NHẬP LIỆU (TABS) */
+        .input-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { background: #334155; color: #cbd5e1; border: none; padding: 10px 20px; border-radius: 8px 8px 0 0; font-weight: 800; cursor: pointer; font-family: inherit; }
+        .tab-btn.active { background: #0ea5e9; color: white; }
+        
+        .input-area { background: #0b1121; padding: 15px; border-radius: 0 8px 8px 8px; border: 1px solid #475569; margin-bottom: 15px; }
+        
+        /* Bảng nhập liệu mới */
+        .row-input { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .row-input input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-family: inherit; }
+        .btn-del-row { background: transparent; color: #ef4444; border: none; cursor: pointer; font-size: 18px; padding: 5px; }
+        .btn-del-row:hover { color: #f87171; }
+
+        textarea { width: 100%; height: 120px; padding: 15px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-family: inherit; resize: vertical; box-sizing: border-box;}
         select, input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; font-size: 14px; box-sizing: border-box;}
         .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         
         #admin-current-q { background: #0ea5e9; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3); }
         
-        #admin-question-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .q-btn { background: #334155; color: white; padding: 15px; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; }
+        /* CHIA ĐÔI BẢNG ĐIỀU KHIỂN (CÂU HỎI & BẢNG ĐỒNG BỘ) */
+        .admin-controls-wrapper { display: flex; gap: 20px; align-items: flex-start; }
+        .admin-box { background: #1e293b; padding: 20px; border-radius: 12px; flex: 1; }
+        
+        #admin-question-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .q-btn { background: #334155; color: white; padding: 12px; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; }
         .q-btn:hover { border-color: #ff85a2; }
         .q-btn.active { background: #ff85a2; border-color: #ff5c8a; color: white; }
         .q-btn.solved { background: #10b981; border-color: #059669; opacity: 0.5; pointer-events: none; text-decoration: line-through; }
+
+        /* BẢNG TỪ VỰNG TRÊN MÀN HÌNH ADMIN (MIRROR) */
+        .mirror-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .mirror-card { background: #334155; border: 2px solid #475569; padding: 15px 10px; border-radius: 8px; font-size: 16px; font-weight: 800; color: white; cursor: pointer; text-align: center; user-select: none; transition: 0.2s; }
+        .mirror-card:hover { border-color: #f59e0b; background: #475569; }
+        .mirror-card.correct { background: #10b981 !important; border-color: #059669 !important; }
+        .mirror-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.5; pointer-events: none; }
+        .mirror-card.solved-past { opacity: 0.1; pointer-events: none; background: transparent; border-color: transparent;}
 
         /* ================= MÀN HÌNH TRÌNH CHIẾU ================= */
         #presentation-panel { display: none; height: 100vh; flex-direction: column; }
@@ -41,59 +66,64 @@
         .present-board { flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center; }
         .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
         
-        .word-card { 
-            background: #1e293b; border: 3px solid #334155; padding: 30px 20px; border-radius: 15px; 
-            font-size: 32px; font-weight: 900; color: white; cursor: pointer; 
-            transition: all 0.2s; display: flex; align-items: center; justify-content: center;
-            text-align: center; user-select: none; box-shadow: 0 10px 15px rgba(0,0,0,0.3);
-        }
+        .word-card { background: #1e293b; border: 3px solid #334155; padding: 30px 20px; border-radius: 15px; font-size: 32px; font-weight: 900; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
         .word-card:hover { border-color: #0ea5e9; transform: translateY(-5px); box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4); }
         .word-card:active { transform: translateY(0); }
         
         .word-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white !important; transform: scale(1.05); }
         .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; opacity: 0.8; pointer-events: none; }
+        .word-card.solved-past { display: none !important; }
         .word-card.disabled { pointer-events: none; }
         
-        /* CHẾ ĐỘ CHALLENGE (SƯƠNG MÙ) */
         .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 15px 15px; background-size: 30px 30px; box-shadow: none; pointer-events: auto !important;}
         .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; pointer-events: auto; transform: scale(1.05); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
 
         #waiting-msg { text-align: center; font-size: 30px; color: #64748b; font-weight: 800; margin-top: 100px; }
+        
+        /* Scrollbar custom */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div id="role-select-screen">
         <h1 style="font-size: 40px; margin-bottom: 10px; color: #0ea5e9;">MHEnt. Edu <span style="color: #ff85a2;">Vocab Arena</span></h1>
-        <p style="color: #94a3b8; margin-bottom: 40px;">Hãy mở công cụ này trên 2 tab. Một tab để điều khiển, một tab kéo sang máy chiếu (Smartboard).</p>
-        
-        <button class="role-btn role-btn-present" onclick="initRole('presentation')">
-            <i class="fa-solid fa-desktop"></i> MÀN HÌNH TRÌNH CHIẾU
-        </button>
-        <button class="role-btn role-btn-admin" onclick="initRole('admin')">
-            <i class="fa-solid fa-sliders"></i> BẢNG ĐIỀU KHIỂN (ADMIN)
-        </button>
+        <p style="color: #94a3b8; margin-bottom: 40px;">Hãy mở công cụ này trên 2 tab. Một tab để điều khiển, một tab kéo sang máy chiếu.</p>
+        <button class="role-btn role-btn-present" onclick="initRole('presentation')"><i class="fa-solid fa-desktop"></i> MÀN HÌNH TRÌNH CHIẾU</button>
+        <button class="role-btn role-btn-admin" onclick="initRole('admin')"><i class="fa-solid fa-sliders"></i> BẢNG ĐIỀU KHIỂN (ADMIN)</button>
     </div>
 
     <div id="admin-panel">
         <div class="admin-header">
             <h2 style="margin:0 0 15px 0; color: #ff85a2;"><i class="fa-solid fa-gear"></i> Trạm Chỉ Huy (Giáo viên)</h2>
-            <div class="form-group">
-                <textarea id="data-input" placeholder="Nhập Từ vựng | Ý nghĩa vào đây...">a pizza | This is usually round and hot with tomatoes on top
-an apple | A red or green fruit that keeps the doctor away
-a dog | A loyal pet that barks
-a book | You open it to read stories
-the sun | It shines in the sky during the day
-a teacher | A person who helps you learn</textarea>
+            
+            <div class="input-tabs">
+                <button class="tab-btn active" id="tab-table" onclick="switchInputTab('table')"><i class="fa-solid fa-table-list"></i> Nhập theo Bảng</button>
+                <button class="tab-btn" id="tab-text" onclick="switchInputTab('text')"><i class="fa-solid fa-paste"></i> Dán từ Excel</button>
             </div>
+
+            <div class="input-area" id="area-table">
+                <div id="table-rows">
+                    </div>
+                <button class="btn" style="background: #334155; color: white; padding: 8px 15px; margin-top: 5px; font-size: 13px;" onclick="addTableRow()">
+                    <i class="fa-solid fa-plus"></i> Thêm từ mới
+                </button>
+            </div>
+
+            <div class="input-area" id="area-text" style="display: none;">
+                <textarea id="data-input" placeholder="Nhập: Từ vựng | Ý nghĩa (Hoặc copy từ Excel dán vào)"></textarea>
+            </div>
+
             <div style="display: flex; gap: 15px;">
                 <select id="mode-select" style="flex: 2;">
                     <option value="normal">🟢 Normal (Hiện tất cả từ)</option>
-                    <option value="challenge">🔥 Challenge (Sương mù ẩn từ, chớp hiện nhiều từ)</option>
+                    <option value="challenge">🔥 Challenge (Sương mù chớp tắt trên máy chiếu)</option>
                 </select>
-                <input type="number" id="strike-input" value="1" min="0" style="flex: 1;" title="Số lần chọn sai tối đa">
+                <input type="number" id="strike-input" value="1" min="0" style="flex: 1;" title="Số lần chọn sai">
                 <button class="btn" style="background: #0ea5e9; color: white; flex: 1;" onclick="adminSyncData()">
-                    <i class="fa-solid fa-paper-plane"></i> TẠO & GỬI TỪ VỰNG
+                    <i class="fa-solid fa-paper-plane"></i> TẠO & GỬI DỮ LIỆU
                 </button>
             </div>
         </div>
@@ -103,33 +133,31 @@ a teacher | A person who helps you learn</textarea>
             <div id="admin-reading-meaning" style="font-size: 26px; font-weight: 900; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Chưa chọn câu hỏi</div>
         </div>
 
-        <div style="background: #1e293b; padding: 20px; border-radius: 12px; border-left: 5px solid #0ea5e9;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin:0; color: white;">Danh sách Câu hỏi</h3>
-                <button class="btn" style="background: #f59e0b; color: white;" onclick="adminShuffle()">
-                    <i class="fa-solid fa-shuffle"></i> Trộn Bảng Từ Học Sinh
-                </button>
+        <div class="admin-controls-wrapper">
+            <div class="admin-box" style="flex: 1; border-top: 5px solid #ff85a2;">
+                <h3 style="margin:0 0 10px 0; color: white;">Danh sách Câu hỏi</h3>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 0;">Bấm vào nút dưới đây để kích hoạt câu hỏi:</p>
+                <div id="admin-question-list"></div>
             </div>
-            <p style="color: #94a3b8; font-size: 13px; margin-bottom: 0;">Bấm vào một từ dưới đây để kích hoạt câu hỏi:</p>
-            <div id="admin-question-list"></div>
+
+            <div class="admin-box" style="flex: 2; border-top: 5px solid #0ea5e9;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin:0; color: white;">Bảng Mô Phỏng (Bấm hộ học sinh)</h3>
+                    <button class="btn" style="background: #f59e0b; color: white; padding: 8px 15px; font-size: 13px;" onclick="adminShuffle()">
+                        <i class="fa-solid fa-shuffle"></i> Trộn Bảng Từ
+                    </button>
+                </div>
+                <p style="color: #10b981; font-size: 13px; margin-bottom: 0;">Bảng này KHÔNG CÓ sương mù, đồng bộ vị trí y chang màn chiếu.</p>
+                <div id="admin-mirror-grid" class="mirror-grid"></div>
+            </div>
         </div>
     </div>
 
     <div id="presentation-panel">
-        <div id="waiting-msg">
-            <i class="fa-solid fa-satellite-dish fa-beat"></i><br><br>
-            Đang chờ Giáo viên gửi dữ liệu...
-        </div>
-
+        <div id="waiting-msg"><i class="fa-solid fa-satellite-dish fa-beat"></i><br><br>Đang chờ Giáo viên gửi dữ liệu...</div>
         <div id="game-container" style="display: none; height: 100%; flex-direction: column;">
-            <div class="present-header">
-                <div id="present-status">SẴN SÀNG! HÃY CHÚ Ý LẮNG NGHE GIÁO VIÊN!</div>
-            </div>
-            
-            <div class="present-board">
-                <div class="word-grid" id="present-grid">
-                    </div>
-            </div>
+            <div class="present-header"><div id="present-status">SẴN SÀNG! HÃY CHÚ Ý LẮNG NGHE GIÁO VIÊN!</div></div>
+            <div class="present-board"><div class="word-grid" id="present-grid"></div></div>
         </div>
     </div>
 
@@ -142,18 +170,23 @@ a teacher | A person who helps you learn</textarea>
         let globalWordList = [];
         let globalMode = 'normal';
         let globalStrikes = 0;
+        let activeInputMode = 'table';
         
         let activeWordId = null;
         let targetWord = null;
         let strikesCurrent = 0;
         let isQuestionActive = false;
+        let solvedWords = []; 
         let challengeTimer = null;
+        let currentGridOrder = []; // Lưu mảng thứ tự đồng bộ 2 bảng
 
         function initRole(role) {
             appRole = role;
             document.getElementById('role-select-screen').style.display = 'none';
             if(role === 'admin') {
                 document.getElementById('admin-panel').style.display = 'block';
+                // Tạo sẵn 4 dòng mẫu cho bảng nhập liệu
+                for(let i=0; i<4; i++) addTableRow(); 
             } else {
                 document.getElementById('presentation-panel').style.display = 'flex';
                 localStorage.removeItem('mhent_edu_cmd');
@@ -161,39 +194,98 @@ a teacher | A person who helps you learn</textarea>
         }
 
         // ==========================================
-        // KHU VỰC ADMIN
+        // KHU VỰC ADMIN - XỬ LÝ NHẬP LIỆU (TABS)
+        // ==========================================
+        function switchInputTab(mode) {
+            activeInputMode = mode;
+            document.getElementById('tab-table').classList.toggle('active', mode === 'table');
+            document.getElementById('tab-text').classList.toggle('active', mode === 'text');
+            document.getElementById('area-table').style.display = mode === 'table' ? 'block' : 'none';
+            document.getElementById('area-text').style.display = mode === 'text' ? 'block' : 'none';
+        }
+
+        function addTableRow(word = '', meaning = '') {
+            const container = document.getElementById('table-rows');
+            const row = document.createElement('div');
+            row.className = 'row-input';
+            row.innerHTML = `
+                <input type="text" class="input-w" placeholder="Từ vựng (Vd: a pizza)" value="${word}">
+                <input type="text" class="input-m" placeholder="Ý nghĩa (Vd: Tròn và có cà chua)" value="${meaning}">
+                <button class="btn-del-row" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            container.appendChild(row);
+        }
+
+        // ==========================================
+        // KHU VỰC ADMIN - LOGIC ĐIỀU KHIỂN
         // ==========================================
         function adminSyncData() {
-            const rawLines = document.getElementById('data-input').value.trim().split('\n');
             globalWordList = [];
-            rawLines.forEach((line, index) => {
-                let parts = line.split('|');
-                if(parts.length < 2) parts = line.split('\t');
-                if(parts.length >= 2) {
-                    globalWordList.push({ id: 'w_' + index, word: parts[0].trim(), meaning: parts[1].trim() });
-                }
-            });
+            
+            // Đọc dữ liệu dựa vào Tab đang mở
+            if (activeInputMode === 'table') {
+                const rows = document.querySelectorAll('.row-input');
+                rows.forEach((row, index) => {
+                    const w = row.querySelector('.input-w').value.trim();
+                    const m = row.querySelector('.input-m').value.trim();
+                    if(w && m) globalWordList.push({ id: 'w_' + index, word: w, meaning: m });
+                });
+            } else {
+                const rawLines = document.getElementById('data-input').value.trim().split('\n');
+                rawLines.forEach((line, index) => {
+                    let parts = line.split('|');
+                    if(parts.length < 2) parts = line.split('\t');
+                    if(parts.length >= 2) globalWordList.push({ id: 'w_' + index, word: parts[0].trim(), meaning: parts[1].trim() });
+                });
+            }
 
-            if(globalWordList.length < 2) { alert("Nhập ít nhất 2 từ nhé!"); return; }
+            if(globalWordList.length < 2) { alert("Nhập ít nhất 2 từ hợp lệ nhé!"); return; }
 
             globalMode = document.getElementById('mode-select').value;
             globalStrikes = parseInt(document.getElementById('strike-input').value) || 0;
             
+            // Vẽ danh sách Câu hỏi
             const qList = document.getElementById('admin-question-list');
             qList.innerHTML = '';
             globalWordList.forEach(item => {
                 const btn = document.createElement('button');
                 btn.className = 'q-btn';
                 btn.id = 'admin-btn-' + item.id;
-                btn.innerHTML = `<span style="color:#94a3b8; font-size:11px;">ĐÁP ÁN:</span><br><span style="font-size:18px;">${item.word}</span>`;
+                btn.innerHTML = `<span style="font-size:16px;">${item.word}</span>`;
                 btn.onclick = () => adminSelectQuestion(item);
                 qList.appendChild(btn);
             });
 
-            sendCmd('SYNC_DATA', { list: globalWordList, mode: globalMode, strikes: globalStrikes });
+            // Gắn thứ tự ban đầu cho lưới (Alphabet)
+            currentGridOrder = [...globalWordList].sort((a,b) => a.word.localeCompare(b.word));
+
+            sendCmd('SYNC_DATA', { list: globalWordList, mode: globalMode, strikes: globalStrikes, order: currentGridOrder });
+            renderAdminMirrorGrid();
+            
             document.getElementById('admin-current-q').style.display = 'block';
-            document.getElementById('admin-reading-meaning').innerText = "Chọn một câu bên dưới để bắt đầu!";
-            alert("Đã đẩy dữ liệu sang Màn hình Trình Chiếu!");
+            document.getElementById('admin-reading-meaning').innerText = "Chọn một câu hỏi ở danh sách bên dưới!";
+            alert("Đã gửi dữ liệu sang máy chiếu thành công!");
+        }
+
+        // Vẽ lại Bảng Mirror của Admin
+        function renderAdminMirrorGrid() {
+            const grid = document.getElementById('admin-mirror-grid');
+            grid.innerHTML = '';
+            currentGridOrder.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'mirror-card';
+                card.id = 'mirror-card-' + item.id;
+                card.innerText = item.word;
+                
+                // Cập nhật trạng thái màu sắc nếu đã chơi
+                if(solvedWords.includes(item.id)) card.classList.add('solved-past');
+                
+                // Khi Admin bấm, ra lệnh cho Màn hình chiếu xử lý như học sinh bấm
+                card.onclick = () => {
+                    if(!solvedWords.includes(item.id)) sendCmd('ADMIN_CLICK_CARD', item.id);
+                };
+                grid.appendChild(card);
+            });
         }
 
         function adminSelectQuestion(item) {
@@ -203,25 +295,37 @@ a teacher | A person who helps you learn</textarea>
             }
             activeWordId = item.id;
             document.getElementById('admin-btn-' + item.id).classList.add('active');
-            
             document.getElementById('admin-reading-meaning').innerText = item.meaning;
             sendCmd('SET_QUESTION', item);
+            
+            // Xóa màu cũ trên bảng Mirror
+            document.querySelectorAll('.mirror-card').forEach(c => c.classList.remove('incorrect', 'correct'));
         }
 
         function adminShuffle() {
-            sendCmd('SHUFFLE', {});
+            // Admin xáo trộn thứ tự và ép Màn hình chiếu theo thứ tự đó
+            currentGridOrder = [...currentGridOrder].sort(() => 0.5 - Math.random());
+            sendCmd('SHUFFLE', currentGridOrder);
+            renderAdminMirrorGrid();
         }
 
+        // Admin Lắng nghe phản hồi từ Máy chiếu
         window.addEventListener('storage', function(e) {
             if(appRole !== 'admin' || e.key !== 'mhent_edu_cmd') return;
             const data = JSON.parse(e.newValue);
+            
             if(data.action === 'REPORT_SOLVED') {
                 const btn = document.getElementById('admin-btn-' + data.payload.id);
                 if(btn) {
-                    btn.classList.remove('active');
-                    btn.classList.add('solved');
+                    btn.classList.remove('active'); btn.classList.add('solved');
                     btn.innerHTML = `<i class="fa-solid fa-check"></i> Đã hoàn thành`;
                 }
+                solvedWords.push(data.payload.id);
+                renderAdminMirrorGrid(); // Xóa mờ từ đã giải quyết trên Mirror
+            }
+            if(data.action === 'SYNC_GRID_COLOR') {
+                const mirrorCard = document.getElementById('mirror-card-' + data.payload.id);
+                if(mirrorCard) mirrorCard.classList.add(data.payload.status);
             }
         });
 
@@ -234,7 +338,11 @@ a teacher | A person who helps you learn</textarea>
             const data = JSON.parse(e.newValue);
             if(data.action === 'SYNC_DATA') { presentInitGrid(data.payload); }
             if(data.action === 'SET_QUESTION') { presentLoadQuestion(data.payload); }
-            if(data.action === 'SHUFFLE') { presentShuffle(); }
+            if(data.action === 'SHUFFLE') { presentRenderGridOrder(data.payload); }
+            if(data.action === 'ADMIN_CLICK_CARD') { 
+                const card = document.querySelector(`.word-card[data-id="${data.payload}"]`);
+                if(card) handleStudentClick(card, data.payload); 
+            }
         });
 
         function presentInitGrid(payload) {
@@ -246,22 +354,27 @@ a teacher | A person who helps you learn</textarea>
             globalWordList = payload.list;
             globalMode = payload.mode;
             globalStrikes = payload.strikes;
+            solvedWords = []; 
             targetWord = null;
 
+            presentRenderGridOrder(payload.order);
+        }
+
+        function presentRenderGridOrder(orderArray) {
             const grid = document.getElementById('present-grid');
             grid.innerHTML = '';
-
-            let sortedList = [...globalWordList].sort((a,b) => a.word.localeCompare(b.word));
-
-            sortedList.forEach(item => {
+            orderArray.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'word-card';
                 card.innerText = item.word;
                 card.dataset.id = item.id;
+                
+                // Khôi phục trạng thái nếu đã chơi xong hoặc đang sai dở dang
+                if(solvedWords.includes(item.id)) card.classList.add('solved-past');
+                
                 card.onclick = () => handleStudentClick(card, item.id);
                 grid.appendChild(card);
             });
-            
             applyChallengeFog();
         }
 
@@ -270,60 +383,60 @@ a teacher | A person who helps you learn</textarea>
             strikesCurrent = 0;
             isQuestionActive = true;
             
-            document.getElementById('present-status').innerText = "VUI LÒNG CHỌN TỪ CHÍNH XÁC!";
+            document.getElementById('present-status').innerText = "VUI LÒNG TÌM TỪ CHÍNH XÁC!";
             document.getElementById('present-status').style.color = "#ff85a2";
 
             const cards = document.querySelectorAll('.word-card');
             cards.forEach(card => {
-                // 💡 V5: Khôi phục lại TẤT CẢ các thẻ về trạng thái bình thường (Không xóa từ nào cả)
                 card.classList.remove('incorrect', 'correct', 'disabled');
+                if(solvedWords.includes(card.dataset.id)) card.classList.add('solved-past'); 
             });
-
             applyChallengeFog();
         }
 
         function handleStudentClick(card, selectedId) {
-            if(!isQuestionActive || card.classList.contains('disabled')) return;
+            if(!isQuestionActive || card.classList.contains('disabled') || card.classList.contains('solved-past')) return;
 
             card.classList.remove('covered');
 
-            // 1. ĐÚNG
-            if(selectedId === targetWord.id) {
+            if(selectedId === targetWord.id) { // ĐÚNG
                 if(globalMode === 'challenge') {
                     clearInterval(challengeTimer);
                     document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                 }
-
                 card.classList.add('correct');
                 document.getElementById('present-status').innerText = "🎉 XUẤT SẮC! CÂU TRẢ LỜI CHÍNH XÁC!";
                 document.getElementById('present-status').style.color = "#10b981";
                 
                 isQuestionActive = false;
+                solvedWords.push(targetWord.id);
                 document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
 
+                sendCmd('SYNC_GRID_COLOR', { id: selectedId, status: 'correct' });
                 sendCmd('REPORT_SOLVED', targetWord);
             } 
-            // 2. SAI
-            else {
-                card.classList.add('incorrect');
-                card.classList.add('disabled');
+            else { // SAI
+                card.classList.add('incorrect', 'disabled');
                 strikesCurrent++;
+                sendCmd('SYNC_GRID_COLOR', { id: selectedId, status: 'incorrect' });
 
-                if(strikesCurrent > globalStrikes) {
-                    // HẾT MẠNG -> Xóa sương mù, hiện đáp án đúng
+                if(strikesCurrent > globalStrikes) { // HẾT MẠNG
                     if(globalMode === 'challenge') {
                         clearInterval(challengeTimer);
                         document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                     }
+                    const correctCard = document.querySelector(`.word-card[data-id="${targetWord.id}"]`);
+                    correctCard.classList.add('correct');
+                    sendCmd('SYNC_GRID_COLOR', { id: targetWord.id, status: 'correct' });
 
-                    document.querySelector(`.word-card[data-id="${targetWord.id}"]`).classList.add('correct');
                     document.getElementById('present-status').innerText = "RẤT TIẾC! LƯỢT CHỌN ĐÃ KẾT THÚC.";
                     document.getElementById('present-status').style.color = "#ef4444";
                     isQuestionActive = false;
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
                     
+                    solvedWords.push(targetWord.id); 
                     sendCmd('REPORT_SOLVED', targetWord);
-                } else {
+                } else { // CÒN MẠNG
                     let left = globalStrikes - strikesCurrent + 1;
                     document.getElementById('present-status').innerText = `SAI RỒI! CÒN ${left} LƯỢT CHỌN!`;
                     document.getElementById('present-status').style.color = "#f59e0b";
@@ -331,14 +444,7 @@ a teacher | A person who helps you learn</textarea>
             }
         }
 
-        function presentShuffle() {
-            const grid = document.getElementById('present-grid');
-            for (let i = grid.children.length; i >= 0; i--) {
-                grid.appendChild(grid.children[Math.random() * i | 0]);
-            }
-        }
-
-        // ================= HIỆU ỨNG SƯƠNG MÙ V4/V5 =================
+        // ================= HIỆU ỨNG SƯƠNG MÙ V5 (THÔNG MINH) =================
         function applyChallengeFog() {
             clearInterval(challengeTimer);
             if(globalMode !== 'challenge' || !isQuestionActive) {
@@ -346,24 +452,19 @@ a teacher | A person who helps you learn</textarea>
                 return;
             }
 
-            // Phủ sương mù TẤT CẢ thẻ
-            const cards = Array.from(document.querySelectorAll('.word-card'));
+            const cards = Array.from(document.querySelectorAll('.word-card')).filter(c => !c.classList.contains('solved-past'));
             cards.forEach(c => c.classList.add('covered'));
 
             challengeTimer = setInterval(() => {
                 if(!isQuestionActive) { clearInterval(challengeTimer); return; }
                 
                 cards.forEach(c => c.classList.remove('revealed-temp'));
-                
-                // Lọc ra các ô CHƯA BỊ BẤM SAI
                 const availableCards = cards.filter(c => !c.classList.contains('incorrect'));
                 
                 if(availableCards.length > 0) {
                     let numToReveal = Math.max(1, Math.round(availableCards.length / 5)); 
                     let shuffled = availableCards.sort(() => 0.5 - Math.random());
-                    let selectedToReveal = shuffled.slice(0, numToReveal);
-                    
-                    selectedToReveal.forEach(c => c.classList.add('revealed-temp'));
+                    shuffled.slice(0, numToReveal).forEach(c => c.classList.add('revealed-temp'));
                 }
             }, 1500); 
         }
