@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHEnt. Edu - Vocab Arena V4 (Distractor Mode)</title>
+    <title>MHEnt. Edu - Vocab Arena V4 (Smart Challenge)</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
-        /* MÀN HÌNH CHỌN VAI TRÒ */
         #role-select-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         .role-btn { padding: 20px 40px; font-size: 20px; font-weight: 900; margin: 15px; border-radius: 15px; border: none; cursor: pointer; transition: 0.3s; width: 350px; display: flex; align-items: center; justify-content: center; gap: 15px; font-family: inherit;}
         .role-btn-admin { background: #ff85a2; color: white; box-shadow: 0 10px 20px rgba(255, 133, 162, 0.3); }
@@ -26,10 +25,8 @@
         select, input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; font-size: 14px; box-sizing: border-box;}
         .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* KHU VỰC ĐỌC CÂU HỎI */
         #admin-current-q { background: #0ea5e9; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3); }
         
-        /* KHU VỰC CHỌN CÂU HỎI (ADMIN) */
         #admin-question-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
         .q-btn { background: #334155; color: white; padding: 15px; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; }
         .q-btn:hover { border-color: #ff85a2; }
@@ -53,16 +50,16 @@
         .word-card:hover { border-color: #0ea5e9; transform: translateY(-5px); box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4); }
         .word-card:active { transform: translateY(0); }
         
-        /* TRẠNG THÁI CARD */
         .word-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white !important; transform: scale(1.05); }
         .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; opacity: 0.8; pointer-events: none; }
+        
+        .word-card.solved-past { display: none !important; }
         .word-card.disabled { pointer-events: none; }
         
         /* CHẾ ĐỘ CHALLENGE (SƯƠNG MÙ) */
-        .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 15px 15px; background-size: 30px 30px; box-shadow: none; pointer-events: auto !important; }
+        .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 15px 15px; background-size: 30px 30px; box-shadow: none; pointer-events: auto !important;}
         .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; pointer-events: auto; transform: scale(1.05); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
 
-        /* Nút chờ */
         #waiting-msg { text-align: center; font-size: 30px; color: #64748b; font-weight: 800; margin-top: 100px; }
     </style>
 </head>
@@ -93,8 +90,8 @@ a teacher | A person who helps you learn</textarea>
             </div>
             <div style="display: flex; gap: 15px;">
                 <select id="mode-select" style="flex: 2;">
-                    <option value="normal">🟢 Normal (Hiện tất cả từ, từ cũ làm mồi nhử)</option>
-                    <option value="challenge">🔥 Challenge (Lớp sương mù che phủ toàn bộ)</option>
+                    <option value="normal">🟢 Normal (Hiện tất cả từ)</option>
+                    <option value="challenge">🔥 Challenge (Sương mù ẩn từ, chớp hiện nhiều từ)</option>
                 </select>
                 <input type="number" id="strike-input" value="1" min="0" style="flex: 1;" title="Số lần chọn sai tối đa">
                 <button class="btn" style="background: #0ea5e9; color: white; flex: 1;" onclick="adminSyncData()">
@@ -116,7 +113,6 @@ a teacher | A person who helps you learn</textarea>
                 </button>
             </div>
             <p style="color: #94a3b8; font-size: 13px; margin-bottom: 0;">Bấm vào một từ dưới đây để kích hoạt câu hỏi:</p>
-            
             <div id="admin-question-list"></div>
         </div>
     </div>
@@ -140,12 +136,10 @@ a teacher | A person who helps you learn</textarea>
     </div>
 
     <script>
-        // CÔNG CỤ TRUYỀN TIN CROSS-TAB (LOCALSTORAGE)
         function sendCmd(action, payload) {
             localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: action, payload: payload, rand: Math.random() }));
         }
 
-        // BIẾN TOÀN CỤC
         let appRole = ''; 
         let globalWordList = [];
         let globalMode = 'normal';
@@ -155,9 +149,9 @@ a teacher | A person who helps you learn</textarea>
         let targetWord = null;
         let strikesCurrent = 0;
         let isQuestionActive = false;
+        let solvedWords = []; 
         let challengeTimer = null;
 
-        // 1. CHỌN VAI TRÒ
         function initRole(role) {
             appRole = role;
             document.getElementById('role-select-screen').style.display = 'none';
@@ -170,7 +164,7 @@ a teacher | A person who helps you learn</textarea>
         }
 
         // ==========================================
-        // KHU VỰC DÀNH CHO: BẢNG ĐIỀU KHIỂN (ADMIN)
+        // KHU VỰC ADMIN
         // ==========================================
         function adminSyncData() {
             const rawLines = document.getElementById('data-input').value.trim().split('\n');
@@ -212,6 +206,7 @@ a teacher | A person who helps you learn</textarea>
             }
             activeWordId = item.id;
             document.getElementById('admin-btn-' + item.id).classList.add('active');
+            
             document.getElementById('admin-reading-meaning').innerText = item.meaning;
             sendCmd('SET_QUESTION', item);
         }
@@ -235,7 +230,7 @@ a teacher | A person who helps you learn</textarea>
 
 
         // ==========================================
-        // KHU VỰC DÀNH CHO: MÀN HÌNH TRÌNH CHIẾU
+        // KHU VỰC MÀN HÌNH TRÌNH CHIẾU
         // ==========================================
         window.addEventListener('storage', function(e) {
             if(appRole !== 'presentation' || e.key !== 'mhent_edu_cmd') return;
@@ -254,6 +249,7 @@ a teacher | A person who helps you learn</textarea>
             globalWordList = payload.list;
             globalMode = payload.mode;
             globalStrikes = payload.strikes;
+            solvedWords = []; 
             targetWord = null;
 
             const grid = document.getElementById('present-grid');
@@ -281,51 +277,66 @@ a teacher | A person who helps you learn</textarea>
             document.getElementById('present-status').innerText = "VUI LÒNG CHỌN TỪ CHÍNH XÁC!";
             document.getElementById('present-status').style.color = "#ff85a2";
 
-            // 💡 CỐT LÕI NẰM Ở ĐÂY: Reset toàn bộ thẻ về trạng thái bình thường (kể cả từ đã đúng ở vòng trước)
             const cards = document.querySelectorAll('.word-card');
             cards.forEach(card => {
                 card.classList.remove('incorrect', 'correct', 'disabled');
+                
+                // Ẩn đi các từ đã đúng ở câu trước
+                if(solvedWords.includes(card.dataset.id)) {
+                    card.classList.add('solved-past'); 
+                }
             });
 
             applyChallengeFog();
         }
 
         function handleStudentClick(card, selectedId) {
-            if(!isQuestionActive || card.classList.contains('disabled')) return;
+            if(!isQuestionActive || card.classList.contains('disabled') || card.classList.contains('solved-past')) return;
 
+            // Mở sương mù cho đúng cái thẻ học sinh vừa click
             card.classList.remove('covered');
 
-            if(globalMode === 'challenge') {
-                clearInterval(challengeTimer);
-                document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
-            }
-
-            // ĐÚNG
+            // 1. ĐÚNG
             if(selectedId === targetWord.id) {
+                // Xóa TẤT CẢ sương mù, Dừng timer vì ván này đã xong
+                if(globalMode === 'challenge') {
+                    clearInterval(challengeTimer);
+                    document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
+                }
+
                 card.classList.add('correct');
                 document.getElementById('present-status').innerText = "🎉 XUẤT SẮC! CÂU TRẢ LỜI CHÍNH XÁC!";
                 document.getElementById('present-status').style.color = "#10b981";
                 
                 isQuestionActive = false;
+                solvedWords.push(targetWord.id);
                 document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
 
                 sendCmd('REPORT_SOLVED', targetWord);
             } 
-            // SAI (Bao gồm cả bấm bừa vào mồi nhử)
+            // 2. SAI
             else {
                 card.classList.add('incorrect');
                 card.classList.add('disabled');
                 strikesCurrent++;
 
                 if(strikesCurrent > globalStrikes) {
+                    // HẾT MẠNG -> Xóa sương mù, hiện đáp án đúng
+                    if(globalMode === 'challenge') {
+                        clearInterval(challengeTimer);
+                        document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
+                    }
+
                     document.querySelector(`.word-card[data-id="${targetWord.id}"]`).classList.add('correct');
                     document.getElementById('present-status').innerText = "RẤT TIẾC! LƯỢT CHỌN ĐÃ KẾT THÚC.";
                     document.getElementById('present-status').style.color = "#ef4444";
                     isQuestionActive = false;
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
                     
+                    solvedWords.push(targetWord.id); 
                     sendCmd('REPORT_SOLVED', targetWord);
                 } else {
+                    // VẪN CÒN MẠNG -> KHÔNG xóa sương mù các ô khác, trò chơi tiếp tục
                     let left = globalStrikes - strikesCurrent + 1;
                     document.getElementById('present-status').innerText = `SAI RỒI! CÒN ${left} LƯỢT CHỌN!`;
                     document.getElementById('present-status').style.color = "#f59e0b";
@@ -340,6 +351,7 @@ a teacher | A person who helps you learn</textarea>
             }
         }
 
+        // ================= HIỆU ỨNG SƯƠNG MÙ V4 (THÔNG MINH) =================
         function applyChallengeFog() {
             clearInterval(challengeTimer);
             if(globalMode !== 'challenge' || !isQuestionActive) {
@@ -347,18 +359,27 @@ a teacher | A person who helps you learn</textarea>
                 return;
             }
 
-            // 💡 Sương mù che phủ TẤT CẢ các thẻ (vì không còn khái niệm solved-past nữa)
-            const cards = Array.from(document.querySelectorAll('.word-card'));
+            // Bao phủ toàn bộ các thẻ chưa giải quyết
+            const cards = Array.from(document.querySelectorAll('.word-card')).filter(c => !c.classList.contains('solved-past'));
             cards.forEach(c => c.classList.add('covered'));
 
             challengeTimer = setInterval(() => {
                 if(!isQuestionActive) { clearInterval(challengeTimer); return; }
                 
                 cards.forEach(c => c.classList.remove('revealed-temp'));
+                
+                // Lọc ra các ô CHƯA BỊ BẤM SAI
                 const availableCards = cards.filter(c => !c.classList.contains('incorrect'));
+                
                 if(availableCards.length > 0) {
-                    const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)];
-                    randomCard.classList.add('revealed-temp');
+                    // 💡 THUẬT TOÁN TỈ LỆ 20%: Lấy tổng số thẻ chia 5 (tối thiểu chớp 1 thẻ)
+                    let numToReveal = Math.max(1, Math.round(availableCards.length / 5)); 
+                    
+                    // Xáo trộn ngẫu nhiên mảng availableCards và bốc ra numToReveal thẻ
+                    let shuffled = availableCards.sort(() => 0.5 - Math.random());
+                    let selectedToReveal = shuffled.slice(0, numToReveal);
+                    
+                    selectedToReveal.forEach(c => c.classList.add('revealed-temp'));
                 }
             }, 1500); 
         }
