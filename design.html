@@ -3,78 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHEnt. Studio - Content Creator</title>
+    <title>MHEnt. Studio - Content Creator V2.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-        /* 💡 LƯU Ý FONT CHỮ: Thay đường dẫn này bằng link file font iCiel Panton Black của cậu nếu có */
         @font-face {
-            font-family: 'iCielPantonBlack';
-            src: url('/fonts/iCielPantonBlack.otf')
+            font-family: 'BalihoScript';
+            src: url('/fonts/BalihoScript.ttf') format('truetype');
+        }
+
+        /* FONT CHỮ VIẾT TAY CHO SUBNAME */
+        @font-face {
+            font-family: 'BalihoScript';
+            src: url('/fonts/BalihoScript.ttf') format('truetype');
         }
 
         body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* CỘT CÔNG CỤ (TRÁI) */
-        .toolbar { width: 320px; background: #1e293b; padding: 25px; box-shadow: 2px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; z-index: 10; border-right: 1px solid #334155; }
-        .toolbar h2 { margin: 0; color: #ff85a2; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+        .toolbar { width: 340px; background: #1e293b; padding: 25px; box-shadow: 2px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; overflow-y: auto; z-index: 10; border-right: 1px solid #334155; }
+        .toolbar h2 { margin: 0 0 10px 0; color: #ff85a2; font-weight: 900; display: flex; align-items: center; gap: 10px; font-size: 22px; }
         
         .tool-group { display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #334155; }
         .tool-group label { font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
         
-        select, input[type="text"], input[type="color"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-family: inherit; font-size: 14px; outline: none; }
+        select, input[type="text"], input[type="color"], input[type="range"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-family: inherit; font-size: 14px; outline: none; box-sizing: border-box; }
         select:focus, input[type="text"]:focus { border-color: #ff85a2; }
-        input[type="color"] { padding: 2px; height: 40px; cursor: pointer; }
-        
-        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+        input[type="color"] { padding: 2px; height: 40px; cursor: pointer; border: none; }
+        input[type="range"] { padding: 0; height: 20px; cursor: pointer; }
+
+        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 14px; }
         .btn-primary { background: #ff85a2; color: white; }
         .btn-primary:hover { background: #ff5c8a; transform: translateY(-2px); }
         .btn-outline { background: transparent; border: 2px dashed #475569; color: #cbd5e1; }
         .btn-outline:hover { border-color: #ff85a2; color: #ff85a2; background: rgba(255, 133, 162, 0.1); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
         .btn-export { background: #10b981; color: white; font-size: 16px; margin-top: auto; padding: 15px;}
         .btn-export:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); }
 
-        /* KHU VỰC THIẾT KẾ (PHẢI) */
         .workspace-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #0b1121; padding: 40px; overflow: auto; background-image: radial-gradient(#1e293b 1px, transparent 0); background-size: 20px 20px; }
+        .artboard { background: #ffffff; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden; transition: transform 0.1s; border: 1px solid transparent;}
         
-        /* BẢNG ARTBOARD CHÍNH */
-        .artboard { 
-            background: #ffffff; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-            overflow: hidden; /* Cắt những phần ảnh tràn ra ngoài */
-            transition: width 0.3s, height 0.3s;
-        }
+        /* HIỆU ỨNG NỀN BUBBLE V2.0 */
+        .artboard-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background-color: #ffffff; transition: 0.3s; }
+        .artboard-bubble-1 { position: absolute; top: -20%; left: -20%; width: 80%; height: 80%; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; z-index: 1; opacity: 0.6; filter: blur(10px); pointer-events: none; transition: background 0.3s; }
+        .artboard-bubble-2 { position: absolute; bottom: -20%; right: -20%; width: 80%; height: 80%; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%); border-radius: 50%; z-index: 2; opacity: 0.6; filter: blur(10px); pointer-events: none; transition: background 0.3s; }
 
-        /* LỚP NỀN (Background) */
-        .artboard-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background-size: cover; background-position: center; pointer-events: none; }
-
-        /* CÁC PHẦN TỬ KÉO THẢ */
-        .draggable { position: absolute; z-index: 1; cursor: grab; user-select: none; }
+        .draggable { position: absolute; z-index: 10; cursor: grab; user-select: none; }
         .draggable:active { cursor: grabbing; }
-        
-        .design-text { font-family: 'Nunito', sans-serif; font-size: 40px; font-weight: 900; color: #333; padding: 10px; border: 2px dashed transparent; min-width: 100px; white-space: nowrap; text-shadow: 2px 2px 0px #fff;}
+        .draggable.selected { border-color: #0ea5e9 !important; } /* Nổi bật phần tử được chọn */
+
+        .design-text { font-family: 'Nunito', sans-serif; font-size: 40px; font-weight: 900; color: #333; padding: 10px; border: 2px dashed transparent; min-width: 100px; white-space: nowrap; transition: 0.1s; }
         .design-text:focus { border-color: #0ea5e9; outline: none; cursor: text; background: rgba(255,255,255,0.8); }
 
-        /* Mẹo CSS: Dùng resize để thay đổi kích thước ảnh mượt mà */
-        .design-img-wrapper { display: inline-block; padding: 5px; border: 2px dashed transparent; }
-        .design-img-wrapper:hover { border-color: #ff85a2; }
+        .design-img-wrapper { display: inline-block; padding: 5px; border: 2px dashed transparent; transition: 0.1s; }
         .design-img { width: 300px; height: auto; resize: both; overflow: hidden; display: block; pointer-events: none; }
 
-        /* WATERMARK LOGO MHENT */
-        .mhent-watermark { display: flex; align-items: center; gap: 8px; padding: 10px; z-index: 50; }
+        /* WATERMARK LOGO MHENT V2.0 */
+        .mhent-watermark { display: flex; align-items: center; gap: 8px; padding: 10px; z-index: 50; border: 1px dashed transparent; }
+        .mhent-watermark:hover { border-color: rgba(255,133,162,0.3); }
         .logo-mh-block { 
             background: #0ea5e9; color: white; font-family: 'iCielPantonBlack', sans-serif; 
             font-size: 32px; font-weight: 900; padding: 5px 10px; border-radius: 8px; letter-spacing: -2px;
             box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
         }
-        .logo-text-block { display: flex; flex-direction: column; justify-content: center; }
-        .logo-main-text { font-family: 'iCielPantonBlack', sans-serif; font-size: 18px; font-weight: 900; color: white; -webkit-text-stroke: 1px #0ea5e9; text-shadow: 1px 1px 0px #000; margin-bottom: -5px; letter-spacing: 0.5px;}
-        .logo-sub-text { font-family: 'iCielPantonBlack', sans-serif; font-size: 18px; font-weight: 900; color: #fff; background: #0ea5e9; padding: 0 10px; border-radius: 20px; align-self: flex-end; border: 2px solid white; box-shadow: 1px 1px 0px rgba(0,0,0,0.2);}
+        .logo-text-block { display: flex; flex-direction: column; justify-content: center; position: relative; }
+        .logo-main-text { font-family: 'iCielPantonBlack', sans-serif; font-size: 18px; font-weight: 900; color: white; text-shadow: 1px 1px 0px rgba(0,0,0,0.3); margin-bottom: -5px; letter-spacing: 0.5px;}
+        
+        /* CẬP NHẬT FONT VIẾT TAY CHO SUBNAME */
+        .logo-sub-text { font-family: 'iCielBalihoScript', cursive; font-size: 20px; color: #fff; background: rgba(255,255,255,0.05); padding: 0 10px; border-radius: 20px; align-self: flex-start; text-shadow: 0 0 5px rgba(255,133,162,0.8); }
 
+        /* THANH ĐIỀU CHỈNH CHỌN PHẦN TỬ */
+        #selection-controls { display: none; }
     </style>
 </head>
-<body>
+<body class="dark-mode">
 
     <div class="toolbar">
         <h2><i class="fa-solid fa-wand-magic-sparkles"></i> MHEnt. Studio</h2>
@@ -82,37 +87,49 @@
         <div class="tool-group">
             <label>1. Kích thước (Tỉ lệ)</label>
             <select id="ratio-select" onchange="changeRatio()">
-                <option value="16:9">16:9 (Cover Video/Ngang - 1280x720)</option>
-                <option value="4:3">4:3 (Ngang Tiêu chuẩn - 1024x768)</option>
+                <option value="16:9">16:9 (Cover Video/Ngang - 1920x1080)</option>
+                <option value="4:3">4:3 (Ngang Tiêu chuẩn - 1440x1080)</option>
                 <option value="1:1">1:1 (Vuông - 1080x1080)</option>
                 <option value="3:4">3:4 (Dọc FB - 810x1080)</option>
-                <option value="9:16">9:16 (Story/Tiktok - 720x1280)</option>
+                <option value="9:16">9:16 (Story/Tiktok - 1080x1920)</option>
             </select>
         </div>
 
         <div class="tool-group">
-            <label>2. Hình nền (Background)</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="color" id="bg-color" value="#ffffff" onchange="changeBgColor()" title="Đổi màu nền">
-                <button class="btn btn-outline" style="flex:1; padding: 5px;" onclick="document.getElementById('bg-img-input').click()">
-                    <i class="fa-solid fa-image"></i> Ảnh nền
-                </button>
-                <input type="file" id="bg-img-input" accept="image/*" style="display: none;" onchange="changeBgImage(event)">
-            </div>
-            <button class="btn" style="background: #334155; color: white; padding: 5px;" onclick="clearBgImage()"><i class="fa-solid fa-trash"></i> Xóa ảnh nền</button>
+            <label>2. Hình nền (Bubble Style)</label>
+            <label>Màu nền chủ đạo</label>
+            <input type="color" id="bg-color" value="#ffffff" onchange="changeBgColor()" title="Chọn màu nền chính">
+            <button class="btn btn-outline btn-sm" style="padding: 5px; font-size: 12px;" onclick="document.getElementById('full-bg-img-input').click()">
+                <i class="fa-solid fa-image"></i> Chọn ảnh nền khác
+            </button>
+            <input type="file" id="full-bg-img-input" accept="image/*" style="display: none;" onchange="changeFullBgImage(event)">
         </div>
 
         <div class="tool-group">
             <label>3. Thêm thành phần</label>
             <button class="btn btn-outline" onclick="addText()"><i class="fa-solid fa-t"></i> Thêm Chữ (Text)</button>
-            <button class="btn btn-outline" onclick="document.getElementById('add-img-input').click()"><i class="fa-solid fa-photo-film"></i> Thêm Ảnh (Kéo thả)</button>
+            <button class="btn btn-outline" onclick="document.getElementById('add-img-input').click()"><i class="fa-solid fa-photo-film"></i> Thêm Ảnh (Resize)</button>
             <input type="file" id="add-img-input" accept="image/*" style="display: none;" onchange="addImage(event)">
-            <p style="font-size: 11px; color: #64748b; margin: 0;">💡 Mẹo: Bấm vào góc dưới bên phải của ảnh để phóng to/thu nhỏ.</p>
+        </div>
+
+        <div class="tool-group" id="selection-controls">
+            <label id="selected-type-label">Tùy chỉnh phần tử</label>
+            
+            <div id="text-controls" style="display: none; flex-direction: column; gap: 8px;">
+                <label style="font-size: 11px;">Cỡ chữ</label>
+                <input type="range" id="text-size-slider" min="10" max="200" value="40" oninput="changeSelectedTextSize(this.value)">
+                <label style="font-size: 11px;">Màu chữ</label>
+                <input type="color" id="text-color-picker" onchange="changeSelectedTextColor(this.value)">
+            </div>
+
+            <button class="btn btn-danger btn-sm" style="padding: 8px; margin-top: 5px;" onclick="removeSelectedElement()">
+                <i class="fa-solid fa-trash-can"></i> Xóa
+            </button>
         </div>
 
         <div class="tool-group">
             <label>4. Tùy chỉnh Logo MHEnt</label>
-            <input type="text" id="subname-input" value="content" oninput="updateLogoSubname()" placeholder="Ví dụ: content, present, review...">
+            <input type="text" id="subname-input" value="content" oninput="updateLogoSubname()" placeholder="Ví dụ: content, present, highlight...">
         </div>
 
         <button class="btn btn-export" id="btn-export" onclick="exportImage()">
@@ -121,10 +138,12 @@
     </div>
 
     <div class="workspace-container">
-        <div class="artboard" id="artboard" style="width: 1280px; height: 720px;">
+        <div class="artboard" id="artboard" style="width: 1920px; height: 1080px;">
             <div class="artboard-bg" id="artboard-bg"></div>
+            <div class="artboard-bubble-1" id="artboard-bubble-1"></div>
+            <div class="artboard-bubble-2" id="artboard-bubble-2"></div>
             
-            <div class="draggable mhent-watermark" id="mhent-logo" style="top: 20px; left: 20px;">
+            <div class="draggable mhent-watermark selected" id="mhent-logo" style="top: 20px; left: 20px; border: 2px dashed #ff85a2; border-radius: 8px;">
                 <div class="logo-mh-block">MH</div>
                 <div class="logo-text-block">
                     <div class="logo-main-text">Miyazaki Haruto Entertainment</div>
@@ -137,111 +156,245 @@
     <script>
         const artboard = document.getElementById('artboard');
         const artboardBg = document.getElementById('artboard-bg');
-        let zIndexCounter = 10; // Quản lý lớp đè lên nhau
+        const bubble1 = document.getElementById('artboard-bubble-1');
+        const bubble2 = document.getElementById('artboard-bubble-2');
+        let zIndexCounter = 100; 
+        let selectedElement = document.getElementById('mhent-logo'); // Mặc định chọn logo
 
-        // 1. CHỈNH KÍCH THƯỚC (TỈ LỆ)
+        // ==========================================
+        // 1. KÍCH THƯỚC VÀ ZOOM ARTBOARD
+        // ==========================================
         function changeRatio() {
             const ratio = document.getElementById('ratio-select').value;
-            // Scale dựa trên chiều cao hoặc chiều rộng tối ưu để nhìn rõ trên màn hình
+            let width, height;
             switch(ratio) {
-                case '16:9': artboard.style.width = '1280px'; artboard.style.height = '720px'; break;
-                case '4:3':  artboard.style.width = '1024px'; artboard.style.height = '768px'; break;
-                case '1:1':  artboard.style.width = '1080px'; artboard.style.height = '1080px'; break;
-                case '3:4':  artboard.style.width = '810px';  artboard.style.height = '1080px'; break;
-                case '9:16': artboard.style.width = '720px';  artboard.style.height = '1280px'; break;
+                case '16:9': width = 1920; height = 1080; break;
+                case '4:3':  width = 1440; height = 1080; break;
+                case '1:1':  width = 1080; height = 1080; break;
+                case '3:4':  width = 810;  height = 1080; break;
+                case '9:16': width = 1080; height = 1920; break;
             }
-            // Tự động zoom ra để vừa khung hình làm việc
-            const scale = Math.min((window.innerWidth - 380) / parseInt(artboard.style.width), (window.innerHeight - 100) / parseInt(artboard.style.height));
-            if(scale < 1) { artboard.style.transform = `scale(${scale})`; artboard.style.transformOrigin = 'center center'; }
-            else { artboard.style.transform = 'scale(1)'; }
+            artboard.style.width = width + 'px';
+            artboard.style.height = height + 'px';
+            zoomToFit();
         }
 
-        // Tự động scale lúc mới vào trang
-        window.onload = changeRatio;
-        window.onresize = changeRatio;
+        function zoomToFit() {
+            const containerWidth = document.querySelector('.workspace-container').offsetWidth - 80;
+            const containerHeight = document.querySelector('.workspace-container').offsetHeight - 80;
+            const artboardWidth = parseInt(artboard.style.width);
+            const artboardHeight = parseInt(artboard.style.height);
+            const scale = Math.min(containerWidth / artboardWidth, containerHeight / artboardHeight);
+            artboard.style.transform = `scale(${scale})`;
+            artboard.style.transformOrigin = 'center center';
+        }
 
-        // 2. CHỈNH NỀN
+        window.onload = () => { changeRatio(); updateLogoSubname(); updateBubbleColors("#ffffff"); };
+        window.onresize = zoomToFit;
+
+        // ==========================================
+        // 2. NỀN BUBBLE STYLE V2.0 (image_a59b8f.png)
+        // ==========================================
         function changeBgColor() {
-            artboardBg.style.backgroundColor = document.getElementById('bg-color').value;
-            artboardBg.style.backgroundImage = 'none'; // Xóa ảnh nền nếu chọn màu
+            const baseColor = document.getElementById('bg-color').value;
+            artboardBg.style.backgroundColor = baseColor;
+            updateBubbleColors(baseColor);
         }
-        function changeBgImage(event) {
+
+        // Tự động tính toán màu bubble mượt mà dựa trên màu chủ đạo
+        function updateBubbleColors(baseColor) {
+            const hsl = hexToHsl(baseColor);
+            
+            // Tính toán 2 màu analogous (lân cận trên vòng màu)
+            const bubbleColor1 = hslToHex((hsl.h + 30) % 360, Math.min(hsl.s + 10, 100), Math.min(hsl.l + 10, 100));
+            const bubbleColor2 = hslToHex((hsl.h - 30 + 360) % 360, Math.min(hsl.s + 10, 100), Math.max(hsl.l - 10, 0));
+
+            bubble1.style.background = `radial-gradient(circle, ${bubbleColor1}ff 0%, ${bubbleColor1}00 70%)`;
+            bubble2.style.background = `radial-gradient(circle, ${bubbleColor2}ff 0%, ${bubbleColor2}00 70%)`;
+        }
+
+        function changeFullBgImage(event) {
             const file = event.target.files[0];
             if (file) {
                 const url = URL.createObjectURL(file);
                 artboardBg.style.backgroundImage = `url(${url})`;
+                artboardBg.style.backgroundSize = 'cover';
+                artboardBg.style.backgroundPosition = 'center';
             }
         }
-        function clearBgImage() {
-            artboardBg.style.backgroundImage = 'none';
-            artboardBg.style.backgroundColor = document.getElementById('bg-color').value;
-            document.getElementById('bg-img-input').value = '';
+
+        // Helper đổi màu
+        function hexToHsl(hex) {
+            let r = parseInt(hex.slice(1, 3), 16) / 255;
+            let g = parseInt(hex.slice(3, 5), 16) / 255;
+            let b = parseInt(hex.slice(5, 7), 16) / 255;
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) h = s = 0;
+            else {
+                let d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4; break; }
+                h *= 60;
+            }
+            return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+        function hslToHex(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            let r, g, b;
+            if (s === 0) r = g = b = l;
+            else {
+                const hue2rgb = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1/6) return p + (q - p) * 6 * t; if (t < 1/2) return q; if (t < 2/3) return p + (q - p) * (2/3 - t) * 6; return p; };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s; const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1/3);
+            }
+            const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
         }
 
-        // 3. CẬP NHẬT CHỮ LOGO
-        function updateLogoSubname() {
-            const text = document.getElementById('subname-input').value || 'content';
-            document.getElementById('logo-sub-display').innerText = text.toLowerCase();
-        }
-
-        // 4. THÊM THÀNH PHẦN (CHỮ & ẢNH)
+        // ==========================================
+        // 3. THÊM CHỮ (TEXT) V2.0 - FIX LỖI SỬA CHỮ VÀ CỠ CHỮ
+        // ==========================================
         function addText() {
             const textDiv = document.createElement('div');
             textDiv.className = 'draggable design-text';
             textDiv.contentEditable = "true";
-            textDiv.innerText = "Gõ chữ vào đây...";
-            textDiv.style.top = "100px";
-            textDiv.style.left = "100px";
-            textDiv.style.zIndex = ++zIndexCounter;
+            textDiv.innerText = "Gõ chữ mới rùi F5 là mất :v";
+            textDiv.style.top = "200px";
+            textDiv.style.left = "200px";
+            textDiv.style.zIndex = zIndexCounter++;
+            textDiv.style.border = "2px dashed #ff85a2"; // Viền mặc định khi thêm
+            textDiv.style.borderRadius = "8px";
             
-            // Xóa element nếu nội dung trống và mất focus
+            // Xóa nếu trống khi mất focus
             textDiv.addEventListener('blur', function() { if(this.innerText.trim() === '') this.remove(); });
+            // Click để chọn và hiện thanh công cụ
+            textDiv.addEventListener('mousedown', function(e) { e.stopPropagation(); selectElement(this); });
             
             makeDraggable(textDiv);
             artboard.appendChild(textDiv);
+            selectElement(textDiv);
             textDiv.focus();
         }
 
+        // ==========================================
+        // VÁ LỖI V1.0: HỆ THỐNG CHỌN PHẦN TỬ (SELECTION SYSTEM)
+        // ==========================================
+        const selectionPanel = document.getElementById('selection-controls');
+        const textControls = document.getElementById('text-controls');
+        const label = document.getElementById('selected-type-label');
+        const textSizeSlider = document.getElementById('text-size-slider');
+        const textColorPicker = document.getElementById('text-color-picker');
+
+        function selectElement(elm) {
+            // Xóa chọn cũ
+            if (selectedElement) selectedElement.classList.remove('selected');
+            document.querySelectorAll('.draggable').forEach(e => e.style.borderColor = 'transparent');
+
+            selectedElement = elm;
+            selectedElement.classList.add('selected');
+            selectedElement.style.borderColor = '#0ea5e9'; // Màu xanh MHEnt khi chọn
+            if(selectedElement.id === 'mhent-logo') selectedElement.style.borderColor = '#ff85a2'; // Logo giữ màu hồng
+
+            // Hiển thị thanh công cụ
+            selectionPanel.style.display = 'flex';
+
+            if (selectedElement.classList.contains('design-text')) {
+                label.innerText = "Tùy chỉnh: Chữ";
+                textControls.style.display = 'flex';
+                // Cập nhật giá trị thanh trượt và màu sắc cho khớp với phần tử
+                const fontSize = window.getComputedStyle(selectedElement).fontSize;
+                textSizeSlider.value = parseInt(fontSize);
+                textColorPicker.value = rgbToHex(window.getComputedStyle(selectedElement).color);
+            } else if (selectedElement.classList.contains('design-img-wrapper')) {
+                label.innerText = "Tùy chỉnh: Ảnh";
+                textControls.style.display = 'none';
+            } else if (selectedElement.id === 'mhent-logo') {
+                label.innerText = "Tùy chỉnh: Logo Watermark";
+                textControls.style.display = 'none';
+            }
+        }
+
+        // Click ra ngoài để bỏ chọn
+        document.querySelector('.workspace-container').addEventListener('mousedown', function(e) {
+            if (e.target.id === 'player') return; // Bỏ qua if clicking on Youtube Player
+            if (selectedElement) selectedElement.classList.remove('selected');
+            document.querySelectorAll('.draggable').forEach(e => e.style.borderColor = 'transparent');
+            selectedElement = null;
+            selectionPanel.style.display = 'none';
+        });
+
+        function changeSelectedTextSize(size) {
+            if (selectedElement && selectedElement.classList.contains('design-text')) {
+                selectedElement.style.fontSize = size + 'px';
+            }
+        }
+
+        function changeSelectedTextColor(color) {
+            if (selectedElement && selectedElement.classList.contains('design-text')) {
+                selectedElement.style.color = color;
+            }
+        }
+
+        function removeSelectedElement() {
+            if (selectedElement && selectedElement.id !== 'mhent-logo') {
+                selectedElement.remove();
+                selectedElement = null;
+                selectionPanel.style.display = 'none';
+            } else if (selectedElement && selectedElement.id === 'mhent-logo') {
+                alert("Nút logo tớ khum cho xóa đâu ạ :v");
+            }
+        }
+
+        // Helper đổi màu RGB sang Hex cho bộ color picker
+        function rgbToHex(rgb) {
+            let values = rgb.replace('rgb(', '').replace(')', '').split(',');
+            let toHex = x => parseInt(x).toString(16).padStart(2, '0');
+            return `#${toHex(values[0])}${toHex(values[1])}${toHex(values[2])}`;
+        }
+
+        // ==========================================
+        // 4. KÉO THẢ, THÊM ẢNH, TÙY CHỈNH LOGO (Giữ nguyên logic V1.0)
+        // ==========================================
         function addImage(event) {
             const file = event.target.files[0];
             if (file) {
                 const url = URL.createObjectURL(file);
                 const wrapper = document.createElement('div');
                 wrapper.className = 'draggable design-img-wrapper';
-                wrapper.style.top = "100px";
-                wrapper.style.left = "100px";
-                wrapper.style.zIndex = ++zIndexCounter;
+                wrapper.style.top = "200px";
+                wrapper.style.left = "200px";
+                wrapper.style.zIndex = zIndexCounter++;
+                wrapper.style.border = "2px dashed transparent";
+                
+                // Nắm kéo nguyên cụm wrapper
+                wrapper.addEventListener('mousedown', function(e) { e.stopPropagation(); selectElement(this); });
 
                 const img = document.createElement('img');
                 img.className = 'design-img';
                 img.src = url;
 
-                // Nút xóa ảnh nhỏ xíu
-                const delBtn = document.createElement('button');
-                delBtn.innerHTML = "X";
-                delBtn.style.cssText = "position:absolute; top:-10px; right:-10px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; z-index:10; display:none;";
-                delBtn.onclick = () => wrapper.remove();
-
-                wrapper.onmouseenter = () => delBtn.style.display = "block";
-                wrapper.onmouseleave = () => delBtn.style.display = "none";
-
                 wrapper.appendChild(img);
-                wrapper.appendChild(delBtn);
                 makeDraggable(wrapper);
                 artboard.appendChild(wrapper);
+                selectElement(wrapper);
             }
             event.target.value = ''; // Reset input
         }
 
-        // 5. BỘ MÁY KÉO THẢ (DRAG & DROP) CHO MỌI THỨ
+        function updateLogoSubname() {
+            const text = document.getElementById('subname-input').value || 'content';
+            document.getElementById('logo-sub-display').innerText = text; // Baliho script nên giữ nguyên thường/hoa
+        }
+
         function makeDraggable(elmnt) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             elmnt.onmousedown = dragMouseDown;
 
             function dragMouseDown(e) {
-                if (e.target.tagName === 'BUTTON' || (elmnt.contentEditable === "true" && document.activeElement === elmnt)) return; // Bỏ qua nếu đang sửa chữ hoặc bấm nút X
+                if (e.target.contentEditable === "true" && document.activeElement === elmnt) return; // Không kéo if đang gõ chữ
                 e.preventDefault();
-                elmnt.style.zIndex = ++zIndexCounter; // Nâng lên lớp trên cùng khi nắm kéo
+                elmnt.style.zIndex = zIndexCounter++;
                 pos3 = e.clientX;
                 pos4 = e.clientY;
                 document.onmouseup = closeDragElement;
@@ -250,7 +403,6 @@
 
             function elementDrag(e) {
                 e.preventDefault();
-                // Tính toán khoảng cách di chuyển (có chia cho scale để chuột không bị lệch khi Artboard bị thu nhỏ)
                 const scale = parseFloat(artboard.style.transform.replace('scale(', '').replace(')', '')) || 1;
                 pos1 = (pos3 - e.clientX) / scale;
                 pos2 = (pos4 - e.clientY) / scale;
@@ -265,31 +417,41 @@
                 document.onmousemove = null;
             }
         }
+        makeDraggable(document.getElementById('mhent-logo')); // Kéo thả logo mặc định
 
-        // Khởi tạo kéo thả cho logo mặc định
-        makeDraggable(document.getElementById('mhent-logo'));
+        // Click để chọn logo
+        document.getElementById('mhent-logo').addEventListener('mousedown', function(e) { e.stopPropagation(); selectElement(this); });
 
-        // 6. XUẤT ẢNH BẰNG HTML2CANVAS
+
+        // ==========================================
+        // 5. XUẤT ẢNH (Giữ nguyên logic V1.0)
+        // ==========================================
         function exportImage() {
             const btn = document.getElementById('btn-export');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xuất...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang dán khung...';
             
-            // Xóa tạm transform scale để html2canvas chụp đúng độ phân giải cao nhất
+            // Xóa mờ Artboard và reset zoom để chụp
             const currentTransform = artboard.style.transform;
             artboard.style.transform = 'scale(1)';
+            artboard.style.border = 'none';
+            const selectedBefore = selectedElement;
+            if (selectedBefore) selectedBefore.classList.remove('selected');
+            document.querySelectorAll('.draggable').forEach(e => e.style.borderColor = 'transparent');
 
             html2canvas(artboard, {
-                useCORS: true, // Cho phép tải ảnh từ nguồn khác nếu có
+                useCORS: true,
                 backgroundColor: null,
-                scale: 1.5 // Nhân rưỡi độ phân giải để ảnh nét căng
+                scale: 1 // Giữ đúng kích thước pixel gốc đã đặt
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `MHEnt_Post_${document.getElementById('ratio-select').value}.png`;
+                link.download = `MHEntStudio_Out_${document.getElementById('ratio-select').value}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 
-                // Trả lại scale cũ
+                // Khôi phục lại trạng thái cũ
                 artboard.style.transform = currentTransform;
+                artboard.style.border = '1px solid transparent';
+                if (selectedBefore) selectElement(selectedBefore);
                 btn.innerHTML = '<i class="fa-solid fa-download"></i> Xuất ảnh (PNG)';
             });
         }
