@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHEnt. Edu - Admin Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR CHỨA CÁC TOOL */
+        .sidebar { width: 250px; background: #1e293b; padding: 20px 0; border-right: 2px solid #334155; display: flex; flex-direction: column; }
+        .logo { font-size: 24px; font-weight: 900; color: #0ea5e9; text-align: center; margin-bottom: 30px; }
+        .logo span { color: #ff85a2; }
+        .menu-item { padding: 15px 25px; color: #94a3b8; font-weight: 700; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; display: flex; align-items: center; gap: 10px; }
+        .menu-item:hover { background: #334155; color: white; }
+        .menu-item.active { background: #0f172a; color: white; border-left-color: #0ea5e9; }
+        
+        /* NỘI DUNG MAIN */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        
+        /* MODULE: VOCAB ARENA */
+        .admin-header { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #ff85a2; }
+        .input-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { background: #334155; color: #cbd5e1; border: none; padding: 10px 20px; border-radius: 8px 8px 0 0; font-weight: 800; cursor: pointer; font-family: inherit; }
+        .tab-btn.active { background: #0ea5e9; color: white; }
+        .input-area { background: #0b1121; padding: 15px; border-radius: 0 8px 8px 8px; border: 1px solid #475569; margin-bottom: 15px; }
+        .row-input { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .row-input input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-family: inherit; }
+        textarea, select, input[type="number"] { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-family: inherit; box-sizing: border-box; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; font-family: inherit; }
+        
+        #admin-current-q { background: #0ea5e9; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; }
+        .admin-controls-wrapper { display: flex; gap: 20px; align-items: flex-start; }
+        .admin-box { background: #1e293b; padding: 20px; border-radius: 12px; flex: 1; }
+        #admin-question-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 400px; overflow-y: auto; }
+        .q-btn { background: #334155; color: white; padding: 12px; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; }
+        .q-btn.active { background: #ff85a2; border-color: #ff5c8a; }
+        .q-btn.solved { background: #10b981; border-color: #059669; opacity: 0.5; text-decoration: line-through; pointer-events: none;}
+        
+        .mirror-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .mirror-card { background: #334155; border: 2px solid #475569; padding: 15px 10px; border-radius: 8px; color: white; cursor: pointer; text-align: center; font-weight: 800; }
+        .mirror-card.correct { background: #10b981 !important; border-color: #059669 !important; }
+        .mirror-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">MHEnt. <span>Edu</span></div>
+        <div class="menu-item active"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</div>
+        <div class="menu-item" style="opacity: 0.5;"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Cơ Cấu (Coming soon)</div>
+    </div>
+
+    <div class="main-content">
+        <div id="module-vocab">
+            <div class="admin-header">
+                <h2 style="margin:0 0 15px 0; color: #ff85a2;"><i class="fa-solid fa-gear"></i> Thiết lập Từ Vựng</h2>
+                
+                <div class="input-tabs">
+                    <button class="tab-btn active" onclick="switchTab('table')">Nhập theo Bảng</button>
+                    <button class="tab-btn" onclick="switchTab('text')">Dán từ Excel</button>
+                </div>
+
+                <div class="input-area" id="area-table">
+                    <div id="table-rows"></div>
+                    <button class="btn" style="background: #334155; color: white; margin-top: 5px;" onclick="addRow()">+ Thêm từ mới</button>
+                </div>
+                <div class="input-area" id="area-text" style="display: none;">
+                    <textarea id="data-input" placeholder="Từ vựng | Ý nghĩa"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <select id="mode-select" style="flex: 2;">
+                        <option value="normal">🟢 Normal (Mở tất cả)</option>
+                        <option value="challenge">🔥 Challenge (Sương mù & Chớp tắt)</option>
+                    </select>
+                    <input type="number" id="strike-input" value="1" min="0" style="flex: 1;" placeholder="Số mạng sai">
+                    <button class="btn" style="background: #0ea5e9; color: white; flex: 1;" onclick="syncData()"><i class="fa-solid fa-desktop"></i> GỬI QUA MÁY CHIẾU</button>
+                </div>
+            </div>
+
+            <div id="admin-current-q">
+                <div style="font-size: 13px; font-weight: 800; text-transform: uppercase;">Giáo viên đọc câu này:</div>
+                <div id="admin-reading-meaning" style="font-size: 26px; font-weight: 900;">Chưa chọn câu hỏi</div>
+            </div>
+
+            <div class="admin-controls-wrapper">
+                <div class="admin-box" style="flex: 1; border-top: 5px solid #ff85a2;">
+                    <h3 style="margin:0 0 10px 0; color: white;">1. Chọn Câu Hỏi</h3>
+                    <div id="admin-question-list"></div>
+                </div>
+
+                <div class="admin-box" style="flex: 2; border-top: 5px solid #0ea5e9;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin:0; color: white;">2. Bảng Bấm Hộ Học Sinh</h3>
+                        <button class="btn" style="background: #f59e0b; color: white; padding: 8px 15px;" onclick="shuffleGrid()"><i class="fa-solid fa-shuffle"></i> Trộn</button>
+                    </div>
+                    <div id="admin-mirror-grid" class="mirror-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let globalWordList = [], currentGridOrder = [], solvedWords = [], activeInputMode = 'table', activeWordId = null;
+
+        // Khởi tạo bảng mẫu
+        for(let i=0; i<4; i++) addRow();
+
+        function switchTab(mode) {
+            activeInputMode = mode;
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => btn.classList.toggle('active', (mode === 'table' && idx === 0) || (mode === 'text' && idx === 1)));
+            document.getElementById('area-table').style.display = mode === 'table' ? 'block' : 'none';
+            document.getElementById('area-text').style.display = mode === 'text' ? 'block' : 'none';
+        }
+
+        function addRow() {
+            const div = document.createElement('div'); div.className = 'row-input';
+            div.innerHTML = `<input type="text" class="input-w" placeholder="Từ vựng"><input type="text" class="input-m" placeholder="Ý nghĩa"><button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="this.parentElement.remove()">X</button>`;
+            document.getElementById('table-rows').appendChild(div);
+        }
+
+        function sendCmd(action, payload) {
+            localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() }));
+        }
+
+        function syncData() {
+            globalWordList = []; solvedWords = []; activeWordId = null;
+            if (activeInputMode === 'table') {
+                document.querySelectorAll('.row-input').forEach((row, i) => {
+                    const w = row.querySelector('.input-w').value.trim(), m = row.querySelector('.input-m').value.trim();
+                    if(w && m) globalWordList.push({ id: 'w_'+i, word: w, meaning: m });
+                });
+            } else {
+                document.getElementById('data-input').value.trim().split('\n').forEach((line, i) => {
+                    let parts = line.split(line.includes('|') ? '|' : '\t');
+                    if(parts.length >= 2) globalWordList.push({ id: 'w_'+i, word: parts[0].trim(), meaning: parts[1].trim() });
+                });
+            }
+            if(globalWordList.length < 2) return alert("Nhập ít nhất 2 từ!");
+
+            const mode = document.getElementById('mode-select').value, strikes = parseInt(document.getElementById('strike-input').value) || 0;
+            
+            const qList = document.getElementById('admin-question-list'); qList.innerHTML = '';
+            globalWordList.forEach(item => {
+                const btn = document.createElement('button'); btn.className = 'q-btn'; btn.id = 'admin-btn-'+item.id;
+                btn.innerHTML = item.word; btn.onclick = () => selectQuestion(item);
+                qList.appendChild(btn);
+            });
+
+            currentGridOrder = [...globalWordList].sort((a,b) => a.word.localeCompare(b.word));
+            sendCmd('SYNC_DATA', { list: globalWordList, mode, strikes, order: currentGridOrder });
+            renderMirror();
+            document.getElementById('admin-current-q').style.display = 'block';
+            document.getElementById('admin-reading-meaning').innerText = "Vui lòng chọn 1 câu hỏi ở dưới!";
+        }
+
+        function renderMirror() {
+            const grid = document.getElementById('admin-mirror-grid'); grid.innerHTML = '';
+            currentGridOrder.forEach(item => {
+                const card = document.createElement('div'); card.className = 'mirror-card'; card.id = 'mirror-card-'+item.id;
+                card.innerText = item.word;
+                card.onclick = () => { if(activeWordId) sendCmd('ADMIN_CLICK', item.id); };
+                grid.appendChild(card);
+            });
+        }
+
+        function selectQuestion(item) {
+            if(activeWordId) document.getElementById('admin-btn-'+activeWordId)?.classList.remove('active');
+            activeWordId = item.id;
+            document.getElementById('admin-btn-'+item.id).classList.add('active');
+            document.getElementById('admin-reading-meaning').innerText = item.meaning;
+            
+            // Xóa màu sai/đúng cũ trên bảng Mirror khi qua câu mới
+            document.querySelectorAll('.mirror-card').forEach(c => c.classList.remove('correct', 'incorrect'));
+            sendCmd('SET_QUESTION', item);
+        }
+
+        function shuffleGrid() {
+            currentGridOrder = [...currentGridOrder].sort(() => 0.5 - Math.random());
+            sendCmd('SHUFFLE', currentGridOrder);
+            renderMirror();
+        }
+
+        window.addEventListener('storage', e => {
+            if(e.key !== 'mhent_edu_cmd') return;
+            const data = JSON.parse(e.newValue);
+            if(data.action === 'REPORT_SOLVED') {
+                const btn = document.getElementById('admin-btn-'+data.payload.id);
+                if(btn) { btn.classList.remove('active'); btn.classList.add('solved'); }
+                solvedWords.push(data.payload.id);
+            }
+            if(data.action === 'SYNC_COLOR') {
+                const card = document.getElementById('mirror-card-'+data.payload.id);
+                if(card) card.classList.add(data.payload.status);
+            }
+        });
+    </script>
+</body>
+</html>
