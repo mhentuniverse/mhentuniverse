@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHEnt. Edu - Vocab Arena V4 (Smart Challenge)</title>
+    <title>MHEnt. Edu - Vocab Arena V5 (Final Edition)</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -52,8 +52,6 @@
         
         .word-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white !important; transform: scale(1.05); }
         .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; opacity: 0.8; pointer-events: none; }
-        
-        .word-card.solved-past { display: none !important; }
         .word-card.disabled { pointer-events: none; }
         
         /* CHẾ ĐỘ CHALLENGE (SƯƠNG MÙ) */
@@ -149,7 +147,6 @@ a teacher | A person who helps you learn</textarea>
         let targetWord = null;
         let strikesCurrent = 0;
         let isQuestionActive = false;
-        let solvedWords = []; 
         let challengeTimer = null;
 
         function initRole(role) {
@@ -249,7 +246,6 @@ a teacher | A person who helps you learn</textarea>
             globalWordList = payload.list;
             globalMode = payload.mode;
             globalStrikes = payload.strikes;
-            solvedWords = []; 
             targetWord = null;
 
             const grid = document.getElementById('present-grid');
@@ -279,26 +275,20 @@ a teacher | A person who helps you learn</textarea>
 
             const cards = document.querySelectorAll('.word-card');
             cards.forEach(card => {
+                // 💡 V5: Khôi phục lại TẤT CẢ các thẻ về trạng thái bình thường (Không xóa từ nào cả)
                 card.classList.remove('incorrect', 'correct', 'disabled');
-                
-                // Ẩn đi các từ đã đúng ở câu trước
-                if(solvedWords.includes(card.dataset.id)) {
-                    card.classList.add('solved-past'); 
-                }
             });
 
             applyChallengeFog();
         }
 
         function handleStudentClick(card, selectedId) {
-            if(!isQuestionActive || card.classList.contains('disabled') || card.classList.contains('solved-past')) return;
+            if(!isQuestionActive || card.classList.contains('disabled')) return;
 
-            // Mở sương mù cho đúng cái thẻ học sinh vừa click
             card.classList.remove('covered');
 
             // 1. ĐÚNG
             if(selectedId === targetWord.id) {
-                // Xóa TẤT CẢ sương mù, Dừng timer vì ván này đã xong
                 if(globalMode === 'challenge') {
                     clearInterval(challengeTimer);
                     document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
@@ -309,7 +299,6 @@ a teacher | A person who helps you learn</textarea>
                 document.getElementById('present-status').style.color = "#10b981";
                 
                 isQuestionActive = false;
-                solvedWords.push(targetWord.id);
                 document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
 
                 sendCmd('REPORT_SOLVED', targetWord);
@@ -333,10 +322,8 @@ a teacher | A person who helps you learn</textarea>
                     isQuestionActive = false;
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
                     
-                    solvedWords.push(targetWord.id); 
                     sendCmd('REPORT_SOLVED', targetWord);
                 } else {
-                    // VẪN CÒN MẠNG -> KHÔNG xóa sương mù các ô khác, trò chơi tiếp tục
                     let left = globalStrikes - strikesCurrent + 1;
                     document.getElementById('present-status').innerText = `SAI RỒI! CÒN ${left} LƯỢT CHỌN!`;
                     document.getElementById('present-status').style.color = "#f59e0b";
@@ -351,7 +338,7 @@ a teacher | A person who helps you learn</textarea>
             }
         }
 
-        // ================= HIỆU ỨNG SƯƠNG MÙ V4 (THÔNG MINH) =================
+        // ================= HIỆU ỨNG SƯƠNG MÙ V4/V5 =================
         function applyChallengeFog() {
             clearInterval(challengeTimer);
             if(globalMode !== 'challenge' || !isQuestionActive) {
@@ -359,8 +346,8 @@ a teacher | A person who helps you learn</textarea>
                 return;
             }
 
-            // Bao phủ toàn bộ các thẻ chưa giải quyết
-            const cards = Array.from(document.querySelectorAll('.word-card')).filter(c => !c.classList.contains('solved-past'));
+            // Phủ sương mù TẤT CẢ thẻ
+            const cards = Array.from(document.querySelectorAll('.word-card'));
             cards.forEach(c => c.classList.add('covered'));
 
             challengeTimer = setInterval(() => {
@@ -372,10 +359,7 @@ a teacher | A person who helps you learn</textarea>
                 const availableCards = cards.filter(c => !c.classList.contains('incorrect'));
                 
                 if(availableCards.length > 0) {
-                    // 💡 THUẬT TOÁN TỈ LỆ 20%: Lấy tổng số thẻ chia 5 (tối thiểu chớp 1 thẻ)
                     let numToReveal = Math.max(1, Math.round(availableCards.length / 5)); 
-                    
-                    // Xáo trộn ngẫu nhiên mảng availableCards và bốc ra numToReveal thẻ
                     let shuffled = availableCards.sort(() => 0.5 - Math.random());
                     let selectedToReveal = shuffled.slice(0, numToReveal);
                     
