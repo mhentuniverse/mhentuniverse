@@ -291,8 +291,8 @@
             currentGridOrder.forEach(item => {
                 const card = document.createElement('div'); card.className = 'mirror-card'; card.id = 'mirror-card-'+item.id;
                 card.innerText = item.word;
-                if(solvedWords.includes(item.id)) card.classList.add('solved-past');
-                card.onclick = () => { if(activeWordId && !solvedWords.includes(item.id)) sendCmd('ADMIN_CLICK', item.id); };
+                // Xóa check solvedWords ở đây, cho phép bấm mọi lúc mọi nơi
+                card.onclick = () => { if(activeWordId) sendCmd('ADMIN_CLICK', item.id); };
                 grid.appendChild(card);
             });
         }

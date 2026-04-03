@@ -18,14 +18,10 @@
         
         .word-card { background: #1e293b; border: 3px solid #334155; padding: 30px 20px; border-radius: 15px; font-size: 36px; font-weight: 900; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
         
-        /* Trạng thái trong LƯỢT HIỆN TẠI */
         .word-card.correct { background: #10b981 !important; border-color: #059669 !important; transform: scale(1.05); }
         .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.8; pointer-events: none; }
         .word-card.disabled { pointer-events: none; }
         
-        /* 💡 GIỮ LẠI ĐẠN MÙ: TỪ ĐÃ SOLVED SẼ MỜ ĐI CHỨ KHÔNG BIẾN MẤT */
-        .word-card.solved-past { background: #0f172a !important; border-color: #1e293b !important; color: #64748b !important; pointer-events: none; opacity: 0.5; box-shadow: none;}
-
         /* CHẾ ĐỘ CHALLENGE */
         .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 15px 15px; background-size: 30px 30px; box-shadow: none; pointer-events: auto !important;}
         .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; pointer-events: auto; transform: scale(1.05); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
@@ -45,13 +41,13 @@
     <script>
         function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
 
-        let globalMode = 'normal', globalStrikes = 0, targetWord = null, strikesCurrent = 0, isQuestionActive = false, challengeTimer = null, solvedWords = [];
+        let globalMode = 'normal', globalStrikes = 0, targetWord = null, strikesCurrent = 0, isQuestionActive = false, challengeTimer = null;
 
         window.addEventListener('storage', e => {
             if(e.key !== 'mhent_edu_cmd') return;
             const data = JSON.parse(e.newValue);
             if(data.action === 'SYNC_DATA') { 
-                globalMode = data.payload.mode; globalStrikes = data.payload.strikes; solvedWords = [];
+                globalMode = data.payload.mode; globalStrikes = data.payload.strikes;
                 document.getElementById('waiting-msg').style.display = 'none'; document.getElementById('game-container').style.display = 'flex';
                 renderGrid(data.payload.order);
             }
@@ -67,7 +63,6 @@
             const grid = document.getElementById('present-grid'); grid.innerHTML = '';
             order.forEach(item => {
                 const card = document.createElement('div'); card.className = 'word-card'; card.innerText = item.word; card.dataset.id = item.id;
-                if(solvedWords.includes(item.id)) card.classList.add('solved-past');
                 card.onclick = () => handleClick(card, item.id);
                 grid.appendChild(card);
             });
@@ -78,27 +73,25 @@
             targetWord = payload; strikesCurrent = 0; isQuestionActive = true;
             document.getElementById('present-status').innerText = "HÃY TÌM TỪ CHÍNH XÁC!"; document.getElementById('present-status').style.color = "var(--hub-color)";
             
-            document.querySelectorAll('.word-card').forEach(card => {
-                card.classList.remove('incorrect', 'correct', 'disabled');
-                if(solvedWords.includes(card.dataset.id)) card.classList.add('solved-past');
-            });
+            // 🔥 CHÌA KHÓA Ở ĐÂY: Mọi thẻ đều bị xóa sạch trạng thái đúng/sai, trở lại thành "đạn mù" bình đẳng!
+            document.querySelectorAll('.word-card').forEach(card => card.classList.remove('incorrect', 'correct', 'disabled'));
             applyFog();
         }
 
         function handleClick(card, selectedId) {
-            if(!isQuestionActive || card.classList.contains('disabled') || card.classList.contains('solved-past')) return;
+            if(!isQuestionActive || card.classList.contains('disabled')) return;
             card.classList.remove('covered');
 
             if(selectedId === targetWord.id) { // ĐÚNG
                 clearInterval(challengeTimer);
                 if(globalMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                 
-                card.classList.add('correct'); isQuestionActive = false; solvedWords.push(targetWord.id);
+                card.classList.add('correct'); isQuestionActive = false;
                 document.getElementById('present-status').innerText = "🎉 XUẤT SẮC!"; document.getElementById('present-status').style.color = "#10b981";
                 document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
 
                 sendCmd('SYNC_COLOR', { id: selectedId, status: 'correct' });
-                sendCmd('REPORT_SOLVED', targetWord);
+                sendCmd('REPORT_SOLVED', targetWord); // Báo về cho Admin gạch chéo câu hỏi
             } else { // SAI
                 card.classList.add('incorrect', 'disabled'); strikesCurrent++;
                 sendCmd('SYNC_COLOR', { id: selectedId, status: 'incorrect' });
@@ -110,7 +103,7 @@
                     document.querySelector(`.word-card[data-id="${targetWord.id}"]`).classList.add('correct');
                     sendCmd('SYNC_COLOR', { id: targetWord.id, status: 'correct' });
                     
-                    isQuestionActive = false; solvedWords.push(targetWord.id);
+                    isQuestionActive = false;
                     document.getElementById('present-status').innerText = "RẤT TIẾC! HẾT LƯỢT CHỌN!"; document.getElementById('present-status').style.color = "#ef4444";
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
                     sendCmd('REPORT_SOLVED', targetWord);
@@ -125,12 +118,14 @@
             clearInterval(challengeTimer);
             if(globalMode !== 'challenge' || !isQuestionActive) { document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp')); return; }
 
-            const cards = Array.from(document.querySelectorAll('.word-card')).filter(c => !c.classList.contains('solved-past'));
+            // Không còn lọc solved-past nữa, TẤT CẢ đều bị sương mù che phủ
+            const cards = Array.from(document.querySelectorAll('.word-card'));
             cards.forEach(c => c.classList.add('covered'));
 
             challengeTimer = setInterval(() => {
                 if(!isQuestionActive) { clearInterval(challengeTimer); return; }
                 cards.forEach(c => c.classList.remove('revealed-temp'));
+                
                 const available = cards.filter(c => !c.classList.contains('incorrect'));
                 if(available.length > 0) {
                     let num = Math.max(1, Math.round(available.length / 5));
