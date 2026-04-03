@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poster Kỷ Niệm 120 Năm Ngày Sinh Cố Thủ Tướng Phạm Văn Đồng</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap');
-
+ 
+        /* COPY ĐOẠN NÀY TỪ INDEX.HTML SANG ĐỂ FIX LỖI ICON BỊ TO */
         .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
         .app-item:hover .app-icon svg { transform: scale(1.1); }
         body.dark-mode .app-icon svg { color: #e2e8f0; }
- 
+
         /* TRẢ LẠI SỰ TỰ DO CHO BODY, CHỈ GIỮ MÀU NỀN */
         body {
             background-color: #e0e0e0; 
@@ -180,8 +178,8 @@
         }
 
         .image-area img {
-            max-width: 200%; 
-            max-height: 200%; 
+            max-width: 100%; 
+            max-height: 100%; 
             object-fit: contain;
             object-position: bottom right; 
         }
@@ -222,268 +220,42 @@
         }
     </style>
 </head>
-<body class="gradient-bg">
+<body>
 
-    <nav class="navbar">
-        <div class="nav-left">
-            <a onclick="window.location.href='/'" style="cursor: pointer;">
-                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
-                <span class="logo-name">MHEnt. Universe</span>
-            </a>
-        </div>
+    <div class="poster-wrapper">
+        <div class="poster-container" id="posterArea">
+            <div class="shape-1"></div>
+            <div class="shape-2"></div>
 
-        <ul class="nav-links" id="nav-links">
-            <li><a onclick="window.location.href='/'" style="cursor: pointer; color: #ff85a2;">Đại Sảnh</a></li>
-            <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
-        </ul>
-
-        <div class="nav-right">
-            <div class="user-section">
-                <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
-                    <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Vũ Trụ MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='#ff85a2'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                            <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
-                            <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
-                            <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
-                        </svg>
-                    </div>
-                    
-                    <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
-                        <a onclick="window.location.href='/'" style="cursor: pointer;" class="app-item active">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
-                            <span class="app-name">Đại Sảnh</span>
-                        </a>
-                        <a onclick="window.location.href='/cinema'" style="cursor: pointer;" class="app-item">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
-                            <span class="app-name">Cinema</span>
-                        </a>
-                        <a onclick="showToast('Thông báo', 'Vũ trụ Manga đang được xây dựng, chờ xíu nha!', 'info')" style="cursor: pointer;" class="app-item disabled">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
-                            <span class="app-name">Manga</span>
-                        </a>
-                        <a onclick="showToast('Thông báo', 'Vũ trụ Tiểu thuyết đang được xây dựng, chờ xíu nha!', 'info')" style="cursor: pointer;" class="app-item disabled">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
-                            <span class="app-name">Novel</span>
-                        </a>
-                        <a onclick="showToast('Thông báo', 'Vũ trụ Âm nhạc đang được xây dựng, chờ xíu nha!', 'info')" style="cursor: pointer;" class="app-item disabled">
-                            <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
-                            <span class="app-name">Music</span>
-                        </a>
-                    </div>
+            <div class="content">
+                <div class="logo-container">
+                    <img class="logo-img logo-doan" src="https://upload.wikimedia.org/wikipedia/vi/0/09/Huy_Hi%E1%BB%87u_%C4%90o%C3%A0n.png" alt="Logo Đoàn" title="Logo Đoàn TNCS">
+                    <img class="logo-img logo-nlu" src="https://upload.wikimedia.org/wikipedia/vi/e/e1/Logo_HCMUAF.svg" alt="Logo NLU" title="Logo NLU">
+                    <img class="logo-img logo-khoa" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRahe4PBqL3Sr3OuFzXmhx0mZ7eyGWAOTm-ww&s" alt="Logo Khoa">
                 </div>
-
-                <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
-                    <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                </button>
                 
-                <button id="btn-login" class="btn-login btn-with-icon">
-                    <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
-                    Đăng nhập
-                </button>
-
-                <div id="user-profile" class="user-profile" style="position: relative; display: none;">
-                    <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <img id="user-avatar" src="" alt="User" class="user-avatar">
-                        <span id="user-name" class="user-name">Đang tải...</span>
-                    </div>
-                    
-                    <div id="dropdown-account" class="dropdown-menu account-dropdown">
-                        <div class="dropdown-item" onclick="window.location.href='/profile#info'">
-                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ chung
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <div id="btn-logout" class="dropdown-item" style="color: #ff5c8a !important;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="menu-toggle" onclick="toggleMobileMenu()">
-                <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: #ff85a2;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </div>
-        </div>
-    </nav>
-
-    <div class="poster-main-area">
-
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Playball&display=swap');
-
-            .poster-wrapper {
-                position: relative;
-                width: 100%;       
-                max-width: 1200px;  
-                aspect-ratio: 16 / 9; 
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                box-sizing: border-box;
-                container-type: inline-size;
-            }
-
-            .poster-container {
-                width: 100%;
-                height: 100%;
-                background-color: #f6f4ed; /* Trùng màu nền của ảnh Canva */
-                position: relative;
-                overflow: hidden;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-                font-size: 1cqw; 
-                font-family: 'Montserrat', sans-serif;
-            }
-
-            /* 1. SIÊU THU NHỎ BACKGROUND */
-            .main-bg-rotated {
-                position: absolute;
-                top: 50%; left: 50%;
-                width: 200%;
-                height: 200%;
-                object-fit: contain;
-                /* Thêm scale(0.55) để thu nhỏ cái trống đồng lại. 
-                   Nhờ có nền #f6f4ed ở trên bù vào nên thu nhỏ cỡ nào cũng hòa vào nhau! */
-                transform: translate(-50%, -50%) rotate(-90deg) scale(0.95); 
-                z-index: 0;
-            }
-
-            /* 2. PHÓNG TO BỘ LOGO */
-            .top-logo-strip {
-                position: absolute;
-                top: 0cqw;
-                left: 50%;
-                transform: translateX(-50%) translateY(-5cqw);
-                height: 12cqw; /* Tăng độ cao khung chứa */
-                width: 90%;
-                display: flex;
-                justify-content: center;
-                z-index: 5;
-            }
-            .top-logo-strip img { 
-                height: 100%; 
-                object-fit: contain; 
-                transform: scale(1.5); /* Ép zoom bạo lực để triệt tiêu lề trong suốt */
-            }
-
-            /* Khu vực Text Center */
-            .text-overlay {
-                position: absolute;
-                top: 10cqw; 
-                left: 50%;
-                transform: translateX(-50%);
-                width: 100%;
-                text-align: center;
-                z-index: 10;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .title-script {
-                font-family: 'Playball', cursive;
-                color: #d32f2f;
-                font-size: 3.8cqw; 
-                margin-bottom: 0.5cqw;
-                text-shadow: 0.1cqw 0.1cqw 0.2cqw rgba(0,0,0,0.15);
-            }
-
-            .title-bold {
-                font-size: 7.5cqw; 
-                font-weight: 900;
-                color: #c62828;
-                text-transform: uppercase;
-                margin-bottom: 2cqw;
-                line-height: 1;
-                text-shadow: 
-                    0.15cqw 0.15cqw 0 #ffffff, -0.15cqw -0.15cqw 0 #ffffff, 
-                    0.15cqw -0.15cqw 0 #ffffff, -0.15cqw 0.15cqw 0 #ffffff,
-                    0.4cqw 0.4cqw 0 #8e0000, 0.6cqw 0.6cqw 1cqw rgba(0,0,0,0.3);
-                letter-spacing: 0.1cqw;
-            }
-
-            .date-box {
-                display: inline-flex;
-                align-items: center;
-                gap: 1.5cqw;
-                background: #ffffff;
-                color: #c62828;
-                border: 0.2cqw solid #c62828;
-                padding: 0.8cqw 2.5cqw;
-                border-radius: 3cqw;
-                font-weight: 900;
-                font-size: 1.8cqw;
-                box-shadow: 0.3cqw 0.3cqw 0 #c62828;
-            }
-
-            /* Ảnh Nhân vật */
-            .portrait-area {
-                position: absolute;
-                bottom: -2cqw;
-                left: 10cqw; 
-                height: 85%; 
-                z-index: 5;
-            }
-            .portrait-area img {
-                height: 100%;
-                object-fit: contain;
-                filter: drop-shadow(0.5cqw 0.5cqw 1.5cqw rgba(0,0,0,0.3));
-            }
-
-            /* Ruy băng góc phải */
-            .ribbon-bottom {
-                position: absolute;
-                bottom: 4cqw;
-                right: -2cqw;
-                background: #c62828;
-                color: #ffffff;
-                padding: 1cqw 5cqw 1cqw 3cqw;
-                font-weight: 800;
-                font-size: 1.5cqw;
-                transform: skewX(-15deg);
-                box-shadow: 0.3cqw 0.5cqw 1cqw rgba(0,0,0,0.3);
-                z-index: 10;
-            }
-            .ribbon-bottom span {
-                display: inline-block;
-                transform: skewX(15deg); 
-            }
-
-            [contenteditable="true"] { outline: none; transition: 0.2s; }
-            [contenteditable="true"]:focus { outline: 2px dashed #ffeb3b; background: rgba(255, 255, 255, 0.1); border-radius: 0.5cqw; cursor: text; }
-            [contenteditable="true"]:hover { cursor: text; }
-        </style>
-
-        <div class="poster-wrapper">
-            <div class="poster-container" id="posterArea">
+                <div class="title-red">HỌC HỎI TẤM GƯƠNG TIÊU BIỂU</div>
                 
-                <img class="main-bg-rotated" src="https://i.imgur.com/ulw3NQv.png" alt="Nền Trống Đồng">
-
-                <div class="top-logo-strip">
-                    <img src="https://i.imgur.com/OWueek5.png" alt="Bộ Logo">
+                <div class="title-blue">KỶ NIỆM 120 NĂM NGÀY SINH<br>CỐ THỦ TƯỚNG PHẠM VĂN ĐỒNG</div>
+                
+                <div class="date-text">(01/3/1906 - 01/3/2026)</div>
+                
+                <div class="details">
+                    Chủ nhật Ngày 22 Tháng 3 Năm 2026 <br>Địa điểm: RD200 - Trường Đại Học Nông Lâm TP.HCM
                 </div>
+            </div>
 
-                <div class="text-overlay">
-                    <div class="title-script" contenteditable="true" spellcheck="false">Kỷ niệm 120 năm ngày sinh Cố thủ tướng</div>
-                    <div class="title-bold" contenteditable="true" spellcheck="false">PHẠM VĂN ĐỒNG</div>
-                    <div class="date-box" contenteditable="true" spellcheck="false">01/3/1906 <span style="color: #ffeb3b; text-shadow: 0 0 5px #e65100;" contenteditable="false">★</span> 01/3/2026</div>
-                </div>
-
-                <div class="portrait-area">
-                    <img src="https://i.imgur.com/mpkZUt3.png" alt="Cố Thủ Tướng Phạm Văn Đồng"> 
-                </div>
-
-                <div class="ribbon-bottom">
-                    <span contenteditable="true" spellcheck="false">ĐỊA ĐIỂM: RD200 - ĐH NÔNG LÂM TP.HCM</span>
-                </div>
-
+            <div class="image-area">
+                <img src="https://i.imgur.com/Ff3KDxn.png" alt="Ảnh Cố Thủ Tướng Phạm Văn Đồng">
             </div>
         </div>
+    </div>
 
     <div class="action-area">
         <button class="btn-download" id="downloadBtn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Tải Poster Về Máy
         </button>
-    </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -504,7 +276,7 @@
                 backgroundColor: null 
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'Poster_MHEnt. Universe.png';
+                link.download = 'Poster_Ki_Niem_120_Nam.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
@@ -514,164 +286,6 @@
             });
         });
     </script>
-    <footer>
-        <div class="footer-bottom">
-            <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
-            
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                
-                <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
-                    <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer" class="footer-link">
-                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                        Fanpage MHEnt.
-                    </a>
-                    <span style="opacity: 0.4; font-size: 10px;">•</span>
-                    <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer" class="footer-link">
-                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        Cộng đồng MHEnt.
-                    </a>
-                </div>
 
-                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
-                    <a onclick="window.location.href='/terms'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#ff85a2'" onmouseout="this.style.color='inherit'">Điều khoản dịch vụ</a>
-                    <span style="opacity: 0.3;">|</span>
-                    <a onclick="window.location.href='/terms#section-4'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#ff85a2'" onmouseout="this.style.color='inherit'">Nguyên tắc cộng đồng</a>
-                </div>
-
-            </div>
-        </div>
-    </footer>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-            authDomain: "mhentuniverse.firebaseapp.com",
-            projectId: "mhentuniverse",
-            storageBucket: "mhentuniverse.firebasestorage.app",
-            messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
-            measurementId: "G-YE217QW296"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
-
-        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
-        if (btnLogout) { 
-            btnLogout.addEventListener('click', async () => { 
-                await signOut(auth); 
-                window.location.reload(); 
-            }); 
-        }
-
-        window.toggleAccount = function() {
-            const acc = document.getElementById('dropdown-account');
-            const switcher = document.getElementById('dropdown-app-switcher');
-            if(switcher) switcher.classList.remove('show'); 
-            if(acc) acc.classList.toggle('show');
-        };
-
-        window.toggleAppSwitcher = function() {
-            const switcher = document.getElementById('dropdown-app-switcher');
-            const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show'); 
-            if(switcher) switcher.classList.toggle('show');
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.user-section')) {
-                const acc = document.getElementById('dropdown-account');
-                const switcher = document.getElementById('dropdown-app-switcher');
-                if(acc) acc.classList.remove('show');
-                if(switcher) switcher.classList.remove('show');
-            }
-            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
-                const navLinks = document.getElementById('nav-links');
-                if(navLinks) navLinks.classList.remove('active');
-            }
-        };
-
-        window.toggleMobileMenu = function() {
-            const navLinks = document.getElementById('nav-links');
-            const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show'); 
-            if(navLinks) navLinks.classList.toggle('active');
-        };
-
-        window.toggleDarkMode = function() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
-        };
-
-        if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
-
-        // BỘ MÁY BẮN TOAST V2.0 (VECTOR + ANIMATION XỊN)
-        window.showToast = function(title, message, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-            }
-            const toast = document.createElement('div');
-            toast.className = `toast-msg ${type}`;
-            
-            // 1. Thay icon emoji bằng SVG vector
-            let iconSVG = '';
-            if (type === 'error') {
-                iconSVG = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="#ff4d4d" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-            } else if (type === 'info') {
-                iconSVG = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="#ff85a2" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-            } else { // success
-                iconSVG = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="#10b981" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
-            }
-
-            // 2. Chia bố cục rõ ràng: Dòng trên là Tiêu đề, Dòng dưới là Mô tả
-            toast.innerHTML = `
-                <div class="toast-icon">${iconSVG}</div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-desc">${message}</div>
-                </div>
-            `;
-            container.appendChild(toast);
-
-            // 3. Kích hoạt hiệu ứng Pop-out sau 3 giây
-            setTimeout(() => { 
-                toast.style.animation = 'popOutRight 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards'; 
-                setTimeout(() => toast.remove(), 400); // Chờ bay ra xong mới xóa khỏi DOM
-            }, 3000);
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            const btnTheme = document.getElementById('btn-theme-toggle'); 
-            if (user) {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-
-                let finalName = user.displayName || user.email.split('@')[0];
-                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
-
-                const avtElement = document.getElementById('user-avatar');
-                if (avtElement) {
-                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
-                    avtElement.style.display = 'block'; 
-                }
-
-                // Tối ưu hóa: Đại sảnh không cần check quyền Admin/Uploader nữa vì đã xóa nút rồi, giúp web load nhanh hơn!
-
-            } else {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
-            }
-        });
-    </script>
 </body>
 </html>
