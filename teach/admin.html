@@ -9,10 +9,10 @@
     <link rel="apple-touch-icon" href="/assets/icon-web.png">
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="teach-theme.css"> <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="teach-theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* TONE MÀU SẼ ĐƯỢC LẤY TỪ TEACH-THEME.CSS VÀ ROOT */
         body, h1, h2, h3, h4, p, span, button, input, select, textarea, td, th { font-family: 'Nunito', sans-serif !important; }
         body { background: #f8fafc; overflow-x: hidden; margin: 0; padding: 0; }
         body.dark-mode { background: #0f172a; color: #fff; }
@@ -30,11 +30,9 @@
         .admin-tab.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* FORM STYLES */
         .admin-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 30px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .input-group { margin-bottom: 20px; }
-        .input-group.full { grid-column: 1 / -1; }
         .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
         .admin-input, .admin-select, .admin-textarea { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; box-sizing: border-box; }
         .admin-input:focus, .admin-select:focus, .admin-textarea:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 12px rgba(14,165,233,0.1); }
@@ -43,23 +41,17 @@
         .btn-admin { background: var(--hub-color); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-admin:hover { background: #0284c7; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(14,165,233,0.3); }
 
-        /* MÀN BẢO VỆ CỬA */
         #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; }
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 99999; display: none; align-items: center; justify-content: center; transition: 0.3s; }
-        .popup-box { background: #fff; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
 
-        /* DARK MODE OVERRIDES */
-        body.dark-mode .admin-sidebar, body.dark-mode .admin-card, body.dark-mode .popup-box { background: #1e293b; border-color: #334155; }
+        body.dark-mode .admin-sidebar, body.dark-mode .admin-card { background: #1e293b; border-color: #334155; }
         body.dark-mode .admin-title, body.dark-mode .input-group label { color: #f8fafc; }
         body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
 
-        /* VOCAB SPECIFIC STYLES */
         .input-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-btn { background: #f1f5f9; color: #64748b; border: 2px solid transparent; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { background: var(--hub-bg); color: var(--hub-color); border-color: var(--hub-color); }
         body.dark-mode .tab-btn { background: #334155; color: #94a3b8; }
         body.dark-mode .tab-btn.active { background: var(--hub-bg); color: var(--hub-color); }
-
         .row-input { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         
         .mirror-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
@@ -68,7 +60,6 @@
         .mirror-card:hover { border-color: var(--hub-color); }
         .mirror-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white; }
         .mirror-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.5; color: white;}
-        .mirror-card.solved-past { opacity: 0.3; pointer-events: none; background: transparent; }
         
         #admin-question-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
         .q-btn { background: #f8fafc; color: #1e293b; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; font-family: inherit; }
@@ -93,8 +84,8 @@
             </a>
         </div>
         <div class="nav-right">
-            <button class="btn-theme" onclick="window.open('/teach/vocab.html', '_blank')" title="Mở Màn Hình Trình Chiếu" style="border:none; color: var(--hub-color);">
-                <i class="fa-solid fa-desktop"></i> Mở Màn Chiếu
+            <button class="btn-theme" onclick="window.location.href='/teach/'" title="Về trang chủ Teach" style="border:none; color: var(--hub-color);">
+                <i class="fa-solid fa-house-chimney"></i>
             </button>
             <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
                 <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -114,6 +105,10 @@
                 <h1 class="admin-title">Đấu Trường Từ Vựng</h1>
                 
                 <div class="admin-card">
+                    <button class="btn-admin" onclick="window.open('/teach/vocab.html', '_blank')" style="width: 100%; margin-bottom: 25px; background: #10b981;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU DÀNH CHO HỌC SINH
+                    </button>
+
                     <h3 style="margin-top: 0; color: var(--hub-color);"><i class="fa-solid fa-gear"></i> 1. Thiết Lập Dữ Liệu</h3>
                     <div class="input-tabs">
                         <button class="tab-btn active" id="tab-table" onclick="switchInputTab('table')">Nhập theo Bảng</button>
@@ -141,7 +136,7 @@
                             <input type="number" id="strike-input" class="admin-input" value="1" min="0">
                         </div>
                     </div>
-                    <button class="btn-admin" style="width: 100%; margin-top: 20px;" onclick="adminSyncData()">🚀 TẠO & ĐẨY LÊN MÀN CHIẾU</button>
+                    <button class="btn-admin" style="width: 100%; margin-top: 20px;" onclick="adminSyncData()">🚀 TẠO BẢNG & ĐẨY LÊN MÀN CHIẾU</button>
                 </div>
 
                 <div class="admin-card" id="control-station" style="display: none; border-top: 5px solid var(--hub-color);">
@@ -152,7 +147,7 @@
 
                     <div class="form-grid" style="align-items: start;">
                         <div>
-                            <h3 style="margin:0 0 10px 0;">Chọn Câu Hỏi</h3>
+                            <h3 style="margin:0 0 10px 0;">2. Chọn Câu Hỏi</h3>
                             <p style="color: #64748b; font-size: 13px;">Bấm để kích hoạt hiển thị lên máy chiếu</p>
                             <div id="admin-question-list"></div>
                         </div>
@@ -175,47 +170,24 @@
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-            authDomain: "mhentuniverse.firebaseapp.com",
-            projectId: "mhentuniverse",
-            storageBucket: "mhentuniverse.firebasestorage.app",
-            messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
-            measurementId: "G-YE217QW296"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // 🚨 CHỈ CHO PHÉP ADMIN VÀ TEACHER
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = '/login';
-            } else {
+            if (!user) window.location.href = '/login';
+            else {
                 try {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
                     const role = docSnap.exists() ? docSnap.data().role : 'user';
-                    if (role !== 'admin' && role !== 'teacher') {
-                        alert("Khu vực cấm! Bạn không có quyền Giáo viên.");
-                        window.location.href = '/';
-                    } else {
-                        document.getElementById('security-shield').style.opacity = '0';
-                        setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
-                    }
-                } catch (error) {
-                    window.location.href = '/';
-                }
+                    if (role !== 'admin' && role !== 'teacher') { alert("Khu vực cấm!"); window.location.href = '/'; } 
+                    else { document.getElementById('security-shield').style.opacity = '0'; setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); }
+                } catch (error) { window.location.href = '/'; }
             }
         });
     </script>
 
     <script>
-        window.toggleDarkMode = function() { 
-            document.body.classList.toggle('dark-mode'); 
-            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
-        };
+        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
         window.switchTab = function(tabName) {
@@ -225,9 +197,7 @@
             document.getElementById('menu-' + tabName).classList.add('active');
         };
 
-        // Khởi tạo bảng mẫu
         for(let i=0; i<4; i++) addTableRow();
-
         let globalWordList = [], currentGridOrder = [], solvedWords = [], activeInputMode = 'table', activeWordId = null;
 
         function switchInputTab(mode) {
@@ -239,17 +209,14 @@
         }
 
         function addTableRow() {
-            const container = document.getElementById('table-rows');
             const row = document.createElement('div'); row.className = 'row-input';
             row.innerHTML = `<input type="text" class="admin-input input-w" placeholder="Từ vựng">
                              <input type="text" class="admin-input input-m" placeholder="Ý nghĩa">
                              <button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
-            container.appendChild(row);
+            document.getElementById('table-rows').appendChild(row);
         }
 
-        function sendCmd(action, payload) {
-            localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() }));
-        }
+        function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
 
         window.adminSyncData = function() {
             globalWordList = []; solvedWords = []; activeWordId = null;
@@ -291,7 +258,6 @@
             currentGridOrder.forEach(item => {
                 const card = document.createElement('div'); card.className = 'mirror-card'; card.id = 'mirror-card-'+item.id;
                 card.innerText = item.word;
-                // Xóa check solvedWords ở đây, cho phép bấm mọi lúc mọi nơi
                 card.onclick = () => { if(activeWordId) sendCmd('ADMIN_CLICK', item.id); };
                 grid.appendChild(card);
             });
@@ -302,6 +268,8 @@
             activeWordId = item.id;
             document.getElementById('admin-btn-'+item.id).classList.add('active');
             document.getElementById('admin-reading-meaning').innerText = item.meaning;
+            
+            // CHỈ RESET MÀU LÚC ĐỔI CÂU HỎI MỚI
             document.querySelectorAll('.mirror-card').forEach(c => c.classList.remove('correct', 'incorrect'));
             sendCmd('SET_QUESTION', item);
         }
@@ -319,7 +287,7 @@
                 const btn = document.getElementById('admin-btn-'+data.payload.id);
                 if(btn) { btn.classList.remove('active'); btn.classList.add('solved'); }
                 solvedWords.push(data.payload.id);
-                renderMirror();
+                // ĐÃ XÓA renderMirror() Ở ĐÂY ĐỂ TRÁNH MẤT MÀU!
             }
             if(data.action === 'SYNC_COLOR') {
                 const card = document.getElementById('mirror-card-'+data.payload.id);
