@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHEnt. Edu - Trình Chiếu</title>
+    <title>MHEnt. Edu - Màn Hình Trình Chiếu</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="teach-theme.css">
     <style>
         body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
         .present-header { text-align: center; padding: 20px; }
-        #present-status { font-size: 32px; font-weight: 900; color: #ff85a2; min-height: 40px; margin-top: 10px; text-transform: uppercase; text-shadow: 2px 2px 5px rgba(0,0,0,0.3);}
+        #present-status { font-size: 32px; font-weight: 900; color: var(--hub-color); min-height: 40px; margin-top: 10px; text-transform: uppercase; text-shadow: 2px 2px 5px rgba(0,0,0,0.3);}
         
         .present-board { flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center; }
         .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
@@ -22,6 +23,9 @@
         .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.8; pointer-events: none; }
         .word-card.disabled { pointer-events: none; }
         
+        /* 💡 GIỮ LẠI ĐẠN MÙ: TỪ ĐÃ SOLVED SẼ MỜ ĐI CHỨ KHÔNG BIẾN MẤT */
+        .word-card.solved-past { background: #0f172a !important; border-color: #1e293b !important; color: #64748b !important; pointer-events: none; opacity: 0.5; box-shadow: none;}
+
         /* CHẾ ĐỘ CHALLENGE */
         .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 15px 15px; background-size: 30px 30px; box-shadow: none; pointer-events: auto !important;}
         .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; pointer-events: auto; transform: scale(1.05); box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
@@ -31,7 +35,7 @@
 </head>
 <body>
 
-    <div id="waiting-msg"><i class="fa-solid fa-satellite-dish fa-beat"></i><br><br>Đang chờ kết nối từ Bảng Điều Khiển...</div>
+    <div id="waiting-msg"><i class="fa-solid fa-satellite-dish fa-beat"></i><br><br>Đang chờ kết nối từ Máy tính Giáo viên...</div>
 
     <div id="game-container" style="display: none; height: 100%; flex-direction: column;">
         <div class="present-header"><div id="present-status">SẴN SÀNG! LẮNG NGHE GIÁO VIÊN!</div></div>
@@ -41,13 +45,13 @@
     <script>
         function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
 
-        let globalMode = 'normal', globalStrikes = 0, targetWord = null, strikesCurrent = 0, isQuestionActive = false, challengeTimer = null;
+        let globalMode = 'normal', globalStrikes = 0, targetWord = null, strikesCurrent = 0, isQuestionActive = false, challengeTimer = null, solvedWords = [];
 
         window.addEventListener('storage', e => {
             if(e.key !== 'mhent_edu_cmd') return;
             const data = JSON.parse(e.newValue);
             if(data.action === 'SYNC_DATA') { 
-                globalMode = data.payload.mode; globalStrikes = data.payload.strikes;
+                globalMode = data.payload.mode; globalStrikes = data.payload.strikes; solvedWords = [];
                 document.getElementById('waiting-msg').style.display = 'none'; document.getElementById('game-container').style.display = 'flex';
                 renderGrid(data.payload.order);
             }
@@ -63,6 +67,7 @@
             const grid = document.getElementById('present-grid'); grid.innerHTML = '';
             order.forEach(item => {
                 const card = document.createElement('div'); card.className = 'word-card'; card.innerText = item.word; card.dataset.id = item.id;
+                if(solvedWords.includes(item.id)) card.classList.add('solved-past');
                 card.onclick = () => handleClick(card, item.id);
                 grid.appendChild(card);
             });
@@ -71,22 +76,24 @@
 
         function loadQuestion(payload) {
             targetWord = payload; strikesCurrent = 0; isQuestionActive = true;
-            document.getElementById('present-status').innerText = "HÃY TÌM TỪ CHÍNH XÁC!"; document.getElementById('present-status').style.color = "#0ea5e9";
+            document.getElementById('present-status').innerText = "HÃY TÌM TỪ CHÍNH XÁC!"; document.getElementById('present-status').style.color = "var(--hub-color)";
             
-            // 💡 QUAN TRỌNG NHẤT LÀ ĐÂY: Mỗi khi qua câu mới, RESET toàn bộ thẻ về nguyên gốc, không giấu thẻ nào cả!
-            document.querySelectorAll('.word-card').forEach(card => card.classList.remove('incorrect', 'correct', 'disabled'));
+            document.querySelectorAll('.word-card').forEach(card => {
+                card.classList.remove('incorrect', 'correct', 'disabled');
+                if(solvedWords.includes(card.dataset.id)) card.classList.add('solved-past');
+            });
             applyFog();
         }
 
         function handleClick(card, selectedId) {
-            if(!isQuestionActive || card.classList.contains('disabled')) return;
+            if(!isQuestionActive || card.classList.contains('disabled') || card.classList.contains('solved-past')) return;
             card.classList.remove('covered');
 
             if(selectedId === targetWord.id) { // ĐÚNG
                 clearInterval(challengeTimer);
                 if(globalMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                 
-                card.classList.add('correct'); isQuestionActive = false;
+                card.classList.add('correct'); isQuestionActive = false; solvedWords.push(targetWord.id);
                 document.getElementById('present-status').innerText = "🎉 XUẤT SẮC!"; document.getElementById('present-status').style.color = "#10b981";
                 document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
 
@@ -103,7 +110,7 @@
                     document.querySelector(`.word-card[data-id="${targetWord.id}"]`).classList.add('correct');
                     sendCmd('SYNC_COLOR', { id: targetWord.id, status: 'correct' });
                     
-                    isQuestionActive = false;
+                    isQuestionActive = false; solvedWords.push(targetWord.id);
                     document.getElementById('present-status').innerText = "RẤT TIẾC! HẾT LƯỢT CHỌN!"; document.getElementById('present-status').style.color = "#ef4444";
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
                     sendCmd('REPORT_SOLVED', targetWord);
@@ -118,7 +125,7 @@
             clearInterval(challengeTimer);
             if(globalMode !== 'challenge' || !isQuestionActive) { document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp')); return; }
 
-            const cards = Array.from(document.querySelectorAll('.word-card'));
+            const cards = Array.from(document.querySelectorAll('.word-card')).filter(c => !c.classList.contains('solved-past'));
             cards.forEach(c => c.classList.add('covered'));
 
             challengeTimer = setInterval(() => {
