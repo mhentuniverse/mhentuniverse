@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHEnt. Studio - Content Creator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        /* 💡 LƯU Ý FONT CHỮ: Thay đường dẫn này bằng link file font iCiel Panton Black của cậu nếu có */
+        @font-face {
+            font-family: 'iCielPantonBlack';
+            src: url('/fonts/iCielPantonBlack.otf')
+        }
+
+        body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* CỘT CÔNG CỤ (TRÁI) */
+        .toolbar { width: 320px; background: #1e293b; padding: 25px; box-shadow: 2px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; z-index: 10; border-right: 1px solid #334155; }
+        .toolbar h2 { margin: 0; color: #ff85a2; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+        
+        .tool-group { display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #334155; }
+        .tool-group label { font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+        
+        select, input[type="text"], input[type="color"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-family: inherit; font-size: 14px; outline: none; }
+        select:focus, input[type="text"]:focus { border-color: #ff85a2; }
+        input[type="color"] { padding: 2px; height: 40px; cursor: pointer; }
+        
+        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+        .btn-primary { background: #ff85a2; color: white; }
+        .btn-primary:hover { background: #ff5c8a; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px dashed #475569; color: #cbd5e1; }
+        .btn-outline:hover { border-color: #ff85a2; color: #ff85a2; background: rgba(255, 133, 162, 0.1); }
+        .btn-export { background: #10b981; color: white; font-size: 16px; margin-top: auto; padding: 15px;}
+        .btn-export:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); }
+
+        /* KHU VỰC THIẾT KẾ (PHẢI) */
+        .workspace-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #0b1121; padding: 40px; overflow: auto; background-image: radial-gradient(#1e293b 1px, transparent 0); background-size: 20px 20px; }
+        
+        /* BẢNG ARTBOARD CHÍNH */
+        .artboard { 
+            background: #ffffff; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            overflow: hidden; /* Cắt những phần ảnh tràn ra ngoài */
+            transition: width 0.3s, height 0.3s;
+        }
+
+        /* LỚP NỀN (Background) */
+        .artboard-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background-size: cover; background-position: center; pointer-events: none; }
+
+        /* CÁC PHẦN TỬ KÉO THẢ */
+        .draggable { position: absolute; z-index: 1; cursor: grab; user-select: none; }
+        .draggable:active { cursor: grabbing; }
+        
+        .design-text { font-family: 'Nunito', sans-serif; font-size: 40px; font-weight: 900; color: #333; padding: 10px; border: 2px dashed transparent; min-width: 100px; white-space: nowrap; text-shadow: 2px 2px 0px #fff;}
+        .design-text:focus { border-color: #0ea5e9; outline: none; cursor: text; background: rgba(255,255,255,0.8); }
+
+        /* Mẹo CSS: Dùng resize để thay đổi kích thước ảnh mượt mà */
+        .design-img-wrapper { display: inline-block; padding: 5px; border: 2px dashed transparent; }
+        .design-img-wrapper:hover { border-color: #ff85a2; }
+        .design-img { width: 300px; height: auto; resize: both; overflow: hidden; display: block; pointer-events: none; }
+
+        /* WATERMARK LOGO MHENT */
+        .mhent-watermark { display: flex; align-items: center; gap: 8px; padding: 10px; z-index: 50; }
+        .logo-mh-block { 
+            background: #0ea5e9; color: white; font-family: 'iCielPantonBlack', sans-serif; 
+            font-size: 32px; font-weight: 900; padding: 5px 10px; border-radius: 8px; letter-spacing: -2px;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+        }
+        .logo-text-block { display: flex; flex-direction: column; justify-content: center; }
+        .logo-main-text { font-family: 'iCielPantonBlack', sans-serif; font-size: 18px; font-weight: 900; color: white; -webkit-text-stroke: 1px #0ea5e9; text-shadow: 1px 1px 0px #000; margin-bottom: -5px; letter-spacing: 0.5px;}
+        .logo-sub-text { font-family: 'iCielPantonBlack', sans-serif; font-size: 18px; font-weight: 900; color: #fff; background: #0ea5e9; padding: 0 10px; border-radius: 20px; align-self: flex-end; border: 2px solid white; box-shadow: 1px 1px 0px rgba(0,0,0,0.2);}
+
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <h2><i class="fa-solid fa-wand-magic-sparkles"></i> MHEnt. Studio</h2>
+        
+        <div class="tool-group">
+            <label>1. Kích thước (Tỉ lệ)</label>
+            <select id="ratio-select" onchange="changeRatio()">
+                <option value="16:9">16:9 (Cover Video/Ngang - 1280x720)</option>
+                <option value="4:3">4:3 (Ngang Tiêu chuẩn - 1024x768)</option>
+                <option value="1:1">1:1 (Vuông - 1080x1080)</option>
+                <option value="3:4">3:4 (Dọc FB - 810x1080)</option>
+                <option value="9:16">9:16 (Story/Tiktok - 720x1280)</option>
+            </select>
+        </div>
+
+        <div class="tool-group">
+            <label>2. Hình nền (Background)</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="color" id="bg-color" value="#ffffff" onchange="changeBgColor()" title="Đổi màu nền">
+                <button class="btn btn-outline" style="flex:1; padding: 5px;" onclick="document.getElementById('bg-img-input').click()">
+                    <i class="fa-solid fa-image"></i> Ảnh nền
+                </button>
+                <input type="file" id="bg-img-input" accept="image/*" style="display: none;" onchange="changeBgImage(event)">
+            </div>
+            <button class="btn" style="background: #334155; color: white; padding: 5px;" onclick="clearBgImage()"><i class="fa-solid fa-trash"></i> Xóa ảnh nền</button>
+        </div>
+
+        <div class="tool-group">
+            <label>3. Thêm thành phần</label>
+            <button class="btn btn-outline" onclick="addText()"><i class="fa-solid fa-t"></i> Thêm Chữ (Text)</button>
+            <button class="btn btn-outline" onclick="document.getElementById('add-img-input').click()"><i class="fa-solid fa-photo-film"></i> Thêm Ảnh (Kéo thả)</button>
+            <input type="file" id="add-img-input" accept="image/*" style="display: none;" onchange="addImage(event)">
+            <p style="font-size: 11px; color: #64748b; margin: 0;">💡 Mẹo: Bấm vào góc dưới bên phải của ảnh để phóng to/thu nhỏ.</p>
+        </div>
+
+        <div class="tool-group">
+            <label>4. Tùy chỉnh Logo MHEnt</label>
+            <input type="text" id="subname-input" value="content" oninput="updateLogoSubname()" placeholder="Ví dụ: content, present, review...">
+        </div>
+
+        <button class="btn btn-export" id="btn-export" onclick="exportImage()">
+            <i class="fa-solid fa-download"></i> Xuất ảnh (PNG)
+        </button>
+    </div>
+
+    <div class="workspace-container">
+        <div class="artboard" id="artboard" style="width: 1280px; height: 720px;">
+            <div class="artboard-bg" id="artboard-bg"></div>
+            
+            <div class="draggable mhent-watermark" id="mhent-logo" style="top: 20px; left: 20px;">
+                <div class="logo-mh-block">MH</div>
+                <div class="logo-text-block">
+                    <div class="logo-main-text">Miyazaki Haruto Entertainment</div>
+                    <div class="logo-sub-text" id="logo-sub-display">content</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const artboard = document.getElementById('artboard');
+        const artboardBg = document.getElementById('artboard-bg');
+        let zIndexCounter = 10; // Quản lý lớp đè lên nhau
+
+        // 1. CHỈNH KÍCH THƯỚC (TỈ LỆ)
+        function changeRatio() {
+            const ratio = document.getElementById('ratio-select').value;
+            // Scale dựa trên chiều cao hoặc chiều rộng tối ưu để nhìn rõ trên màn hình
+            switch(ratio) {
+                case '16:9': artboard.style.width = '1280px'; artboard.style.height = '720px'; break;
+                case '4:3':  artboard.style.width = '1024px'; artboard.style.height = '768px'; break;
+                case '1:1':  artboard.style.width = '1080px'; artboard.style.height = '1080px'; break;
+                case '3:4':  artboard.style.width = '810px';  artboard.style.height = '1080px'; break;
+                case '9:16': artboard.style.width = '720px';  artboard.style.height = '1280px'; break;
+            }
+            // Tự động zoom ra để vừa khung hình làm việc
+            const scale = Math.min((window.innerWidth - 380) / parseInt(artboard.style.width), (window.innerHeight - 100) / parseInt(artboard.style.height));
+            if(scale < 1) { artboard.style.transform = `scale(${scale})`; artboard.style.transformOrigin = 'center center'; }
+            else { artboard.style.transform = 'scale(1)'; }
+        }
+
+        // Tự động scale lúc mới vào trang
+        window.onload = changeRatio;
+        window.onresize = changeRatio;
+
+        // 2. CHỈNH NỀN
+        function changeBgColor() {
+            artboardBg.style.backgroundColor = document.getElementById('bg-color').value;
+            artboardBg.style.backgroundImage = 'none'; // Xóa ảnh nền nếu chọn màu
+        }
+        function changeBgImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                artboardBg.style.backgroundImage = `url(${url})`;
+            }
+        }
+        function clearBgImage() {
+            artboardBg.style.backgroundImage = 'none';
+            artboardBg.style.backgroundColor = document.getElementById('bg-color').value;
+            document.getElementById('bg-img-input').value = '';
+        }
+
+        // 3. CẬP NHẬT CHỮ LOGO
+        function updateLogoSubname() {
+            const text = document.getElementById('subname-input').value || 'content';
+            document.getElementById('logo-sub-display').innerText = text.toLowerCase();
+        }
+
+        // 4. THÊM THÀNH PHẦN (CHỮ & ẢNH)
+        function addText() {
+            const textDiv = document.createElement('div');
+            textDiv.className = 'draggable design-text';
+            textDiv.contentEditable = "true";
+            textDiv.innerText = "Gõ chữ vào đây...";
+            textDiv.style.top = "100px";
+            textDiv.style.left = "100px";
+            textDiv.style.zIndex = ++zIndexCounter;
+            
+            // Xóa element nếu nội dung trống và mất focus
+            textDiv.addEventListener('blur', function() { if(this.innerText.trim() === '') this.remove(); });
+            
+            makeDraggable(textDiv);
+            artboard.appendChild(textDiv);
+            textDiv.focus();
+        }
+
+        function addImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'draggable design-img-wrapper';
+                wrapper.style.top = "100px";
+                wrapper.style.left = "100px";
+                wrapper.style.zIndex = ++zIndexCounter;
+
+                const img = document.createElement('img');
+                img.className = 'design-img';
+                img.src = url;
+
+                // Nút xóa ảnh nhỏ xíu
+                const delBtn = document.createElement('button');
+                delBtn.innerHTML = "X";
+                delBtn.style.cssText = "position:absolute; top:-10px; right:-10px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; z-index:10; display:none;";
+                delBtn.onclick = () => wrapper.remove();
+
+                wrapper.onmouseenter = () => delBtn.style.display = "block";
+                wrapper.onmouseleave = () => delBtn.style.display = "none";
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(delBtn);
+                makeDraggable(wrapper);
+                artboard.appendChild(wrapper);
+            }
+            event.target.value = ''; // Reset input
+        }
+
+        // 5. BỘ MÁY KÉO THẢ (DRAG & DROP) CHO MỌI THỨ
+        function makeDraggable(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elmnt.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                if (e.target.tagName === 'BUTTON' || (elmnt.contentEditable === "true" && document.activeElement === elmnt)) return; // Bỏ qua nếu đang sửa chữ hoặc bấm nút X
+                e.preventDefault();
+                elmnt.style.zIndex = ++zIndexCounter; // Nâng lên lớp trên cùng khi nắm kéo
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                // Tính toán khoảng cách di chuyển (có chia cho scale để chuột không bị lệch khi Artboard bị thu nhỏ)
+                const scale = parseFloat(artboard.style.transform.replace('scale(', '').replace(')', '')) || 1;
+                pos1 = (pos3 - e.clientX) / scale;
+                pos2 = (pos4 - e.clientY) / scale;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // Khởi tạo kéo thả cho logo mặc định
+        makeDraggable(document.getElementById('mhent-logo'));
+
+        // 6. XUẤT ẢNH BẰNG HTML2CANVAS
+        function exportImage() {
+            const btn = document.getElementById('btn-export');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xuất...';
+            
+            // Xóa tạm transform scale để html2canvas chụp đúng độ phân giải cao nhất
+            const currentTransform = artboard.style.transform;
+            artboard.style.transform = 'scale(1)';
+
+            html2canvas(artboard, {
+                useCORS: true, // Cho phép tải ảnh từ nguồn khác nếu có
+                backgroundColor: null,
+                scale: 1.5 // Nhân rưỡi độ phân giải để ảnh nét căng
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `MHEnt_Post_${document.getElementById('ratio-select').value}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                
+                // Trả lại scale cũ
+                artboard.style.transform = currentTransform;
+                btn.innerHTML = '<i class="fa-solid fa-download"></i> Xuất ảnh (PNG)';
+            });
+        }
+    </script>
+</body>
+</html>
