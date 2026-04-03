@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHEnt. Edu - Vocab Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* HEADER */
+        .header { background: #1e293b; padding: 15px 30px; border-bottom: 2px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; color: #0ea5e9; font-weight: 900; font-size: 24px; }
+        .header span { color: #ff85a2; }
+        
+        /* CONTAINER */
+        .container { flex: 1; padding: 30px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* MÀN HÌNH SETUP */
+        #setup-screen { width: 100%; max-width: 800px; background: #1e293b; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 8px; color: #94a3b8; }
+        textarea { width: 100%; height: 150px; padding: 15px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; resize: vertical; box-sizing: border-box;}
+        select, input[type="number"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0b1121; color: white; font-family: inherit; font-size: 16px; box-sizing: border-box;}
+        
+        .btn { padding: 15px 30px; border: none; border-radius: 8px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 10px; }
+        .btn-primary { background: #0ea5e9; color: white; }
+        .btn-primary:hover { background: #0284c7; transform: translateY(-2px); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; }
+        
+        /* MÀN HÌNH GAME */
+        #game-screen { display: none; width: 100%; max-width: 1000px; text-align: center; }
+        
+        .question-box { background: #1e293b; padding: 30px; border-radius: 15px; margin-bottom: 30px; border: 2px dashed #0ea5e9; }
+        .question-box h2 { margin: 0 0 10px 0; color: #f8fafc; font-size: 28px; }
+        .status-text { font-size: 18px; color: #ff85a2; font-weight: 700; min-height: 25px; }
+
+        /* GRID TỪ VỰNG */
+        .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .word-card { 
+            background: #334155; border: 2px solid #475569; padding: 20px; border-radius: 12px; 
+            font-size: 20px; font-weight: 800; color: white; cursor: pointer; 
+            transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+            min-height: 80px; text-align: center; user-select: none;
+        }
+        .word-card:hover { border-color: #0ea5e9; transform: scale(1.02); }
+        
+        /* TRẠNG THÁI ĐÚNG / SAI */
+        .word-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white !important; transform: scale(1.05); }
+        .word-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; opacity: 0.7; }
+        .word-card.disabled { pointer-events: none; }
+        
+        /* CHẾ ĐỘ CHALLENGE (KHỐI CHE TỪ) */
+        .word-card.covered { background: #0f172a; border-color: #1e293b; color: transparent; background-image: repeating-linear-gradient(45deg, #1e293b 25%, transparent 25%, transparent 75%, #1e293b 75%, #1e293b), repeating-linear-gradient(45deg, #1e293b 25%, #0f172a 25%, #0f172a 75%, #1e293b 75%, #1e293b); background-position: 0 0, 10px 10px; background-size: 20px 20px; }
+        .word-card.revealed-temp { background: #f59e0b; color: white; border-color: #d97706; }
+
+        /* ĐIỀU KHIỂN */
+        .controls { display: flex; justify-content: center; gap: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>MHEnt. <span>Edu</span></h1>
+        <div id="game-info" style="display: none; font-weight: 700; color: #cbd5e1;">
+            Câu: <span id="current-q-num">1</span>/<span id="total-q-num">10</span> | 
+            Sai cho phép: <span id="strike-count">0</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="setup-screen">
+            <h2 style="margin-top:0; color: #0ea5e9;">Thiết lập Game Từ Vựng</h2>
+            
+            <div class="form-group">
+                <label>1. Nhập danh sách từ (Cú pháp: Từ vựng | Ý nghĩa)</label>
+                <textarea id="data-input" placeholder="Ví dụ:&#10;a pizza | This is usually round and hot with tomatoes on top&#10;an apple | A red or green fruit that keeps the doctor away&#10;a dog | A loyal pet that barks">a pizza | This is usually round and hot with tomatoes on top
+an apple | A red or green fruit that keeps the doctor away
+a dog | A loyal pet that barks
+a book | You open it to read stories
+the sun | It shines in the sky during the day
+a teacher | A person who helps you learn
+water | You drink it when you are thirsty
+a bed | A piece of furniture you sleep on</textarea>
+                <small style="color: #64748b;">* Có thể copy trực tiếp từ Excel dán vào (chữ ngăn cách bằng dấu tab hoặc dấu | đều được).</small>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>2. Chế độ chơi</label>
+                    <select id="mode-select">
+                        <option value="normal">🟢 Normal (Hiện tất cả từ)</option>
+                        <option value="challenge">🔥 Challenge (Ẩn từ, lâu lâu chớp hiện)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>3. Số lần được chọn sai (Strike)</label>
+                    <input type="number" id="strike-input" value="1" min="0" title="0 = Chọn sai 1 cái là hiện đáp án đúng luôn.">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="initGame()">
+                <i class="fa-solid fa-play"></i> BẮT ĐẦU VÀO LỚP
+            </button>
+        </div>
+
+        <div id="game-screen">
+            <div class="question-box">
+                <h2 id="meaning-display">The meaning will appear here...</h2>
+                <div class="status-text" id="status-display">Hãy tìm từ chính xác!</div>
+            </div>
+
+            <div class="word-grid" id="word-grid">
+                </div>
+
+            <div class="controls">
+                <button class="btn btn-warning" onclick="shuffleGrid()"><i class="fa-solid fa-shuffle"></i> Xáo trộn (Shuffle)</button>
+                <button class="btn btn-success" id="btn-next" style="display: none;" onclick="nextQuestion()"><i class="fa-solid fa-forward-step"></i> Câu tiếp theo</button>
+                <button class="btn btn-primary" onclick="location.reload()" style="background: #475569;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Thoát</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATA & BIẾN TOÀN CỤC
+        let wordList = [];
+        let currentQuestionIndex = 0;
+        let strikesAllowed = 0;
+        let strikesCurrent = 0;
+        let gameMode = 'normal';
+        
+        let challengeTimer = null;
+        let targetWord = '';
+        let isAnswered = false;
+
+        // Âm thanh (Optional - có thể bỏ nếu chưa cần)
+        const audioCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+        const audioIncorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg');
+
+        // 1. HÀM KHỞI TẠO GAME
+        function initGame() {
+            const rawData = document.getElementById('data-input').value.trim();
+            const rawLines = rawData.split('\n');
+            wordList = [];
+
+            // Parse dữ liệu (hỗ trợ dấu | hoặc Tab của Excel)
+            rawLines.forEach(line => {
+                let parts = line.split('|');
+                if(parts.length < 2) parts = line.split('\t'); // Thử cắt bằng Tab nếu copy từ excel
+                if(parts.length >= 2) {
+                    wordList.push({
+                        word: parts[0].trim(),
+                        meaning: parts[1].trim()
+                    });
+                }
+            });
+
+            if(wordList.length < 2) {
+                alert("Vui lòng nhập ít nhất 2 từ vựng!"); return;
+            }
+
+            strikesAllowed = parseInt(document.getElementById('strike-input').value) || 0;
+            gameMode = document.getElementById('mode-select').value;
+
+            // Xáo trộn thứ tự câu hỏi ngẫu nhiên
+            wordList.sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+
+            // Cập nhật UI
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('game-info').style.display = 'block';
+            document.getElementById('total-q-num').innerText = wordList.length;
+
+            loadQuestion();
+        }
+
+        // 2. TẢI CÂU HỎI MỚI
+        function loadQuestion() {
+            if(currentQuestionIndex >= wordList.length) {
+                document.getElementById('meaning-display').innerText = "🎉 BÀI HỌC KẾT THÚC! XUẤT SẮC!";
+                document.getElementById('word-grid').innerHTML = '';
+                document.getElementById('status-display').innerText = '';
+                return;
+            }
+
+            const currentItem = wordList[currentQuestionIndex];
+            targetWord = currentItem.word;
+            strikesCurrent = 0;
+            isAnswered = false;
+
+            // Render Header
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            document.getElementById('strike-count').innerText = `${strikesCurrent}/${strikesAllowed}`;
+            document.getElementById('meaning-display').innerText = currentItem.meaning;
+            document.getElementById('status-display').innerText = "Hãy tìm từ chính xác!";
+            document.getElementById('status-display').style.color = "#0ea5e9";
+            document.getElementById('btn-next').style.display = 'none';
+
+            renderGrid();
+        }
+
+        // 3. RENDER VÀ XÁO TRỘN GRID
+        function renderGrid() {
+            const grid = document.getElementById('word-grid');
+            grid.innerHTML = '';
+
+            // Clone mảng word để vẽ lên grid (sắp xếp ABC lần đầu)
+            let displayWords = [...wordList].map(item => item.word).sort();
+
+            displayWords.forEach(word => {
+                const card = document.createElement('div');
+                card.className = 'word-card';
+                card.innerText = word;
+                card.dataset.word = word;
+                
+                // Nếu là Challenge mode -> Ẩn từ đi
+                if(gameMode === 'challenge') {
+                    card.classList.add('covered');
+                }
+
+                card.onclick = () => checkAnswer(card, word);
+                grid.appendChild(card);
+            });
+
+            // Nếu Challenge -> Bật bộ đếm giờ chớp tắt
+            clearInterval(challengeTimer);
+            if(gameMode === 'challenge') {
+                startChallengeFlasher();
+            }
+        }
+
+        function shuffleGrid() {
+            if(isAnswered) return; // Đã trả lời thì cấm xáo trộn
+            const grid = document.getElementById('word-grid');
+            for (let i = grid.children.length; i >= 0; i--) {
+                grid.appendChild(grid.children[Math.random() * i | 0]);
+            }
+        }
+
+        // 4. KIỂM TRA ĐÁP ÁN
+        function checkAnswer(cardElement, selectedWord) {
+            if(isAnswered || cardElement.classList.contains('disabled')) return;
+
+            // Nếu mode Challenge -> Lật mở tất cả bài
+            if(gameMode === 'challenge') {
+                clearInterval(challengeTimer);
+                document.querySelectorAll('.word-card').forEach(el => {
+                    el.classList.remove('covered', 'revealed-temp');
+                });
+            }
+
+            // TRƯỜNG HỢP: ĐÚNG
+            if(selectedWord === targetWord) {
+                audioCorrect.play().catch(e=>console.log(e));
+                cardElement.classList.add('correct');
+                endTurn("Chính xác! Làm tốt lắm!", "#10b981");
+            } 
+            // TRƯỜNG HỢP: SAI
+            else {
+                audioIncorrect.play().catch(e=>console.log(e));
+                cardElement.classList.add('incorrect');
+                cardElement.classList.add('disabled'); // Khóa ô sai lại
+                strikesCurrent++;
+                
+                document.getElementById('strike-count').innerText = `${strikesCurrent}/${strikesAllowed}`;
+
+                // Hết lượt sai cho phép -> Kết thúc lượt, lật đáp án đúng
+                if(strikesCurrent > strikesAllowed) {
+                    highlightCorrectWord();
+                    endTurn("Rất tiếc! Đã hết lượt chọn.", "#ef4444");
+                } else {
+                    document.getElementById('status-display').innerText = `Sai rồi! Cậu còn ${strikesAllowed - strikesCurrent + 1} cơ hội.`;
+                    document.getElementById('status-display').style.color = "#f59e0b";
+                }
+            }
+        }
+
+        // Tô xanh từ đúng nếu học sinh sai quá số lần
+        function highlightCorrectWord() {
+            const cards = document.querySelectorAll('.word-card');
+            cards.forEach(card => {
+                if(card.dataset.word === targetWord) {
+                    card.classList.add('correct');
+                }
+            });
+        }
+
+        // Khóa màn chơi, hiện nút Next
+        function endTurn(msg, color) {
+            isAnswered = true;
+            document.getElementById('status-display').innerText = msg;
+            document.getElementById('status-display').style.color = color;
+            document.getElementById('btn-next').style.display = 'inline-flex';
+            
+            // Khóa tất cả card còn lại
+            document.querySelectorAll('.word-card').forEach(card => card.classList.add('disabled'));
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        // 5. HIỆU ỨNG THÁCH THỨC (CHALLENGE MODE)
+        function startChallengeFlasher() {
+            challengeTimer = setInterval(() => {
+                if(isAnswered) { clearInterval(challengeTimer); return; }
+
+                const cards = document.querySelectorAll('.word-card');
+                // Tắt từ cũ
+                cards.forEach(c => c.classList.remove('revealed-temp'));
+                
+                // Random mở 1 từ mới
+                const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                randomCard.classList.add('revealed-temp');
+
+            }, 2000); // Mặc định 2 giây nhảy 1 từ (cậu có thể chỉnh số 2000 thành 3000 cho 3s)
+        }
+    </script>
+</body>
+</html>
