@@ -23,32 +23,18 @@
             background-color: #e0e0e0; 
         }
 
-        /* TẠO KHUNG CHỨA RIÊNG CHO POSTER ĐỂ KHÔNG ẢNH HƯỞNG FOOTER */
-        .poster-main-area {
-            display: flex;
-            flex-direction: column; 
-            justify-content: flex-start;
-            align-items: center;
-            width: 100%;
-            padding: 80px 20px 40px 20px; /* Thêm khoảng trống phía trên tránh bị Navbar đè */
-            box-sizing: border-box;
-            min-height: calc(100vh - 100px); /* Đẩy footer xuống đáy màn hình nếu nội dung ngắn */
-            font-family: 'Montserrat', sans-serif; /* Ép font này riêng cho poster thôi */
-        }
-
         /* KHỐI POSTER THỐNG NHẤT VÀ RESPONSIVE */
         .poster-wrapper {
             position: relative;
-            width: 100%;       
-            max-width: 1200px;  
-            aspect-ratio: 16 / 9; 
+            width: 100vw; /* Chiếm toàn bộ chiều rộng màn hình */
+            max-width: 1200px; /* Nhưng không vượt quá 1200px trên màn to */
+            /* Bí kíp giữ tỷ lệ 16:9 (9/16 = 0.5625) */
+            aspect-ratio: 16 / 9;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px; /* Thêm padding để không dính sát viền trên màn nhỏ */
             box-sizing: border-box;
-            
-            /* BÍ KÍP GIỮ TỈ LỆ CHUẨN: Biến wrapper thành một Container độc lập */
-            container-type: inline-size;
         }
 
         .poster-container {
@@ -58,23 +44,30 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-            
-            /* Dùng cqw (Container Query Width) thay cho vw. 
-               Giờ đây font sẽ to nhỏ dựa đúng theo chiều ngang của poster, 
-               đảm bảo KHÔNG BAO GIỜ bị sai tỷ lệ dù co dãn thế nào! */
-            font-size: 1cqw; 
+            /* Thu nhỏ nội dung bên trong dựa trên font-size gốc */
+            font-size: 1vw; /* 1vw = 1% chiều rộng viewport, giúp mọi thứ scale theo */
         }
+
+
+        /* Giới hạn font-size trên màn hình rất lớn để không bị to quá */
+        @media (min-width: 1200px) {
+            .poster-container {
+                font-size: 12px;
+            }
+        }
+
 
         /* Các khối hình học trang trí tạo hiệu ứng nền */
         .shape-1 {
             position: absolute;
-            width: 60em; 
+            width: 60em; /* Dùng em thay vì px để scale theo font-size */
             height: 60em;
             background: rgba(255, 255, 255, 0.4);
             border-radius: 50%;
             top: -20em;
             left: -15em;
         }
+
         .shape-2 {
             position: absolute;
             width: 50em;
@@ -90,29 +83,31 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%; /* Mở rộng full width để chữ đỏ có thể kéo dài */
+            width: 55%; /* Chỉ cho nội dung chiếm 55% không gian bên trái */
             height: 100%;
             padding: 4em 5em;
             box-sizing: border-box;
             z-index: 10;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* ĐẨY MỌI THỨ LÊN TOP LEFT */
+            justify-content: center; /* Căn giữa nội dung theo chiều dọc */
         }
-        
+
+        /* KHU VỰC LOGO ĐÃ THU NHỎ LẠI */
         .logo-container {
             display: inline-flex;
             align-items: center;
-            gap: 1.5em; 
+            gap: 1.5em; /* Khoảng cách dựa trên tỷ lệ */
             margin-bottom: 2em;
-            background-color: rgba(255, 255, 255, 0.85); 
-            padding: 0.8em 2em; 
-            border-radius: 5em; 
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 0.8em 2em;
+            border-radius: 5em;
             box-shadow: 0 0.5em 2em rgba(0, 82, 156, 0.08);
             border: 2px solid #fff;
-            align-self: flex-start; 
+            align-self: flex-start; /* Ép khối này dạt sang trái, không bị giãn giữa */
         }
 
+        /* Class dành riêng cho ảnh Logo - KÍCH THƯỚC NHỎ HƠN */
         .logo-img {
             width: auto;
             object-fit: contain;
@@ -124,19 +119,21 @@
             transform: scale(1.08);
         }
 
-        .logo-doan { height: 5.5em; } 
+        .logo-doan { height: 5.5em; } /* Thu nhỏ từ 90px xuống tương đương ~55px */
+
         .logo-nlu { height: 4.8em; }
+
         .logo-khoa { height: 4.2em; border-radius: 100%; }
 
+        /* Typography - Đã dùng 'em' để scale chuẩn */
         .title-red {
             color: #d32f2f;
-            font-size: 3.2em; 
+            font-size: 3.2em; /* Tương đương 32px ở kích thước gốc */
             font-weight: 900;
             text-transform: uppercase;
             line-height: 1.2;
             margin: 0.2em 0;
             text-shadow: 0.2em 0.2em 0.4em rgba(0,0,0,0.1);
-            white-space: nowrap; /* KÉO DÀI HẾT CỠ, KHÔNG XUỐNG DÒNG */
         }
 
         .title-blue {
@@ -146,7 +143,6 @@
             text-transform: uppercase;
             margin: 0.2em 0;
             line-height: 1.3;
-            max-width: 60%; /* Giữ khối xanh không bị lấn vào ảnh nhân vật */
         }
 
         .date-text {
@@ -154,7 +150,6 @@
             font-size: 2em;
             font-weight: 900;
             margin-bottom: 1.5em;
-            max-width: 60%;
         }
 
         .details {
@@ -167,31 +162,31 @@
             font-weight: 600;
             line-height: 1.5;
             align-self: flex-start;
-            max-width: 50%;
         }
 
+        /* KHUNG ẢNH LỚN BÊN PHẢI - ĐÃ HẠ XUỐNG ĐÁY */
         .image-area {
             position: absolute;
             right: 0;
-            bottom: 0; 
-            width: 55%; 
-            height: 90%; 
+            bottom: 0; /* Gắn chặt xuống cạnh dưới */
+            width: 55%; /* Hình ảnh chiếm phần bên phải */
+            height: 90%; /* Không cao bằng 100% để tạo chiều sâu */
             display: flex;
-            justify-content: flex-end; 
-            align-items: flex-end; 
-            z-index: 5; 
+            justify-content: flex-end; /* Căn hình sát sang phải */
+            align-items: flex-end; /* Căn hình sát xuống dưới */
+            z-index: 5; /* Nằm dưới text nếu có đè lên nhau */
         }
 
         .image-area img {
-            max-width: 100%; 
-            max-height: 100%; 
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
-            object-position: bottom right; 
+            object-position: bottom right; /* Quan trọng: Gắn gốc ảnh vào góc dưới phải */
         }
 
+        /* NÚT TẢI XUỐNG - Tách ra khỏi vùng chụp ảnh */
         .action-area {
-            margin-top: 30px;
-            margin-bottom: 40px; /* Tránh việc nút bị sát mép dưới quá */
+            margin-top: 20px;
             display: flex;
             justify-content: center;
             width: 100%;
