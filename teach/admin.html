@@ -4,129 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MHEnt. Edu - Admin Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0ea5e9">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="teach-theme.css"> <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        /* TONE MÀU SẼ ĐƯỢC LẤY TỪ TEACH-THEME.CSS VÀ ROOT */
+        body, h1, h2, h3, h4, p, span, button, input, select, textarea, td, th { font-family: 'Nunito', sans-serif !important; }
+        body { background: #f8fafc; overflow-x: hidden; margin: 0; padding: 0; }
+        body.dark-mode { background: #0f172a; color: #fff; }
+
+        .admin-layout { display: flex; min-height: 100vh; padding-top: 70px; }
+        .admin-sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto; z-index: 10; }
+        .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
+        .admin-menu-item:hover { background: #f1f5f9; color: var(--hub-color); }
+        .admin-menu-item.active { background: var(--hub-bg); color: var(--hub-color); box-shadow: 0 4px 10px rgba(14,165,233,0.15); }
         
-        /* SIDEBAR CHỨA CÁC TOOL */
-        .sidebar { width: 250px; background: #1e293b; padding: 20px 0; border-right: 2px solid #334155; display: flex; flex-direction: column; }
-        .logo { font-size: 24px; font-weight: 900; color: #0ea5e9; text-align: center; margin-bottom: 30px; }
-        .logo span { color: #ff85a2; }
-        .menu-item { padding: 15px 25px; color: #94a3b8; font-weight: 700; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; display: flex; align-items: center; gap: 10px; }
-        .menu-item:hover { background: #334155; color: white; }
-        .menu-item.active { background: #0f172a; color: white; border-left-color: #0ea5e9; }
+        .admin-content { flex: 1; margin-left: 260px; padding: 40px; max-width: 100%; box-sizing: border-box; overflow-x: hidden; }
+        .admin-title { font-size: 28px; font-weight: 900; color: #1e293b; margin: 0 0 30px 0; }
         
-        /* NỘI DUNG MAIN */
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .admin-tab { display: none; animation: fadeIn 0.3s ease; }
+        .admin-tab.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FORM STYLES */
+        .admin-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group.full { grid-column: 1 / -1; }
+        .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
+        .admin-input, .admin-select, .admin-textarea { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; box-sizing: border-box; }
+        .admin-input:focus, .admin-select:focus, .admin-textarea:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 12px rgba(14,165,233,0.1); }
+        .admin-textarea { resize: vertical; min-height: 100px; }
         
-        /* MODULE: VOCAB ARENA */
-        .admin-header { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #ff85a2; }
+        .btn-admin { background: var(--hub-color); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-admin:hover { background: #0284c7; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(14,165,233,0.3); }
+
+        /* MÀN BẢO VỆ CỬA */
+        #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; }
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 99999; display: none; align-items: center; justify-content: center; transition: 0.3s; }
+        .popup-box { background: #fff; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+
+        /* DARK MODE OVERRIDES */
+        body.dark-mode .admin-sidebar, body.dark-mode .admin-card, body.dark-mode .popup-box { background: #1e293b; border-color: #334155; }
+        body.dark-mode .admin-title, body.dark-mode .input-group label { color: #f8fafc; }
+        body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
+
+        /* VOCAB SPECIFIC STYLES */
         .input-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { background: #334155; color: #cbd5e1; border: none; padding: 10px 20px; border-radius: 8px 8px 0 0; font-weight: 800; cursor: pointer; font-family: inherit; }
-        .tab-btn.active { background: #0ea5e9; color: white; }
-        .input-area { background: #0b1121; padding: 15px; border-radius: 0 8px 8px 8px; border: 1px solid #475569; margin-bottom: 15px; }
+        .tab-btn { background: #f1f5f9; color: #64748b; border: 2px solid transparent; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--hub-bg); color: var(--hub-color); border-color: var(--hub-color); }
+        body.dark-mode .tab-btn { background: #334155; color: #94a3b8; }
+        body.dark-mode .tab-btn.active { background: var(--hub-bg); color: var(--hub-color); }
+
         .row-input { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .row-input input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-family: inherit; }
-        textarea, select, input[type="number"] { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-family: inherit; box-sizing: border-box; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; font-family: inherit; }
-        
-        #admin-current-q { background: #0ea5e9; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; }
-        .admin-controls-wrapper { display: flex; gap: 20px; align-items: flex-start; }
-        .admin-box { background: #1e293b; padding: 20px; border-radius: 12px; flex: 1; }
-        #admin-question-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 400px; overflow-y: auto; }
-        .q-btn { background: #334155; color: white; padding: 12px; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; }
-        .q-btn.active { background: #ff85a2; border-color: #ff5c8a; }
-        .q-btn.solved { background: #10b981; border-color: #059669; opacity: 0.5; text-decoration: line-through; pointer-events: none;}
         
         .mirror-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .mirror-card { background: #334155; border: 2px solid #475569; padding: 15px 10px; border-radius: 8px; color: white; cursor: pointer; text-align: center; font-weight: 800; }
-        .mirror-card.correct { background: #10b981 !important; border-color: #059669 !important; }
-        .mirror-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.5; }
+        .mirror-card { background: #f1f5f9; border: 2px solid #e2e8f0; padding: 15px 10px; border-radius: 8px; font-size: 16px; font-weight: 800; color: #1e293b; cursor: pointer; text-align: center; user-select: none; transition: 0.2s; }
+        body.dark-mode .mirror-card { background: #334155; border-color: #475569; color: white; }
+        .mirror-card:hover { border-color: var(--hub-color); }
+        .mirror-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white; }
+        .mirror-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.5; color: white;}
+        .mirror-card.solved-past { opacity: 0.3; pointer-events: none; background: transparent; }
+        
+        #admin-question-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .q-btn { background: #f8fafc; color: #1e293b; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; font-family: inherit; }
+        body.dark-mode .q-btn { background: #334155; border-color: #475569; color: white; }
+        .q-btn:hover { border-color: var(--hub-color); }
+        .q-btn.active { background: var(--hub-color); border-color: var(--hub-color); color: white; }
+        .q-btn.solved { background: #10b981; border-color: #059669; opacity: 0.5; text-decoration: line-through; color: white;}
     </style>
 </head>
-<body>
+<body class="gradient-bg">
 
-    <div class="sidebar">
-        <div class="logo">MHEnt. <span>Edu</span></div>
-        <div class="menu-item active"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</div>
-        <div class="menu-item" style="opacity: 0.5;"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Cơ Cấu (Coming soon)</div>
+    <div id="security-shield">
+        <i class="fa-solid fa-shield-halved fa-beat fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i>
+        <h2 style="font-weight: 900;">ĐANG KIỂM TRA QUYỀN GIÁO VIÊN...</h2>
     </div>
 
-    <div class="main-content">
-        <div id="module-vocab">
-            <div class="admin-header">
-                <h2 style="margin:0 0 15px 0; color: #ff85a2;"><i class="fa-solid fa-gear"></i> Thiết lập Từ Vựng</h2>
-                
-                <div class="input-tabs">
-                    <button class="tab-btn active" onclick="switchTab('table')">Nhập theo Bảng</button>
-                    <button class="tab-btn" onclick="switchTab('text')">Dán từ Excel</button>
-                </div>
-
-                <div class="input-area" id="area-table">
-                    <div id="table-rows"></div>
-                    <button class="btn" style="background: #334155; color: white; margin-top: 5px;" onclick="addRow()">+ Thêm từ mới</button>
-                </div>
-                <div class="input-area" id="area-text" style="display: none;">
-                    <textarea id="data-input" placeholder="Từ vựng | Ý nghĩa"></textarea>
-                </div>
-
-                <div style="display: flex; gap: 15px;">
-                    <select id="mode-select" style="flex: 2;">
-                        <option value="normal">🟢 Normal (Mở tất cả)</option>
-                        <option value="challenge">🔥 Challenge (Sương mù & Chớp tắt)</option>
-                    </select>
-                    <input type="number" id="strike-input" value="1" min="0" style="flex: 1;" placeholder="Số mạng sai">
-                    <button class="btn" style="background: #0ea5e9; color: white; flex: 1;" onclick="syncData()"><i class="fa-solid fa-desktop"></i> GỬI QUA MÁY CHIẾU</button>
-                </div>
-            </div>
-
-            <div id="admin-current-q">
-                <div style="font-size: 13px; font-weight: 800; text-transform: uppercase;">Giáo viên đọc câu này:</div>
-                <div id="admin-reading-meaning" style="font-size: 26px; font-weight: 900;">Chưa chọn câu hỏi</div>
-            </div>
-
-            <div class="admin-controls-wrapper">
-                <div class="admin-box" style="flex: 1; border-top: 5px solid #ff85a2;">
-                    <h3 style="margin:0 0 10px 0; color: white;">1. Chọn Câu Hỏi</h3>
-                    <div id="admin-question-list"></div>
-                </div>
-
-                <div class="admin-box" style="flex: 2; border-top: 5px solid #0ea5e9;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin:0; color: white;">2. Bảng Bấm Hộ Học Sinh</h3>
-                        <button class="btn" style="background: #f59e0b; color: white; padding: 8px 15px;" onclick="shuffleGrid()"><i class="fa-solid fa-shuffle"></i> Trộn</button>
-                    </div>
-                    <div id="admin-mirror-grid" class="mirror-grid"></div>
-                </div>
-            </div>
+    <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 1px solid var(--hub-bg);">
+        <div class="nav-left">
+            <a onclick="window.location.href='/'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--hub-color);">
+                <span class="logo-name" style="color: var(--hub-color);">MHEnt. Edu - Giáo viên</span>
+            </a>
         </div>
+        <div class="nav-right">
+            <button class="btn-theme" onclick="window.open('/teach/vocab.html', '_blank')" title="Mở Màn Hình Trình Chiếu" style="border:none; color: var(--hub-color);">
+                <i class="fa-solid fa-desktop"></i> Mở Màn Chiếu
+            </button>
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+        </div>
+    </nav>
+
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Công cụ giảng dạy</div>
+            <a class="admin-menu-item active" id="menu-vocab" onclick="switchTab('vocab')"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</a>
+            <a class="admin-menu-item" id="menu-spin"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay (Sắp ra mắt)</a>
+        </aside>
+
+        <main class="admin-content">
+            <div id="tab-vocab" class="admin-tab active">
+                <h1 class="admin-title">Đấu Trường Từ Vựng</h1>
+                
+                <div class="admin-card">
+                    <h3 style="margin-top: 0; color: var(--hub-color);"><i class="fa-solid fa-gear"></i> 1. Thiết Lập Dữ Liệu</h3>
+                    <div class="input-tabs">
+                        <button class="tab-btn active" id="tab-table" onclick="switchInputTab('table')">Nhập theo Bảng</button>
+                        <button class="tab-btn" id="tab-text" onclick="switchInputTab('text')">Dán từ Excel</button>
+                    </div>
+
+                    <div id="area-table">
+                        <div id="table-rows"></div>
+                        <button class="btn-admin" style="background: #94a3b8; padding: 8px 15px; margin-top: 10px; font-size: 13px;" onclick="addTableRow()">+ Thêm từ mới</button>
+                    </div>
+                    <div id="area-text" style="display: none;">
+                        <textarea id="data-input" class="admin-textarea" placeholder="Từ vựng | Ý nghĩa (Hoặc copy từ Excel dán vào)"></textarea>
+                    </div>
+
+                    <div class="form-grid" style="margin-top: 20px;">
+                        <div class="input-group" style="margin-bottom:0;">
+                            <label>Chế độ chơi</label>
+                            <select id="mode-select" class="admin-select">
+                                <option value="normal">🟢 Normal (Hiện tất cả từ)</option>
+                                <option value="challenge">🔥 Challenge (Sương mù chớp tắt)</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="margin-bottom:0;">
+                            <label>Số lần chọn sai tối đa</label>
+                            <input type="number" id="strike-input" class="admin-input" value="1" min="0">
+                        </div>
+                    </div>
+                    <button class="btn-admin" style="width: 100%; margin-top: 20px;" onclick="adminSyncData()">🚀 TẠO & ĐẨY LÊN MÀN CHIẾU</button>
+                </div>
+
+                <div class="admin-card" id="control-station" style="display: none; border-top: 5px solid var(--hub-color);">
+                    <div style="background: var(--hub-bg); color: var(--hub-color); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="font-size: 13px; font-weight: 800; text-transform: uppercase;">Giáo viên hãy đọc to câu này:</div>
+                        <div id="admin-reading-meaning" style="font-size: 26px; font-weight: 900; margin-top: 5px;">Chưa chọn câu hỏi</div>
+                    </div>
+
+                    <div class="form-grid" style="align-items: start;">
+                        <div>
+                            <h3 style="margin:0 0 10px 0;">Chọn Câu Hỏi</h3>
+                            <p style="color: #64748b; font-size: 13px;">Bấm để kích hoạt hiển thị lên máy chiếu</p>
+                            <div id="admin-question-list"></div>
+                        </div>
+                        <div style="border-left: 2px dashed #e2e8f0; padding-left: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h3 style="margin:0;">Bảng Mô Phỏng</h3>
+                                <button class="btn-admin" style="background: #f59e0b; padding: 8px 15px; font-size: 13px;" onclick="adminShuffle()"><i class="fa-solid fa-shuffle"></i> Trộn</button>
+                            </div>
+                            <p style="color: #10b981; font-size: 13px;">Bấm hộ học sinh tại đây</p>
+                            <div id="admin-mirror-grid" class="mirror-grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            projectId: "mhentuniverse",
+            storageBucket: "mhentuniverse.firebasestorage.app",
+            messagingSenderId: "377044322952",
+            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
+            measurementId: "G-YE217QW296"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // 🚨 CHỈ CHO PHÉP ADMIN VÀ TEACHER
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '/login';
+            } else {
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    const role = docSnap.exists() ? docSnap.data().role : 'user';
+                    if (role !== 'admin' && role !== 'teacher') {
+                        alert("Khu vực cấm! Bạn không có quyền Giáo viên.");
+                        window.location.href = '/';
+                    } else {
+                        document.getElementById('security-shield').style.opacity = '0';
+                        setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
+                    }
+                } catch (error) {
+                    window.location.href = '/';
+                }
+            }
+        });
+    </script>
 
     <script>
-        let globalWordList = [], currentGridOrder = [], solvedWords = [], activeInputMode = 'table', activeWordId = null;
+        window.toggleDarkMode = function() { 
+            document.body.classList.toggle('dark-mode'); 
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
+        };
+        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('menu-' + tabName).classList.add('active');
+        };
 
         // Khởi tạo bảng mẫu
-        for(let i=0; i<4; i++) addRow();
+        for(let i=0; i<4; i++) addTableRow();
 
-        function switchTab(mode) {
+        let globalWordList = [], currentGridOrder = [], solvedWords = [], activeInputMode = 'table', activeWordId = null;
+
+        function switchInputTab(mode) {
             activeInputMode = mode;
-            document.querySelectorAll('.tab-btn').forEach((btn, idx) => btn.classList.toggle('active', (mode === 'table' && idx === 0) || (mode === 'text' && idx === 1)));
+            document.getElementById('tab-table').classList.toggle('active', mode === 'table');
+            document.getElementById('tab-text').classList.toggle('active', mode === 'text');
             document.getElementById('area-table').style.display = mode === 'table' ? 'block' : 'none';
             document.getElementById('area-text').style.display = mode === 'text' ? 'block' : 'none';
         }
 
-        function addRow() {
-            const div = document.createElement('div'); div.className = 'row-input';
-            div.innerHTML = `<input type="text" class="input-w" placeholder="Từ vựng"><input type="text" class="input-m" placeholder="Ý nghĩa"><button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="this.parentElement.remove()">X</button>`;
-            document.getElementById('table-rows').appendChild(div);
+        function addTableRow() {
+            const container = document.getElementById('table-rows');
+            const row = document.createElement('div'); row.className = 'row-input';
+            row.innerHTML = `<input type="text" class="admin-input input-w" placeholder="Từ vựng">
+                             <input type="text" class="admin-input input-m" placeholder="Ý nghĩa">
+                             <button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+            container.appendChild(row);
         }
 
         function sendCmd(action, payload) {
             localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() }));
         }
 
-        function syncData() {
+        window.adminSyncData = function() {
             globalWordList = []; solvedWords = []; activeWordId = null;
             if (activeInputMode === 'table') {
                 document.querySelectorAll('.row-input').forEach((row, i) => {
@@ -139,22 +264,26 @@
                     if(parts.length >= 2) globalWordList.push({ id: 'w_'+i, word: parts[0].trim(), meaning: parts[1].trim() });
                 });
             }
-            if(globalWordList.length < 2) return alert("Nhập ít nhất 2 từ!");
+            if(globalWordList.length < 2) return alert("Cần ít nhất 2 từ hợp lệ!");
 
-            const mode = document.getElementById('mode-select').value, strikes = parseInt(document.getElementById('strike-input').value) || 0;
+            const mode = document.getElementById('mode-select').value;
+            const strikes = parseInt(document.getElementById('strike-input').value) || 0;
             
             const qList = document.getElementById('admin-question-list'); qList.innerHTML = '';
             globalWordList.forEach(item => {
                 const btn = document.createElement('button'); btn.className = 'q-btn'; btn.id = 'admin-btn-'+item.id;
-                btn.innerHTML = item.word; btn.onclick = () => selectQuestion(item);
+                btn.innerHTML = `<span style="font-size:16px;">${item.word}</span>`; 
+                btn.onclick = () => selectQuestion(item);
                 qList.appendChild(btn);
             });
 
             currentGridOrder = [...globalWordList].sort((a,b) => a.word.localeCompare(b.word));
             sendCmd('SYNC_DATA', { list: globalWordList, mode, strikes, order: currentGridOrder });
+            
             renderMirror();
-            document.getElementById('admin-current-q').style.display = 'block';
+            document.getElementById('control-station').style.display = 'block';
             document.getElementById('admin-reading-meaning').innerText = "Vui lòng chọn 1 câu hỏi ở dưới!";
+            alert("Đã gửi dữ liệu sang Màn Chiếu!");
         }
 
         function renderMirror() {
@@ -162,7 +291,8 @@
             currentGridOrder.forEach(item => {
                 const card = document.createElement('div'); card.className = 'mirror-card'; card.id = 'mirror-card-'+item.id;
                 card.innerText = item.word;
-                card.onclick = () => { if(activeWordId) sendCmd('ADMIN_CLICK', item.id); };
+                if(solvedWords.includes(item.id)) card.classList.add('solved-past');
+                card.onclick = () => { if(activeWordId && !solvedWords.includes(item.id)) sendCmd('ADMIN_CLICK', item.id); };
                 grid.appendChild(card);
             });
         }
@@ -172,13 +302,11 @@
             activeWordId = item.id;
             document.getElementById('admin-btn-'+item.id).classList.add('active');
             document.getElementById('admin-reading-meaning').innerText = item.meaning;
-            
-            // Xóa màu sai/đúng cũ trên bảng Mirror khi qua câu mới
             document.querySelectorAll('.mirror-card').forEach(c => c.classList.remove('correct', 'incorrect'));
             sendCmd('SET_QUESTION', item);
         }
 
-        function shuffleGrid() {
+        window.adminShuffle = function() {
             currentGridOrder = [...currentGridOrder].sort(() => 0.5 - Math.random());
             sendCmd('SHUFFLE', currentGridOrder);
             renderMirror();
@@ -191,6 +319,7 @@
                 const btn = document.getElementById('admin-btn-'+data.payload.id);
                 if(btn) { btn.classList.remove('active'); btn.classList.add('solved'); }
                 solvedWords.push(data.payload.id);
+                renderMirror();
             }
             if(data.action === 'SYNC_COLOR') {
                 const card = document.getElementById('mirror-card-'+data.payload.id);
