@@ -179,11 +179,77 @@
                 try {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
                     const role = docSnap.exists() ? docSnap.data().role : 'user';
-                    if (role !== 'admin' && role !== 'teacher') { alert("Khu vực cấm!"); window.location.href = '/'; } 
+                    if (role !== 'admin' && role !== 'teacher') { showPopup("Khu vực cấm!"); window.location.href = '/'; } 
                     else { document.getElementById('security-shield').style.opacity = '0'; setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); }
-                } catch (error) { window.location.href = '/'; }
+                } catch (error) { window.location.href = '/teach'; }
             }
         });
+
+        window.showPopup = function(message, isError = false) {
+            const popup = document.getElementById('custom-popup');
+            const box = document.querySelector('.popup-box');
+            const icon = document.getElementById('popup-icon');
+            const title = document.getElementById('popup-title');
+            const msg = document.getElementById('popup-message');
+
+            const successSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+            const errorSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+
+            if (isError) {
+                box.classList.add('error'); icon.innerHTML = errorSVG; title.innerText = "Lỗi rùi!";
+            } else {
+                box.classList.remove('error'); icon.innerHTML = successSVG; title.innerText = "Thành công!";
+            }
+            msg.innerText = message;
+            popup.style.display = 'flex';
+
+            if (isError) { setTimeout(() => { popup.style.display = 'none'; }, 3000); }
+        };
+
+        window.closePopup = function() { 
+            const popup = document.getElementById('custom-popup');
+            const box = popup.querySelector('.popup-box');
+            popup.style.opacity = '0';
+            box.classList.remove('pop-active');
+            setTimeout(() => { popup.style.display = 'none'; }, 300);
+        };
+
+        window.showToast = function(title, message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            
+            // 1. Thay icon emoji bằng SVG vector
+            let iconSVG = '';
+            if (type === 'error') {
+                iconSVG = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="#ff4d4d" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+            } else if (type === 'info') {
+                iconSVG = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="#ff85a2" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+            } else { // success
+                iconSVG = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="#10b981" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+            }
+
+            // 2. Chia bố cục rõ ràng: Dòng trên là Tiêu đề, Dòng dưới là Mô tả
+            toast.innerHTML = `
+                <div class="toast-icon">${iconSVG}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-desc">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+
+            // 3. Kích hoạt hiệu ứng Pop-out sau 3 giây
+            setTimeout(() => { 
+                toast.style.animation = 'popOutRight 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards'; 
+                setTimeout(() => toast.remove(), 400); // Chờ bay ra xong mới xóa khỏi DOM
+            }, 3000);
+        };
     </script>
 
     <script>
@@ -231,7 +297,7 @@
                     if(parts.length >= 2) globalWordList.push({ id: 'w_'+i, word: parts[0].trim(), meaning: parts[1].trim() });
                 });
             }
-            if(globalWordList.length < 2) return alert("Cần ít nhất 2 từ hợp lệ!");
+            if(globalWordList.length < 2) return showToast("Cần ít nhất 2 từ hợp lệ!", "Vui lòng thêm ít nhất 2 từ hợp lệ vào danh sách.", "error");
 
             const mode = document.getElementById('mode-select').value;
             const strikes = parseInt(document.getElementById('strike-input').value) || 0;
@@ -250,7 +316,7 @@
             renderMirror();
             document.getElementById('control-station').style.display = 'block';
             document.getElementById('admin-reading-meaning').innerText = "Vui lòng chọn 1 câu hỏi ở dưới!";
-            alert("Đã gửi dữ liệu sang Màn Chiếu!");
+            showToast("Thành công", "Đã gửi dữ liệu sang Màn Chiếu!", "success");
         }
 
         function renderMirror() {
