@@ -96,8 +96,11 @@
     <div class="admin-layout">
         <aside class="admin-sidebar">
             <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Công cụ giảng dạy</div>
-            <a class="admin-menu-item active" id="menu-vocab" onclick="switchTab('vocab')"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</a>
-            <a class="admin-menu-item" id="menu-spin"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay (Sắp ra mắt)</a>
+            <a class="admin-menu-item active" id="menu-vocab" onclick="switchAdminTab('vocab')"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</a>
+            
+            <a class="admin-menu-item" id="menu-baam" onclick="switchAdminTab('baam')"><i class="fa-solid fa-gift"></i> Hộp Quà Nhân Phẩm</a>
+            
+            <a class="admin-menu-item" id="menu-spin"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay (Sắp tới)</a>
         </aside>
 
         <main class="admin-content">
@@ -160,6 +163,45 @@
                             <div id="admin-mirror-grid" class="mirror-grid"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div id="tab-baam" class="admin-tab">
+                <h1 class="admin-title">Hộp Quà Nhân Phẩm (Quiz)</h1>
+                
+                <div class="admin-card">
+                    <button class="btn-admin" onclick="window.open('/teach/baamboozle.html', '_blank')" style="width: 100%; margin-bottom: 25px; background: #8b5cf6;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (HỘP QUÀ)
+                    </button>
+
+                    <h3 style="margin-top: 0; color: #8b5cf6;"><i class="fa-solid fa-users"></i> Cài đặt Đội</h3>
+                    <div class="input-group">
+                        <label>Số lượng đội chơi</label>
+                        <input type="number" id="baam-teams" class="admin-input" value="4" min="2" max="10">
+                    </div>
+
+                    <h3 style="margin-top: 30px; color: #8b5cf6;"><i class="fa-solid fa-list-check"></i> 1. Danh sách Câu hỏi (Cộng điểm nếu đúng)</h3>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 0;">
+                        Cú pháp: <b>Câu hỏi | Đáp án 1 | Đáp án 2 | Đáp án 3 | Đáp án 4 | Ô đúng (1,2,3,4) | Điểm</b><br>
+                        <i>(Có thể bỏ trống Đáp án 3 và 4 nếu chỉ muốn trắc nghiệm 2 lựa chọn)</i>
+                    </p>
+                    <textarea id="baam-questions" class="admin-textarea" style="height: 150px;">
+PriPara là viết tắt của từ gì? | Prism Paradise | Pretty Paradise | Princess Party | Prism Party | 1 | 10
+Màu đặc trưng của Tokugawa Sakura là gì? | Đỏ | Hồng đào | Xanh dương | Vàng | 2 | 15
+Detective Conan có nhân vật chính tên là gì? | Shinichi | Heiji | Kaito | Kogoro | 1 | 5
+1 + 1 bằng mấy? | 1 | 2 | 3 | 4 | 2 | 5</textarea>
+
+                    <h3 style="margin-top: 30px; color: #f59e0b;"><i class="fa-solid fa-star"></i> 2. Thẻ Đặc Biệt (Sự kiện bất ngờ)</h3>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 0;">Cú pháp: <b>Nội dung sự kiện | Điểm số (+ / - / 0)</b></p>
+                    <textarea id="baam-specials" class="admin-textarea" style="height: 100px;">
+Ôi không! Đội bạn bị mất lượt và trừ 10 điểm! | -10
+Tuyệt vời! Fan tặng bạn một Lightstick! Nhận 20 điểm miễn phí. | 20
+Hát một bài hát để được cộng 15 điểm (0 điểm nếu không hát). | 15</textarea>
+
+                    <button class="btn-admin" style="width: 100%; margin-top: 25px; background: #8b5cf6;" onclick="syncBaamboozle()">
+                        <i class="fa-solid fa-paper-plane"></i> TẠO GAME & GỬI QUA MÁY CHIẾU
+                    </button>
+                    <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 10px;">Toàn bộ thao tác trả lời sẽ được thực hiện trực tiếp trên Tab Máy Chiếu.</p>
                 </div>
             </div>
         </main>
@@ -365,6 +407,66 @@
                 if(card) card.classList.add(data.payload.status);
             }
         });
+
+        // ==========================================
+        // 💡 LOGIC: HỘP QUÀ NHÂN PHẨM (BAAMBOOZLE)
+        // ==========================================
+        window.syncBaamboozle = function() {
+            const teamCount = parseInt(document.getElementById('baam-teams').value) || 2;
+            const questionsRaw = document.getElementById('baam-questions').value.trim().split('\n');
+            const specialsRaw = document.getElementById('baam-specials').value.trim().split('\n');
+
+            let parsedCards = [];
+
+            // Parse Câu hỏi
+            questionsRaw.forEach(line => {
+                let parts = line.split('|').map(s => s.trim());
+                if(parts.length >= 4) { // Ít nhất phải có Câu hỏi + 2 Đáp án + Đáp án đúng
+                    let qText = parts[0];
+                    let options = [];
+                    // Đọc từ index 1 đến index áp chót - 1 làm Option (Bỏ qua mấy ô rỗng)
+                    for(let i=1; i < parts.length - 2; i++) {
+                        if(parts[i]) options.push(parts[i]);
+                    }
+                    let correctIndex = parseInt(parts[parts.length - 2]) - 1; // 1-based to 0-based
+                    let points = parseInt(parts[parts.length - 1]) || 10;
+
+                    parsedCards.push({
+                        type: 'question',
+                        text: qText,
+                        options: options,
+                        correct: correctIndex,
+                        points: points
+                    });
+                }
+            });
+
+            // Parse Thẻ đặc biệt
+            specialsRaw.forEach(line => {
+                let parts = line.split('|').map(s => s.trim());
+                if(parts.length >= 2) {
+                    parsedCards.push({
+                        type: 'special',
+                        text: parts[0],
+                        points: parseInt(parts[1]) || 0
+                    });
+                }
+            });
+
+            if(parsedCards.length < 2) return alert("Vui lòng nhập ít nhất 2 dữ liệu hợp lệ!");
+
+            // Xáo trộn mảng Card trước khi gửi đi
+            parsedCards = parsedCards.sort(() => 0.5 - Math.random());
+
+            // Gửi qua localStorage (Dùng action BAAM_SYNC)
+            localStorage.setItem('mhent_baam_cmd', JSON.stringify({
+                action: 'SYNC',
+                payload: { teams: teamCount, cards: parsedCards },
+                rand: Math.random()
+            }));
+
+            showToast(`Đã xuất xưởng ${parsedCards.length} Thẻ bài (gồm ${questionsRaw.length} Câu hỏi và ${specialsRaw.length} Đặc biệt) sang máy chiếu!`);
+        }
     </script>
 </body>
 </html>
