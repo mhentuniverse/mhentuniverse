@@ -1,24 +1,34 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hộp Quà Nhân Phẩm - MHEnt. Edu</title>
+    <title>Mystery Box - MHEnt. Edu</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0ea5e9">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/teach/teach-theme.css"> 
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="teach-theme.css">
     <style>
-        body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        /* 💡 FIX 1: ÉP TOÀN BỘ CÁC THẺ HTML DÙNG FONT NUNITO */
+        *, body, button, div, span, h1, h2, h3, p { font-family: 'Nunito', sans-serif !important; }
         
-        /* THANH ĐIỂM CÁC ĐỘI */
-        .teams-bar { display: flex; justify-content: center; gap: 15px; padding: 20px; background: #1e293b; border-bottom: 3px solid #334155; overflow-x: auto; }
+        body { background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        /* 💡 FIX 4: NÚT BACK TO HOME */
+        .btn-home { position: absolute; top: 20px; left: 20px; background: #1e293b; color: white; border: 2px solid #334155; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 16px; z-index: 1000; transition: 0.3s; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-home:hover { border-color: #8b5cf6; color: #a78bfa; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.2); }
+
+        .teams-bar { display: flex; justify-content: center; gap: 15px; padding: 20px; background: #1e293b; border-bottom: 3px solid #334155; overflow-x: auto; padding-top: 30px; }
         .team-badge { background: #0b1121; border: 2px solid #475569; padding: 15px 25px; border-radius: 12px; text-align: center; min-width: 120px; transition: 0.3s; }
         .team-badge.active { background: #8b5cf6; border-color: #a78bfa; transform: scale(1.1); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.4); }
         .team-name { font-size: 14px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; margin-bottom: 5px; }
         .team-badge.active .team-name { color: #f8fafc; }
         .team-score { font-size: 32px; font-weight: 900; color: white; }
 
-        /* KHU VỰC THẺ BÀI */
         .game-board { flex: 1; padding: 40px; display: flex; align-items: center; justify-content: center; }
         .card-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1200px; }
         
@@ -26,7 +36,6 @@
         .box-card:hover { transform: translateY(-5px); border-color: #8b5cf6; color: #a78bfa; background: #1e293b; }
         .box-card.disabled { background: #0f172a; border-color: #1e293b; color: #1e293b; pointer-events: none; opacity: 0.5; box-shadow: none; }
 
-        /* MODAL BẬT LÊN KHI MỞ THẺ */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.95); z-index: 999; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(5px); }
         .modal-content { background: #1e293b; border: 3px solid #8b5cf6; padding: 40px; border-radius: 20px; text-align: center; max-width: 800px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -43,7 +52,6 @@
         .btn-continue { background: #8b5cf6; color: white; border: none; padding: 15px 40px; border-radius: 12px; font-size: 20px; font-weight: 900; cursor: pointer; display: none; margin: 0 auto; transition: 0.3s;}
         .btn-continue:hover { filter: brightness(1.1); transform: scale(1.05); }
 
-        /* BẢNG XẾP HẠNG (PODIUM) */
         #podium-screen { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; }
         .podium-title { font-size: 50px; font-weight: 900; color: #f59e0b; margin-bottom: 40px; text-transform: uppercase; text-shadow: 0 5px 15px rgba(245, 158, 11, 0.4); }
         .podium-container { display: flex; align-items: flex-end; justify-content: center; gap: 20px; height: 300px; margin-bottom: 50px; }
@@ -64,46 +72,41 @@
 </head>
 <body>
 
-    <div id="waiting-msg"><i class="fa-solid fa-gift fa-bounce"></i><br><br>Đang chờ kết nối từ Giáo viên...</div>
+    <a href="/teach/" class="btn-home"><i class="fa-solid fa-house"></i> Home</a>
+
+    <div id="waiting-msg"><i class="fa-solid fa-gift fa-bounce"></i><br><br>Waiting for connection...</div>
 
     <div id="main-game" style="display: none; height: 100%; flex-direction: column;">
-        <div class="teams-bar" id="teams-bar">
-            </div>
-
+        <div class="teams-bar" id="teams-bar"></div>
         <div class="game-board">
-            <div class="card-grid" id="card-grid">
-                </div>
+            <div class="card-grid" id="card-grid"></div>
         </div>
     </div>
 
     <div class="modal-overlay" id="question-modal">
         <div class="modal-content">
-            <div class="modal-points-badge" id="modal-points">Giá trị: 10 Điểm</div>
-            <div class="modal-question" id="modal-q-text">Nội dung câu hỏi sẽ nằm ở đây...</div>
-            
-            <div class="options-grid" id="modal-options">
-                </div>
-            
-            <button class="btn-continue" id="btn-continue" onclick="closeModalAndNextTurn()">TIẾP TỤC <i class="fa-solid fa-arrow-right"></i></button>
+            <div class="modal-points-badge" id="modal-points">Points: 10 Pts</div>
+            <div class="modal-question" id="modal-q-text">Loading...</div>
+            <div class="options-grid" id="modal-options"></div>
+            <button class="btn-continue" id="btn-continue" onclick="closeModalAndNextTurn()">CONTINUE <i class="fa-solid fa-arrow-right"></i></button>
         </div>
     </div>
 
     <div id="podium-screen">
-        <div class="podium-title"><i class="fa-solid fa-trophy"></i> Bảng Vàng Vinh Danh</div>
+        <div class="podium-title"><i class="fa-solid fa-trophy"></i> Hall of Fame</div>
         <div class="podium-container" id="podium-bars"></div>
         <div class="other-ranks" id="other-ranks"></div>
     </div>
 
     <script>
-        // Âm thanh
         const audioCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
         const audioWrong = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg');
         const audioSpecial = new Audio('https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg');
 
         let teams = [];
         let cards = [];
-        let currentTurnIndex = 0; // Index của mảng teams
-        let currentCardIndex = null; // Card đang mở
+        let currentTurnIndex = 0; 
+        let currentCardIndex = null; 
         let cardsRemaining = 0;
 
         window.addEventListener('storage', e => {
@@ -119,10 +122,9 @@
             document.getElementById('podium-screen').style.display = 'none';
             document.getElementById('main-game').style.display = 'flex';
 
-            // Khởi tạo Đội
             teams = [];
             for(let i=1; i<=numTeams; i++) {
-                teams.push({ id: i, name: `Đội ${i}`, score: 0 });
+                teams.push({ id: i, name: `Team ${i}`, score: 0 });
             }
             
             cards = cardsData;
@@ -150,7 +152,7 @@
             cards.forEach((c, i) => {
                 const btn = document.createElement('div');
                 btn.className = 'box-card';
-                btn.innerText = i + 1; // In số thứ tự 1, 2, 3...
+                btn.innerText = i + 1; 
                 btn.onclick = () => openCard(i, btn);
                 grid.appendChild(btn);
             });
@@ -168,20 +170,17 @@
                 audioSpecial.play();
             }
             
-            // Làm mờ nút
             btnElement.classList.add('disabled');
             cardsRemaining--;
         }
 
-        // ================= XỬ LÝ MODAL TRẮC NGHIỆM =================
         function showQuestionModal(data) {
-            document.getElementById('modal-points').innerText = `Câu hỏi trắc nghiệm | +${data.points} Điểm`;
+            document.getElementById('modal-points').innerText = `Quiz Question | +${data.points} Pts`;
             document.getElementById('modal-points').style.background = '#8b5cf6';
             document.getElementById('modal-q-text').innerText = data.text;
             
             const optGrid = document.getElementById('modal-options');
             optGrid.innerHTML = '';
-            // Tùy số lượng đáp án mà chỉnh layout 1 cột hay 2 cột
             optGrid.style.gridTemplateColumns = data.options.length <= 2 ? '1fr 1fr' : '1fr 1fr';
             
             data.options.forEach((optText, i) => {
@@ -198,46 +197,43 @@
 
         function checkAnswer(selectedIndex, correctIndex, points) {
             const btns = document.querySelectorAll('.option-btn');
-            // Khóa các nút lại
             btns.forEach(b => b.style.pointerEvents = 'none');
 
             if(selectedIndex === correctIndex) {
                 audioCorrect.play();
                 btns[selectedIndex].classList.add('correct');
                 
-                // Cộng điểm cho đội hiện tại
                 teams[currentTurnIndex].score += points;
                 document.getElementById(`score-${teams[currentTurnIndex].id}`).innerText = teams[currentTurnIndex].score;
                 
-                document.getElementById('modal-q-text').innerHTML = `🎉 CHÍNH XÁC! <br><span style="font-size:24px; color:#10b981;">Đội ${teams[currentTurnIndex].id} được cộng ${points} điểm!</span>`;
+                document.getElementById('modal-q-text').innerHTML = `🎉 CORRECT! <br><span style="font-size:24px; color:#10b981;">Team ${teams[currentTurnIndex].id} got +${points} points!</span>`;
             } else {
                 audioWrong.play();
                 btns[selectedIndex].classList.add('wrong');
-                btns[correctIndex].classList.add('correct'); // Bật sáng đáp án đúng
-                document.getElementById('modal-q-text').innerHTML = `❌ SAI RỒI! <br><span style="font-size:24px; color:#ef4444;">Đội ${teams[currentTurnIndex].id} rất tiếc không có điểm.</span>`;
+                btns[correctIndex].classList.add('correct'); 
+                document.getElementById('modal-q-text').innerHTML = `❌ WRONG! <br><span style="font-size:24px; color:#ef4444;">Team ${teams[currentTurnIndex].id} got no points.</span>`;
             }
 
             document.getElementById('btn-continue').style.display = 'block';
         }
 
-        // ================= XỬ LÝ MODAL ĐẶC BIỆT =================
         function showSpecialModal(data) {
             let color = data.points > 0 ? '#10b981' : (data.points < 0 ? '#ef4444' : '#f59e0b');
             
-            document.getElementById('modal-points').innerText = `THẺ ĐẶC BIỆT 🎁`;
+            document.getElementById('modal-points').innerText = `SPECIAL CARD 🎁`;
             document.getElementById('modal-points').style.background = color;
             
             let resultText = "";
             if(data.points !== 0) {
                 teams[currentTurnIndex].score += data.points;
                 document.getElementById(`score-${teams[currentTurnIndex].id}`).innerText = teams[currentTurnIndex].score;
-                resultText = `<br><span style="font-size:24px; color:${color};">Đội ${teams[currentTurnIndex].id} bị ảnh hưởng: ${data.points > 0 ? '+'+data.points : data.points} điểm!</span>`;
+                resultText = `<br><span style="font-size:24px; color:${color};">Team ${teams[currentTurnIndex].id} is affected: ${data.points > 0 ? '+'+data.points : data.points} points!</span>`;
             } else {
-                resultText = `<br><span style="font-size:24px; color:${color};">Chỉ là một hoạt động vui vẻ! Không ảnh hưởng điểm số.</span>`;
+                resultText = `<br><span style="font-size:24px; color:${color};">Just a fun activity! No points affected.</span>`;
             }
 
             document.getElementById('modal-q-text').innerHTML = `${data.text} ${resultText}`;
-            document.getElementById('modal-options').innerHTML = ''; // Ẩn nút đáp án
+            document.getElementById('modal-options').innerHTML = ''; 
             
             document.getElementById('btn-continue').style.display = 'block';
             document.getElementById('question-modal').style.display = 'flex';
@@ -249,40 +245,31 @@
             if(cardsRemaining <= 0) {
                 showPodium();
             } else {
-                // Chuyển turn cho đội tiếp theo
                 currentTurnIndex = (currentTurnIndex + 1) % teams.length;
                 renderTeamsBar();
             }
         }
 
-        // ================= BẢNG XẾP HẠNG =================
         function showPodium() {
             document.getElementById('main-game').style.display = 'none';
             document.getElementById('podium-screen').style.display = 'flex';
 
-            // Xếp hạng đội theo điểm giảm dần
             let sortedTeams = [...teams].sort((a, b) => b.score - a.score);
-
             const bars = document.getElementById('podium-bars');
             bars.innerHTML = '';
 
-            // Nếu có ít nhất 2 đội, vẽ Podium (Hạng 2 đứng trái, Hạng 1 đứng giữa, Hạng 3 đứng phải)
             if(sortedTeams.length >= 1) {
-                // Hạng 2
                 if(sortedTeams.length >= 2) bars.appendChild(createBar(sortedTeams[1], 'rank-2'));
-                // Hạng 1
                 bars.appendChild(createBar(sortedTeams[0], 'rank-1'));
-                // Hạng 3
                 if(sortedTeams.length >= 3) bars.appendChild(createBar(sortedTeams[2], 'rank-3'));
             }
 
-            // Các hạng còn lại
             const others = document.getElementById('other-ranks');
             others.innerHTML = '';
             for(let i = 3; i < sortedTeams.length; i++) {
                 const pill = document.createElement('div');
                 pill.className = 'rank-pill';
-                pill.innerText = `Hạng ${i+1}: ${sortedTeams[i].name} (${sortedTeams[i].score} điểm)`;
+                pill.innerText = `Rank ${i+1}: ${sortedTeams[i].name} (${sortedTeams[i].score} pts)`;
                 others.appendChild(pill);
             }
         }
