@@ -47,6 +47,11 @@
         body.dark-mode .admin-title, body.dark-mode .input-group label { color: #f8fafc; }
         body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
 
+        /* CSS cho hàng nhập liệu Baamboozle */
+        .baam-q-row, .baam-s-row { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
+        .baam-s-row { flex-direction: row; align-items: center; }
+        body.dark-mode .baam-q-row, body.dark-mode .baam-s-row { background: #1e293b; border-color: #334155; }
+
         .input-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-btn { background: #f1f5f9; color: #64748b; border: 2px solid transparent; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { background: var(--hub-bg); color: var(--hub-color); border-color: var(--hub-color); }
@@ -414,9 +419,9 @@
             const container = document.getElementById('baam-q-rows');
             const row = document.createElement('div');
             row.className = 'baam-q-row';
-            row.style.cssText = 'background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155;';
+            // ĐÃ XÓA DÒNG ROW.STYLE.CSSTEXT Ở ĐÂY
             row.innerHTML = `
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="display: flex; gap: 10px;">
                     <input type="text" class="admin-input q-text" placeholder="Nội dung Câu hỏi..." style="flex: 2;" value="${q === 'Q' ? '' : q}">
                     <input type="number" class="admin-input q-points" placeholder="Điểm" style="flex: 1;" value="${pts}" title="Điểm thưởng">
                     <button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
@@ -433,6 +438,19 @@
                         <option value="3" ${ans === 3 ? 'selected' : ''}>Đúng: Đáp án 4</option>
                     </select>
                 </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function addBaamSpecialRow(text="", pts=-10) {
+            const container = document.getElementById('baam-s-rows');
+            const row = document.createElement('div');
+            row.className = 'baam-s-row';
+            // ĐÃ XÓA DÒNG ROW.STYLE.CSSTEXT Ở ĐÂY
+            row.innerHTML = `
+                <input type="text" class="admin-input s-text" placeholder="Nội dung thẻ (VD: Mất lượt, trừ 10 điểm!)" style="flex: 3;" value="${text}">
+                <input type="number" class="admin-input s-points" placeholder="Điểm (+/-)" style="flex: 1;" value="${pts}">
+                <button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
             `;
             container.appendChild(row);
         }
