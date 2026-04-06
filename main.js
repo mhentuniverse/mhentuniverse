@@ -20,16 +20,17 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
     app.quit(); // Nếu có app thứ 2 đang mở thì tắt nó đi
 } else {
-    // 3. BẮT ĐƯỜNG LINK TỪ CHROME BẮN VỀ
+    // 3. BẮT ĐƯỜNG LINK TỪ CHROME BẮN VỀ (PHIÊN BẢN CHỐNG HỤT)
     app.on('second-instance', (event, commandLine, workingDirectory) => {
         if (mainWindow) {
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
 
-            // Tìm cái link bắt đầu bằng mhent://
+            // Windows truyền link qua commandLine, mình quét toàn bộ mảng này
             const deepLink = commandLine.find(arg => arg.startsWith('mhent://'));
             if (deepLink) {
-                // Bắn cái link đó vào trong giao diện (UI) của App để xử lý
+                console.log("-> Đã bắt được link từ Chrome: ", deepLink);
+                // Bắn sang cho preload xử lý
                 mainWindow.webContents.send('deep-link-received', deepLink);
             }
         }
@@ -94,6 +95,8 @@ if (!gotTheLock) {
             if (BrowserWindow.getAllWindows().length === 0) createWindow();
         });
     });
+
+    mainWindow.webContents.openDevTools();
 }
 
 // Lệnh mở link ra trình duyệt Chrome bên ngoài (Dành cho UI gọi)
