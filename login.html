@@ -344,6 +344,29 @@
         // BỘ NÃO ĐIỀU HƯỚNG THÔNG MINH
         async function handleLoginSuccess(user) {
             try {
+                // 🚀 ĐƯỜNG QUYỀN MỚI: KIỂM TRA XEM CÓ PHẢI APP YÊU CẦU KHÔNG
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                if (urlParams.get('source') === 'app') {
+                    // Lấy token (Firebase v9+ có thể lấy trực tiếp hoặc qua hàm)
+                    const token = user.accessToken; 
+                    
+                    // Bắn lệnh gọi App thức dậy kèm theo thông tin User
+                    const deepLink = `mhent://auth?uid=${user.uid}&token=${token}`;
+                    window.location.href = deepLink;
+                    
+                    // Hiện thông báo siêu to khổng lồ để người dùng biết mà tắt Tab
+                    document.body.innerHTML = `
+                        <div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#ff85a2; color:white; font-family:Nunito, sans-serif; text-align:center; flex-direction:column;">
+                            <h1>🎉 Đăng nhập thành công!</h1>
+                            <p>Hệ thống đang tự động mở lại App MHEnt Universe...</p>
+                            <p><i>(Cậu có thể đóng tab trình duyệt này lại rồi đó nha)</i></p>
+                        </div>
+                    `;
+                    return; // Dừng hàm lại ở đây, không chuyển sang /index hay /profile nữa
+                }
+
+                // 🌐 NẾU LÀ ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG: Chạy luồng cũ của Giám đốc
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
                 
