@@ -348,49 +348,41 @@ if (btnLogin) {
             }, 3000);
         };
 
-        // 🧠 BỘ NÃO NHẬN DIỆN THÔNG MINH (KẾT HỢP APP & WEB)
         onAuthStateChanged(auth, (user) => {
             const btnTheme = document.getElementById('btn-theme-toggle'); 
-            
-            // Tìm trong túi xem có thẻ Căn cước từ App gửi về không
-            const appToken = localStorage.getItem('mhent_app_token');
-            const appUid = localStorage.getItem('mhent_app_uid');
-
-            if (user || (appToken && appUid)) {
-                // 👉 MỞ CỬA
+            if (user) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
 
-                const currentUid = user ? user.uid : appUid;
-                let finalName = user ? (user.displayName || user.email.split('@')[0]) : "Đại hiệp MHEnt";
+                let finalName = user.displayName || user.email.split('@')[0];
                 if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
 
                 const avtElement = document.getElementById('user-avatar');
                 if (avtElement) {
-                    avtElement.src = (user && user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "https://ui-avatars.com/api/?name=" + finalName + "&background=random";
+                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
                     avtElement.style.display = 'block'; 
                 }
 
-                // Quét Database xem có phải Giám đốc/Admin không
-                const userRef = doc(db, "users", currentUid);
-                getDoc(userRef).then((docSnap) => {
-                    const adminBtn = document.getElementById('admin-panel-btn');
-                    const adminDiv = document.getElementById('admin-divider');
-                    
-                    if (adminBtn) adminBtn.style.display = 'none';
-                    if (adminDiv) adminDiv.style.display = 'none';
+                const userRef = doc(db, "users", user?.uid || 'guest');
+                if(user) {
+                    getDoc(userRef).then((docSnap) => {
+                        const adminBtn = document.getElementById('admin-panel-btn');
+                        
+                        if (adminBtn) adminBtn.style.display = 'none';
+                        document.getElementById('admin-divider').style.display = 'none';
 
-                    if (docSnap.exists() && docSnap.data().role) {
-                        const userRole = docSnap.data().role; 
-                        if (userRole.includes('admin')) {
-                            if (adminBtn) adminBtn.style.display = 'flex';
-                            if (adminDiv) adminDiv.style.display = 'block';
+                        if (docSnap.exists() && docSnap.data().role) {
+                            const userRole = docSnap.data().role; 
+
+                            // Chỉ cần trong chuỗi quyền có chứa chữ 'admin' là hiện nút!
+                            if (userRole.includes('admin')) {
+                                if (adminBtn) adminBtn.style.display = 'flex';
+                                document.getElementById('admin-divider').style.display = 'block';
+                            }
                         }
-                    }
-                }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
-                
+                    }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+                }
             } else {
-                // 🔒 ĐÓNG CỬA
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
