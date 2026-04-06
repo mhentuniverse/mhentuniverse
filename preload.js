@@ -7,29 +7,27 @@ window.openChrome = (url) => {
 
 // 2. Cắm chốt đợi Chrome bắn link về
 ipcRenderer.on('deep-link-received', (event, url) => {
-    // Xóa dấu / ở cuối nếu có để tránh lỗi parse
-    const cleanUrl = url.replace(/\/$/, ""); 
-    console.log("🚀 Preload đang xử lý link: ", cleanUrl);
+    console.log("🔥 APP ĐÃ NHẬN ĐƯỢC LINK TỪ CHROME: ", url);
     
     try {
+        // Cắt đuôi thừa và quét URL
+        const cleanUrl = url.replace(/\/$/, ""); 
         const urlObj = new URL(cleanUrl);
         
-        // Kiểm tra xem có chứa chữ 'auth' trong link không
         if (cleanUrl.includes('auth')) {
             const token = urlObj.searchParams.get('token');
             const uid = urlObj.searchParams.get('uid');
             
             if (uid && token) {
+                // Nhét vào túi quần (localStorage) của App
                 localStorage.setItem('mhent_app_token', token);
                 localStorage.setItem('mhent_app_uid', uid);
                 
-                console.log("✅ Đã lưu Token. Chuẩn bị về Đại Sảnh!");
-                window.location.href = '/index.html'; 
-            } else {
-                console.error("❌ Link thiếu UID hoặc Token!");
+                console.log("✅ Đã lưu Căn Cước. Đang ép App mở cửa...");
+                window.location.href = 'app://-/index.html'; 
             }
         }
     } catch (e) {
-        console.error("❌ Lỗi giải mã URL: ", e);
+        console.error("❌ Lỗi xử lý link:", e);
     }
 });
