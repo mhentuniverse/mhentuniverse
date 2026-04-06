@@ -18,7 +18,7 @@ if (process.defaultApp) {
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
-    app.quit(); // Nếu có app thứ 2 đang mở thì tắt nó đi
+    app.quit(); 
 } else {
     // 3. BẮT ĐƯỜNG LINK TỪ CHROME BẮN VỀ (PHIÊN BẢN CHỐNG HỤT)
     app.on('second-instance', (event, commandLine, workingDirectory) => {
@@ -26,17 +26,15 @@ if (!gotTheLock) {
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
 
-            // Windows truyền link qua commandLine, mình quét toàn bộ mảng này
             const deepLink = commandLine.find(arg => arg.startsWith('mhent://'));
             if (deepLink) {
                 console.log("-> Đã bắt được link từ Chrome: ", deepLink);
-                // Bắn sang cho preload xử lý
                 mainWindow.webContents.send('deep-link-received', deepLink);
             }
         }
     });
 
-    // 4. HÀM TẠO CỬA SỔ CHÍNH (Gom tất cả tính năng vào 1 chỗ)
+    // 4. HÀM TẠO CỬA SỔ CHÍNH
     function createWindow() {
         mainWindow = new BrowserWindow({
             width: 1280,
@@ -81,9 +79,12 @@ if (!gotTheLock) {
             }
         });
 
-        // Load Đại sảnh
+        // Load Đại sảnh và Bật DevTools
         loadURL(mainWindow).then(() => {
             mainWindow.loadURL('app://-/index.html');
+            
+            // Đã nhét lệnh mở DevTools vào đúng chỗ an toàn
+            mainWindow.webContents.openDevTools();
         });
     }
 
@@ -95,8 +96,6 @@ if (!gotTheLock) {
             if (BrowserWindow.getAllWindows().length === 0) createWindow();
         });
     });
-
-    mainWindow.webContents.openDevTools();
 }
 
 // Lệnh mở link ra trình duyệt Chrome bên ngoài (Dành cho UI gọi)
