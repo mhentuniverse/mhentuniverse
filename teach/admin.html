@@ -105,7 +105,7 @@
             
             <a class="admin-menu-item" id="menu-baam" onclick="switchAdminTab('baam')"><i class="fa-solid fa-gift"></i> Hộp Quà Nhân Phẩm</a>
             
-            <a class="admin-menu-item" id="menu-spin"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay (Sắp tới)</a>
+            <a class="admin-menu-item" id="menu-spin" onclick="switchAdminTab('spin')"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Định Mệnh</a>
         </aside>
 
         <main class="admin-content">
@@ -200,6 +200,42 @@
                         <i class="fa-solid fa-paper-plane"></i> TẠO GAME & GỬI QUA MÁY CHIẾU
                     </button>
                     <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 10px;">Toàn bộ thao tác trả lời sẽ được thực hiện trực tiếp trên Tab Máy Chiếu.</p>
+                </div>
+            </div>
+
+            <div id="tab-spin" class="admin-tab">
+                <h1 class="admin-title">Vòng Quay Định Mệnh</h1>
+                
+                <div class="admin-card">
+                    <button class="btn-admin" onclick="window.open('/teach/spinner', '_blank')" style="width: 100%; margin-bottom: 25px; background: #ec4899;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (VÒNG QUAY)
+                    </button>
+
+                    <h3 style="margin-top: 0; color: #ec4899;"><i class="fa-solid fa-users-viewfinder"></i> 1. Danh sách người tham gia</h3>
+                    <div class="input-group">
+                        <label>Nhập tên học sinh / đội (Mỗi dòng 1 tên)</label>
+                        <textarea id="spin-items" class="admin-textarea" placeholder="Ví dụ:&#10;Học sinh 1&#10;Học sinh 2&#10;Học sinh 3" style="min-height: 150px; border-color: #fce7f3;"></textarea>
+                    </div>
+
+                    <div style="background: #fff1f2; border: 2px dashed #f43f5e; padding: 20px; border-radius: 12px; margin-top: 30px;">
+                        <h3 style="margin-top: 0; color: #e11d48;"><i class="fa-solid fa-mask"></i> 2. Góc Khuất Admin (Cơ Cấu)</h3>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <input type="checkbox" id="spin-rigged-mode" style="width: 20px; height: 20px; cursor: pointer; accent-color: #e11d48;">
+                            <label for="spin-rigged-mode" style="font-weight: 900; color: #be123c; cursor: pointer; font-size: 16px;">KÍCH HOẠT CHẾ ĐỘ CƠ CẤU</label>
+                        </div>
+
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label style="color: #be123c;">Thứ tự ép buộc xuất hiện (Nhập số thứ tự từ 1 đến hết, cách nhau bởi dấu phẩy)</label>
+                            <input type="text" id="spin-rigged-order" class="admin-input" placeholder="Ví dụ: 2, 1, 5, 3, 4 (Người số 2 ở danh sách trên sẽ trúng đầu tiên...)" style="border-color: #fda4af;">
+                            <p style="font-size: 13px; color: #fb7185; margin: 8px 0 0 0;">*Nếu danh sách trên có 9 người, số nhập vào phải nằm trong khoảng từ 1 đến 9.</p>
+                        </div>
+                    </div>
+
+                    <button class="btn-admin" style="width: 100%; margin-top: 35px; background: #ec4899; padding: 15px;" onclick="syncSpinner()">
+                        <i class="fa-solid fa-magic-wand-sparkles"></i> LƯU & TRUYỀN PHÉP THUẬT SANG MÁY CHIẾU
+                    </button>
+                    <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 10px;">Khi bấm nút này, danh sách sẽ được cập nhật sang Tab Máy Chiếu ngay lập tức.</p>
                 </div>
             </div>
         </main>
@@ -508,6 +544,46 @@
             localStorage.setItem('mhent_baam_cmd', JSON.stringify({ action: 'SYNC', payload: { teams: teamCount, cards: parsedCards }, rand: Math.random() }));
 
             showToast("Tuyệt vời!", `Đã xuất xưởng ${parsedCards.length} Thẻ bài sang Máy chiếu!`, "success");
+        }
+
+        // ==========================================
+        // LOGIC DÀNH CHO: VÒNG QUAY ĐỊNH MỆNH
+        // ==========================================
+        window.syncSpinner = function() {
+            // 1. Quét danh sách người tham gia
+            const rawText = document.getElementById('spin-items').value.trim();
+            const rawItems = rawText.split('\n').map(i => i.trim()).filter(i => i !== "");
+            
+            if (rawItems.length < 2) {
+                return showToast("Lỗi rùi", "Cần ít nhất 2 người/đội để tạo vòng quay nha!", "error");
+            }
+
+            // 2. Quét cài đặt Cơ cấu
+            const isRigged = document.getElementById('spin-rigged-mode').checked;
+            const rawOrder = document.getElementById('spin-rigged-order').value;
+            let orderArray = [];
+
+            if (isRigged) {
+                // Chuyển từ "số thứ tự (1, 2, 3)" sang "index mảng (0, 1, 2)" để Code dễ đọc
+                orderArray = rawOrder.split(',')
+                    .map(n => parseInt(n.trim()) - 1)
+                    .filter(n => !isNaN(n) && n >= 0 && n < rawItems.length);
+                
+                if (orderArray.length === 0) {
+                    return showToast("Lỗi rùi", "Cậu đã bật Cơ cấu nhưng nhập sai dãy số thứ tự!", "error");
+                }
+            }
+
+            // 3. Đóng gói và Gửi tín hiệu qua Màn chiếu
+            const payload = {
+                items: rawItems,
+                isRigged: isRigged,
+                riggedOrder: orderArray
+            };
+
+            localStorage.setItem('mhent_spin_cmd', JSON.stringify({ action: 'SYNC', payload: payload, rand: Math.random() }));
+            
+            showToast("Phép thuật thành công!", `Đã xuất xưởng ${rawItems.length} cái tên sang Vòng Quay!`, "success");
         }
     </script>
 </body>
