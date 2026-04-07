@@ -4,206 +4,421 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vòng Quay Định Mệnh - MHEnt Universe</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             margin: 0; padding: 0; height: 100vh;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: #0f172a; color: white; font-family: 'Nunito', sans-serif;
-            overflow: hidden;
+            overflow: hidden; display: flex; flex-direction: column;
         }
-        
-        /* Tiêu đề tự thu nhỏ theo chiều dọc màn hình */
-        h1 { 
-            margin: 0 0 10px 0; color: #f472b6; 
-            text-shadow: 0 0 20px rgba(244,114,182,0.5); 
-            font-size: clamp(2rem, 5vh, 3rem); 
-            text-align: center;
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background: #1e293b; border-bottom: 2px solid #334155; z-index: 10;
         }
-        
-        /* Vòng quay thông minh: Lấy 60% chiều dọc màn hình, bự tối đa 500px */
-        .wheel-container {
-            position: relative; 
-            width: clamp(300px, 60vh, 500px); 
-            height: clamp(300px, 60vh, 500px);
-            margin: 15px auto;
+        .header h1 { margin: 0; color: #f472b6; font-size: 24px; text-shadow: 0 0 10px rgba(244,114,182,0.3); }
+        .fullscreen-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+        .fullscreen-btn:hover { color: white; }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+
+        /* VÒNG QUAY BÊN TRÁI */
+        .wheel-section {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 20px;
         }
-        
-        /* Mũi tên tự căn chỉnh tỷ lệ */
+        .wheel-wrapper {
+            position: relative; width: min(80vh, 90%); aspect-ratio: 1/1;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .wheel-wrapper:hover { transform: scale(1.02); }
+        .wheel-wrapper.spinning { pointer-events: none; cursor: default; }
+
         .pointer {
-            position: absolute; top: -5%; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; z-index: 10;
-            border-left: clamp(10px, 2vh, 20px) solid transparent; 
-            border-right: clamp(10px, 2vh, 20px) solid transparent;
-            border-top: clamp(20px, 4vh, 40px) solid #e11d48; 
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            position: absolute; right: -5%; top: 50%; transform: translateY(-50%);
+            width: 0; height: 0; z-index: 20;
+            border-top: 20px solid transparent; border-bottom: 20px solid transparent;
+            border-right: 40px solid #e11d48; filter: drop-shadow(-4px 4px 5px rgba(0,0,0,0.5));
         }
         
         canvas {
             width: 100%; height: 100%; border-radius: 50%; box-sizing: border-box;
-            box-shadow: 0 0 30px rgba(244, 114, 182, 0.3), inset 0 0 20px rgba(0,0,0,0.5);
-            border: clamp(4px, 1vh, 8px) solid #334155; 
-            transition: transform 5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.5);
+            border: 8px solid #334155; transition: transform 5s cubic-bezier(0.15, 0.85, 0.15, 1);
         }
 
-        /* Nút quay tự co giãn */
-        #btn-spin {
-            margin-top: 15px; 
-            padding: clamp(10px, 2vh, 15px) clamp(30px, 5vh, 50px); 
-            font-size: clamp(18px, 3vh, 24px); font-weight: 900;
-            background: #ec4899; color: white; border: none; border-radius: 50px;
-            cursor: pointer; box-shadow: 0 10px 20px rgba(236,72,153,0.4);
-            transition: all 0.2s;
+        .center-hub {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 22%; height: 22%; background: white; border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; color: #1e293b; font-size: clamp(14px, 2.5vmin, 26px); 
+            text-align: center; line-height: 1.2; z-index: 10;
+            border: 4px solid #e2e8f0; pointer-events: none;
         }
-        #btn-spin:hover { transform: scale(1.05); background: #db2777; }
-        #btn-spin:disabled { background: #475569; box-shadow: none; cursor: not-allowed; transform: none; }
 
-        /* Popup chúc mừng */
+        /* SIDEBAR BÊN PHẢI */
+        .sidebar {
+            width: 350px; background: #1e293b; border-left: 2px solid #334155;
+            display: flex; flex-direction: column; z-index: 10;
+        }
+        .tab-headers { display: flex; border-bottom: 2px solid #334155; }
+        .tab-btn {
+            flex: 1; padding: 15px 0; background: none; border: none; color: #94a3b8;
+            font-size: 16px; font-family: 'Nunito'; font-weight: bold; cursor: pointer;
+        }
+        .tab-btn.active { color: #f472b6; border-bottom: 3px solid #f472b6; background: rgba(244,114,182,0.1); }
+        .tab-content { flex: 1; padding: 20px; display: none; flex-direction: column; }
+        .tab-content.active { display: flex; }
+
+        textarea {
+            flex: 1; background: #0f172a; border: 1px solid #334155; color: white;
+            font-family: 'Nunito'; font-size: 16px; padding: 15px; border-radius: 8px;
+            resize: none; outline: none; line-height: 1.6;
+        }
+        textarea:focus { border-color: #f472b6; }
+        .action-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .action-btns button {
+            flex: 1; padding: 10px; background: #334155; color: white; border: none;
+            border-radius: 6px; cursor: pointer; font-family: 'Nunito'; font-weight: bold;
+        }
+        .action-btns button:hover { background: #475569; }
+
+        #winner-list { flex: 1; list-style: none; padding: 0; margin: 0; overflow-y: auto; }
+        #winner-list li {
+            background: #0f172a; margin-bottom: 8px; padding: 12px 15px; border-radius: 6px;
+            border-left: 4px solid #f472b6; display: flex; justify-content: space-between;
+        }
+        .winner-count { color: #94a3b8; font-size: 12px; }
+
+        #rigged-badge {
+            background: #e11d48; color: white; padding: 4px 10px; border-radius: 50px;
+            font-size: 12px; font-weight: bold; display: none; margin-left: 10px;
+        }
+
+        /* POPUP KẾT QUẢ MỚI (CHUẨN WHEEL OF NAMES) */
         .popup {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
         }
         .popup.show { opacity: 1; pointer-events: auto; }
-        .popup-content {
-            background: #1e293b; padding: 40px 80px; border-radius: 20px; text-align: center;
-            border: 2px solid #f472b6; transform: scale(0.8); transition: transform 0.3s;
+        .popup-content { 
+            background: #1e293b; border-radius: 12px; text-align: center; 
+            transform: scale(0.8); transition: transform 0.3s; width: 500px; max-width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden; border: 1px solid #334155;
         }
         .popup.show .popup-content { transform: scale(1); }
-        .popup h2 { font-size: clamp(2.5rem, 6vh, 4rem); color: #fbcfe8; margin: 0 0 20px 0; }
-        .popup button {
-            padding: 10px 30px; font-size: 18px; font-family: 'Nunito'; font-weight: bold;
-            background: #3b82f6; border: none; border-radius: 10px; color: white; cursor: pointer;
-        }
+        .popup-header { background: #0ea5e9; padding: 15px 20px; text-align: left; }
+        .popup-header h3 { margin: 0; color: white; font-size: 20px; font-weight: 900; }
+        .popup-body { padding: 40px 20px; }
+        .popup-body h2 { font-size: 3.5rem; color: white; margin: 0 0 40px 0; word-break: break-word;}
+        .popup-btn-group { display: flex; justify-content: center; gap: 15px; }
+        
+        .popup-btn { padding: 12px 25px; font-size: 16px; font-family: 'Nunito'; font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-close { background: transparent; color: white; border: 2px solid #475569; }
+        .btn-close:hover { background: #334155; }
+        .btn-remove { background: #3b82f6; border: 2px solid #3b82f6; color: white; }
+        .btn-remove:hover { background: #2563eb; border-color: #2563eb; }
+
     </style>
 </head>
 <body>
 
-    <h1>VÒNG QUAY NHÂN PHẨM</h1>
-    <div class="wheel-container">
-        <div class="pointer"></div>
-        <canvas id="wheel" width="500" height="500"></canvas>
+    <div class="header">
+        <div style="display: flex; align-items: center;">
+            <h1><i class="fa-solid fa-dharmachakra"></i> MHEnt. Vòng Quay</h1>
+            <span id="rigged-badge"><i class="fa-solid fa-mask"></i> Admin Set</span>
+        </div>
+        <button class="fullscreen-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
     </div>
-    <button id="btn-spin" onclick="spinWheel()">QUAY NGAY!</button>
+
+    <div class="main-layout">
+        <div class="wheel-section">
+            <div class="wheel-wrapper" id="wheel-wrapper" onclick="spinWheel()">
+                <div class="pointer"></div>
+                <canvas id="wheel" width="800" height="800"></canvas>
+                <div class="center-hub" id="center-hub">CLICK<br>ĐỂ QUAY</div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="tab-headers">
+                <button class="tab-btn active" onclick="switchTab('input')">Danh sách</button>
+                <button class="tab-btn" onclick="switchTab('result')"><span id="result-count">0</span> Kết quả</button>
+            </div>
+            <div class="tab-content active" id="tab-input">
+                <textarea id="input-textarea" oninput="handleManualEdit()"></textarea>
+                <div class="action-btns">
+                    <button onclick="shuffleList()"><i class="fa-solid fa-shuffle"></i> Trộn</button>
+                    <button onclick="sortList()"><i class="fa-solid fa-arrow-down-a-z"></i> Sắp xếp</button>
+                </div>
+            </div>
+            <div class="tab-content" id="tab-result">
+                <ul id="winner-list"></ul>
+                <div class="action-btns" style="margin-top: auto; padding-top: 15px;">
+                    <button onclick="clearResults()" style="background: #e11d48;"><i class="fa-solid fa-trash"></i> Xóa kết quả</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="result-popup" class="popup">
         <div class="popup-content">
-            <p style="font-size: 1.5rem; color: #94a3b8; margin: 0;">Xin chúc mừng</p>
-            <h2 id="winner-name">Tên Học Sinh</h2>
-            <button onclick="closePopup()">Tiếp tục</button>
+            <div class="popup-header">
+                <h3>Chúng ta có một người chiến thắng!</h3>
+            </div>
+            <div class="popup-body">
+                <h2 id="winner-name">Tên Học Sinh</h2>
+                <div class="popup-btn-group">
+                    <button class="popup-btn btn-close" onclick="closePopup('keep')">Đóng</button>
+                    <button class="popup-btn btn-remove" onclick="closePopup('remove')">Xóa</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('wheel-wrapper');
+        const centerHub = document.getElementById('center-hub');
+        const textarea = document.getElementById('input-textarea');
+        
         const colors = ['#f43f5e', '#ec4899', '#d946ef', '#8b5cf6', '#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#f97316'];
         
         let activeItems = []; 
+        let winners = [];
         let isRigged = false;
         let riggedOrder = [];
         let riggedStep = 0; 
         
         let currentRotation = 0;
         let isSpinning = false;
+        let currentWinningIndex = -1; // Biến nhớ người đang trúng để Xóa hoặc Giữ
 
+        // ==========================================
+        // 🎵 BỘ PHÁT ÂM THANH (WEB AUDIO API)
+        // ==========================================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playTickSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        function playWinSound() {
+            if (!audioCtx) return;
+            const freqs = [523.25, 659.25, 783.99, 1046.50]; // Đồ Mi Son Đố
+            freqs.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i*0.1);
+                gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + i*0.1 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i*0.1 + 0.6);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + i*0.1); osc.stop(audioCtx.currentTime + i*0.1 + 0.6);
+            });
+        }
+
+        // 🎇 HIỆU ỨNG TUNG HOA GIẤY
+        function throwConfetti() {
+            const cColors = ['#f43f5e', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#fbbf24'];
+            for(let i=0; i<80; i++) {
+                let conf = document.createElement('div');
+                conf.style.position = 'fixed'; conf.style.width = '12px'; conf.style.height = '12px';
+                conf.style.backgroundColor = cColors[Math.floor(Math.random()*cColors.length)];
+                conf.style.left = '50%'; conf.style.top = '50%'; conf.style.zIndex = '99';
+                document.body.appendChild(conf);
+
+                let angle = Math.random() * Math.PI * 2;
+                let velocity = 15 + Math.random() * 25;
+                let x = Math.cos(angle) * velocity;
+                let y = Math.sin(angle) * velocity;
+                let rot = Math.random() * 360;
+
+                let start = performance.now();
+                requestAnimationFrame(function animate(t) {
+                    let progress = (t - start) / 2500;
+                    if(progress > 1) { conf.remove(); return; }
+                    x *= 0.96; y += 0.8; // Trọng lực rơi xuống
+                    conf.style.transform = `translate(calc(-50% + ${x*20}px), calc(-50% + ${y*15}px)) rotate(${rot + progress*500}deg)`;
+                    conf.style.opacity = 1 - progress;
+                    requestAnimationFrame(animate);
+                });
+            }
+        }
+
+        // ==========================================
+        // LOGIC VÒNG QUAY & DỮ LIỆU
+        // ==========================================
         function loadFromAdmin() {
             const data = localStorage.getItem('mhent_spin_cmd');
             if (data) {
                 const cmd = JSON.parse(data);
-                const payload = cmd.payload;
-                
-                activeItems = payload.items.map((name, index) => ({ id: index, name: name }));
-                isRigged = payload.isRigged;
-                riggedOrder = payload.riggedOrder || [];
+                activeItems = cmd.payload.items.map((name, index) => ({ id: index, name: name }));
+                isRigged = cmd.payload.isRigged;
+                riggedOrder = cmd.payload.riggedOrder || [];
                 riggedStep = 0; 
-                
-                currentRotation = 0;
-                canvas.style.transition = 'none';
-                canvas.style.transform = `rotate(0deg)`;
-                
-                drawWheel();
+                document.getElementById('rigged-badge').style.display = isRigged ? 'block' : 'none';
+                syncTextarea(); resetWheelPos();
             }
         }
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'mhent_spin_cmd') loadFromAdmin();
-        });
+        window.addEventListener('storage', (e) => { if (e.key === 'mhent_spin_cmd') loadFromAdmin(); });
+
+        function syncTextarea() { textarea.value = activeItems.map(i => i.name).join('\n'); }
+
+        function handleManualEdit() {
+            isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
+            const raw = textarea.value.split('\n').map(i => i.trim()).filter(i => i !== "");
+            activeItems = raw.map((name, index) => ({ id: index, name: name }));
+            resetWheelPos();
+        }
+
+        function resetWheelPos() {
+            currentRotation = 0; canvas.style.transition = 'none'; canvas.style.transform = `rotate(0deg)`;
+            centerHub.innerHTML = "CLICK<br>ĐỂ QUAY"; drawWheel();
+        }
 
         function drawWheel() {
-            ctx.clearRect(0, 0, 500, 500);
+            ctx.clearRect(0, 0, 800, 800);
             const numSlices = activeItems.length;
             if (numSlices === 0) return;
-
-            const sliceAngle = (2 * Math.PI) / numSlices;
-            const center = 250;
-            const radius = 250;
+            const sliceAngle = (2 * Math.PI) / numSlices; const center = 400; const radius = 390; 
 
             for (let i = 0; i < numSlices; i++) {
-                ctx.beginPath();
-                ctx.moveTo(center, center);
+                ctx.beginPath(); ctx.moveTo(center, center);
                 ctx.arc(center, center, radius, i * sliceAngle, (i + 1) * sliceAngle);
-                ctx.fillStyle = colors[i % colors.length];
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.save();
-                ctx.translate(center, center);
-                ctx.rotate(i * sliceAngle + sliceAngle / 2);
-                ctx.textAlign = "right";
-                ctx.fillStyle = "#fff";
-                ctx.font = "bold 22px Nunito";
-                ctx.fillText(activeItems[i].name, radius - 20, 8);
-                ctx.restore();
+                ctx.fillStyle = colors[i % colors.length]; ctx.fill();
+                ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
+                ctx.save(); ctx.translate(center, center); ctx.rotate(i * sliceAngle + sliceAngle / 2);
+                ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff";
+                let fontSize = numSlices > 15 ? 20 : (numSlices > 8 ? 28 : 36);
+                ctx.font = `bold ${fontSize}px Nunito`;
+                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 4; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+                ctx.fillText(activeItems[i].name, radius - 30, 0); ctx.restore();
             }
         }
 
         function spinWheel() {
             if (isSpinning || activeItems.length === 0) return;
-            isSpinning = true;
-            document.getElementById('btn-spin').disabled = true;
+            initAudio(); // Bật AudioContext khi user click
+            isSpinning = true; wrapper.classList.add('spinning'); centerHub.innerHTML = "ĐANG<br>QUAY...";
 
             const numSlices = activeItems.length;
             const sliceAngleDeg = 360 / numSlices;
-            let targetIndex;
-
+            
             if (isRigged && riggedStep < riggedOrder.length) {
                 const targetOriginalId = riggedOrder[riggedStep];
-                targetIndex = activeItems.findIndex(item => item.id === targetOriginalId);
-                
-                if (targetIndex === -1) targetIndex = Math.floor(Math.random() * numSlices);
+                currentWinningIndex = activeItems.findIndex(item => item.id === targetOriginalId);
+                if (currentWinningIndex === -1) currentWinningIndex = Math.floor(Math.random() * numSlices);
                 else riggedStep++; 
             } else {
-                targetIndex = Math.floor(Math.random() * numSlices);
+                currentWinningIndex = Math.floor(Math.random() * numSlices);
             }
 
-            const extraSpins = 5 * 360; 
-            const stopAngle = extraSpins + (360 - (targetIndex * sliceAngleDeg) - (sliceAngleDeg / 2) - 90);
+            const extraSpins = 6 * 360; 
+            const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + (sliceAngleDeg / 2);
+            const stopAngle = extraSpins + (360 - currentTargetAngle);
 
-            canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.7, 0.1, 1)'; 
+            // Bắn Animation CSS (Mất 5 giây)
+            canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)'; 
             currentRotation += stopAngle; 
             canvas.style.transform = `rotate(${currentRotation}deg)`;
 
+            // Đồng bộ tiếng Tạch Tạch chậm dần đều
+            let tickDelay = 20;
+            function playTicks() {
+                if (!isSpinning) return;
+                playTickSound();
+                tickDelay *= 1.07; // Công thức ma thuật để tiếng chậm dần khớp với CSS
+                if (tickDelay < 500) setTimeout(playTicks, tickDelay);
+            }
+            playTicks();
+
+            // Chờ 5 giây hiển thị kết quả
             setTimeout(() => {
-                const winner = activeItems[targetIndex];
+                const winner = activeItems[currentWinningIndex];
                 document.getElementById('winner-name').innerText = winner.name;
                 document.getElementById('result-popup').classList.add('show');
                 
-                activeItems.splice(targetIndex, 1);
+                playWinSound(); // Ting ting
+                throwConfetti(); // Bùm chéo
+                
+                winners.push(winner.name);
+                updateResultTab();
+                
+                // 🛑 Lưu ý: Khúc này KHÔNG splice (xóa) người chơi nữa. Chờ User bấm nút trên Popup!
             }, 5000);
         }
 
-        function closePopup() {
+        // XỬ LÝ LỰA CHỌN TRÊN POPUP
+        function closePopup(action) {
             document.getElementById('result-popup').classList.remove('show');
-            isSpinning = false;
+            isSpinning = false; wrapper.classList.remove('spinning');
             
+            // Nếu bấm XÓA thì mới cắt người đó ra khỏi mảng
+            if (action === 'remove' && currentWinningIndex !== -1) {
+                activeItems.splice(currentWinningIndex, 1);
+                syncTextarea(); 
+            }
+            currentWinningIndex = -1; // Reset biến
+
             if (activeItems.length > 0) {
-                document.getElementById('btn-spin').disabled = false;
+                centerHub.innerHTML = "CLICK<br>ĐỂ QUAY";
+                currentRotation = currentRotation % 360; 
                 canvas.style.transition = 'none';
+                canvas.style.transform = `rotate(${currentRotation}deg)`;
                 drawWheel();
             } else {
-                document.getElementById('btn-spin').innerText = "HẾT NGƯỜI RỒI!";
+                centerHub.innerHTML = "HẾT<br>NGƯỜI";
+                ctx.clearRect(0, 0, 800, 800); 
             }
+        }
+
+        // CÁC HÀM TIỆN ÍCH
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+        function updateResultTab() {
+            document.getElementById('result-count').innerText = winners.length;
+            const ul = document.getElementById('winner-list'); ul.innerHTML = '';
+            winners.forEach((w, idx) => { ul.innerHTML += `<li><span>${w}</span> <span class="winner-count">#${idx + 1}</span></li>`; });
+        }
+        function clearResults() { winners = []; updateResultTab(); }
+        function shuffleList() {
+            activeItems = activeItems.sort(() => 0.5 - Math.random());
+            isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
+            syncTextarea(); resetWheelPos();
+        }
+        function sortList() {
+            activeItems.sort((a, b) => a.name.localeCompare(b.name));
+            isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
+            syncTextarea(); resetWheelPos();
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } 
+            else { if (document.exitFullscreen) document.exitFullscreen(); }
         }
 
         loadFromAdmin();
