@@ -23,7 +23,6 @@
 
         .main-layout { display: flex; flex: 1; overflow: hidden; }
 
-        /* VÒNG QUAY BÊN TRÁI */
         .wheel-section {
             flex: 1; display: flex; align-items: center; justify-content: center;
             position: relative; padding: 20px;
@@ -58,7 +57,6 @@
             border: 4px solid #e2e8f0; pointer-events: none;
         }
 
-        /* SIDEBAR BÊN PHẢI */
         .sidebar {
             width: 350px; background: #1e293b; border-left: 2px solid #334155;
             display: flex; flex-direction: column; z-index: 10;
@@ -97,7 +95,6 @@
             font-size: 12px; font-weight: bold; display: none; margin-left: 10px;
         }
 
-        /* POPUP KẾT QUẢ MỚI (CHUẨN WHEEL OF NAMES) */
         .popup {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
@@ -172,7 +169,7 @@
             <div class="popup-body">
                 <h2 id="winner-name">Tên Học Sinh</h2>
                 <div class="popup-btn-group">
-                    <button class="popup-btn btn-close" onclick="closePopup('keep')">Đóng</button>
+                    <button class="popup-btn btn-close" onclick="closePopup('keep')">Đóng (Giữ lại)</button>
                     <button class="popup-btn btn-remove" onclick="closePopup('remove')">Xóa</button>
                 </div>
             </div>
@@ -194,13 +191,11 @@
         let riggedOrder = [];
         let riggedStep = 0; 
         
-        let currentRotation = 0;
+        let currentRotation = 0; // Biến nhớ vị trí vật lý
         let isSpinning = false;
-        let currentWinningIndex = -1; // Biến nhớ người đang trúng để Xóa hoặc Giữ
+        let currentWinningIndex = -1; 
 
-        // ==========================================
-        // 🎵 BỘ PHÁT ÂM THANH (WEB AUDIO API)
-        // ==========================================
+        // BỘ PHÁT ÂM THANH
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
@@ -224,7 +219,7 @@
 
         function playWinSound() {
             if (!audioCtx) return;
-            const freqs = [523.25, 659.25, 783.99, 1046.50]; // Đồ Mi Son Đố
+            const freqs = [523.25, 659.25, 783.99, 1046.50]; 
             freqs.forEach((freq, i) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
@@ -237,7 +232,7 @@
             });
         }
 
-        // 🎇 HIỆU ỨNG TUNG HOA GIẤY
+        // TUNG HOA GIẤY
         function throwConfetti() {
             const cColors = ['#f43f5e', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#fbbf24'];
             for(let i=0; i<80; i++) {
@@ -257,7 +252,7 @@
                 requestAnimationFrame(function animate(t) {
                     let progress = (t - start) / 2500;
                     if(progress > 1) { conf.remove(); return; }
-                    x *= 0.96; y += 0.8; // Trọng lực rơi xuống
+                    x *= 0.96; y += 0.8; 
                     conf.style.transform = `translate(calc(-50% + ${x*20}px), calc(-50% + ${y*15}px)) rotate(${rot + progress*500}deg)`;
                     conf.style.opacity = 1 - progress;
                     requestAnimationFrame(animate);
@@ -265,9 +260,6 @@
             }
         }
 
-        // ==========================================
-        // LOGIC VÒNG QUAY & DỮ LIỆU
-        // ==========================================
         function loadFromAdmin() {
             const data = localStorage.getItem('mhent_spin_cmd');
             if (data) {
@@ -282,14 +274,13 @@
         }
 
         window.addEventListener('storage', (e) => { if (e.key === 'mhent_spin_cmd') loadFromAdmin(); });
-
         function syncTextarea() { textarea.value = activeItems.map(i => i.name).join('\n'); }
 
         function handleManualEdit() {
             isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
             const raw = textarea.value.split('\n').map(i => i.trim()).filter(i => i !== "");
             activeItems = raw.map((name, index) => ({ id: index, name: name }));
-            resetWheelPos();
+            resetWheelPos(); // Reset vòng quay khi sửa tay
         }
 
         function resetWheelPos() {
@@ -319,7 +310,7 @@
 
         function spinWheel() {
             if (isSpinning || activeItems.length === 0) return;
-            initAudio(); // Bật AudioContext khi user click
+            initAudio(); 
             isSpinning = true; wrapper.classList.add('spinning'); centerHub.innerHTML = "ĐANG<br>QUAY...";
 
             const numSlices = activeItems.length;
@@ -334,66 +325,65 @@
                 currentWinningIndex = Math.floor(Math.random() * numSlices);
             }
 
-            const extraSpins = 6 * 360; 
+            // 🧠 CÔNG THỨC TOÁN HỌC MỚI: TÍNH TỪ VỊ TRÍ HIỆN TẠI
             const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + (sliceAngleDeg / 2);
-            const stopAngle = extraSpins + (360 - currentTargetAngle);
+            const targetR = 360 - currentTargetAngle;
+            const currentRemainder = currentRotation % 360; // Vòng quay đang lệch bao nhiêu độ?
+            
+            let diff = targetR - currentRemainder;
+            if (diff <= 0) diff += 360; // Luôn xoay tiến tới
 
-            // Bắn Animation CSS (Mất 5 giây)
+            const extraSpins = 6 * 360; 
+            const stopAngle = extraSpins + diff; // Chỉ quay thêm đúng khoảng chênh lệch
+
             canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)'; 
-            currentRotation += stopAngle; 
+            currentRotation += stopAngle; // Cộng dồn góc quay liên tục để có trí nhớ
             canvas.style.transform = `rotate(${currentRotation}deg)`;
 
-            // Đồng bộ tiếng Tạch Tạch chậm dần đều
             let tickDelay = 20;
             function playTicks() {
                 if (!isSpinning) return;
                 playTickSound();
-                tickDelay *= 1.07; // Công thức ma thuật để tiếng chậm dần khớp với CSS
+                tickDelay *= 1.07; 
                 if (tickDelay < 500) setTimeout(playTicks, tickDelay);
             }
             playTicks();
 
-            // Chờ 5 giây hiển thị kết quả
             setTimeout(() => {
                 const winner = activeItems[currentWinningIndex];
                 document.getElementById('winner-name').innerText = winner.name;
                 document.getElementById('result-popup').classList.add('show');
                 
-                playWinSound(); // Ting ting
-                throwConfetti(); // Bùm chéo
+                playWinSound(); 
+                throwConfetti(); 
                 
                 winners.push(winner.name);
                 updateResultTab();
-                
-                // 🛑 Lưu ý: Khúc này KHÔNG splice (xóa) người chơi nữa. Chờ User bấm nút trên Popup!
             }, 5000);
         }
 
-        // XỬ LÝ LỰA CHỌN TRÊN POPUP
+        // TÍNH NĂNG ĐÓNG / XÓA KHÔNG MẤT TRÍ NHỚ
         function closePopup(action) {
             document.getElementById('result-popup').classList.remove('show');
             isSpinning = false; wrapper.classList.remove('spinning');
             
-            // Nếu bấm XÓA thì mới cắt người đó ra khỏi mảng
             if (action === 'remove' && currentWinningIndex !== -1) {
                 activeItems.splice(currentWinningIndex, 1);
                 syncTextarea(); 
+                // Chỉ vẽ lại vòng khi bị xóa bớt, còn KHÔNG reset góc quay hiện tại
+                if (activeItems.length > 0) drawWheel(); 
             }
-            currentWinningIndex = -1; // Reset biến
+            
+            currentWinningIndex = -1;
 
             if (activeItems.length > 0) {
                 centerHub.innerHTML = "CLICK<br>ĐỂ QUAY";
-                currentRotation = currentRotation % 360; 
-                canvas.style.transition = 'none';
-                canvas.style.transform = `rotate(${currentRotation}deg)`;
-                drawWheel();
             } else {
                 centerHub.innerHTML = "HẾT<br>NGƯỜI";
                 ctx.clearRect(0, 0, 800, 800); 
             }
         }
 
-        // CÁC HÀM TIỆN ÍCH
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -406,6 +396,7 @@
             winners.forEach((w, idx) => { ul.innerHTML += `<li><span>${w}</span> <span class="winner-count">#${idx + 1}</span></li>`; });
         }
         function clearResults() { winners = []; updateResultTab(); }
+        
         function shuffleList() {
             activeItems = activeItems.sort(() => 0.5 - Math.random());
             isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
