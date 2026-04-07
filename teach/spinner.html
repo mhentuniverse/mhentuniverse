@@ -34,11 +34,12 @@
         .wheel-wrapper:hover { transform: scale(1.02); }
         .wheel-wrapper.spinning { pointer-events: none; cursor: default; }
 
+        /* MŨI TÊN ĐÃ ĐƯỢC CHUYỂN VỀ TRÊN ĐỈNH 12 GIỜ */
         .pointer {
-            position: absolute; right: -5%; top: 50%; transform: translateY(-50%);
+            position: absolute; top: -5%; left: 50%; transform: translateX(-50%);
             width: 0; height: 0; z-index: 20;
-            border-top: 20px solid transparent; border-bottom: 20px solid transparent;
-            border-right: 40px solid #e11d48; filter: drop-shadow(-4px 4px 5px rgba(0,0,0,0.5));
+            border-left: 20px solid transparent; border-right: 20px solid transparent;
+            border-top: 40px solid #e11d48; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));
         }
         
         canvas {
@@ -90,11 +91,6 @@
         }
         .winner-count { color: #94a3b8; font-size: 12px; }
 
-        #rigged-badge {
-            background: #e11d48; color: white; padding: 4px 10px; border-radius: 50px;
-            font-size: 12px; font-weight: bold; display: none; margin-left: 10px;
-        }
-
         .popup {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
@@ -126,8 +122,7 @@
     <div class="header">
         <div style="display: flex; align-items: center;">
             <h1><i class="fa-solid fa-dharmachakra"></i> MHEnt. Vòng Quay</h1>
-            <span id="rigged-badge"><i class="fa-solid fa-mask"></i> Admin Set</span>
-        </div>
+            </div>
         <button class="fullscreen-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
     </div>
 
@@ -191,11 +186,10 @@
         let riggedOrder = [];
         let riggedStep = 0; 
         
-        let currentRotation = 0; // Biến nhớ vị trí vật lý
+        let currentRotation = 0; 
         let isSpinning = false;
         let currentWinningIndex = -1; 
 
-        // BỘ PHÁT ÂM THANH
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
@@ -232,7 +226,6 @@
             });
         }
 
-        // TUNG HOA GIẤY
         function throwConfetti() {
             const cColors = ['#f43f5e', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#fbbf24'];
             for(let i=0; i<80; i++) {
@@ -268,7 +261,7 @@
                 isRigged = cmd.payload.isRigged;
                 riggedOrder = cmd.payload.riggedOrder || [];
                 riggedStep = 0; 
-                document.getElementById('rigged-badge').style.display = isRigged ? 'block' : 'none';
+                // Đã xóa trạng thái hiện Badge để tàng hình
                 syncTextarea(); resetWheelPos();
             }
         }
@@ -277,10 +270,10 @@
         function syncTextarea() { textarea.value = activeItems.map(i => i.name).join('\n'); }
 
         function handleManualEdit() {
-            isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
+            isRigged = false; 
             const raw = textarea.value.split('\n').map(i => i.trim()).filter(i => i !== "");
             activeItems = raw.map((name, index) => ({ id: index, name: name }));
-            resetWheelPos(); // Reset vòng quay khi sửa tay
+            resetWheelPos(); 
         }
 
         function resetWheelPos() {
@@ -325,19 +318,19 @@
                 currentWinningIndex = Math.floor(Math.random() * numSlices);
             }
 
-            // 🧠 CÔNG THỨC TOÁN HỌC MỚI: TÍNH TỪ VỊ TRÍ HIỆN TẠI
+            // 🧠 CÔNG THỨC TOÁN HỌC CHUẨN ĐỈNH 12 GIỜ (270 ĐỘ)
             const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + (sliceAngleDeg / 2);
-            const targetR = 360 - currentTargetAngle;
-            const currentRemainder = currentRotation % 360; // Vòng quay đang lệch bao nhiêu độ?
+            // Tính góc tuyệt đối để mục tiêu quay về đúng 270 độ
+            const targetR = (270 - currentTargetAngle + 360) % 360;
+            const currentRemainder = currentRotation % 360; 
             
             let diff = targetR - currentRemainder;
-            if (diff <= 0) diff += 360; // Luôn xoay tiến tới
+            if (diff <= 0) diff += 360; 
 
             const extraSpins = 6 * 360; 
-            const stopAngle = extraSpins + diff; // Chỉ quay thêm đúng khoảng chênh lệch
-
+            const stopAngle = extraSpins + diff; 
+            currentRotation += stopAngle; 
             canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)'; 
-            currentRotation += stopAngle; // Cộng dồn góc quay liên tục để có trí nhớ
             canvas.style.transform = `rotate(${currentRotation}deg)`;
 
             let tickDelay = 20;
@@ -362,7 +355,6 @@
             }, 5000);
         }
 
-        // TÍNH NĂNG ĐÓNG / XÓA KHÔNG MẤT TRÍ NHỚ
         function closePopup(action) {
             document.getElementById('result-popup').classList.remove('show');
             isSpinning = false; wrapper.classList.remove('spinning');
@@ -370,7 +362,6 @@
             if (action === 'remove' && currentWinningIndex !== -1) {
                 activeItems.splice(currentWinningIndex, 1);
                 syncTextarea(); 
-                // Chỉ vẽ lại vòng khi bị xóa bớt, còn KHÔNG reset góc quay hiện tại
                 if (activeItems.length > 0) drawWheel(); 
             }
             
@@ -399,12 +390,12 @@
         
         function shuffleList() {
             activeItems = activeItems.sort(() => 0.5 - Math.random());
-            isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
+            isRigged = false; 
             syncTextarea(); resetWheelPos();
         }
         function sortList() {
             activeItems.sort((a, b) => a.name.localeCompare(b.name));
-            isRigged = false; document.getElementById('rigged-badge').style.display = 'none';
+            isRigged = false; 
             syncTextarea(); resetWheelPos();
         }
         function toggleFullscreen() {
