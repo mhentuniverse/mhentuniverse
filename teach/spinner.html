@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng Quay Định Mệnh - MHEnt Universe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #0f172a; color: white; font-family: 'Nunito', sans-serif;
+            overflow: hidden;
+        }
+        h1 { margin-bottom: 10px; color: #f472b6; text-shadow: 0 0 20px rgba(244,114,182,0.5); font-size: 3rem; }
+        
+        .wheel-container {
+            position: relative; width: 500px; height: 500px;
+            margin: 20px auto;
+        }
+        /* Mũi tên chỉ xuống */
+        .pointer {
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; z-index: 10;
+            border-left: 20px solid transparent; border-right: 20px solid transparent;
+            border-top: 40px solid #e11d48; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+        
+        canvas {
+            width: 100%; height: 100%; border-radius: 50%;
+            box-shadow: 0 0 30px rgba(244, 114, 182, 0.3), inset 0 0 20px rgba(0,0,0,0.5);
+            border: 8px solid #334155; transition: transform 5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        #btn-spin {
+            margin-top: 30px; padding: 15px 50px; font-size: 24px; font-weight: 900;
+            background: #ec4899; color: white; border: none; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 10px 20px rgba(236,72,153,0.4);
+            transition: all 0.2s;
+        }
+        #btn-spin:hover { transform: scale(1.05); background: #db2777; }
+        #btn-spin:disabled { background: #475569; box-shadow: none; cursor: not-allowed; transform: none; }
+
+        /* Popup chúc mừng */
+        .popup {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
+        }
+        .popup.show { opacity: 1; pointer-events: auto; }
+        .popup-content {
+            background: #1e293b; padding: 40px 80px; border-radius: 20px; text-align: center;
+            border: 2px solid #f472b6; transform: scale(0.8); transition: transform 0.3s;
+        }
+        .popup.show .popup-content { transform: scale(1); }
+        .popup h2 { font-size: 4rem; color: #fbcfe8; margin: 0 0 20px 0; }
+        .popup button {
+            padding: 10px 30px; font-size: 18px; font-family: 'Nunito'; font-weight: bold;
+            background: #3b82f6; border: none; border-radius: 10px; color: white; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>VÒNG QUAY NHÂN PHẨM</h1>
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="500" height="500"></canvas>
+    </div>
+    <button id="btn-spin" onclick="spinWheel()">QUAY NGAY!</button>
+
+    <div id="result-popup" class="popup">
+        <div class="popup-content">
+            <p style="font-size: 1.5rem; color: #94a3b8; margin: 0;">Xin chúc mừng</p>
+            <h2 id="winner-name">Tên Học Sinh</h2>
+            <button onclick="closePopup()">Tiếp tục</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const colors = ['#f43f5e', '#ec4899', '#d946ef', '#8b5cf6', '#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#f97316'];
+        
+        let activeItems = []; 
+        let isRigged = false;
+        let riggedOrder = [];
+        let riggedStep = 0; 
+        
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        function loadFromAdmin() {
+            const data = localStorage.getItem('mhent_spin_cmd');
+            if (data) {
+                const cmd = JSON.parse(data);
+                const payload = cmd.payload;
+                
+                activeItems = payload.items.map((name, index) => ({ id: index, name: name }));
+                isRigged = payload.isRigged;
+                riggedOrder = payload.riggedOrder || [];
+                riggedStep = 0; 
+                
+                currentRotation = 0;
+                canvas.style.transition = 'none';
+                canvas.style.transform = `rotate(0deg)`;
+                
+                drawWheel();
+            }
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'mhent_spin_cmd') loadFromAdmin();
+        });
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, 500, 500);
+            const numSlices = activeItems.length;
+            if (numSlices === 0) return;
+
+            const sliceAngle = (2 * Math.PI) / numSlices;
+            const center = 250;
+            const radius = 250;
+
+            for (let i = 0; i < numSlices; i++) {
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, radius, i * sliceAngle, (i + 1) * sliceAngle);
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(i * sliceAngle + sliceAngle / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 22px Nunito";
+                ctx.fillText(activeItems[i].name, radius - 20, 8);
+                ctx.restore();
+            }
+        }
+
+        function spinWheel() {
+            if (isSpinning || activeItems.length === 0) return;
+            isSpinning = true;
+            document.getElementById('btn-spin').disabled = true;
+
+            const numSlices = activeItems.length;
+            const sliceAngleDeg = 360 / numSlices;
+            let targetIndex;
+
+            if (isRigged && riggedStep < riggedOrder.length) {
+                const targetOriginalId = riggedOrder[riggedStep];
+                targetIndex = activeItems.findIndex(item => item.id === targetOriginalId);
+                
+                if (targetIndex === -1) targetIndex = Math.floor(Math.random() * numSlices);
+                else riggedStep++; 
+            } else {
+                targetIndex = Math.floor(Math.random() * numSlices);
+            }
+
+            const extraSpins = 5 * 360; 
+            const stopAngle = extraSpins + (360 - (targetIndex * sliceAngleDeg) - (sliceAngleDeg / 2) - 90);
+
+            canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.7, 0.1, 1)'; 
+            currentRotation += stopAngle; 
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                const winner = activeItems[targetIndex];
+                document.getElementById('winner-name').innerText = winner.name;
+                document.getElementById('result-popup').classList.add('show');
+                
+                activeItems.splice(targetIndex, 1);
+            }, 5000);
+        }
+
+        function closePopup() {
+            document.getElementById('result-popup').classList.remove('show');
+            isSpinning = false;
+            
+            if (activeItems.length > 0) {
+                document.getElementById('btn-spin').disabled = false;
+                canvas.style.transition = 'none';
+                drawWheel();
+            } else {
+                document.getElementById('btn-spin').innerText = "HẾT NGƯỜI RỒI!";
+            }
+        }
+
+        loadFromAdmin();
+    </script>
+</body>
+</html>
