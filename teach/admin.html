@@ -106,6 +106,7 @@
             <a class="admin-menu-item" id="menu-baam" onclick="switchAdminTab('baam')"><i class="fa-solid fa-gift"></i> Hộp Quà Nhân Phẩm</a>
             
             <a class="admin-menu-item" id="menu-spin" onclick="switchAdminTab('spin')"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Định Mệnh</a>
+            <a class="admin-menu-item" id="menu-tug" onclick="switchAdminTab('tug')"><i class="fa-solid fa-people-pulling"></i> Kéo Co Từ Vựng</a>
         </aside>
 
         <main class="admin-content">
@@ -236,6 +237,24 @@
                         <i class="fa-solid fa-magic-wand-sparkles"></i> LƯU & TRUYỀN PHÉP THUẬT SANG MÁY CHIẾU
                     </button>
                     <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 10px;">Khi bấm nút này, danh sách sẽ được cập nhật sang Tab Máy Chiếu ngay lập tức.</p>
+                </div>
+            </div>
+
+            <div id="tab-tug" class="admin-tab">
+                <h1 class="admin-title">Đại Chiến Kéo Co</h1>
+                <div class="admin-card">
+                    <button class="btn-admin" onclick="window.open('/teach/tug', '_blank')" style="width: 100%; margin-bottom: 25px; background: #f59e0b;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (KÉO CO)
+                    </button>
+
+                    <h3 style="margin-top: 0; color: #f59e0b;"><i class="fa-solid fa-spell-check"></i> Bộ Từ Vựng</h3>
+                    <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Nhập theo cú pháp: <b>Từ Tiếng Việt - Tiếng Anh</b> (Mỗi từ 1 dòng)</p>
+                    
+                    <textarea id="tug-items" class="admin-textarea" placeholder="Ví dụ:&#10;Vũ trụ - Universe&#10;Lực hấp dẫn - Gravity&#10;Hành tinh - Planet" style="min-height: 200px; border-color: #fef3c7; font-size: 16px;"></textarea>
+
+                    <button class="btn-admin" style="width: 100%; margin-top: 20px; background: #f59e0b; padding: 15px;" onclick="syncTugOfWar()">
+                        <i class="fa-solid fa-paper-plane"></i> GỬI TỪ VỰNG SANG MÁY CHIẾU
+                    </button>
                 </div>
             </div>
         </main>
@@ -584,6 +603,35 @@
             localStorage.setItem('mhent_spin_cmd', JSON.stringify({ action: 'SYNC', payload: payload, rand: Math.random() }));
             
             showToast("Phép thuật thành công!", `Đã xuất xưởng ${rawItems.length} cái tên sang Vòng Quay!`, "success");
+        }
+        // ==========================================
+        // LOGIC DÀNH CHO: KÉO CO TỪ VỰNG
+        // ==========================================
+        window.syncTugOfWar = function() {
+            const rawText = document.getElementById('tug-items').value.trim();
+            const lines = rawText.split('\n').filter(l => l.trim() !== "");
+            
+            let vocabList = [];
+            lines.forEach(line => {
+                // Tách phần Tiếng Việt và Tiếng Anh bằng dấu "-"
+                const parts = line.split('-');
+                if (parts.length >= 2) {
+                    vocabList.push({
+                        vn: parts[0].trim(),
+                        en: parts[1].trim()
+                    });
+                }
+            });
+
+            if (vocabList.length < 5) {
+                return showToast("Ít quá!", "Cần ít nhất 5 từ vựng để tổ chức kéo co cho xôm tụ nha!", "error");
+            }
+
+            // Trộn ngẫu nhiên từ vựng
+            vocabList = vocabList.sort(() => 0.5 - Math.random());
+
+            localStorage.setItem('mhent_tug_cmd', JSON.stringify({ action: 'SYNC', payload: { vocabs: vocabList }, rand: Math.random() }));
+            showToast("Tuyệt vời!", `Đã đẩy ${vocabList.length} từ vựng ra tiền tuyến!`, "success");
         }
     </script>
 </body>

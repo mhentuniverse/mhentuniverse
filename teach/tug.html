@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đại Chiến Kéo Co - MHEnt Universe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; padding: 0; height: 100vh; background: #0f172a; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* HEADER & TỈ SỐ */
+        .score-board { display: flex; justify-content: space-between; align-items: stretch; height: 120px; background: #1e293b; border-bottom: 4px solid #334155; }
+        .team-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .team-1 { background: linear-gradient(90deg, #be123c 0%, #1e293b 100%); }
+        .team-2 { background: linear-gradient(-90deg, #1d4ed8 0%, #1e293b 100%); }
+        .team-name { font-size: 24px; font-weight: 900; text-transform: uppercase; color: rgba(255,255,255,0.8); letter-spacing: 2px; }
+        .team-score { font-size: 60px; font-weight: 900; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .t1-color { color: #f43f5e; } .t2-color { color: #3b82f6; }
+
+        /* KHU VỰC SỢI DÂY KÉO CO */
+        .tug-arena { position: relative; height: 200px; display: flex; align-items: center; justify-content: center; padding: 0 10%; margin-top: 20px; }
+        .rope-container { position: relative; width: 100%; height: 20px; background: #8b4513; border-radius: 10px; border-top: 3px solid #a0522d; border-bottom: 3px solid #5c2e0b; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .center-mark { position: absolute; left: 50%; top: -30px; bottom: -30px; width: 4px; background: rgba(255,255,255,0.2); border-left: 2px dashed rgba(255,255,255,0.5); transform: translateX(-50%); }
+        
+        /* LÁ CỜ ĐỊNH MỆNH */
+        .flag-marker {
+            position: absolute; left: 50%; top: 50%; 
+            transform: translate(-50%, -50%); /* Vị trí gốc */
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy khi giật */
+            z-index: 10;
+        }
+        .flag-marker i { font-size: 80px; color: #fbbf24; text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+
+        /* VÙNG THẺ TỪ VỰNG */
+        .vocab-arena { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .flashcard { 
+            background: white; border-radius: 20px; width: 600px; min-height: 250px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; padding: 30px;
+            border-bottom: 8px solid #cbd5e1;
+        }
+        .vocab-vn { font-size: 50px; font-weight: 900; color: #0f172a; margin-bottom: 20px; line-height: 1.2; }
+        .vocab-en { font-size: 40px; font-weight: 800; color: #10b981; opacity: 0; transform: translateY(20px); transition: all 0.3s; }
+        .vocab-en.show { opacity: 1; transform: translateY(0); }
+
+        /* BẢNG ĐIỀU KHIỂN CỦA TRỌNG TÀI */
+        .controls { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px 40px; border-top: 2px solid #334155; }
+        .btn { padding: 15px 30px; font-size: 20px; font-weight: 900; font-family: 'Nunito'; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; color: white; }
+        .btn:hover { transform: translateY(-3px); }
+        .btn-t1 { background: #e11d48; box-shadow: 0 5px 0 #9f1239; } .btn-t1:active { transform: translateY(2px); box-shadow: 0 0 0 #9f1239; }
+        .btn-t2 { background: #2563eb; box-shadow: 0 5px 0 #1e40af; } .btn-t2:active { transform: translateY(2px); box-shadow: 0 0 0 #1e40af; }
+        .btn-reveal { background: #f59e0b; box-shadow: 0 5px 0 #b45309; font-size: 24px; padding: 15px 50px; } .btn-reveal:active { transform: translateY(2px); box-shadow: 0 0 0 #b45309; }
+
+        /* POPUP THẮNG CUỘC */
+        .popup { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; flex-direction: column; }
+        .popup.show { opacity: 1; pointer-events: auto; }
+        .win-title { font-size: 80px; font-weight: 900; margin: 0; text-shadow: 0 10px 30px rgba(0,0,0,0.5); text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="score-board">
+        <div class="team-box team-1">
+            <div class="team-name">TEAM 1 (ĐỎ)</div>
+            <div class="team-score t1-color" id="score-1">0</div>
+        </div>
+        <div class="team-box team-2">
+            <div class="team-name">TEAM 2 (XANH)</div>
+            <div class="team-score t2-color" id="score-2">0</div>
+        </div>
+    </div>
+
+    <div class="tug-arena">
+        <div class="rope-container">
+            <div class="center-mark"></div>
+            <div class="flag-marker" id="flag"><i class="fa-solid fa-flag"></i></div>
+        </div>
+    </div>
+
+    <div class="vocab-arena">
+        <div class="flashcard">
+            <div class="vocab-vn" id="word-vn">Đang tải dữ liệu...</div>
+            <div class="vocab-en" id="word-en">Loading...</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-t1" onclick="updateScore(1, 1)">+1 TEAM ĐỎ</button>
+            <button class="btn btn-t1" onclick="updateScore(1, -1)" style="background: #475569; box-shadow: 0 5px 0 #334155;">-1 Phạt</button>
+        </div>
+        
+        <button class="btn btn-reveal" id="btn-reveal" onclick="revealAnswer()"><i class="fa-solid fa-eye"></i> Hiện Đáp Án</button>
+        <button class="btn btn-reveal" id="btn-next" onclick="nextWord()" style="display: none; background: #10b981; box-shadow: 0 5px 0 #047857;"><i class="fa-solid fa-forward"></i> Từ Tiếp Theo</button>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-t2" onclick="updateScore(2, -1)" style="background: #475569; box-shadow: 0 5px 0 #334155;">-1 Phạt</button>
+            <button class="btn btn-t2" onclick="updateScore(2, 1)">+1 TEAM XANH</button>
+        </div>
+    </div>
+
+    <div id="win-popup" class="popup">
+        <h1 class="win-title" id="win-text">TEAM ĐỎ CHIẾN THẮNG!</h1>
+        <button class="btn btn-reveal" style="margin-top: 40px;" onclick="location.reload()">Chơi Lại Vòng Mới</button>
+    </div>
+
+    <script>
+        let vocabs = [];
+        let currentIndex = 0;
+        
+        let score1 = 0;
+        let score2 = 0;
+        let pullDifference = 0; // Điểm lệch. Âm là Đỏ kéo, Dương là Xanh kéo
+        const MAX_PULL = 5; // Kéo lệch 5 nấc là Win
+
+        const flag = document.getElementById('flag');
+        const vnWord = document.getElementById('word-vn');
+        const enWord = document.getElementById('word-en');
+        const btnReveal = document.getElementById('btn-reveal');
+        const btnNext = document.getElementById('btn-next');
+
+        // BỘ PHÁT ÂM THANH
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        
+        function playPullSound() {
+            if (!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        // TẢI DỮ LIỆU TỪ ADMIN
+        function loadFromAdmin() {
+            const data = localStorage.getItem('mhent_tug_cmd');
+            if (data) {
+                const cmd = JSON.parse(data);
+                vocabs = cmd.payload.vocabs;
+                currentIndex = 0; score1 = 0; score2 = 0; pullDifference = 0;
+                updateUI(); loadWord();
+            } else {
+                vnWord.innerHTML = "Chưa có từ vựng!<br><span style='font-size:20px; color:#64748b'>Vào Admin Panel để nạp đạn nhé!</span>";
+                enWord.innerText = "";
+            }
+        }
+        window.addEventListener('storage', (e) => { if (e.key === 'mhent_tug_cmd') loadFromAdmin(); });
+
+        function loadWord() {
+            if (currentIndex >= vocabs.length) {
+                vnWord.innerText = "HẾT TỪ VỰNG!"; enWord.innerText = "Trận chiến hòa!"; return;
+            }
+            vnWord.innerText = vocabs[currentIndex].vn;
+            enWord.innerText = vocabs[currentIndex].en;
+            enWord.classList.remove('show');
+            btnReveal.style.display = 'block'; btnNext.style.display = 'none';
+        }
+
+        function revealAnswer() {
+            initAudio();
+            enWord.classList.add('show');
+            btnReveal.style.display = 'none'; btnNext.style.display = 'block';
+        }
+
+        function nextWord() {
+            currentIndex++; loadWord();
+        }
+
+        // XỬ LÝ LOGIC KÉO CO
+        function updateScore(team, points) {
+            initAudio(); playPullSound();
+            
+            if (team === 1) {
+                score1 += points;
+                pullDifference -= points; // Đỏ nằm bên trái nên trừ đi để xê dịch về trái
+            } else {
+                score2 += points;
+                pullDifference += points; // Xanh bên phải nên cộng vào để xê dịch phải
+            }
+
+            // Chặn không cho điểm bị âm
+            if(score1 < 0) score1 = 0; if(score2 < 0) score2 = 0;
+
+            updateUI();
+            checkWin();
+        }
+
+        function updateUI() {
+            document.getElementById('score-1').innerText = score1;
+            document.getElementById('score-2').innerText = score2;
+
+            // Tính phần trăm lệch để dịch chuyển cờ (MAX_PULL = 40% màn hình để không rơi khỏi dây)
+            let movePercent = (pullDifference / MAX_PULL) * 45; 
+            if (movePercent < -45) movePercent = -45;
+            if (movePercent > 45) movePercent = 45;
+
+            // Xoay lá cờ nghiêng theo chiều kéo cho sinh động
+            let rotateDeg = pullDifference * 5; 
+            flag.style.transform = `translate(calc(-50% + ${movePercent}vw), -50%) rotate(${rotateDeg}deg) scale(1.2)`;
+            setTimeout(() => { flag.style.transform = `translate(calc(-50% + ${movePercent}vw), -50%) rotate(${rotateDeg}deg) scale(1)`; }, 200);
+        }
+
+        function checkWin() {
+            if (pullDifference <= -MAX_PULL) {
+                document.getElementById('win-text').innerText = "TEAM ĐỎ ĐÃ GIẬT ĐỨT DÂY!";
+                document.getElementById('win-text').className = "win-title t1-color";
+                document.getElementById('win-popup').classList.add('show');
+            } else if (pullDifference >= MAX_PULL) {
+                document.getElementById('win-text').innerText = "TEAM XANH ĐÃ GIẬT ĐỨT DÂY!";
+                document.getElementById('win-text').className = "win-title t2-color";
+                document.getElementById('win-popup').classList.add('show');
+            }
+        }
+
+        loadFromAdmin();
+    </script>
+</body>
+</html>
