@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinner 3 Team - MHEnt. Edu</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0ea5e9">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/teach/teach-theme.css"> 
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { margin: 0; padding: 0; height: 100vh; background: #0f172a; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #1e293b; border-bottom: 2px solid #334155; z-index: 10; }
+        .header h1 { margin: 0; color: #f472b6; font-size: 24px; text-shadow: 0 0 10px rgba(244,114,182,0.3); }
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        
+        .wheel-section { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; }
+        .wheel-wrapper { position: relative; width: min(80vh, 90%); aspect-ratio: 1/1; cursor: pointer; transition: transform 0.2s; }
+        .wheel-wrapper:hover { transform: scale(1.02); }
+        .wheel-wrapper.spinning { pointer-events: none; cursor: default; }
+
+        .pointer { position: absolute; top: -5%; left: 50%; transform: translateX(-50%); width: 0; height: 0; z-index: 20; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #e11d48; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
+        canvas { width: 100%; height: 100%; border-radius: 50%; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.5); border: 8px solid #334155; transition: transform 5s cubic-bezier(0.15, 0.85, 0.15, 1); }
+        
+        .center-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 22%; height: 22%; background: white; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #1e293b; font-size: clamp(14px, 2.5vmin, 26px); text-align: center; line-height: 1.2; z-index: 10; border: 4px solid #e2e8f0; pointer-events: none; }
+
+        .sidebar { width: 350px; background: #1e293b; border-left: 2px solid #334155; display: flex; flex-direction: column; z-index: 10; }
+        .tab-headers { display: flex; border-bottom: 2px solid #334155; }
+        .tab-btn { flex: 1; padding: 15px 0; background: none; border: none; color: #94a3b8; font-size: 16px; font-family: 'Nunito'; font-weight: bold; cursor: pointer; }
+        .tab-btn.active { color: #f472b6; border-bottom: 3px solid #f472b6; background: rgba(244,114,182,0.1); }
+        .tab-content { flex: 1; padding: 20px; display: none; flex-direction: column; }
+        .tab-content.active { display: flex; }
+
+        textarea { flex: 1; background: #0f172a; border: 1px solid #334155; color: white; font-family: 'Nunito'; font-size: 16px; padding: 15px; border-radius: 8px; resize: none; outline: none; line-height: 1.6; }
+        .action-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .action-btns button { flex: 1; padding: 10px; background: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: 'Nunito'; font-weight: bold; }
+        .action-btns button:hover { background: #475569; }
+
+        #winner-list { flex: 1; list-style: none; padding: 0; margin: 0; overflow-y: auto; }
+        #winner-list li { background: #0f172a; margin-bottom: 8px; padding: 12px 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+
+        .popup { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100; }
+        .popup.show { opacity: 1; pointer-events: auto; }
+        .popup-content { background: #1e293b; border-radius: 12px; text-align: center; transform: scale(0.8); transition: transform 0.3s; width: 500px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden; border: 1px solid #334155; }
+        .popup.show .popup-content { transform: scale(1); }
+        .popup-header { background: #10b981; padding: 15px 20px; text-align: left; }
+        .popup-header h3 { margin: 0; color: white; font-size: 20px; font-weight: 900; }
+        .popup-body { padding: 40px 20px; }
+        .popup-body h2 { font-size: 3.5rem; color: white; margin: 0 0 40px 0; word-break: break-word;}
+        .popup-btn-group { display: flex; justify-content: center; gap: 15px; }
+        .popup-btn { padding: 12px 25px; font-size: 16px; font-family: 'Nunito'; font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.2s; border: none; color: white;}
+        .btn-remove { background: #3b82f6; } .btn-remove:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-dharmachakra"></i> Spinner 3 Team - MHEnt. Edu</h1>
+    </div>
+
+    <div class="main-layout">
+        <div class="wheel-section">
+            <div class="wheel-wrapper" id="wheel-wrapper" onclick="spinWheel()">
+                <div class="pointer"></div>
+                <canvas id="wheel" width="800" height="800"></canvas>
+                <div class="center-hub" id="center-hub">CLICK<br>ĐỂ QUAY</div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="tab-headers">
+                <button class="tab-btn active" onclick="switchTab('input')">Danh sách</button>
+                <button class="tab-btn" onclick="switchTab('result')"><span id="result-count">0</span> Đã chia</button>
+            </div>
+            <div class="tab-content active" id="tab-input">
+                <textarea id="input-textarea" oninput="handleManualEdit()"></textarea>
+                <div class="action-btns">
+                    <button onclick="resetDemo()"><i class="fa-solid fa-rotate-right"></i> Reset Demo</button>
+                </div>
+            </div>
+            <div class="tab-content" id="tab-result">
+                <ul id="winner-list"></ul>
+                <div class="action-btns" style="margin-top: auto; padding-top: 15px;">
+                    <button onclick="clearResults()" style="background: #e11d48;"><i class="fa-solid fa-trash"></i> Xóa lịch sử</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-popup" class="popup">
+        <div class="popup-content">
+            <div class="popup-header" id="popup-header">
+                <h3>Vào team nào đây...</h3>
+            </div>
+            <div class="popup-body">
+                <h2 id="winner-name">Tên Học Sinh</h2>
+                <div class="popup-btn-group">
+                    <button class="popup-btn btn-remove" onclick="closePopup('remove')">Tiếp tục chia</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('wheel-wrapper');
+        const centerHub = document.getElementById('center-hub');
+        const textarea = document.getElementById('input-textarea');
+        
+        const colors = ['#f43f5e', '#ec4899', '#d946ef', '#8b5cf6', '#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#f97316'];
+        const teamColors = ['#f43f5e', '#3b82f6', '#10b981']; // Team 1: Đỏ, Team 2: Xanh dương, Team 3: Xanh lá
+        
+        // --- CẤU HÌNH BÀI TOÁN DEMO ---
+        const defaultNames = ['Anna', 'Bunny', 'Emily', 'Ethan', 'Jason', 'Linh', 'Sapphire', 'Spider', 'Tommy'];
+        const magicOrder = [7, 4, 3, 5, 6, 0, 1, 8, 2]; // Mã kịch bản bí mật
+
+        let activeItems = []; 
+        let winners = [];
+        let isRigged = true;
+        let riggedOrder = [];
+        let riggedStep = 0; 
+        
+        let currentRotation = 0; 
+        let isSpinning = false;
+        let currentWinningIndex = -1; 
+
+        // Âm thanh
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        function playTickSound() {
+            if (!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+        function playWinSound() {
+            if (!audioCtx) return; const freqs = [523.25, 659.25, 1046.50]; 
+            freqs.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i*0.1); gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + i*0.1 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i*0.1 + 0.6);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(audioCtx.currentTime + i*0.1); osc.stop(audioCtx.currentTime + i*0.1 + 0.6);
+            });
+        }
+
+        // Bùm chéo
+        function throwConfetti() {
+            const cColors = ['#f43f5e', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#fbbf24'];
+            for(let i=0; i<80; i++) {
+                let conf = document.createElement('div');
+                conf.style.position = 'fixed'; conf.style.width = '12px'; conf.style.height = '12px'; conf.style.backgroundColor = cColors[Math.floor(Math.random()*cColors.length)];
+                conf.style.left = '50%'; conf.style.top = '50%'; conf.style.zIndex = '99'; document.body.appendChild(conf);
+                let angle = Math.random() * Math.PI * 2; let velocity = 15 + Math.random() * 25;
+                let x = Math.cos(angle) * velocity; let y = Math.sin(angle) * velocity; let rot = Math.random() * 360;
+                let start = performance.now();
+                requestAnimationFrame(function animate(t) {
+                    let progress = (t - start) / 2500;
+                    if(progress > 1) { conf.remove(); return; }
+                    x *= 0.96; y += 0.8; conf.style.transform = `translate(calc(-50% + ${x*20}px), calc(-50% + ${y*15}px)) rotate(${rot + progress*500}deg)`;
+                    conf.style.opacity = 1 - progress; requestAnimationFrame(animate);
+                });
+            }
+        }
+
+        // Load dữ liệu cứng cho Demo
+        function loadDemoData() {
+            activeItems = defaultNames.map((name, index) => ({ id: index, name: name }));
+            isRigged = true;
+            riggedOrder = [...magicOrder];
+            riggedStep = 0;
+            winners = [];
+            textarea.value = defaultNames.join('\n');
+            updateResultTab();
+            resetWheelPos();
+        }
+
+        function handleManualEdit() {
+            isRigged = false; // Gõ tay là mất quyền cơ cấu ngay
+            const raw = textarea.value.split('\n').map(i => i.trim()).filter(i => i !== "");
+            activeItems = raw.map((name, index) => ({ id: index, name: name }));
+            resetWheelPos(); 
+        }
+
+        function resetWheelPos() {
+            currentRotation = 0; canvas.style.transition = 'none'; canvas.style.transform = `rotate(0deg)`;
+            centerHub.innerHTML = "CLICK<br>ĐỂ QUAY"; drawWheel();
+        }
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, 800, 800);
+            const numSlices = activeItems.length;
+            if (numSlices === 0) return;
+            const sliceAngle = (2 * Math.PI) / numSlices; const center = 400; const radius = 390; 
+
+            for (let i = 0; i < numSlices; i++) {
+                ctx.beginPath(); ctx.moveTo(center, center); ctx.arc(center, center, radius, i * sliceAngle, (i + 1) * sliceAngle);
+                ctx.fillStyle = colors[i % colors.length]; ctx.fill();
+                ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
+                ctx.save(); ctx.translate(center, center); ctx.rotate(i * sliceAngle + sliceAngle / 2);
+                ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff";
+                let fontSize = numSlices > 15 ? 20 : (numSlices > 8 ? 28 : 36);
+                ctx.font = `bold ${fontSize}px Nunito`; ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 4; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+                ctx.fillText(activeItems[i].name, radius - 30, 0); ctx.restore();
+            }
+        }
+
+        function spinWheel() {
+            if (isSpinning || activeItems.length === 0) return;
+            initAudio(); 
+            isSpinning = true; wrapper.classList.add('spinning'); centerHub.innerHTML = "ĐANG<br>QUAY...";
+
+            const numSlices = activeItems.length;
+            const sliceAngleDeg = 360 / numSlices;
+            
+            if (isRigged && riggedStep < riggedOrder.length) {
+                const targetOriginalId = riggedOrder[riggedStep];
+                currentWinningIndex = activeItems.findIndex(item => item.id === targetOriginalId);
+                if (currentWinningIndex === -1) currentWinningIndex = Math.floor(Math.random() * numSlices);
+                else riggedStep++; 
+            } else {
+                currentWinningIndex = Math.floor(Math.random() * numSlices);
+            }
+
+            const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + (sliceAngleDeg / 2);
+            const targetR = (270 - currentTargetAngle + 360) % 360;
+            const currentRemainder = currentRotation % 360; 
+            
+            let diff = targetR - currentRemainder;
+            if (diff <= 0) diff += 360; 
+
+            const extraSpins = 6 * 360; 
+            const stopAngle = extraSpins + diff; 
+            currentRotation += stopAngle; 
+            canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)'; 
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            let tickDelay = 20;
+            function playTicks() {
+                if (!isSpinning) return;
+                playTickSound();
+                tickDelay *= 1.07; 
+                if (tickDelay < 500) setTimeout(playTicks, tickDelay);
+            }
+            playTicks();
+
+            setTimeout(() => {
+                const winner = activeItems[currentWinningIndex];
+                
+                // Tính toán team nào được gọi (1, 2, 3)
+                const teamNum = (winners.length % 3) + 1;
+                const teamColor = teamColors[teamNum - 1];
+
+                // Trang trí popup theo màu Team
+                document.getElementById('popup-header').style.background = teamColor;
+                document.getElementById('popup-header').innerHTML = `<h3>Xếp vào TEAM ${teamNum}</h3>`;
+                document.getElementById('winner-name').innerText = winner.name;
+                document.getElementById('result-popup').classList.add('show');
+                
+                playWinSound(); throwConfetti(); 
+                
+                winners.push(winner.name);
+                updateResultTab();
+            }, 5000);
+        }
+
+        function closePopup(action) {
+            document.getElementById('result-popup').classList.remove('show');
+            isSpinning = false; wrapper.classList.remove('spinning');
+            
+            if (action === 'remove' && currentWinningIndex !== -1) {
+                activeItems.splice(currentWinningIndex, 1);
+                textarea.value = activeItems.map(i => i.name).join('\n');
+                if (activeItems.length > 0) drawWheel(); 
+            }
+            
+            currentWinningIndex = -1;
+
+            if (activeItems.length > 0) {
+                centerHub.innerHTML = "CLICK<br>ĐỂ QUAY";
+            } else {
+                centerHub.innerHTML = "HẾT<br>NGƯỜI";
+                ctx.clearRect(0, 0, 800, 800); 
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        // TỰ ĐỘNG HIỂN THỊ TEAM BÊN TAB LỊCH SỬ
+        function updateResultTab() {
+            document.getElementById('result-count').innerText = winners.length;
+            const ul = document.getElementById('winner-list'); ul.innerHTML = '';
+            winners.forEach((w, idx) => { 
+                const teamNum = (idx % 3) + 1;
+                const color = teamColors[teamNum - 1];
+                ul.innerHTML += `<li style="border-left: 4px solid ${color}">
+                    <span style="font-size: 18px; font-weight: bold;">${w}</span> 
+                    <span style="color: ${color}; font-weight: 900; background: ${color}20; padding: 2px 8px; border-radius: 4px;">Team ${teamNum}</span>
+                </li>`; 
+            });
+        }
+
+        function clearResults() { winners = []; updateResultTab(); }
+        function resetDemo() { loadDemoData(); }
+
+        // Chạy ngay khi mở file
+        loadDemoData();
+    </script>
+</body>
+</html>
