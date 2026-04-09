@@ -17,6 +17,6 @@ ipcRenderer.on('auth-success', (event, data) => {
         alert("🎉 ĐĂNG NHẬP THÀNH CÔNG! Đang vào Đại sảnh...");
         
         // Chuyển trang
-        window.location.href = 'app://-/index.html'; 
+        window.location.reload();
     }
 });

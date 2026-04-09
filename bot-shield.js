@@ -2,18 +2,13 @@
 // HỆ THỐNG BẢO VỆ MIENT UNIVERSE (CLOUDFLARE TURNSTILE)
 // ========================================================
 
-// Nếu phát hiện đang chạy trên App MHEnt Universe (Electron)
-if (navigator.userAgent.includes('Electron')) {
-    // Ẩn luôn cái màn hình Cloudflare
-    document.getElementById('tên-id-của-khung-cloudflare').style.display = 'none'; 
-    
-    // (Nếu có hàm nào để chuyển vào trang chủ thì cậu gọi luôn ở đây nhé)
-    // Ví dụ: window.location.href = '/home.html';
-    
-    return; // Dừng việc tải Cloudflare lại
-}
-
 (function() {
+    // Nếu phát hiện đang chạy trên App MHEnt Universe (Electron)
+    if (navigator.userAgent.includes('Electron')) {
+        console.log("MHEnt System: App Desktop được cấp thẻ xanh, bỏ qua Cloudflare!");
+        return; // Lệnh return này giờ đã hợp lệ vì nằm trong function
+    }
+
     // 1. Cấu hình thời gian (2 tiếng = 2 * 60 * 60 * 1000 ms)
     const EXPIRE_TIME_MS = 2 * 60 * 60 * 1000;
     const lastVerified = localStorage.getItem('mhent_human_verified_time');
