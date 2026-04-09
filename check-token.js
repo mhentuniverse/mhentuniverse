@@ -13,11 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("✅ Đã nhận diện Căn cước trong App! Chào mừng trở lại Đại sảnh.");
         
         // Giấu nút Đăng nhập đi
-        if (btnLogin) btnLogin.style.display = 'none';
+        if (btnLogin) // Khi Căn cước hợp lệ
+            btnLogin.classList.add('hidden-by-auth');
         
         // Hiện khu vực Avatar lên
         if (userProfile) {
-            userProfile.style.display = 'flex'; // hoặc 'block' tùy CSS của cậu
+            userProfile.classList.add('show-by-auth'); // hoặc 'block' tùy CSS của cậu
             
             // Ở bước này, nếu cậu có lưu tên hoặc link ảnh của user trên localStorage, 
             // cậu có thể chèn thẳng vào đây luôn!
@@ -27,9 +28,9 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("❌ Chưa có Căn cước, yêu cầu khách xuất trình (Đăng nhập).");
         
         // Hiện nút Đăng nhập
-        if (btnLogin) btnLogin.style.display = 'block';
+        if (btnLogin) btnLogin.classList.remove('hidden-by-auth');
         
         // Giấu khu vực Avatar đi
-        if (userProfile) userProfile.style.display = 'none';
+        if (userProfile) userProfile.classList.remove('show-by-auth');
     }
 });
