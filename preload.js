@@ -10,8 +10,14 @@ ipcRenderer.on('deep-link-received', (event, url) => {
     console.log("🔥 APP ĐÃ NHẬN ĐƯỢC LINK TỪ CHROME: ", url);
     
     try {
+        // Nắn lại URL nếu Windows lỡ nuốt mất dấu // (Biến mhent:auth thành mhent://auth)
+        let normalizedUrl = url;
+        if (url.startsWith('mhent:') && !url.startsWith('mhent://')) {
+            normalizedUrl = url.replace('mhent:', 'mhent://');
+        }
+        
         // Cắt đuôi thừa và quét URL
-        const cleanUrl = url.replace(/\/$/, ""); 
+        const cleanUrl = normalizedUrl.replace(/\/$/, ""); 
         const urlObj = new URL(cleanUrl);
         
         if (cleanUrl.includes('auth')) {

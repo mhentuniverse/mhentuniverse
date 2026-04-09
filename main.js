@@ -26,11 +26,26 @@ if (!gotTheLock) {
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
 
-            const deepLink = commandLine.find(arg => arg.startsWith('mhent://'));
+            // TRICK: Quét từ khóa linh hoạt hơn vì Windows hay làm méo link (vứt // hoặc bọc ngoặc kép)
+            let deepLink = commandLine.find(arg => arg.includes('mhent:') || arg.includes('mhent://'));
+            
             if (deepLink) {
+                // Xóa bỏ ngoặc kép thừa (nếu có) do Windows tự gắn vào
+                deepLink = deepLink.replace(/"/g, '').trim();
                 console.log("-> Đã bắt được link từ Chrome: ", deepLink);
                 mainWindow.webContents.send('deep-link-received', deepLink);
+            } else {
+                console.log("-> Có gọi App nhưng không tìm thấy link trong CommandLine: ", commandLine);
             }
+        }
+    });
+
+    // 3.5 BẮT LINK DÀNH RIÊNG CHO MACOS (Vì macOS không dùng second-instance)
+    app.on('open-url', (event, url) => {
+        event.preventDefault();
+        if (mainWindow) {
+            console.log("-> [macOS] Đã bắt được link: ", url);
+            mainWindow.webContents.send('deep-link-received', url);
         }
     });
 
