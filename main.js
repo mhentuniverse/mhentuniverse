@@ -16,14 +16,25 @@ if (process.defaultApp) {
 
 const gotTheLock = app.requestSingleInstanceLock();
 
-// Hàm xử lý bóc tách link cực mạnh
+// Hàm xử lý bóc tách link cực mạnh & Không bao giờ làm rơi data
 function handleDeepLink(url) {
     if (!url || !mainWindow) return;
+    
     // Xóa ngoặc kép và khoảng trắng thừa do Windows
     let cleanUrl = url.replace(/"/g, '').trim();
     if (cleanUrl.includes('mhent:')) {
         console.log("-> Deep Link bẫy được: ", cleanUrl);
-        mainWindow.webContents.send('deep-link-received', cleanUrl);
+        
+        // KIỂM TRA: Nếu giao diện đang bận load, phải ĐỢI nó load xong mới ném link sang
+        if (mainWindow.webContents.isLoading()) {
+            console.log("-> Giao diện đang tải, đợi chút xíu mới bắn link...");
+            mainWindow.webContents.once('did-finish-load', () => {
+                mainWindow.webContents.send('deep-link-received', cleanUrl);
+            });
+        } else {
+            // Giao diện đã sẵn sàng, ném luôn!
+            mainWindow.webContents.send('deep-link-received', cleanUrl);
+        }
     }
 }
 
