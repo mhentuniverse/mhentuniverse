@@ -396,16 +396,31 @@ if (btnLogin) {
             let appToken = localStorage.getItem('mhent_app_token');
             console.log("-> Mã Token tìm thấy:", appToken ? "CÓ" : "KHÔNG CÓ");
 
-            // 👇 THAY ID CỦA CẬU VÀO DÒNG NÀY 👇
-            const btnLogin = document.getElementById('btn-login'); 
-            
-            console.log("-> Nút Đăng Nhập tìm thấy:", btnLogin ? "CÓ TỒN TẠI" : "BỊ TÀNG HÌNH (Tìm không ra ID)");
-
-            if (appToken && btnLogin) {
-                console.log("✅ Điều kiện hoàn hảo! Đang giấu nút Đăng nhập đi...");
-                btnLogin.style.display = 'none';
+            if (appToken) {
+                console.log("✅ Căn cước hợp lệ! Tiến hành dọn dẹp giao diện...");
+                
+                // CÁCH 1: XÓA SẠCH SẼ NHỮNG THỨ LIÊN QUAN ĐẾN ĐĂNG NHẬP
+                // Cậu hãy thay 'btn-login-main' bằng ID nút của cậu nhé
+                const btnLogin = document.getElementById('btn-login');
+                if (btnLogin) {
+                    // Xóa vĩnh viễn cái nút khỏi file HTML luôn, khỏi cần ẩn hiện gì sất!
+                    btnLogin.remove(); 
+                    console.log("-> Đã tiêu diệt nút Đăng Nhập!");
+                }
+                
+                // (Bonus) CÁCH 2: Nếu cậu có nhiều nút cùng ID (Dành cho Responsive Mobile)
+                // Cậu có thể tóm cổ toàn bộ bằng Class thay vì ID
+                // Ví dụ nút của cậu có class là "nut-login-mhent"
+                /*
+                const cacNutLogin = document.querySelectorAll('.nut-login-mhent');
+                cacNutLogin.forEach(nut => {
+                    nut.setAttribute('style', 'display: none !important; visibility: hidden !important;');
+                });
+                */
             }
         });
     </script>
+</body>
+</html>
 </body>
 </html>
