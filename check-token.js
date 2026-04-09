@@ -5,8 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let appUid = localStorage.getItem('mhent_app_uid');
 
     // 2. Tìm các phần tử trên giao diện (Cậu nhớ sửa lại id cho khớp với web của cậu nha)
-    const btnLogin = document.getElementById('nut-dang-nhap'); // Nút Đăng nhập cũ
-    const userProfile = document.getElementById('khu-vuc-avatar'); // Khu vực hiện Avatar/Tên
+    const btnLogin = document.getElementById('btn-login'); // Nút Đăng nhập cũ
+    const userProfile = document.getElementById('user-profile'); // Khu vực hiện Avatar/Tên
 
     // 3. Kiểm tra xem có thẻ không
     if (appToken && appUid) {
