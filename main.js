@@ -5,7 +5,6 @@ const path = require('path');
 const loadURL = (serve.default || serve)({ directory: __dirname });
 let mainWindow;
 
-// 1. ĐĂNG KÝ PROTOCOL
 if (process.defaultApp) {
     if (process.argv.length >= 2) {
         app.setAsDefaultProtocolClient('mhent', process.execPath, [path.resolve(process.argv[1])]);
@@ -16,24 +15,32 @@ if (process.defaultApp) {
 
 const gotTheLock = app.requestSingleInstanceLock();
 
-// Hàm xử lý bóc tách link cực mạnh & Không bao giờ làm rơi data
-function handleDeepLink(url) {
-    if (!url || !mainWindow) return;
+// HÀM SĂN TOKEN BẤT CHẤP ĐỊNH DẠNG
+function handleDeepLink(rawString) {
+    if (!rawString || !mainWindow) return;
     
-    // Xóa ngoặc kép và khoảng trắng thừa do Windows
-    let cleanUrl = url.replace(/"/g, '').trim();
-    if (cleanUrl.includes('mhent:')) {
-        console.log("-> Deep Link bẫy được: ", cleanUrl);
+    console.log("-> Bắt đầu xử lý chuỗi: ", rawString);
+    
+    // Dùng Regex bóc tách trực tiếp bỏ qua mọi định dạng URL
+    const uidMatch = rawString.match(/uid=([^&/\s"']+)/);
+    const tokenMatch = rawString.match(/token=([^&/\s"']+)/);
+    
+    if (uidMatch && tokenMatch) {
+        const payload = {
+            uid: uidMatch[1].trim(),
+            token: tokenMatch[1].trim()
+        };
         
-        // KIỂM TRA: Nếu giao diện đang bận load, phải ĐỢI nó load xong mới ném link sang
+        console.log("-> Bóc tách thành công! UID:", payload.uid);
+
+        const sendAuth = () => {
+            mainWindow.webContents.send('auth-success', payload);
+        };
+
         if (mainWindow.webContents.isLoading()) {
-            console.log("-> Giao diện đang tải, đợi chút xíu mới bắn link...");
-            mainWindow.webContents.once('did-finish-load', () => {
-                mainWindow.webContents.send('deep-link-received', cleanUrl);
-            });
+            mainWindow.webContents.once('did-finish-load', sendAuth);
         } else {
-            // Giao diện đã sẵn sàng, ném luôn!
-            mainWindow.webContents.send('deep-link-received', cleanUrl);
+            sendAuth();
         }
     }
 }
@@ -41,15 +48,17 @@ function handleDeepLink(url) {
 if (!gotTheLock) {
     app.quit();
 } else {
-    // 2. BẮT LINK KHI APP ĐANG CHẠY (SECOND INSTANCE)
+    // KHI APP ĐANG MỞ SẴN
     app.on('second-instance', (event, commandLine) => {
         if (mainWindow) {
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
             
-            // Windows gửi link qua commandLine
-            const url = commandLine.find(arg => arg.includes('mhent:'));
-            handleDeepLink(url);
+            // TÌM CHÍNH XÁC ĐOẠN CHỨA TOKEN, bỏ qua vụ tên miền mhent://
+            const authArg = commandLine.find(arg => arg.includes('uid=') && arg.includes('token='));
+            if (authArg) {
+                handleDeepLink(authArg);
+            }
         }
     });
 
@@ -58,28 +67,26 @@ if (!gotTheLock) {
             width: 1200, height: 800,
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
-                contextIsolation: false, // Để preload.js xài được localStorage dễ hơn
+                contextIsolation: false,
                 nodeIntegration: true
             }
         });
 
         loadURL(mainWindow).then(() => {
             mainWindow.loadURL('app://-/index.html');
+            // Mở Console sẵn để soi lỗi
             mainWindow.webContents.openDevTools();
 
-            // 3. BẮT LINK KHI APP VỪA BẬT (COLD START)
-            // Kiểm tra xem trong argv có link không (Dành cho Windows)
-            const startUrl = process.argv.find(arg => arg.includes('mhent:'));
-            if (startUrl) {
-                // Đợi app load xong giao diện mới bắn link qua
-                setTimeout(() => handleDeepLink(startUrl), 1500);
+            // KHI APP VỪA ĐƯỢC BẬT LÊN
+            const startArg = process.argv.find(arg => arg.includes('uid=') && arg.includes('token='));
+            if (startArg) {
+                setTimeout(() => handleDeepLink(startArg), 1500);
             }
         });
     }
 
     app.whenReady().then(createWindow);
 
-    // Dành cho macOS
     app.on('open-url', (event, url) => {
         event.preventDefault();
         handleDeepLink(url);

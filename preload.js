@@ -4,29 +4,19 @@ window.openChrome = (url) => {
     ipcRenderer.send('open-external-browser', url);
 };
 
-ipcRenderer.on('deep-link-received', (event, url) => {
-    // Gỡ lỗi nhanh: Nếu thấy cái này hiện ra là App đã nhận được data!
-    console.log("🔥 ĐÃ NHẬN LINK:", url);
+// Lắng nghe dữ liệu đã được mổ xẻ sẵn từ main.js
+ipcRenderer.on('auth-success', (event, data) => {
+    console.log("🔥 ĐÃ NHẬN DATA TỪ MAIN:", data);
 
-    try {
-        // Chuẩn hóa link (thêm // nếu thiếu)
-        let formattedUrl = url.replace('mhent:', 'mhent://').replace('mhent:////', 'mhent://');
-        const urlObj = new URL(formattedUrl);
+    if (data && data.uid && data.token) {
+        // Cất vào túi
+        localStorage.setItem('mhent_app_token', data.token);
+        localStorage.setItem('mhent_app_uid', data.uid);
         
-        const token = urlObj.searchParams.get('token');
-        const uid = urlObj.searchParams.get('uid');
-
-        if (token && uid) {
-            localStorage.setItem('mhent_app_token', token);
-            localStorage.setItem('mhent_app_uid', uid);
-            
-            // Báo hiệu thành công
-            console.log("✅ Lưu Căn cước thành công! Đang chuyển vùng...");
-            window.location.href = 'app://-/index.html';
-        } else {
-            console.error("❌ Link thiếu token hoặc uid:", url);
-        }
-    } catch (e) {
-        console.error("❌ Lỗi xử lý URL:", e);
+        // Hiện thông báo đập thẳng vào mắt
+        alert("🎉 ĐĂNG NHẬP THÀNH CÔNG! Đang vào Đại sảnh...");
+        
+        // Chuyển trang
+        window.location.href = 'app://-/index.html'; 
     }
 });
