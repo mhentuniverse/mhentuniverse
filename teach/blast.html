@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blast Block - MHEnt. Edu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --mc-green: #3f7e14; --mc-dirt: #866043; --mc-stone: #7a7a7a; --mc-tnt: #d32f2f; }
+        body { margin: 0; padding: 0; height: 100vh; background: #1a1a1a; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #333; border-bottom: 4px solid #000; }
+        .header h1 { margin: 0; color: #55ff55; font-family: monospace; font-weight: 900; }
+
+        .game-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+
+        /* KHỐI CÂU HỎI */
+        .block-q {
+            width: 300px; height: 300px; background: var(--mc-stone);
+            border: 8px solid #333; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; font-weight: 900; text-align: center; padding: 20px;
+            box-shadow: 10px 10px 0 #000; margin-bottom: 50px;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; cursor: pointer;
+        }
+        .block-q.flipped { transform: rotateY(180deg); background: var(--mc-green); }
+        .block-q span { transition: 0.3s; }
+        .block-q.flipped span { transform: rotateY(180deg); color: #fff; }
+
+        /* KHU VỰC ĐÁP ÁN */
+        .options-area { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; }
+        .block-ans {
+            min-width: 150px; padding: 20px; background: var(--mc-dirt);
+            border: 5px solid #4d3321; border-radius: 8px;
+            font-size: 24px; font-weight: 900; cursor: pointer;
+            text-align: center; transition: 0.2s; box-shadow: 5px 5px 0 #000;
+        }
+        .block-ans:hover { transform: translateY(-5px) scale(1.05); filter: brightness(1.2); }
+        .block-ans:active { transform: translateY(2px); box-shadow: none; }
+
+        /* HIỆU ỨNG */
+        @keyframes break { 
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2) rotate(10deg); filter: brightness(2); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .break-effect { animation: break 0.5s forwards !important; }
+
+        @keyframes explode {
+            0% { transform: scale(1); background: white; }
+            20% { transform: scale(1.3) rotate(-5deg); background: var(--mc-tnt); }
+            40% { transform: scale(0.8) rotate(5deg); }
+            100% { transform: scale(5); opacity: 0; }
+        }
+        .explode-effect { animation: explode 0.6s forwards !important; border-color: white !important; }
+
+        .xp-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 10px; background: #000; }
+        #xp-progress { width: 0%; height: 100%; background: #55ff55; transition: 1s; box-shadow: 0 0 10px #55ff55; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-cube"></i> BLAST BLOCK v1.0</h1>
+        <div id="level-txt" style="font-weight: 900; color: #ffff55;">LEVEL: 1/1</div>
+    </div>
+
+    <div class="game-container">
+        <div class="block-q" id="question-block">
+            <span id="q-text">Đang chờ Admin...</span>
+        </div>
+
+        <div class="options-area" id="options-area">
+            </div>
+    </div>
+
+    <div class="xp-bar"><div id="xp-progress"></div></div>
+
+    <script>
+        let questions = [];
+        let currentIndex = 0;
+        let isProcessing = false;
+
+        const qBlock = document.getElementById('question-block');
+        const qText = document.getElementById('q-text');
+        const optArea = document.getElementById('options-area');
+        const xpProgress = document.getElementById('xp-progress');
+
+        // ÂM THANH MINECRAFT (Web Audio API)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+        function playXP() {
+            if (!audioCtx) return;
+            const freqs = [800, 1000, 1200];
+            freqs.forEach((f, i) => {
+                const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                osc.frequency.setValueAtTime(f, audioCtx.currentTime + i*0.05);
+                g.gain.setValueAtTime(0.1, audioCtx.currentTime + i*0.05);
+                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i*0.05 + 0.1);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + i*0.1); osc.stop(audioCtx.currentTime + i*0.1 + 0.1);
+            });
+        }
+
+        function playTNT() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.5);
+            g.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // ĐỒNG BỘ
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'mhent_blast_cmd') {
+                const data = JSON.parse(e.newValue);
+                questions = data.payload.questions;
+                currentIndex = 0;
+                loadQuestion();
+            }
+        });
+
+        function loadQuestion() {
+            if (currentIndex >= questions.length) {
+                qText.innerText = "CHÚC MỪNG! ĐÃ PHÁ ĐẢO THẾ GIỚI!";
+                optArea.innerHTML = "";
+                return;
+            }
+            isProcessing = false;
+            const cur = questions[currentIndex];
+            document.getElementById('level-txt').innerText = `LEVEL: ${currentIndex + 1}/${questions.length}`;
+            
+            // Reset Block
+            qBlock.classList.remove('flipped', 'break-effect', 'explode-effect');
+            qText.innerText = cur.q;
+
+            // Render Đáp án
+            optArea.innerHTML = "";
+            let opts = cur.type === 'memory' ? [cur.a] : cur.options;
+            
+            opts.forEach(o => {
+                const b = document.createElement('div');
+                b.className = 'block-ans';
+                b.innerText = o;
+                b.onclick = () => checkAnswer(o, b);
+                optArea.appendChild(b);
+            });
+            
+            xpProgress.style.width = (currentIndex / questions.length) * 100 + "%";
+        }
+
+        function checkAnswer(choice, element) {
+            if(isProcessing) return;
+            isProcessing = true;
+            initAudio();
+            const correct = questions[currentIndex].a;
+
+            if (choice === correct) {
+                // TRẢ LỜI ĐÚNG
+                playXP();
+                if(questions[currentIndex].type === 'memory') qBlock.classList.add('flipped');
+                
+                setTimeout(() => {
+                    qBlock.classList.add('break-effect');
+                    element.classList.add('break-effect');
+                    setTimeout(() => {
+                        currentIndex++;
+                        loadQuestion();
+                    }, 600);
+                }, 800);
+            } else {
+                // TRẢ LỜI SAI
+                playTNT();
+                qBlock.classList.add('explode-effect');
+                element.classList.add('explode-effect');
+                setTimeout(() => {
+                    loadQuestion(); // Thử lại câu đó
+                }, 800);
+            }
+        }
+    </script>
+</body>
+</html>

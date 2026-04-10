@@ -108,6 +108,7 @@
             <a class="admin-menu-item" id="menu-spin" onclick="switchAdminTab('spin')"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Định Mệnh</a>
             <a class="admin-menu-item" id="menu-tug" onclick="switchAdminTab('tug')"><i class="fa-solid fa-people-pulling"></i> Kéo Co Từ Vựng</a>
             <a class="admin-menu-item" id="menu-bomb" onclick="switchAdminTab('bomb')"><i class="fa-solid fa-bomb"></i> Bom Hẹn Giờ</a>
+            <a class="admin-menu-item" id="menu-blast" onclick="switchAdminTab('blast')"><i class="fa-solid fa-cubes"></i> Blast Block</a>
         </aside>
 
         <main class="admin-content">
@@ -297,6 +298,32 @@
                         <i class="fa-solid fa-satellite-dish"></i> GỬI CẤU HÌNH & CÂU HỎI SANG MÁY CHIẾU
                     </button>
                     <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 10px;">Sau khi bấm gửi, hãy qua Tab Máy Chiếu và bấm BẮT ĐẦU.</p>
+                </div>
+            </div>
+
+            <div id="tab-blast" class="admin-tab">
+                <h1 class="admin-title">Blast Block - Minecraft Edition</h1>
+                <div class="admin-card">
+                    <button class="btn-admin" onclick="window.open('/teach/blast', '_blank')" style="width: 100%; margin-bottom: 25px; background: #10b981;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (BLAST BLOCK)
+                    </button>
+
+                    <h3 style="margin-top: 0; color: #10b981;"><i class="fa-solid fa-gear"></i> Cấu hình trò chơi</h3>
+                    <div style="display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <label class="switch-label" style="font-weight: 800; cursor: pointer;">
+                            <input type="checkbox" id="blast-swap" style="width: 20px; height: 20px;"> Đảo ngược Từ/Nghĩa (Dành cho Memory Card)
+                        </label>
+                    </div>
+
+                    <h3 style="color: #10b981;"><i class="fa-solid fa-list-check"></i> Ngân hàng câu hỏi</h3>
+                    <p style="font-size: 13px; color: #64748b;">Cú pháp: <b>Câu hỏi | Đáp án đúng | Dạng | Lựa chọn (cách nhau dấu phẩy)</b></p>
+                    <p style="font-size: 11px; color: #94a3b8;">Dạng: <b>fill</b> (Điền từ), <b>memory</b> (Ghi nhớ), <b>choice</b> (Trắc nghiệm)</p>
+                    
+                    <textarea id="blast-data" class="admin-textarea" placeholder="Ví dụ:&#10;Quả táo | Apple | memory | (bỏ trống)&#10;I ___ a student | am | fill | is,are,am,be&#10;Trái đất hình vuông? | No | choice | Yes,No" style="min-height: 200px; font-family: monospace;"></textarea>
+
+                    <button class="btn-admin" style="width: 100%; margin-top: 25px; background: #10b981; padding: 15px;" onclick="syncBlastBlock()">
+                        <i class="fa-solid fa-hammer"></i> XÂY DỰNG THẾ GIỚI & GỬI DỮ LIỆU
+                    </button>
                 </div>
             </div>
         </main>
@@ -699,6 +726,33 @@
                 showToast("Đã châm ngòi!", `Đã gửi cấu hình (Chế độ chơi tự do không câu hỏi)`, "success");
             }
         }
+        
+        // ==========================================
+        // LOGIC DÀNH CHO: BLAST BLOCK - MINECRAFT EDITION
+        // ==========================================
+        window.syncBlastBlock = function() {
+        const raw = document.getElementById('blast-data').value.trim();
+        const swap = document.getElementById('blast-swap').checked;
+        const lines = raw.split('\n').filter(l => l.trim() !== "");
+        
+        let questions = lines.map(line => {
+            const [q, a, type, options] = line.split('|').map(s => s.trim());
+            return { 
+                q: swap && type === 'memory' ? a : q, 
+                a: swap && type === 'memory' ? q : a, 
+                type: type || 'choice',
+                options: options ? options.split(',').map(o => o.trim()) : []
+            };
+        });
+
+        if(questions.length === 0) return showToast("Lỗi", "Chưa có câu hỏi nào!", "error");
+
+        localStorage.setItem('mhent_blast_cmd', JSON.stringify({
+            action: 'SYNC',
+            payload: { questions, rand: Math.random() }
+        }));
+        showToast("Thành công", `Đã gửi ${questions.length} khối gạch sang máy chiếu!`, "success");
+    }
     </script>
     <script src="/check-token.js"></script>
 </body>
