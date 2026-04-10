@@ -121,15 +121,50 @@
         .btn-remove { background: #3b82f6; border: 2px solid #3b82f6; color: white; }
         .btn-remove:hover { background: #2563eb; border-color: #2563eb; }
 
+/* CSS CHO CHẾ ĐỘ LẬT BÀI */
+        .card-section {
+            flex: 1; display: none; flex-direction: column; align-items: center; 
+            justify-content: center; gap: 30px; padding: 20px;
+        }
+        .team-row { display: flex; gap: 15px; justify-content: center; width: 100%; min-height: 180px; }
+        .team-title { font-weight: 900; font-size: 20px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
+        
+        .card-item {
+            width: 120px; height: 170px; perspective: 1000px; cursor: pointer;
+        }
+        .card-inner {
+            position: relative; width: 100%; height: 100%; text-align: center;
+            transition: transform 0.6s; transform-style: preserve-3d;
+        }
+        .card-item.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 900; border: 3px solid #334155;
+        }
+        .card-front { background: #1e293b; color: #f472b6; flex-direction: column; gap: 5px; }
+        .card-back { background: white; color: #1e293b; transform: rotateY(180deg); }
+        
+        /* Màu team */
+        .team1 .card-back { border-color: #f43f5e; color: #f43f5e; }
+        .team2 .card-back { border-color: #3b82f6; color: #3b82f6; }
+
+        @keyframes shuffle-effect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1); }
+        }
+        .shuffling-card { animation: shuffle-effect 0.3s infinite; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div style="display: flex; align-items: center;">
-            <h1><i class="fa-solid fa-dharmachakra"></i> Spinner - MHEnt. Edu</h1>
-            </div>
-        <button class="fullscreen-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <h1><i class="fa-solid fa-dharmachakra"></i> Spinner - MHEnt. Edu</h1>
+        <select id="mode-selector" onchange="switchViewMode()" style="background: #334155; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-family: 'Nunito'; font-weight: 800; cursor: pointer;">
+            <option value="spinner">Chế độ: Vòng Quay</option>
+            <option value="cards">Chế độ: Lật Bài (Chia Team)</option>
+        </select>
     </div>
 
     <div class="main-layout">
@@ -160,6 +195,22 @@
                 </div>
             </div>
         </div>
+
+        <div class="card-section" id="view-cards">
+        <div style="text-align: center;">
+            <div class="team-title">Đội hình dự kiến 1</div>
+            <div class="team-row" id="card-row-1"></div>
+        </div>
+        <div style="text-align: center;">
+            <div class="team-title">Đội hình dự kiến 2</div>
+            <div class="team-row" id="card-row-2"></div>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="popup-btn btn-remove" id="btn-card-shuffle" onclick="startCardShuffle()" style="background: #f59e0b; border:none;">XÀO BÀI</button>
+            <button class="popup-btn btn-remove" id="btn-reveal-1" onclick="revealCards(1)" style="display:none; border:none;">MỞ TEAM 1</button>
+            <button class="popup-btn btn-remove" id="btn-reveal-2" onclick="revealCards(2)" style="display:none; background:#3b82f6; border:none;">MỞ TEAM 2</button>
+        </div>
+    </div>
     </div>
 
     <div id="result-popup" class="popup">
@@ -269,6 +320,82 @@
                 riggedStep = 0; 
                 // Đã xóa trạng thái hiện Badge để tàng hình
                 syncTextarea(); resetWheelPos();
+            }
+        }
+
+        // ==========================================
+        // LOGIC CHIA TEAM & CƠ CẤU LẬT BÀI
+        // ==========================================
+        function switchViewMode() {
+            const mode = document.getElementById('mode-selector').value;
+            if(mode === 'spinner') {
+                document.getElementById('view-spinner').style.display = 'flex';
+                document.getElementById('view-cards').style.display = 'none';
+            } else {
+                document.getElementById('view-spinner').style.display = 'none';
+                document.getElementById('view-cards').style.display = 'flex';
+                initCardPlaceholder();
+            }
+        }
+
+        function initCardPlaceholder() {
+            const r1 = document.getElementById('card-row-1');
+            const r2 = document.getElementById('card-row-2');
+            r1.innerHTML = ''; r2.innerHTML = '';
+            for(let i=0; i<8; i++) {
+                const html = `<div class="card-item ${i<4?'team1':'team2'}"><div class="card-inner"><div class="card-front"><i class="fa-solid fa-ghost"></i></div><div class="card-back">?</div></div></div>`;
+                if(i<4) r1.innerHTML += html; else r2.innerHTML += html;
+            }
+        }
+
+        function startCardShuffle() {
+            if(activeItems.length < 8) return alert("Cần đủ 8 người mới chia được 4-4 nha Giám đốc!");
+            initAudio();
+            const cards = document.querySelectorAll('.card-item');
+            cards.forEach(c => { c.classList.add('shuffling-card'); c.classList.remove('flipped'); });
+
+            setTimeout(() => {
+                cards.forEach(c => c.classList.remove('shuffling-card'));
+                
+                let finalNames = [];
+                // KIỂM TRA CƠ CẤU
+                if (isRigged && riggedOrder.length >= 8) {
+                    // Nếu có lệnh cơ cấu, sắp xếp theo đúng thứ tự Admin gửi
+                    riggedOrder.forEach(id => {
+                        const person = activeItems.find(p => p.id === id);
+                        if(person) finalNames.push(person.name);
+                    });
+                } else {
+                    // Nếu không cơ cấu, trộn ngẫu nhiên
+                    finalNames = activeItems.map(p => p.name).sort(() => Math.random() - 0.5);
+                }
+
+                const backs = document.querySelectorAll('.card-back');
+                finalNames.forEach((name, idx) => { backs[idx].innerText = name; });
+
+                document.getElementById('btn-card-shuffle').style.display = 'none';
+                document.getElementById('btn-reveal-1').style.display = 'block';
+            }, 2000);
+        }
+
+        function revealCards(teamNum) {
+            const teamCards = document.querySelectorAll(`.card-item.team${teamNum}`);
+            teamCards.forEach((card, idx) => {
+                setTimeout(() => {
+                    card.classList.add('flipped');
+                    playTickSound();
+                }, idx * 400);
+            });
+
+            if(teamNum === 1) {
+                document.getElementById('btn-reveal-1').style.display = 'none';
+                setTimeout(() => { document.getElementById('btn-reveal-2').style.display = 'block'; }, 1500);
+            } else {
+                document.getElementById('btn-reveal-2').style.display = 'none';
+                setTimeout(() => { 
+                    alert("Đã chia xong đội hình!");
+                    document.getElementById('btn-card-shuffle').style.display = 'block';
+                }, 2000);
             }
         }
 
