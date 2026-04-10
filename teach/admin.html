@@ -242,25 +242,33 @@
             </div>
 
             <div id="tab-tug" class="admin-tab">
-                <h1 class="admin-title">Đại Chiến Kéo Co</h1>
+                <h1 class="admin-title">Đại Chiến Kéo Co (Q&A Version)</h1>
                 <div class="admin-card">
                     <button class="btn-admin" onclick="window.open('/teach/tug', '_blank')" style="width: 100%; margin-bottom: 25px; background: #f59e0b;">
                         <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (KÉO CO)
                     </button>
 
-                    <h3 style="margin-top: 0; color: #f59e0b;"><i class="fa-solid fa-spell-check"></i> Bộ Từ Vựng</h3>
-                    <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Nhập theo cú pháp: <b>Từ Tiếng Việt - Tiếng Anh</b> (Mỗi từ 1 dòng)</p>
-                    
-                    <textarea id="tug-items" class="admin-textarea" placeholder="Ví dụ:&#10;Vũ trụ - Universe&#10;Lực hấp dẫn - Gravity&#10;Hành tinh - Planet" style="min-height: 200px; border-color: #fef3c7; font-size: 16px;"></textarea>
+                    <div class="form-grid">
+                        <div class="input-group full">
+                            <h3 style="margin-top: 0; color: #f59e0b;"><i class="fa-solid fa-clipboard-question"></i> Ngân hàng Câu hỏi & Đáp án</h3>
+                            <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Nhập theo cú pháp: <b>Câu hỏi - Đáp án</b> (Mỗi câu 1 dòng)</p>
+                            <textarea id="tug-items" class="admin-textarea" placeholder="Ví dụ:&#10;Thủ đô của Nhật Bản là gì? - Tokyo&#10;Số chẵn lớn nhất có 1 chữ số? - 8" style="min-height: 180px; border-color: #fef3c7; font-size: 16px;"></textarea>
+                        </div>
+                        <div class="input-group full">
+                            <label><i class="fa-solid fa-trophy"></i> Khoảng cách thắng (n điểm lệch)</label>
+                            <input type="number" id="tug-win-n" class="admin-input" value="5" min="1" max="20" title="Bên nào kéo lệch cờ về phía mình n điểm sẽ thắng luôn">
+                            <p style="font-size: 12px; color: #64748b; margin-top: 5px;">*Mặc định là 5. Nếu hết câu hỏi mà chưa đạt n điểm, bên nào đang dẫn trước sẽ thắng.</p>
+                        </div>
+                    </div>
 
                     <button class="btn-admin" style="width: 100%; margin-top: 20px; background: #f59e0b; padding: 15px;" onclick="syncTugOfWar()">
-                        <i class="fa-solid fa-paper-plane"></i> GỬI TỪ VỰNG SANG MÁY CHIẾU
+                        <i class="fa-solid fa-satellite-dish"></i> GỬI DỮ LIỆU SANG TIỀN TUYẾN
                     </button>
                 </div>
             </div>
 
             <div id="tab-bomb" class="admin-tab">
-                <h1 class="admin-title">Bom Hẹn Giờ Pro</h1>
+                <h1 class="admin-title">Time Bomb</h1>
                 <div class="admin-card">
                     <button class="btn-admin" onclick="window.open('/teach/bomb', '_blank')" style="width: 100%; margin-bottom: 25px; background: #ef4444;">
                         <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (BOM)
@@ -642,31 +650,32 @@
         // LOGIC DÀNH CHO: KÉO CO TỪ VỰNG
         // ==========================================
         window.syncTugOfWar = function() {
-            const rawText = document.getElementById('tug-items').value.trim();
-            const lines = rawText.split('\n').filter(l => l.trim() !== "");
-            
-            let vocabList = [];
-            lines.forEach(line => {
-                // Tách phần Tiếng Việt và Tiếng Anh bằng dấu "-"
-                const parts = line.split('-');
-                if (parts.length >= 2) {
-                    vocabList.push({
-                        vn: parts[0].trim(),
-                        en: parts[1].trim()
-                    });
-                }
-            });
-
-            if (vocabList.length < 5) {
-                return showToast("Ít quá!", "Cần ít nhất 5 từ vựng để tổ chức kéo co cho xôm tụ nha!", "error");
+        const rawText = document.getElementById('tug-items').value.trim();
+        const winN = parseInt(document.getElementById('tug-win-n').value) || 5;
+        const lines = rawText.split('\n').filter(l => l.trim() !== "");
+        
+        let qaList = [];
+        lines.forEach(line => {
+            const parts = line.split('-');
+            if (parts.length >= 2) {
+                qaList.push({ q: parts[0].trim(), a: parts[1].trim() });
             }
+        });
 
-            // Trộn ngẫu nhiên từ vựng
-            vocabList = vocabList.sort(() => 0.5 - Math.random());
-
-            localStorage.setItem('mhent_tug_cmd', JSON.stringify({ action: 'SYNC', payload: { vocabs: vocabList }, rand: Math.random() }));
-            showToast("Tuyệt vời!", `Đã đẩy ${vocabList.length} từ vựng ra tiền tuyến!`, "success");
+        if (qaList.length < 1) {
+            return showToast("Thiếu dữ liệu!", "Cậu cần nhập ít nhất 1 câu hỏi và đáp án nha!", "error");
         }
+
+        // Trộn ngẫu nhiên câu hỏi
+        qaList = qaList.sort(() => 0.5 - Math.random());
+
+        localStorage.setItem('mhent_tug_cmd', JSON.stringify({ 
+            action: 'SYNC', 
+            payload: { questions: qaList, winningPoints: winN }, 
+            rand: Math.random() 
+        }));
+        showToast("Thành công!", `Đã gửi ${qaList.length} câu hỏi. Điểm thắng: ${winN}`, "success");
+    }
         // ==========================================
         // LOGIC DÀNH CHO: BOM HẸN GIỜ PRO
         // ==========================================
