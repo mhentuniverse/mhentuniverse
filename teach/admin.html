@@ -302,26 +302,35 @@
             </div>
 
             <div id="tab-blast" class="admin-tab">
-                <h1 class="admin-title">Blast Block - Minecraft Edition</h1>
+                <h1 class="admin-title" style="color: #3f7e14;"><i class="fa-solid fa-cubes"></i> Blast Block: Minecraft Edition</h1>
                 <div class="admin-card">
-                    <button class="btn-admin" onclick="window.open('/teach/blast', '_blank')" style="width: 100%; margin-bottom: 25px; background: #10b981;">
-                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (BLAST BLOCK)
-                    </button>
-
-                    <h3 style="margin-top: 0; color: #10b981;"><i class="fa-solid fa-gear"></i> Cấu hình trò chơi</h3>
-                    <div style="display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                        <label class="switch-label" style="font-weight: 800; cursor: pointer;">
-                            <input type="checkbox" id="blast-swap" style="width: 20px; height: 20px;"> Đảo ngược Từ/Nghĩa (Dành cho Memory Card)
-                        </label>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <button class="btn-admin" onclick="window.open('/teach/blast', '_blank')" style="background: #3f7e14; flex: 1;">
+                            <i class="fa-solid fa-desktop"></i> MỞ THẾ GIỚI BLAST BLOCK
+                        </button>
+                        <button class="btn-admin" onclick="addBlastRow()" style="background: #8b5cf6;">
+                            <i class="fa-solid fa-plus"></i> THÊM KHỐI MỚI
+                        </button>
                     </div>
 
-                    <h3 style="color: #10b981;"><i class="fa-solid fa-list-check"></i> Ngân hàng câu hỏi</h3>
-                    <p style="font-size: 13px; color: #64748b;">Cú pháp: <b>Câu hỏi | Đáp án đúng | Dạng | Lựa chọn (cách nhau dấu phẩy)</b></p>
-                    <p style="font-size: 11px; color: #94a3b8;">Dạng: <b>fill</b> (Điền từ), <b>memory</b> (Ghi nhớ), <b>choice</b> (Trắc nghiệm)</p>
-                    
-                    <textarea id="blast-data" class="admin-textarea" placeholder="Ví dụ:&#10;Quả táo | Apple | memory | (bỏ trống)&#10;I ___ a student | am | fill | is,are,am,be&#10;Trái đất hình vuông? | No | choice | Yes,No" style="min-height: 200px; font-family: monospace;"></textarea>
+                    <div class="admin-table-container">
+                        <table class="admin-table" id="blast-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 150px;">Loại</th>
+                                    <th>Nội dung câu hỏi / Từ</th>
+                                    <th>Đáp án đúng / Nghĩa</th>
+                                    <th style="width: 200px;">Lựa chọn (Cách nhau dấu phẩy)</th>
+                                    <th style="width: 80px;">Đảo</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="blast-table-body">
+                                </tbody>
+                        </table>
+                    </div>
 
-                    <button class="btn-admin" style="width: 100%; margin-top: 25px; background: #10b981; padding: 15px;" onclick="syncBlastBlock()">
+                    <button class="btn-admin" style="width: 100%; margin-top: 25px; background: #3f7e14; padding: 15px;" onclick="syncBlastBlockV2()">
                         <i class="fa-solid fa-hammer"></i> XÂY DỰNG THẾ GIỚI & GỬI DỮ LIỆU
                     </button>
                 </div>
@@ -726,33 +735,66 @@
                 showToast("Đã châm ngòi!", `Đã gửi cấu hình (Chế độ chơi tự do không câu hỏi)`, "success");
             }
         }
-        
+
         // ==========================================
         // LOGIC DÀNH CHO: BLAST BLOCK - MINECRAFT EDITION
         // ==========================================
-        window.syncBlastBlock = function() {
-        const raw = document.getElementById('blast-data').value.trim();
-        const swap = document.getElementById('blast-swap').checked;
-        const lines = raw.split('\n').filter(l => l.trim() !== "");
-        
-        let questions = lines.map(line => {
-            const [q, a, type, options] = line.split('|').map(s => s.trim());
-            return { 
-                q: swap && type === 'memory' ? a : q, 
-                a: swap && type === 'memory' ? q : a, 
-                type: type || 'choice',
-                options: options ? options.split(',').map(o => o.trim()) : []
-            };
+        function addBlastRow(q="", a="", type="fill", options="", reverse=false) {
+        const tbody = document.getElementById('blast-table-body');
+        const row = document.createElement('tr');
+        row.className = 'blast-row';
+        row.innerHTML = `
+            <td>
+                <select class="admin-select blast-type" onchange="toggleBlastReverse(this)" style="padding: 8px;">
+                    <option value="fill" ${type==='fill'?'selected':''}>Điền từ</option>
+                    <option value="memory" ${type==='memory'?'selected':''}>Ghi nhớ (Card)</option>
+                    <option value="choice" ${type==='choice'?'selected':''}>Trắc nghiệm</option>
+                </select>
+            </td>
+            <td><input type="text" class="admin-input blast-q" value="${q}" placeholder="Câu hỏi..."></td>
+            <td><input type="text" class="admin-input blast-a" value="${a}" placeholder="Đáp án..."></td>
+            <td><input type="text" class="admin-input blast-opt" value="${options}" placeholder="opt1, opt2..."></td>
+            <td style="text-align:center;">
+                <input type="checkbox" class="blast-rev" ${reverse?'checked':''} style="${type==='memory'?'':'display:none;'} width:20px; height:20px;">
+            </td>
+            <td><button style="color:#ef4444; border:none; background:none; cursor:pointer;" onclick="this.parentElement.parentElement.remove()"><i class="fa-solid fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    window.toggleBlastReverse = function(select) {
+        const row = select.parentElement.parentElement;
+        const revCheckbox = row.querySelector('.blast-rev');
+        revCheckbox.style.display = (select.value === 'memory') ? 'inline-block' : 'none';
+    }
+
+    window.syncBlastBlockV2 = function() {
+        let questions = [];
+        document.querySelectorAll('.blast-row').forEach(row => {
+            const type = row.querySelector('.blast-type').value;
+            let q = row.querySelector('.blast-q').value.trim();
+            let a = row.querySelector('.blast-a').value.trim();
+            const opts = row.querySelector('.blast-opt').value.split(',').map(s => s.trim()).filter(s => s !== "");
+            const rev = row.querySelector('.blast-rev').checked;
+
+            if(type === 'memory' && rev) { [q, a] = [a, q]; } // Đảo ngược nếu bật toggle
+
+            if(q && a) {
+                questions.push({ q, a, type, options: opts });
+            }
         });
 
-        if(questions.length === 0) return showToast("Lỗi", "Chưa có câu hỏi nào!", "error");
+        if(questions.length === 0) return showToast("Lỗi", "Cậu chưa nhập câu hỏi nào!", "error");
 
         localStorage.setItem('mhent_blast_cmd', JSON.stringify({
             action: 'SYNC',
             payload: { questions, rand: Math.random() }
         }));
-        showToast("Thành công", `Đã gửi ${questions.length} khối gạch sang máy chiếu!`, "success");
+        showToast("Thành công", `Đã xây dựng ${questions.length} khối Minecraft!`, "success");
     }
+
+    // Khởi tạo hàng đầu tiên
+    addBlastRow();
     </script>
     <script src="/check-token.js"></script>
 </body>
