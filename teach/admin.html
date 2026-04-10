@@ -107,6 +107,7 @@
             
             <a class="admin-menu-item" id="menu-spin" onclick="switchAdminTab('spin')"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Định Mệnh</a>
             <a class="admin-menu-item" id="menu-tug" onclick="switchAdminTab('tug')"><i class="fa-solid fa-people-pulling"></i> Kéo Co Từ Vựng</a>
+            <a class="admin-menu-item" id="menu-bomb" onclick="switchAdminTab('bomb')"><i class="fa-solid fa-bomb"></i> Bom Hẹn Giờ</a>
         </aside>
 
         <main class="admin-content">
@@ -255,6 +256,39 @@
                     <button class="btn-admin" style="width: 100%; margin-top: 20px; background: #f59e0b; padding: 15px;" onclick="syncTugOfWar()">
                         <i class="fa-solid fa-paper-plane"></i> GỬI TỪ VỰNG SANG MÁY CHIẾU
                     </button>
+                </div>
+            </div>
+
+            <div id="tab-bomb" class="admin-tab">
+                <h1 class="admin-title">Bom Hẹn Giờ Pro</h1>
+                <div class="admin-card">
+                    <button class="btn-admin" onclick="window.open('/teach/bomb', '_blank')" style="width: 100%; margin-bottom: 25px; background: #ef4444;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (BOM)
+                    </button>
+
+                    <h3 style="margin-top: 0; color: #ef4444;"><i class="fa-solid fa-list-ol"></i> Ngân hàng câu hỏi (Tùy chọn)</h3>
+                    <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Nhập mỗi câu hỏi trên 1 dòng. Nếu để trống, game sẽ chỉ đếm ngược thời gian như bình thường.</p>
+                    <textarea id="bomb-questions" class="admin-textarea" placeholder="Ví dụ:&#10;1 + 1 bằng mấy?&#10;Thủ đô của Việt Nam là gì?&#10;Ai là người phát minh ra bóng đèn?" style="min-height: 150px; border-color: #fee2e2; font-size: 16px;"></textarea>
+
+                    <div class="form-grid" style="margin-top: 20px;">
+                        <div class="input-group" style="margin-bottom:0;">
+                            <label>Thời gian đếm ngược (Giây)</label>
+                            <input type="number" id="bomb-time" class="admin-input" value="30" min="5">
+                        </div>
+                        <div class="input-group" style="margin-bottom:0;">
+                            <label>Số lượng Team tham gia</label>
+                            <input type="number" id="bomb-teams" class="admin-input" value="2" min="2" max="10">
+                        </div>
+                        <div class="input-group full" style="margin-bottom:0;">
+                            <label>Thưởng thời gian khi chuyền thành công (+s)</label>
+                            <input type="number" id="bomb-reward" class="admin-input" value="2" min="0">
+                        </div>
+                    </div>
+
+                    <button class="btn-admin" style="width: 100%; margin-top: 30px; background: #ef4444; padding: 15px;" onclick="syncBombGame()">
+                        <i class="fa-solid fa-satellite-dish"></i> GỬI CẤU HÌNH & CÂU HỎI SANG MÁY CHIẾU
+                    </button>
+                    <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 10px;">Sau khi bấm gửi, hãy qua Tab Máy Chiếu và bấm BẮT ĐẦU.</p>
                 </div>
             </div>
         </main>
@@ -632,6 +666,29 @@
 
             localStorage.setItem('mhent_tug_cmd', JSON.stringify({ action: 'SYNC', payload: { vocabs: vocabList }, rand: Math.random() }));
             showToast("Tuyệt vời!", `Đã đẩy ${vocabList.length} từ vựng ra tiền tuyến!`, "success");
+        }
+        // ==========================================
+        // LOGIC DÀNH CHO: BOM HẸN GIỜ PRO
+        // ==========================================
+        window.syncBombGame = function() {
+            const rawText = document.getElementById('bomb-questions').value.trim();
+            const questions = rawText ? rawText.split('\n').map(l => l.trim()).filter(l => l !== "") : [];
+            
+            const time = parseInt(document.getElementById('bomb-time').value) || 30;
+            const teams = parseInt(document.getElementById('bomb-teams').value) || 2;
+            const reward = parseInt(document.getElementById('bomb-reward').value) || 0;
+
+            localStorage.setItem('mhent_bomb_cmd', JSON.stringify({
+                action: 'SYNC',
+                payload: { questions: questions, time: time, teams: teams, reward: reward },
+                rand: Math.random()
+            }));
+            
+            if(questions.length > 0) {
+                showToast("Đã châm ngòi!", `Gửi thành công cấu hình và ${questions.length} câu hỏi!`, "success");
+            } else {
+                showToast("Đã châm ngòi!", `Đã gửi cấu hình (Chế độ chơi tự do không câu hỏi)`, "success");
+            }
         }
     </script>
     <script src="/check-token.js"></script>
