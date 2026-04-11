@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bomb Defusal - MHEnt. Edu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f172a; --panel-bg: #1e293b; }
+        body { margin: 0; padding: 0; height: 100vh; background: var(--bg-dark); color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; transition: background-color 0.3s; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: var(--panel-bg); border-bottom: 2px solid #334155; z-index: 10; }
+        .header h1 { margin: 0; color: #10b981; font-size: 24px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+        .arena { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; box-sizing: border-box;}
+
+        .question-box {
+            background: rgba(30, 41, 59, 0.95); border: 3px solid #3b82f6; border-radius: 20px;
+            padding: min(25px, 3vh) min(40px, 4vw); font-size: clamp(30px, 6vh, 60px); font-weight: 900; text-align: center;
+            max-width: 80%; min-width: 50%; margin-bottom: min(40px, 3vh); box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            display: none; color: #f8fafc; z-index: 5;
+            animation: fadeInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transition: 0.3s;
+        }
+        .question-box span { font-size: clamp(16px, 2.5vh, 22px); display: block; margin-bottom: 1vh; text-transform: uppercase; letter-spacing: 3px; font-weight: 900;}
+        .tut-badge { color: #f59e0b; } /* Màu vàng cho chơi thử */
+        .real-badge { color: #3b82f6; } /* Màu xanh cho chơi thật */
+        
+        @keyframes fadeInDown { from {opacity:0; transform: translateY(-30px) scale(0.9);} to {opacity:1; transform: translateY(0) scale(1);} }
+
+        .status-badge { font-size: clamp(20px, 3vh, 28px); font-weight: 900; padding: min(15px, 2vh) min(40px, 4vw); border-radius: 50px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: min(30px, 3vh); transition: 0.3s; background: #334155; color: #fff; border: 4px solid #475569; }
+        
+        .bomb-container { position: relative; text-align: center; }
+        .bomb-icon { font-size: clamp(120px, 20vh, 180px); color: #334155; transition: 0.3s; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5)); }
+        .bomb-icon.active { color: #1e293b; }
+        .timer-display { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); font-family: monospace; font-size: clamp(30px, 5vh, 45px); font-weight: 900; color: #ef4444; background: #000; padding: 5px 15px; border-radius: 10px; border: 3px solid #333; text-shadow: 0 0 10px #ef4444; letter-spacing: 3px; }
+        
+        .setup-panel { position: absolute; display: flex; flex-direction: column; gap: 15px; background: var(--panel-bg); padding: 40px; border-radius: 20px; border: 2px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); z-index: 20; text-align: center; width: 450px; transition: 0.3s; }
+        .setup-panel h2 { margin: 0; color: #10b981; font-size: 30px; text-transform: uppercase; }
+        .setup-panel p { color: #94a3b8; font-size: 16px; line-height: 1.5; margin-bottom: 20px; }
+        
+        .input-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: #0f172a; padding: 15px; border-radius: 12px; }
+        .input-group label { font-weight: bold; color: #cbd5e1; font-size: 18px; }
+        .setup-panel input { font-size: 24px; text-align: center; padding: 8px; width: 80px; border-radius: 10px; border: 2px solid #475569; background: #1e293b; color: white; font-family: 'Nunito', sans-serif; font-weight: 900; outline: none; }
+
+        .btn { padding: min(15px, 2vh) min(30px, 3vw); font-size: clamp(16px, 2.5vh, 20px); font-weight: 900; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; color: white; font-family: 'Nunito'; text-transform: uppercase; }
+        .btn-start { background: #10b981; box-shadow: 0 6px 0 #047857; margin-top: 10px; font-size: 24px; padding: 20px; }
+        
+        /* Đã đổi màu nút gỡ bom sang xanh cho đúng chế độ an toàn */
+        .btn-defuse { background: #10b981; box-shadow: 0 8px 0 #047857; font-size: clamp(22px, 3.5vh, 30px); padding: min(20px, 2vh) min(60px, 5vw); margin-top: min(40px, 3vh); display: none; }
+        .btn-reset { background: #64748b; box-shadow: 0 6px 0 #475569; margin-top: min(20px, 2vh); display: none;}
+        .btn-next-round { background: #3b82f6; box-shadow: 0 6px 0 #1d4ed8; margin-top: min(20px, 2vh); display: none; font-size: clamp(18px, 3vh, 24px); padding: min(15px, 2vh) min(50px, 4vw); }
+
+        .panic { animation: panic-shake 0.2s infinite; color: #ef4444 !important; filter: drop-shadow(0 0 50px rgba(239, 68, 68, 0.8)); }
+        @keyframes panic-shake { 0% { transform: translate(0, 0) scale(1.1); } 50% { transform: translate(5px, 5px) scale(1.1); } 100% { transform: translate(0, 0) scale(1.1); } }
+        body.exploded { animation: explode-screen 1s ease-out; }
+        @keyframes explode-screen { 0% { background-color: #ffffff; } 10% { background-color: #ef4444; } 100% { background-color: var(--bg-dark); } }
+        
+        .explosion-icon { font-size: clamp(140px, 25vh, 250px); color: #f59e0b; display: none; filter: drop-shadow(0 0 100px #ef4444); animation: pop-out 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .safe-icon { font-size: clamp(140px, 25vh, 250px); color: #10b981; display: none; filter: drop-shadow(0 0 100px #10b981); animation: pop-out 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop-out { 0% { transform: scale(0); opacity: 0; } 50% {transform: scale(1.1);} 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-shield-heart"></i> Defusal Squad (Demo)</h1>
+        <div style="color: #94a3b8; font-weight: bold;"><i class="fa-solid fa-keyboard"></i> Phím tắt: SPACE để Gỡ Bom / Chuyển Câu</div>
+    </div>
+
+    <div class="arena">
+        
+        <div class="setup-panel" id="setup-panel">
+            <h2><i class="fa-solid fa-bomb"></i> Gỡ Bom Từ Vựng</h2>
+            <p>Học sinh có nhiệm vụ tìm thẻ Flashcard Tiếng Anh khớp với nghĩa Tiếng Việt trên màn hình trước khi bom nổ.</p>
+            
+            <div class="input-group">
+                <label>Thời gian mỗi câu (s):</label>
+                <input type="number" id="time-input" value="30" min="5">
+            </div>
+            
+            <div style="text-align: left; background: #0f172a; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <span style="color: #f59e0b; font-weight: 900;"><i class="fa-solid fa-chalkboard-user"></i> Cấu trúc bài chơi:</span><br>
+                <span style="color: #94a3b8; font-size: 14px;">- 2 lượt chơi thử (Tutorial)<br>- 15 từ vựng chính thức</span>
+            </div>
+
+            <button class="btn btn-start" onclick="startGame()"><i class="fa-solid fa-play"></i> BẮT ĐẦU CHIẾN DỊCH</button>
+        </div>
+
+        <div class="question-box" id="question-box">
+            <span id="q-counter" class="tut-badge">CHƠI THỬ 1/2</span>
+            <div id="q-text">Nội dung câu hỏi sẽ hiện ở đây...</div>
+        </div>
+
+        <div class="status-badge" id="status-badge">Bom chưa kích hoạt</div>
+
+        <div class="bomb-container" id="bomb-container">
+            <i class="fa-solid fa-bomb bomb-icon" id="bomb-icon"></i>
+            <div class="timer-display" id="timer-display">00.00</div>
+            
+            <i class="fa-solid fa-burst explosion-icon" id="explosion-icon"></i>
+            <i class="fa-solid fa-shield-heart safe-icon" id="safe-icon"></i>
+        </div>
+
+        <button class="btn btn-defuse" id="btn-action" onclick="defuseBomb()">GỠ BOM AN TOÀN <i class="fa-solid fa-check"></i></button>
+        
+        <button class="btn btn-next-round" id="btn-next" onclick="nextRound()">CÂU TIẾP THEO <i class="fa-solid fa-forward"></i></button>
+        
+        <button class="btn btn-reset" id="btn-reset" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> CHƠI LẠI TỪ ĐẦU</button>
+    </div>
+
+    <script>
+        // ==========================================
+        // 📚 DỮ LIỆU DEMO CỨNG (KHÔNG CẦN ADMIN)
+        // ==========================================
+        const demoQuestions = [
+            // 2 Câu chơi thử (Khởi động)
+            { vi: "Quả Táo (Mẫu)", en: "Apple", isTut: true },
+            { vi: "Con Mèo (Mẫu)", en: "Cat", isTut: true },
+            
+            // 15 Câu thật của Giám đốc
+            { vi: "Phục vụ", en: "A waiter", isTut: false },
+            { vi: "Muối", en: "Salt", isTut: false },
+            { vi: "Cây lược", en: "A comb", isTut: false },
+            { vi: "Bữa ăn", en: "Meals", isTut: false },
+            { vi: "Đường", en: "Sugar", isTut: false },
+            { vi: "Lò vi sóng", en: "An oven", isTut: false },
+            { vi: "Sân vận động", en: "A stadium", isTut: false },
+            { vi: "Nha sĩ", en: "A dentist", isTut: false },
+            { vi: "Nhà thiết kế", en: "A designer", isTut: false },
+            { vi: "Dao", en: "Knives", isTut: false },
+            { vi: "Nữ hoàng", en: "A queen", isTut: false },
+            { vi: "Sân bay", en: "An airport", isTut: false },
+            { vi: "Nhà máy", en: "A factory", isTut: false },
+            { vi: "Trường đại học", en: "A college", isTut: false },
+            { vi: "Xà phòng", en: "Soap", isTut: false }
+        ];
+
+        let configTime = 20; // Thời gian mặc định mỗi câu
+        let timeLeft = 0;
+        let timerInterval = null;
+        let currentTeam = 1;
+        let numTeams = 2; // Mặc định 2 team luân phiên nhau
+        let isPlaying = false;
+        
+        let currentQIndex = 0;
+        let tutCount = 0;
+        let realCount = 0;
+
+        const totalTut = demoQuestions.filter(q => q.isTut).length;
+        const totalReal = demoQuestions.filter(q => !q.isTut).length;
+
+        const teamColors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b']; // Có thể dùng cho nhiều team
+        
+        // Tắt liên kết Admin
+        // window.addEventListener('storage', ...) đã được dọn dẹp
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+        function playTick() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        function playExplosion() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 1.5);
+            gain.gain.setValueAtTime(0.8, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+        }
+
+        function playVictory() {
+            if (!audioCtx) return;
+            const freqs = [440, 554.37, 659.25, 880]; 
+            freqs.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.15);
+                gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + i * 0.15 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.15 + 0.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + i * 0.15); osc.stop(audioCtx.currentTime + i * 0.15 + 0.5);
+            });
+        }
+
+        function formatTime(s) { return (s < 10 ? "0" : "") + s + ".00"; }
+
+        function startGame() {
+            initAudio();
+            configTime = parseInt(document.getElementById('time-input').value) || 30;
+            timeLeft = configTime;
+            
+            currentTeam = 1;
+            currentQIndex = 0;
+            tutCount = 0;
+            realCount = 0;
+            isPlaying = true;
+
+            document.getElementById('setup-panel').style.display = 'none';
+            document.getElementById('question-box').style.display = 'block';
+            document.getElementById('btn-action').style.display = 'block';
+            document.getElementById('bomb-icon').classList.add('active');
+            
+            renderCurrentQuestion();
+            updateTeamUI();
+            startTimer();
+        }
+
+        function renderCurrentQuestion() {
+            const curQ = demoQuestions[currentQIndex];
+            const qCounter = document.getElementById('q-counter');
+            
+            if (curQ.isTut) {
+                tutCount++;
+                qCounter.innerText = `CHƠI THỬ ${tutCount}/${totalTut}`;
+                qCounter.className = 'tut-badge';
+            } else {
+                realCount++;
+                qCounter.innerText = `CÂU HỎI ${realCount}/${totalReal}`;
+                qCounter.className = 'real-badge';
+            }
+
+            document.getElementById('q-text').innerText = curQ.vi;
+            
+            // Animation reset
+            const qBox = document.getElementById('question-box');
+            qBox.style.animation = 'none';
+            void qBox.offsetWidth; 
+            qBox.style.animation = 'fadeInDown 0.3s ease-out';
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('timer-display').innerText = formatTime(timeLeft);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-display').innerText = formatTime(timeLeft);
+                playTick();
+
+                if (timeLeft <= 10 && timeLeft > 0) {
+                    document.getElementById('bomb-icon').classList.add('panic');
+                    document.getElementById('timer-display').style.color = '#fff';
+                }
+
+                if (timeLeft <= 0) explodeBomb();
+            }, 1000);
+        }
+
+        // KHI BẤM NÚT GỠ BOM HOẶC SPACE
+        function defuseBomb() {
+            if(!isPlaying) return;
+            clearInterval(timerInterval);
+            isPlaying = false;
+            playVictory(); // Tiếng leng keng an toàn
+
+            // Đổi giao diện
+            document.getElementById('btn-action').style.display = 'none';
+            document.getElementById('bomb-icon').style.display = 'none';
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('safe-icon').style.display = 'block';
+
+            const badge = document.getElementById('status-badge');
+            badge.style.background = '#10b981';
+            badge.style.color = 'white';
+            badge.style.borderColor = '#fff';
+            
+            // Hiện Tiếng Anh để Check
+            const curQ = demoQuestions[currentQIndex];
+            badge.innerHTML = `🎉 ĐÚNG RỒI: <b>${curQ.en}</b>`;
+
+            checkEndGame();
+        }
+
+        function explodeBomb() {
+            clearInterval(timerInterval);
+            isPlaying = false;
+            playExplosion();
+
+            document.getElementById('question-box').style.opacity = '0.3'; 
+            document.getElementById('btn-action').style.display = 'none';
+            document.getElementById('bomb-icon').style.display = 'none';
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('explosion-icon').style.display = 'block';
+            document.body.classList.add('exploded');
+            
+            const badge = document.getElementById('status-badge');
+            badge.style.background = '#ef4444';
+            badge.style.color = 'white';
+            badge.style.borderColor = '#fff';
+            
+            const curQ = demoQuestions[currentQIndex];
+            badge.innerHTML = `💥 BÙMMM! (Đáp án là: <b>${curQ.en}</b>)`;
+
+            checkEndGame();
+        }
+
+        function checkEndGame() {
+            if (currentQIndex < demoQuestions.length - 1) {
+                document.getElementById('btn-next').style.display = 'block';
+            } else {
+                document.getElementById('btn-reset').style.display = 'block'; 
+                document.getElementById('q-counter').innerText = "NHIỆM VỤ HOÀN TẤT!";
+            }
+        }
+
+        // QUA CÂU MỚI
+        function nextRound() {
+            currentTeam = (currentTeam % numTeams) + 1; // Đổi phiên Team
+            currentQIndex++;
+            
+            // Khôi phục giao diện
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('safe-icon').style.display = 'none';
+            document.getElementById('explosion-icon').style.display = 'none';
+            document.body.classList.remove('exploded');
+            document.getElementById('question-box').style.opacity = '1';
+
+            document.getElementById('bomb-icon').style.display = 'inline-block';
+            document.getElementById('timer-display').style.display = 'block';
+            document.getElementById('bomb-icon').classList.remove('active', 'panic');
+            document.getElementById('timer-display').style.color = '#ef4444';
+            document.getElementById('btn-action').style.display = 'block';
+
+            // Load lại thời gian và câu hỏi
+            timeLeft = configTime;
+            renderCurrentQuestion();
+            updateTeamUI();
+            
+            isPlaying = true;
+            startTimer();
+        }
+
+        function updateTeamUI() {
+            const color = teamColors[(currentTeam - 1) % teamColors.length];
+            const badge = document.getElementById('status-badge');
+            badge.style.borderColor = color;
+            badge.style.boxShadow = `0 0 30px ${color}66`; 
+            badge.style.background = `${color}33`;
+            badge.style.color = color;
+            badge.innerText = `Lượt của: TEAM ${currentTeam}`;
+        }
+
+        // Tích hợp phím tắt cho mượt: Bấm Space đang chơi thì gỡ bom, Space đang dừng thì qua câu
+        document.addEventListener('keydown', (e) => { 
+            if (e.code === 'Space') { 
+                e.preventDefault(); 
+                if(isPlaying) defuseBomb(); 
+                else if(document.getElementById('btn-next').style.display === 'block') nextRound();
+            } 
+        });
+    </script>
+</body>
+</html>
