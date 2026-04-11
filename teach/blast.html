@@ -187,14 +187,11 @@
                 qRow.innerHTML = `<div class="mc-block" style="width: auto; padding: 0 40px; background-image:var(--tex-grass)"><span style="color:#55ff55;">MISSION COMPLETE!</span></div>`;
                 optArea.innerHTML = ""; return;
             }
-            
             isProcessing = false; 
             const cur = questions[currentIndex];
             document.getElementById('level-txt').innerText = `LVL: ${currentIndex + 1}/${questions.length}`;
             document.body.classList.remove('shake-screen');
             qRow.innerHTML = "";
-            
-            // 🔥 THỐNG NHẤT LOẠI BLOCK CHO TỪNG CÂU
             const levelTexture = textures[currentIndex % textures.length];
 
             if (cur.type === 'memory') {
@@ -208,37 +205,29 @@
                 const safeQ = cur.q.replace(/___/g, ' ___ ').trim();
                 const words = safeQ.split(/\s+/); 
                 let hasBlank = false;
-
                 words.forEach(w => {
                     const block = document.createElement('div');
-                    if (w === '___') {
-                        block.className = 'mc-blank';
-                        block.id = 'blank-spot';
-                        hasBlank = true;
-                    } else {
-                        block.className = 'mc-block';
-                        block.style.backgroundImage = levelTexture;
-                        block.innerHTML = `<span>${w}</span>`;
-                    }
+                    if (w === '___') { block.className = 'mc-blank'; block.id = 'blank-spot'; hasBlank = true; } 
+                    else { block.className = 'mc-block'; block.style.backgroundImage = levelTexture; block.innerHTML = `<span>${w}</span>`; }
                     qRow.appendChild(block);
                 });
-
-                if (!hasBlank) {
-                    const blankBlock = document.createElement('div');
-                    blankBlock.className = 'mc-blank';
-                    blankBlock.id = 'blank-spot';
-                    qRow.appendChild(blankBlock);
-                }
+                if (!hasBlank) { const blankBlock = document.createElement('div'); blankBlock.className = 'mc-blank'; blankBlock.id = 'blank-spot'; qRow.appendChild(blankBlock); }
             }
 
             optArea.innerHTML = "";
-            let opts = (cur.type === 'memory') ? [cur.a] : cur.options;
-            if (cur.type !== 'memory') opts = [...opts].sort(() => Math.random() - 0.5);
+            
+            // 🔥 SỬA CHỖ NÀY: DÙ LÀ DẠNG NÀO CŨNG ƯU TIÊN HIỆN OPTIONS NẾU CÓ
+            let opts = (cur.options && cur.options.length > 0) ? [...cur.options] : [cur.a];
+            // Đảm bảo đáp án đúng luôn có trong list để tránh GV gõ thiếu
+            if (!opts.includes(cur.a)) opts.push(cur.a);
+            
+            // Xáo trộn ngẫu nhiên
+            opts = opts.sort(() => Math.random() - 0.5);
 
             opts.forEach(o => {
                 const btn = document.createElement('div');
                 btn.className = 'mc-block mc-ans'; 
-                btn.style.backgroundImage = levelTexture;
+                btn.style.backgroundImage = 'var(--tex-grass)'; // Đáp án luôn là cỏ cho dễ nhìn
                 btn.innerHTML = `<span>${o}</span>`;
                 btn.onclick = () => checkAnswer(o, btn, levelTexture);
                 optArea.appendChild(btn);
@@ -272,7 +261,7 @@
             } 
             else {
                 playSound('tnt'); // PHÁT TIẾNG NỔ TỨC THÌ
-                
+
                 let targetRect = (blankSpot || qRow.firstChild).getBoundingClientRect();
                 const tnt = document.createElement('div');
                 tnt.className = 'mc-tnt tnt-drop';
