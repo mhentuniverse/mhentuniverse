@@ -275,9 +275,17 @@
                         <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU (BOM)
                     </button>
 
-                    <h3 style="margin-top: 0; color: #ef4444;"><i class="fa-solid fa-list-ol"></i> Ngân hàng câu hỏi (Tùy chọn)</h3>
-                    <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Nhập mỗi câu hỏi trên 1 dòng. Nếu để trống, game sẽ chỉ đếm ngược thời gian như bình thường.</p>
-                    <textarea id="bomb-questions" class="admin-textarea" placeholder="Ví dụ:&#10;1 + 1 bằng mấy?&#10;Thủ đô của Việt Nam là gì?&#10;Ai là người phát minh ra bóng đèn?" style="min-height: 150px; border-color: #fee2e2; font-size: 16px;"></textarea>
+                    <h3 style="margin-top: 0; color: #ef4444;"><i class="fa-solid fa-gamepad"></i> Chế độ chơi</h3>
+                    <div class="input-group full" style="background: #fef2f2; padding: 15px; border-radius: 12px; border: 2px dashed #fca5a5;">
+                        <select id="bomb-mode" class="admin-select" style="border-color: #ef4444; color: #ef4444; font-weight: 900;">
+                            <option value="pass">🔥 Chuyền Bom (Hot Potato - Trả lời để chuyền)</option>
+                            <option value="defuse">🛡️ Gỡ Bom (Defusal - 1 Từ = 1 Lượt = 1 Quả bom)</option>
+                        </select>
+                    </div>
+
+                    <h3 style="margin-top: 20px; color: #ef4444;"><i class="fa-solid fa-list-ol"></i> Ngân hàng câu hỏi (Tùy chọn)</h3>
+                    <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Nhập mỗi câu hỏi trên 1 dòng. (Có thể nhập Nghĩa tiếng Việt để HS tìm Memory Card Tiếng Anh)</p>
+                    <textarea id="bomb-questions" class="admin-textarea" placeholder="Ví dụ:&#10;Quả táo (Tìm thẻ Apple)&#10;Thủ đô của Việt Nam là gì?&#10;Trái đất có hình gì?" style="min-height: 150px; border-color: #fee2e2; font-size: 16px;"></textarea>
 
                     <div class="form-grid" style="margin-top: 20px;">
                         <div class="input-group" style="margin-bottom:0;">
@@ -289,7 +297,7 @@
                             <input type="number" id="bomb-teams" class="admin-input" value="2" min="2" max="10">
                         </div>
                         <div class="input-group full" style="margin-bottom:0;">
-                            <label>Thưởng thời gian khi chuyền thành công (+s)</label>
+                            <label>Thưởng thời gian (+s) [Chỉ áp dụng chế độ Chuyền Bom]</label>
                             <input type="number" id="bomb-reward" class="admin-input" value="2" min="0">
                         </div>
                     </div>
@@ -722,18 +730,15 @@
             const time = parseInt(document.getElementById('bomb-time').value) || 30;
             const teams = parseInt(document.getElementById('bomb-teams').value) || 2;
             const reward = parseInt(document.getElementById('bomb-reward').value) || 0;
+            const mode = document.getElementById('bomb-mode').value; // Lấy chế độ chơi
 
             localStorage.setItem('mhent_bomb_cmd', JSON.stringify({
                 action: 'SYNC',
-                payload: { questions: questions, time: time, teams: teams, reward: reward },
+                payload: { questions, time, teams, reward, mode },
                 rand: Math.random()
             }));
             
-            if(questions.length > 0) {
-                showToast("Đã châm ngòi!", `Gửi thành công cấu hình và ${questions.length} câu hỏi!`, "success");
-            } else {
-                showToast("Đã châm ngòi!", `Đã gửi cấu hình (Chế độ chơi tự do không câu hỏi)`, "success");
-            }
+            showToast("Đã châm ngòi!", `Đã gửi ${questions.length} câu hỏi ở chế độ ${mode === 'pass' ? 'Chuyền Bom' : 'Gỡ Bom'}!`, "success");
         }
 
         // ==========================================

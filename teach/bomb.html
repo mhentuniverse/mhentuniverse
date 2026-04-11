@@ -19,14 +19,12 @@
         .header h1 { margin: 0; color: #ef4444; font-size: 24px; text-shadow: 0 0 10px rgba(239,68,68,0.3); }
         .arena { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
 
-        /* KHUNG CÂU HỎI MỚI */
         .question-box {
             background: rgba(30, 41, 59, 0.95); border: 3px solid #3b82f6; border-radius: 20px;
             padding: 25px 40px; font-size: 28px; font-weight: 900; text-align: center;
             max-width: 80%; margin-bottom: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
             display: none; color: #f8fafc; z-index: 5;
-            animation: fadeInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transition: 0.3s;
+            animation: fadeInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transition: 0.3s;
         }
         .question-box span { color: #f59e0b; font-size: 18px; display: block; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 3px;}
         @keyframes fadeInDown { from {opacity:0; transform: translateY(-30px) scale(0.9);} to {opacity:1; transform: translateY(0) scale(1);} }
@@ -51,6 +49,7 @@
         .btn-start { background: #10b981; box-shadow: 0 6px 0 #047857; margin-top: 10px; }
         .btn-pass { background: #f59e0b; box-shadow: 0 8px 0 #b45309; font-size: 30px; padding: 20px 60px; margin-top: 40px; display: none; }
         .btn-reset { background: #64748b; box-shadow: 0 6px 0 #475569; margin-top: 20px; display: none;}
+        .btn-next-round { background: #3b82f6; box-shadow: 0 6px 0 #1d4ed8; margin-top: 20px; display: none; font-size: 24px; padding: 15px 50px; }
 
         .panic { animation: panic-shake 0.2s infinite; color: #ef4444 !important; filter: drop-shadow(0 0 50px rgba(239, 68, 68, 0.8)); }
         @keyframes panic-shake { 0% { transform: translate(0, 0) scale(1.1); } 50% { transform: translate(5px, 5px) scale(1.1); } 100% { transform: translate(0, 0) scale(1.1); } }
@@ -66,7 +65,7 @@
 
     <div class="header">
         <h1><i class="fa-solid fa-bomb"></i> Time Bomb - MHEnt. Edu</h1>
-        <div style="color: #94a3b8; font-weight: bold;"><i class="fa-solid fa-keyboard"></i> Phím tắt: SPACE để chuyền bom</div>
+        <div style="color: #94a3b8; font-weight: bold;"><i class="fa-solid fa-keyboard"></i> Phím tắt: SPACE để thao tác</div>
     </div>
 
     <div class="arena">
@@ -75,17 +74,10 @@
             <div style="background: #0f172a; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed #3b82f6;">
                 <span id="sync-status" style="color: #3b82f6; font-weight: bold; font-size: 14px;"><i class="fa-solid fa-wifi"></i> Đang chờ lệnh từ Admin...</span>
             </div>
+            <div style="color: #ef4444; font-weight: 900; margin-bottom: 10px;" id="mode-display">CHẾ ĐỘ: CHUYỀN BOM</div>
             <div class="input-group">
                 <label>Thời gian (Giây):</label>
                 <input type="number" id="time-input" value="30" min="5">
-            </div>
-            <div class="input-group">
-                <label>Số lượng Team:</label>
-                <input type="number" id="team-input" value="2" min="2" max="10">
-            </div>
-            <div class="input-group">
-                <label>Thưởng khi chuyền (+s):</label>
-                <input type="number" id="reward-input" value="2" min="0">
             </div>
             <button class="btn btn-start" onclick="startGame()"><i class="fa-solid fa-play"></i> BẮT ĐẦU</button>
         </div>
@@ -106,17 +98,20 @@
             <i class="fa-solid fa-shield-heart safe-icon" id="safe-icon"></i>
         </div>
 
-        <button class="btn btn-pass" id="btn-pass" onclick="passBomb()">CHUYỂN BOM <i class="fa-solid fa-angles-right"></i></button>
+        <button class="btn btn-pass" id="btn-action" onclick="handleAction()">CHUYỂN BOM <i class="fa-solid fa-angles-right"></i></button>
+        <button class="btn btn-next-round" id="btn-next" onclick="nextRound()">CÂU TIẾP THEO <i class="fa-solid fa-forward"></i></button>
         <button class="btn btn-reset" id="btn-reset" onclick="resetGame()"><i class="fa-solid fa-rotate-right"></i> VỀ MÀN HÌNH CHỜ</button>
     </div>
 
     <script>
+        let configTime = 30; // Thời gian gốc để reset
         let timeLeft = 0;
         let timerInterval = null;
         let currentTeam = 1;
         let numTeams = 2;
         let timeReward = 0;
         let isPlaying = false;
+        let gameMode = 'pass'; // 'pass' hoặc 'defuse'
 
         let questionsList = [];
         let currentQIndex = 0;
@@ -129,10 +124,10 @@
         const safeIcon = document.getElementById('safe-icon');
         const statusBadge = document.getElementById('status-badge');
         const setupPanel = document.getElementById('setup-panel');
-        const btnPass = document.getElementById('btn-pass');
+        const btnAction = document.getElementById('btn-action');
+        const btnNext = document.getElementById('btn-next');
         const btnReset = document.getElementById('btn-reset');
         const rewardPopup = document.getElementById('reward-popup');
-        
         const qBox = document.getElementById('question-box');
         const qCounter = document.getElementById('q-counter');
         const qText = document.getElementById('q-text');
@@ -145,15 +140,16 @@
                 const data = JSON.parse(e.newValue);
                 if (data.action === 'SYNC') {
                     document.getElementById('time-input').value = data.payload.time;
-                    document.getElementById('team-input').value = data.payload.teams;
-                    document.getElementById('reward-input').value = data.payload.reward;
+                    numTeams = data.payload.teams;
+                    timeReward = data.payload.reward;
+                    gameMode = data.payload.mode || 'pass';
                     questionsList = data.payload.questions || [];
                     
-                    // Hiệu ứng nhận data
+                    document.getElementById('mode-display').innerText = gameMode === 'pass' ? "CHẾ ĐỘ: 🔥 CHUYỀN BOM" : "CHẾ ĐỘ: 🛡️ GỠ BOM";
+
                     setupPanel.style.borderColor = '#10b981';
                     document.getElementById('sync-status').innerHTML = `<i class="fa-solid fa-check-double"></i> Đã nhận cấu hình (${questionsList.length} câu hỏi)!`;
                     document.getElementById('sync-status').style.color = '#10b981';
-                    
                     setTimeout(() => {
                         setupPanel.style.borderColor = '#334155';
                         document.getElementById('sync-status').style.color = '#3b82f6';
@@ -195,7 +191,7 @@
 
         function playVictory() {
             if (!audioCtx) return;
-            const freqs = [440, 554.37, 659.25, 880]; // Hợp âm chiến thắng
+            const freqs = [440, 554.37, 659.25, 880]; 
             freqs.forEach((freq, i) => {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.type = 'sine'; osc.frequency.value = freq;
@@ -211,9 +207,8 @@
 
         function startGame() {
             initAudio();
-            timeLeft = parseInt(document.getElementById('time-input').value) || 30;
-            numTeams = parseInt(document.getElementById('team-input').value) || 2;
-            timeReward = parseInt(document.getElementById('reward-input').value) || 0;
+            configTime = parseInt(document.getElementById('time-input').value) || 30;
+            timeLeft = configTime;
             
             currentTeam = 1;
             currentQIndex = 0;
@@ -229,13 +224,27 @@
                 qBox.style.display = 'none';
             }
 
+            // Giao diện nút bấm theo chế độ
+            btnAction.style.display = 'block';
+            if (gameMode === 'defuse') {
+                btnAction.innerHTML = `GỠ BOM AN TOÀN <i class="fa-solid fa-shield-heart"></i>`;
+                btnAction.style.background = '#10b981'; // Màu xanh lá
+                btnAction.style.boxShadow = '0 8px 0 #047857';
+            } else {
+                btnAction.innerHTML = `CHUYỂN BOM <i class="fa-solid fa-angles-right"></i>`;
+                btnAction.style.background = '#f59e0b';
+                btnAction.style.boxShadow = '0 8px 0 #b45309';
+            }
+
             setupPanel.style.display = 'none';
-            btnPass.style.display = 'block';
             bombIcon.classList.add('active');
             timerDisplay.innerText = formatTime(timeLeft);
             
             updateTeamUI();
+            startTimer();
+        }
 
+        function startTimer() {
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -251,21 +260,29 @@
             }, 1000);
         }
 
-        function passBomb() {
+        // HÀM TỔNG XỬ LÝ KHI BẤM SPACE
+        function handleAction() {
             if(!isPlaying) return;
-            
-            // KIỂM TRA CHUYỂN CÂU HỎI
+            if (gameMode === 'pass') {
+                passBomb();
+            } else if (gameMode === 'defuse') {
+                defuseBomb();
+            }
+        }
+
+        // =====================================
+        // CHẾ ĐỘ 1: CHUYỀN BOM (CŨ)
+        // =====================================
+        function passBomb() {
             if(questionsList.length > 0) {
                 currentQIndex++;
                 if(currentQIndex >= questionsList.length) {
-                    safeVictory(); // Trả lời hết -> Thắng!
+                    safeVictory(); 
                     return;
                 } else {
-                    // Update câu hỏi mới + Animation
                     qBox.style.animation = 'none';
-                    void qBox.offsetWidth; // reflow
+                    void qBox.offsetWidth; 
                     qBox.style.animation = 'fadeInDown 0.3s ease-out';
-                    
                     qCounter.innerText = `CÂU HỎI ${currentQIndex + 1}/${questionsList.length}`;
                     qText.innerText = questionsList[currentQIndex];
                 }
@@ -290,6 +307,69 @@
             setTimeout(() => { bombIcon.style.transform = ''; }, 150);
         }
 
+        // =====================================
+        // CHẾ ĐỘ 2: GỠ BOM (MỚI)
+        // =====================================
+        function defuseBomb() {
+            clearInterval(timerInterval);
+            isPlaying = false;
+            playVictory(); // Âm thanh nhẹ nhõm
+
+            btnAction.style.display = 'none';
+            bombIcon.style.display = 'none';
+            timerDisplay.style.display = 'none';
+            safeIcon.style.display = 'block';
+
+            statusBadge.style.background = '#10b981';
+            statusBadge.style.color = 'white';
+            statusBadge.style.borderColor = '#fff';
+            statusBadge.innerText = `🎉 GỠ BOM THÀNH CÔNG!`;
+
+            // Kiểm tra xem còn câu hỏi không
+            if (questionsList.length > 0 && currentQIndex < questionsList.length - 1) {
+                btnNext.style.display = 'block';
+            } else {
+                btnReset.style.display = 'block'; // Hết câu thì chỉ cho Reset
+                if(questionsList.length > 0) qCounter.innerText = "HOÀN THÀNH TẤT CẢ!";
+            }
+        }
+
+        // CÂU TIẾP THEO (Dành cho chế độ Gỡ Bom)
+        function nextRound() {
+            currentTeam = (currentTeam % numTeams) + 1; // Chuyển lượt
+            currentQIndex++;
+            
+            btnNext.style.display = 'none';
+            safeIcon.style.display = 'none';
+            explosionIcon.style.display = 'none';
+            document.body.classList.remove('exploded');
+            qBox.style.opacity = '1';
+
+            bombIcon.style.display = 'inline-block';
+            timerDisplay.style.display = 'block';
+            bombIcon.classList.remove('active', 'panic');
+            timerDisplay.style.color = '#ef4444';
+            btnAction.style.display = 'block';
+
+            // Reset thời gian
+            timeLeft = configTime;
+            timerDisplay.innerText = formatTime(timeLeft);
+            
+            // Cập nhật câu hỏi
+            qBox.style.animation = 'none';
+            void qBox.offsetWidth; 
+            qBox.style.animation = 'fadeInDown 0.3s ease-out';
+            qCounter.innerText = `CÂU HỎI ${currentQIndex + 1}/${questionsList.length}`;
+            qText.innerText = questionsList[currentQIndex];
+
+            updateTeamUI();
+            isPlaying = true;
+            startTimer();
+        }
+
+        // =====================================
+        // UI & KẾT THÚC
+        // =====================================
         function showRewardPopup() {
             rewardPopup.innerText = `+${timeReward}s`;
             rewardPopup.classList.remove('reward-anim');
@@ -303,10 +383,14 @@
             statusBadge.style.boxShadow = `0 0 30px ${color}66`; 
             statusBadge.style.background = `${color}33`;
             statusBadge.style.color = color;
-            statusBadge.innerText = `Đang giữ bom: TEAM ${currentTeam}`;
             
-            btnPass.style.background = color;
-            btnPass.style.boxShadow = `0 8px 0 ${color}aa`;
+            if (gameMode === 'pass') {
+                statusBadge.innerText = `Đang giữ bom: TEAM ${currentTeam}`;
+                btnAction.style.background = color;
+                btnAction.style.boxShadow = `0 8px 0 ${color}aa`;
+            } else {
+                statusBadge.innerText = `Lượt của: TEAM ${currentTeam}`;
+            }
         }
 
         function explodeBomb() {
@@ -314,9 +398,8 @@
             isPlaying = false;
             playExplosion();
 
-            qBox.style.opacity = '0.3'; // Làm mờ khung câu hỏi
-            btnPass.style.display = 'none';
-            btnReset.style.display = 'block';
+            qBox.style.opacity = '0.3'; 
+            btnAction.style.display = 'none';
             bombIcon.style.display = 'none';
             timerDisplay.style.display = 'none';
             explosionIcon.style.display = 'block';
@@ -325,7 +408,14 @@
             statusBadge.style.background = '#ef4444';
             statusBadge.style.color = 'white';
             statusBadge.style.borderColor = '#fff';
-            statusBadge.innerText = `💥 TEAM ${currentTeam} ĐÃ BỊ NỔ TUNG! 💥`;
+            statusBadge.innerText = `💥 BÙMMM! TEAM ${currentTeam} THẤT BẠI!`;
+
+            // Nếu chơi Gỡ bom mà nổ, cho phép qua câu tiếp theo
+            if (gameMode === 'defuse' && questionsList.length > 0 && currentQIndex < questionsList.length - 1) {
+                btnNext.style.display = 'block';
+            } else {
+                btnReset.style.display = 'block';
+            }
         }
 
         function safeVictory() {
@@ -333,7 +423,7 @@
             isPlaying = false;
             playVictory();
 
-            btnPass.style.display = 'none';
+            btnAction.style.display = 'none';
             btnReset.style.display = 'block';
             bombIcon.style.display = 'none';
             timerDisplay.style.display = 'none';
@@ -356,6 +446,7 @@
             document.body.classList.remove('exploded');
             setupPanel.style.display = 'flex';
             btnReset.style.display = 'none';
+            btnNext.style.display = 'none';
             bombIcon.style.display = 'inline-block';
             timerDisplay.style.display = 'block';
             explosionIcon.style.display = 'none';
@@ -374,7 +465,7 @@
             clearInterval(timerInterval);
         }
 
-        document.addEventListener('keydown', (e) => { if (e.code === 'Space' && isPlaying) { e.preventDefault(); passBomb(); } });
+        document.addEventListener('keydown', (e) => { if (e.code === 'Space' && isPlaying) { e.preventDefault(); handleAction(); } });
     </script>
 </body>
 </html>
