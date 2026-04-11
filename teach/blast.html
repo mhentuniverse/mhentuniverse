@@ -8,104 +8,83 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --tex-grass: url('assets/grass.jfif');
-            --tex-stone: url('assets/stone.png');
-            --tex-dirt: url('assets/wood.jpg');
-            --tex-tnt: url('assets/tnt.jfif');
-            --bg-world: url('assets/wp2586787.jpg');
+            /* Dùng đúng các hình ảnh cậu gửi */
+            --tex-grass: url('http://googleusercontent.com/file_content/27');
+            --tex-stone: url('http://googleusercontent.com/file_content/31');
+            --tex-dirt: url('http://googleusercontent.com/file_content/32');
+            --tex-tnt: url('http://googleusercontent.com/file_content/33');
+            --bg-world: url('http://googleusercontent.com/file_content/34');
         }
 
         body {
             margin: 0; padding: 0; height: 100vh;
             background: var(--bg-world) no-repeat center center;
-            background-size: cover;
-            color: white; font-family: 'Nunito', sans-serif;
+            background-size: cover; color: white; font-family: 'Nunito', sans-serif;
             overflow: hidden; display: flex; flex-direction: column;
-            transition: background-color 0.1s;
         }
 
-        .overlay-dim { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.3); z-index: 0; }
+        .overlay-dim { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 0; }
 
         .header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 15px 30px; background: rgba(0,0,0,0.6); 
-            border-bottom: 4px solid #000; z-index: 10; 
-            backdrop-filter: blur(5px);
+            border-bottom: 4px solid #000; z-index: 10; backdrop-filter: blur(5px);
         }
         .header h1 { margin: 0; color: #55ff55; font-family: monospace; text-transform: uppercase; letter-spacing: 2px; text-shadow: 3px 3px 0 #000; }
 
         .game-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 60px; position: relative; z-index: 5; }
 
-        /* =========================================
-           KHỐI BLOCK
-           ========================================= */
+        /* KHỐI BLOCK */
         .question-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 90vw; }
         
         .mc-block {
-            background-size: cover;
-            border: 4px solid rgba(0,0,0,0.5);
-            min-width: 120px; height: 120px; 
-            font-size: 28px; font-weight: 900;
+            background-size: 100% 100%; border: 4px solid rgba(0,0,0,0.5);
+            min-width: 110px; height: 110px; font-size: 26px; font-weight: 900;
             box-shadow: inset -6px -6px 0 rgba(0,0,0,0.4), 5px 10px 20px rgba(0,0,0,0.4);
             text-transform: uppercase; position: relative;
             display: flex; align-items: center; justify-content: center; 
-            text-shadow: 2px 2px 0 #000; transition: 0.2s; 
-            user-select: none;
+            text-shadow: 2px 2px 0 #000; transition: 0.15s; user-select: none;
         }
 
         .mc-blank {
-            background: rgba(0,0,0,0.6); border: 4px dashed rgba(255,255,255,0.3);
-            box-shadow: inset 5px 5px 15px rgba(0,0,0,0.8);
-            min-width: 120px; height: 120px;
+            background: rgba(0,0,0,0.7); border: 4px dashed rgba(255,255,255,0.4);
+            box-shadow: inset 5px 5px 15px rgba(0,0,0,0.9);
+            min-width: 110px; height: 110px;
         }
-
-        .mc-memory { width: 250px; height: 250px; font-size: 36px; transition: 0.6s; transform-style: preserve-3d; }
-        .mc-memory.flipped { transform: rotateY(180deg); }
-        .mc-memory span { transition: 0.3s; backface-visibility: hidden; }
-        .mc-memory.flipped span { transform: rotateY(180deg); color: #fff; }
 
         .options-area { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 20px; }
         .mc-ans { cursor: pointer; }
         .mc-ans:hover { transform: translateY(-8px) scale(1.05); filter: brightness(1.2); }
 
-        /* =========================================
-           TNT & KHÓI
-           ========================================= */
+        /* TNT */
         .mc-tnt {
-            position: absolute; width: 120px; height: 120px;
-            background: var(--tex-tnt); background-size: cover;
-            border: 2px solid #fff; z-index: 100;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: absolute; width: 110px; height: 110px;
+            background: var(--tex-tnt); background-size: 100% 100%;
+            border: 2px solid #fff; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             pointer-events: none; opacity: 0;
         }
         
         .tnt-drop { animation: dropTNT 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; opacity: 1; }
         @keyframes dropTNT { 0% { transform: translateY(-500px) scale(0.5); } 100% { transform: translateY(0) scale(1); } }
 
-        .tnt-fuse { animation: fuseFlash 0.15s infinite alternate; }
-        @keyframes fuseFlash { 0% { filter: brightness(1); } 100% { filter: brightness(4) contrast(0); transform: scale(1.05); } }
+        .tnt-fuse { animation: fuseFlash 0.1s infinite alternate; }
+        @keyframes fuseFlash { 0% { filter: brightness(1); } 100% { filter: brightness(5) contrast(0); transform: scale(1.08); } }
 
-        .explosion-flash {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 999; pointer-events: none;
-            animation: kaboom 0.6s ease-out forwards;
-        }
-        @keyframes kaboom { 0% { opacity: 1; background: #fff; } 50% { background: #ffaa00; } 100% { opacity: 0; background: transparent; } }
+        /* HIỆU ỨNG NỔ/RUNG */
+        .explosion-flash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999; pointer-events: none; animation: kaboom 0.6s ease-out forwards; }
+        @keyframes kaboom { 0% { opacity: 1; background: #fff; } 40% { background: #ffaa00; } 100% { opacity: 0; background: transparent; } }
 
         .shake-screen { animation: shake 0.3s linear both; }
-        @keyframes shake { 10%, 90% { transform: translate3d(-4px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
+        @keyframes shake { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-8px, 8px); } 50% { transform: translate(8px, -8px); } 75% { transform: translate(-8px, -8px); } }
 
-        .smoke { position: fixed; background: rgba(255,255,255,0.8); border-radius: 50%; z-index: 50; pointer-events: none; }
-        .particle { position: fixed; width: 20px; height: 20px; z-index: 50; pointer-events: none; }
+        .smoke { position: fixed; background: rgba(255,255,255,0.9); border-radius: 50%; z-index: 50; pointer-events: none; }
+        .particle { position: fixed; width: 15px; height: 15px; z-index: 50; pointer-events: none; }
 
-        .xp-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 12px; background: rgba(0,0,0,0.7); }
-        #xp-progress { width: 0%; height: 100%; background: #55ff55; box-shadow: 0 0 25px #55ff55; transition: 0.5s; }
+        .xp-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(0,0,0,0.8); }
+        #xp-progress { width: 0%; height: 100%; background: #55ff55; box-shadow: 0 0 20px #55ff55; transition: 0.4s; }
     </style>
 </head>
 <body>
-    <audio id="snd-orb" src="assets/orb.mp3" preload="auto"></audio>
-    <audio id="snd-tnt" src="assets/tnt-explosion.mp3" preload="auto"></audio>
-
     <div class="overlay-dim"></div>
 
     <div class="header">
@@ -121,6 +100,33 @@
     <div class="xp-bar"><div id="xp-progress"></div></div>
 
     <script>
+        // --- HỆ THỐNG ÂM THANH WEBAUDIO (GIẢI QUYẾT LAG) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const buffers = {};
+
+        async function loadSound(name, url) {
+            try {
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                buffers[name] = await audioCtx.decodeAudioData(arrayBuffer);
+                console.log(`Loaded: ${name}`);
+            } catch (e) { console.error("Lỗi tải âm thanh:", e); }
+        }
+
+        // Tải trước toàn bộ âm thanh vào RAM
+        loadSound('orb', 'http://googleusercontent.com/file_content/30');
+        loadSound('tnt', 'http://googleusercontent.com/file_content/29');
+
+        function playSound(name) {
+            if (!buffers[name]) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffers[name];
+            source.connect(audioCtx.destination);
+            source.start(0);
+        }
+
+        // --- CẤU HÌNH TRÒ CHƠI ---
         let questions = [], currentIndex = 0, isProcessing = false;
         const qRow = document.getElementById('question-row');
         const optArea = document.getElementById('options-area');
@@ -128,46 +134,36 @@
 
         const textures = ['var(--tex-grass)', 'var(--tex-stone)', 'var(--tex-dirt)'];
 
-        // HÀM PHÁT NHẠC (Dùng cloneNode để phát đè lên nhau không bị giật lag)
-        function playSoundInstant(id) {
-            let original = document.getElementById(id);
-            if (original) {
-                let clone = original.cloneNode();
-                clone.volume = 1.0;
-                clone.play().catch(e => console.log("Trình duyệt chặn autoplay", e));
-            }
-        }
-
         function spawnParticles(element, isSmoke = false) {
             const rect = element.getBoundingClientRect();
-            const tex = element.style.backgroundImage; // Lấy màu gạch hiện tại
-            
-            for(let i=0; i< (isSmoke ? 25 : 15); i++) {
+            const tex = element.style.backgroundImage;
+            const count = isSmoke ? 15 : 10; // Giảm bớt cho máy yếu
+
+            for(let i=0; i<count; i++) {
                 let p = document.createElement('div');
                 p.className = isSmoke ? 'smoke' : 'particle';
-                p.style.left = rect.left + (Math.random() * rect.width) + 'px';
-                p.style.top = rect.top + (Math.random() * rect.height) + 'px';
+                p.style.left = rect.left + (rect.width/2) + 'px';
+                p.style.top = rect.top + (rect.height/2) + 'px';
                 
                 if (isSmoke) {
-                    const size = Math.random() * 40 + 20;
+                    const size = Math.random() * 30 + 20;
                     p.style.width = size + 'px'; p.style.height = size + 'px';
-                    p.style.background = `rgba(200,200,200,${Math.random() * 0.5 + 0.3})`;
                 } else {
                     p.style.backgroundImage = tex;
-                    p.style.backgroundSize = '500%';
+                    p.style.backgroundSize = '400%';
                 }
                 document.body.appendChild(p);
                 
                 let angle = Math.random() * Math.PI * 2;
-                let velocity = 60 + Math.random() * 120;
+                let velocity = 50 + Math.random() * 80;
                 let tx = Math.cos(angle) * velocity;
-                let ty = Math.sin(angle) * velocity + (isSmoke ? -100 : 150);
+                let ty = Math.sin(angle) * velocity + (isSmoke ? -80 : 100);
                 
                 p.animate([
                     { transform: `translate(0,0) scale(1)`, opacity: 1 },
-                    { transform: `translate(${tx}px, ${ty}px) scale(${isSmoke ? 2 : 0})`, opacity: 0 }
-                ], { duration: isSmoke ? 1000 : 700, easing: 'ease-out' });
-                setTimeout(() => p.remove(), 1000);
+                    { transform: `translate(${tx}px, ${ty}px) scale(${isSmoke ? 2.5 : 0})`, opacity: 0 }
+                ], { duration: isSmoke ? 800 : 500, easing: 'ease-out' });
+                setTimeout(() => p.remove(), 800);
             }
             if(!isSmoke) element.style.opacity = 0;
         }
@@ -192,12 +188,13 @@
             document.body.classList.remove('shake-screen');
             qRow.innerHTML = "";
             
-            // 🔥 CỐ ĐỊNH 1 LOẠI TEXTURE CHO TOÀN BỘ CÂU HỎI NÀY
+            // 🔥 THỐNG NHẤT LOẠI BLOCK CHO TỪNG CÂU
             const levelTexture = textures[currentIndex % textures.length];
 
             if (cur.type === 'memory') {
                 const block = document.createElement('div');
-                block.className = 'mc-block mc-memory';
+                block.className = 'mc-block';
+                block.style.width = '250px'; block.style.height = '250px';
                 block.style.backgroundImage = levelTexture;
                 block.innerHTML = `<span>${cur.q}</span>`;
                 qRow.appendChild(block);
@@ -235,7 +232,6 @@
             opts.forEach(o => {
                 const btn = document.createElement('div');
                 btn.className = 'mc-block mc-ans'; 
-                // Đáp án cũng dùng chung 1 loại gạch với câu hỏi cho đồng bộ
                 btn.style.backgroundImage = levelTexture;
                 btn.innerHTML = `<span>${o}</span>`;
                 btn.onclick = () => checkAnswer(o, btn, levelTexture);
@@ -252,6 +248,9 @@
             const blankSpot = document.getElementById('blank-spot');
 
             if (isCorrect) {
+                // PHÁT NHẠC NGAY LẬP TỨC TỪ RAM
+                playSound('orb'); 
+
                 if (cur.type !== 'memory' && blankSpot) {
                     blankSpot.className = 'mc-block';
                     blankSpot.style.backgroundImage = levelTexture;
@@ -260,20 +259,10 @@
                 }
 
                 setTimeout(() => {
-                    if(cur.type === 'memory') {
-                        const memBlock = qRow.firstChild;
-                        memBlock.classList.add('flipped');
-                        memBlock.querySelector('span').innerText = cur.a;
-                    }
-                    setTimeout(() => {
-                        // PHÁT NHẠC VÀ ĐẬP GẠCH CÙNG LÚC
-                        playSoundInstant('snd-orb');
-                        Array.from(qRow.children).forEach(c => spawnParticles(c));
-                        if(cur.type !== 'memory') spawnParticles(element);
-                        
-                        setTimeout(() => { currentIndex++; loadQuestion(); }, 800);
-                    }, cur.type === 'memory' ? 1000 : 600);
-                }, 100);
+                    Array.from(qRow.children).forEach(c => spawnParticles(c));
+                    if(cur.type !== 'memory') spawnParticles(element);
+                    setTimeout(() => { currentIndex++; loadQuestion(); }, 600);
+                }, 400);
             } 
             else {
                 let targetRect = (blankSpot || qRow.firstChild).getBoundingClientRect();
@@ -287,9 +276,9 @@
                     tnt.classList.remove('tnt-drop');
                     tnt.classList.add('tnt-fuse');
 
+                    // Nổ sau 1 giây cháy ngòi
                     setTimeout(() => {
-                        // PHÁT NHẠC NỔ VÀ HIỆU ỨNG RUNG CÙNG LÚC
-                        playSoundInstant('snd-tnt');
+                        playSound('tnt'); // PHÁT TIẾNG NỔ TỨC THÌ
                         document.body.classList.add('shake-screen');
                         
                         const flash = document.createElement('div');
@@ -300,9 +289,8 @@
                         spawnParticles(tnt, true);
                         tnt.remove();
                         qRow.innerHTML = ""; optArea.innerHTML = "";
-                        
-                        setTimeout(() => { loadQuestion(); }, 500); 
-                    }, 1200); 
+                        setTimeout(() => loadQuestion(), 500); 
+                    }, 1000); 
                 }, 400);
             }
         }
