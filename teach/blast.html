@@ -7,106 +7,100 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --mc-green: #5db026; --mc-dirt: #866043; --mc-stone: #7a7a7a; --mc-tnt: #d32f2f; }
-        body { margin: 0; padding: 0; height: 100vh; background: #1a1a1a url('https://www.transparenttextures.com/patterns/dark-matter.png'); color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        :root { --mc-green: #5db026; --mc-dirt: #866043; --mc-tnt: #d32f2f; }
+        body { margin: 0; padding: 0; height: 100vh; background: #55b2ff; /* Màu trời Minecraft */ color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; transition: 0.1s; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #333; border-bottom: 5px solid #000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 10; }
-        .header h1 { margin: 0; color: #55ff55; font-family: monospace; text-transform: uppercase; letter-spacing: 2px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.5); border-bottom: 4px solid #000; z-index: 10; }
+        .header h1 { margin: 0; color: #55ff55; font-family: monospace; text-transform: uppercase; letter-spacing: 2px; text-shadow: 2px 2px 0 #000; }
 
-        .game-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 60px; }
+        .game-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 80px; position: relative; }
 
         /* =========================================
-           HÀNG CÂU HỎI (CHUỖI BLOCK)
+           KHỐI GRASS BLOCK (DÙNG CHUNG CHO CÂU HỎI VÀ ĐÁP ÁN)
            ========================================= */
-        .question-row {
-            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;
-            max-width: 90vw; perspective: 1000px;
-        }
-
-        /* Block từng chữ (Stone) */
-        .mc-word {
-            background: var(--mc-stone); border: 4px solid #444; border-radius: 4px;
-            padding: 15px 20px; font-size: 28px; font-weight: 900;
-            box-shadow: inset -4px -4px 0 rgba(0,0,0,0.3), inset 4px 4px 0 rgba(255,255,255,0.1);
-            text-transform: uppercase; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        /* Lỗ hổng chờ điền */
-        .mc-blank {
-            background: #111; border: 4px dashed #555; color: transparent;
-            min-width: 120px; min-height: 60px; box-shadow: inset 4px 4px 10px rgba(0,0,0,0.8);
-        }
-
-        /* Khi lỗ hổng được đắp gạch (Dirt) */
-        .mc-blank.filled {
-            background: var(--mc-dirt); border: 4px solid #4d3321; color: white;
-            box-shadow: inset -4px -4px 0 rgba(0,0,0,0.4); border-style: solid;
-        }
-
-        /* Block khổng lồ cho dạng Memory Card */
-        .mc-memory-block {
-            width: 250px; height: 250px; background: var(--mc-stone);
-            border: 10px solid #444; position: relative;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 32px; font-weight: 900; text-align: center; padding: 20px;
-            box-shadow: inset -10px -10px 0 rgba(0,0,0,0.3), inset 10px 10px 0 rgba(255,255,255,0.1);
-            transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d;
-        }
-        .mc-memory-block::before { content: ""; position: absolute; top: -10px; left: -10px; right: -10px; height: 40px; background: var(--mc-green); border-bottom: 10px solid #3f7e14; }
-        
-        .mc-memory-block.flipped { transform: rotateY(180deg); background: #55ff55; border-color: #3f7e14; }
-        .mc-memory-block span { transition: 0.3s; backface-visibility: hidden; }
-        .mc-memory-block.flipped span { transform: rotateY(180deg); color: #000; }
-
-        /* =========================================
-           KHU VỰC ĐÁP ÁN (DIRT BLOCKS)
-           ========================================= */
+        .question-row { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 90vw; }
         .options-area { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; }
-        .mc-ans {
-            min-width: 150px; padding: 20px 30px; background: var(--mc-dirt);
-            border: 6px solid #4d3321; border-radius: 4px;
-            font-size: 26px; font-weight: 900; cursor: pointer;
-            box-shadow: inset -6px -6px 0 rgba(0,0,0,0.4), 5px 5px 15px rgba(0,0,0,0.5); 
-            text-transform: uppercase; transition: 0.2s;
+
+        .mc-grass {
+            background: var(--mc-dirt); border: 4px solid #3e2817; border-radius: 2px;
+            min-width: 120px; height: 120px; font-size: 28px; font-weight: 900;
+            box-shadow: inset -4px -4px 0 rgba(0,0,0,0.3), 5px 5px 15px rgba(0,0,0,0.3);
+            text-transform: uppercase; position: relative;
+            display: flex; align-items: center; justify-content: center; text-shadow: 2px 2px 0 #000;
+            transition: 0.2s; cursor: pointer; user-select: none;
         }
-        .mc-ans:hover { transform: translateY(-5px); filter: brightness(1.2); }
-        .mc-ans:active { transform: translateY(2px); box-shadow: inset -6px -6px 0 rgba(0,0,0,0.4); }
+        .mc-grass::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 30px;
+            background: var(--mc-green); border-bottom: 4px solid #3f7e14; z-index: 0;
+        }
+        .mc-grass span { position: relative; z-index: 1; }
+
+        .mc-grass:hover { transform: translateY(-5px); filter: brightness(1.2); }
+
+        /* LỖ HỔNG */
+        .mc-blank {
+            background: transparent; border: 4px dashed rgba(0,0,0,0.3); box-shadow: none; color: transparent;
+            min-width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;
+        }
+        .mc-blank::before { display: none; }
+
+        /* DÀNH CHO MEMORY CARD */
+        .mc-memory { width: 250px; height: 250px; font-size: 36px; transition: 0.6s; transform-style: preserve-3d; }
+        .mc-memory.flipped { transform: rotateY(180deg); }
+        .mc-memory span { transition: 0.3s; backface-visibility: hidden; }
+        .mc-memory.flipped span { transform: rotateY(180deg); color: #fff; }
 
         /* =========================================
-           ANIMATIONS (BREAK & EXPLODE)
+           KHỐI TNT & MẢNH VỠ (PARTICLES)
            ========================================= */
-        @keyframes mc-break {
-            0% { transform: scale(1); opacity: 1; filter: grayscale(0); }
-            30% { transform: scale(1.15) rotate(5deg); filter: contrast(2) brightness(1.5); }
-            100% { transform: scale(0) rotate(-15deg); opacity: 0; filter: blur(5px); }
+        .mc-tnt {
+            position: absolute; width: 120px; height: 120px; background: var(--mc-tnt);
+            border: 4px solid #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; font-weight: 900; font-family: monospace; color: white; text-shadow: 3px 3px 0 #000;
+            z-index: 100; box-shadow: inset -4px -4px 0 rgba(0,0,0,0.3);
+            pointer-events: none; opacity: 0;
         }
-        .break-effect { animation: mc-break 0.5s forwards !important; }
-
-        @keyframes mc-tnt-boom {
-            0% { background: white; transform: scale(1); border-color: white; }
-            20% { background: #ff0000; transform: scale(1.1) rotate(-3deg); }
-            40% { background: white; transform: scale(0.9) rotate(3deg); }
-            100% { transform: scale(3); opacity: 0; background: #ffaa00; border-color: #ffaa00; filter: blur(10px); }
+        .mc-tnt::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 30px;
+            background: #e53935; border-bottom: 4px solid #b71c1c;
         }
-        .explode-effect { animation: mc-tnt-boom 0.6s forwards !important; color: transparent !important; }
+        
+        .tnt-drop { animation: dropTNT 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; opacity: 1; }
+        @keyframes dropTNT { 0% { transform: translateY(-300px) scale(0.5); } 100% { transform: translateY(0) scale(1); } }
 
-        .xp-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 12px; background: #000; }
+        .tnt-fuse { animation: fuseFlash 0.2s infinite alternate; }
+        @keyframes fuseFlash { 0% { filter: brightness(1); transform: scale(1); } 100% { filter: brightness(3) contrast(0); transform: scale(1.1); } }
+
+        .explosion-flash {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: white; z-index: 999; pointer-events: none;
+            animation: kaboom 0.8s ease-out forwards;
+        }
+        @keyframes kaboom { 0% { opacity: 1; background: #fff; } 20% { background: #f59e0b; } 100% { opacity: 0; background: transparent; } }
+
+        .shake-screen { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-5px, 5px, 0); } 20%, 80% { transform: translate3d(5px, -5px, 0); } 30%, 50%, 70% { transform: translate3d(-10px, 10px, 0); } 40%, 60% { transform: translate3d(10px, -10px, 0); } }
+
+        /* Mảnh vỡ Block */
+        .particle {
+            position: fixed; width: 15px; height: 15px; z-index: 50;
+            box-shadow: inset -2px -2px 0 rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .xp-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 12px; background: rgba(0,0,0,0.6); }
         #xp-progress { width: 0%; height: 100%; background: #55ff55; box-shadow: 0 0 20px #55ff55; transition: 0.5s; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1><i class="fa-solid fa-cube"></i> BLAST BLOCK: MINECRAFT</h1>
-        <div id="level-txt" style="font-weight: 900; color: #ffff55; font-size: 20px;">LVL: 1/1</div>
+        <h1><i class="fa-solid fa-cube"></i> BLAST BLOCK</h1>
+        <div id="level-txt" style="font-weight: 900; color: #ffff55; font-size: 20px; text-shadow: 2px 2px 0 #000;">LVL: 1/1</div>
     </div>
 
     <div class="game-container">
-        <div class="question-row" id="question-row">
-            <div class="mc-word">ĐANG</div><div class="mc-word">CHỜ</div><div class="mc-word">ADMIN</div>
-        </div>
-
+        <div class="question-row" id="question-row"></div>
         <div class="options-area" id="options-area"></div>
     </div>
 
@@ -122,7 +116,16 @@
         let audioCtx;
         function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
 
-        // GIẢ LẬP TIẾNG XP (LENG KENG)
+        // TIẾNG ĐẬP BLOCK (Pop)
+        function playBreak() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+            g.gain.setValueAtTime(0.5, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
         function playXP() {
             if (!audioCtx) return;
             const freqs = [900, 1100, 1400];
@@ -136,16 +139,49 @@
             });
         }
 
-        // GIẢ LẬP TIẾNG TNT (BÙM)
-        function playTNT() {
+        // TIẾNG XÌ XÌ CỦA TNT
+        function playFuse() {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.6);
-            g.gain.setValueAtTime(0.8, audioCtx.currentTime);
-            g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(2000, audioCtx.currentTime + 1.5);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.5);
+            osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+        }
+
+        // TIẾNG NỔ BÙM
+        function playExplosion() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.8);
+            g.gain.setValueAtTime(1, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.8);
+            osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+        }
+
+        // HIỆU ỨNG VĂNG MẢNH VỤN (PARTICLES)
+        function spawnParticles(element) {
+            const rect = element.getBoundingClientRect();
+            for(let i=0; i<15; i++) {
+                let p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = rect.left + (Math.random() * rect.width) + 'px';
+                p.style.top = rect.top + (Math.random() * rect.height) + 'px';
+                p.style.background = Math.random() > 0.3 ? '#866043' : '#5db026'; // Trộn màu đất và cỏ
+                document.body.appendChild(p);
+                
+                let angle = Math.random() * Math.PI * 2;
+                let velocity = 50 + Math.random() * 100;
+                let tx = Math.cos(angle) * velocity;
+                let ty = Math.sin(angle) * velocity + 150; // Rớt xuống giống trọng lực
+                
+                p.animate([
+                    { transform: `translate(0,0) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) rotate(${Math.random()*360}deg)`, opacity: 0 }
+                ], { duration: 600, easing: 'cubic-bezier(.25,.1,.25,1)' });
+                setTimeout(() => p.remove(), 600);
+            }
+            element.style.opacity = 0; // Giấu khối gốc đi
         }
 
         // Lắng nghe lệnh từ Admin
@@ -160,7 +196,7 @@
 
         function loadQuestion() {
             if (currentIndex >= questions.length) {
-                qRow.innerHTML = `<div class="mc-word" style="color:#55ff55;">YOU WIN! XP MAXED!</div>`;
+                qRow.innerHTML = `<div class="mc-grass" style="width: auto; padding: 0 40px;"><span style="color:#55ff55;">YOU WIN!</span></div>`;
                 optArea.innerHTML = ""; 
                 return;
             }
@@ -168,19 +204,17 @@
             isProcessing = false; 
             const cur = questions[currentIndex];
             document.getElementById('level-txt').innerText = `LVL: ${currentIndex + 1}/${questions.length}`;
+            document.body.classList.remove('shake-screen');
             
             // 1. RENDER CÂU HỎI
             qRow.innerHTML = "";
             
             if (cur.type === 'memory') {
-                // Dạng Memory: Dùng khối khổng lồ
                 const block = document.createElement('div');
-                block.className = 'mc-memory-block';
+                block.className = 'mc-grass mc-memory';
                 block.innerHTML = `<span>${cur.q}</span>`;
                 qRow.appendChild(block);
             } else {
-                // Dạng Fill/Choice: Tách chữ thành chuỗi block
-                // Thêm khoảng trắng quanh ___ để tách cho chuẩn
                 const safeQ = cur.q.replace(/___/g, ' ___ ').trim();
                 const words = safeQ.split(/\s+/); 
                 let hasBlank = false;
@@ -188,40 +222,33 @@
                 words.forEach(w => {
                     const block = document.createElement('div');
                     if (w === '___') {
-                        block.className = 'mc-word mc-blank';
+                        block.className = 'mc-blank';
                         block.id = 'blank-spot';
-                        block.innerText = '___';
                         hasBlank = true;
                     } else {
-                        block.className = 'mc-word';
-                        block.innerText = w;
+                        block.className = 'mc-grass';
+                        block.innerHTML = `<span>${w}</span>`;
                     }
                     qRow.appendChild(block);
                 });
 
-                // Nếu không gõ ___ thì tự nhét 1 ô trống vào cuối
                 if (!hasBlank) {
                     const blankBlock = document.createElement('div');
-                    blankBlock.className = 'mc-word mc-blank';
+                    blankBlock.className = 'mc-blank';
                     blankBlock.id = 'blank-spot';
-                    blankBlock.innerText = '___';
                     qRow.appendChild(blankBlock);
                 }
             }
 
-            // 2. RENDER ĐÁP ÁN
+            // 2. RENDER ĐÁP ÁN DƯỚI DẠNG GRASS BLOCK
             optArea.innerHTML = "";
             let opts = (cur.type === 'memory') ? [cur.a] : cur.options;
-            
-            // Xáo trộn ngẫu nhiên đáp án nếu không phải memory
-            if (cur.type !== 'memory') {
-                opts = [...opts].sort(() => Math.random() - 0.5);
-            }
+            if (cur.type !== 'memory') opts = [...opts].sort(() => Math.random() - 0.5);
 
             opts.forEach(o => {
                 const btn = document.createElement('div');
-                btn.className = 'mc-ans'; 
-                btn.innerText = o;
+                btn.className = 'mc-grass'; 
+                btn.innerHTML = `<span>${o}</span>`;
                 btn.onclick = () => checkAnswer(o, btn);
                 optArea.appendChild(btn);
             });
@@ -231,64 +258,76 @@
 
         function checkAnswer(choice, element) {
             if(isProcessing) return; 
-            isProcessing = true; 
-            initAudio();
+            isProcessing = true; initAudio();
             
             const cur = questions[currentIndex];
-            const correct = cur.a;
-            const isCorrect = (choice === correct);
+            const isCorrect = (choice === cur.a);
+            const blankSpot = document.getElementById('blank-spot');
 
-            // =====================================
-            // HIỆU ỨNG ĐIỀN TỪ (DÀNH CHO DẠNG CHUỖI)
-            // =====================================
-            if (cur.type !== 'memory') {
-                const blankSpot = document.getElementById('blank-spot');
-                if (blankSpot) {
-                    blankSpot.innerText = choice;
-                    blankSpot.classList.add('filled');
-                    // Ẩn nhẹ khối đáp án vừa bấm
-                    element.style.transform = 'scale(0)';
-                    element.style.opacity = '0';
+            // ĐÚNG RỒI: Đắp gạch, Bể khối, Nhận XP
+            if (isCorrect) {
+                if (cur.type !== 'memory' && blankSpot) {
+                    // Đắp gạch vào lỗ
+                    blankSpot.className = 'mc-grass';
+                    blankSpot.innerHTML = `<span>${choice}</span>`;
+                    element.style.opacity = '0'; // Xóa gạch ở dưới
                 }
-            }
 
-            // =====================================
-            // PHÁN XÉT & ANIMATION
-            // =====================================
-            setTimeout(() => {
-                if (isCorrect) {
-                    // ĐÚNG: Nhận XP và Đập khối
-                    playXP();
-                    
+                setTimeout(() => {
                     if(cur.type === 'memory') {
-                        // Lật mặt khối khổng lồ
                         const memBlock = qRow.firstChild;
                         memBlock.classList.add('flipped');
                         memBlock.querySelector('span').innerText = cur.a;
                     }
-                    
-                    // Delay tí cho lật xong hoặc đắp gạch xong rồi mới đập vỡ
-                    setTimeout(() => {
-                        Array.from(qRow.children).forEach(c => c.classList.add('break-effect'));
-                        element.classList.add('break-effect');
-                        
-                        setTimeout(() => { 
-                            currentIndex++; 
-                            loadQuestion(); 
-                        }, 600);
-                    }, cur.type === 'memory' ? 800 : 400);
 
-                } else {
-                    // SAI: BÙMMM! (Nổ cả câu hỏi lẫn đáp án)
-                    playTNT();
-                    Array.from(qRow.children).forEach(c => c.classList.add('explode-effect'));
-                    element.classList.add('explode-effect');
-                    
-                    setTimeout(() => { 
-                        loadQuestion(); // Hồi sinh lại câu đó
-                    }, 800); 
-                }
-            }, cur.type !== 'memory' ? 400 : 0); // Dạng chuỗi đợi 400ms ngắm gạch điền vào rồi mới nổ
+                    setTimeout(() => {
+                        playBreak(); playXP();
+                        // Nổ văng mảnh vụn toàn bộ khối câu hỏi và đáp án
+                        Array.from(qRow.children).forEach(c => spawnParticles(c));
+                        if(cur.type !== 'memory') spawnParticles(element);
+                        
+                        setTimeout(() => { currentIndex++; loadQuestion(); }, 800);
+                    }, cur.type === 'memory' ? 800 : 500);
+                }, 100);
+            } 
+            // SAI RỒI: Thả TNT
+            else {
+                let targetRect = (blankSpot || qRow.firstChild).getBoundingClientRect();
+                
+                // Tạo khối TNT bay từ trên xuống
+                const tnt = document.createElement('div');
+                tnt.className = 'mc-tnt tnt-drop';
+                tnt.innerText = 'TNT';
+                // Đặt tọa độ đè lên cái lỗ hoặc khối Memory
+                tnt.style.left = targetRect.left + 'px';
+                tnt.style.top = targetRect.top + 'px';
+                document.body.appendChild(tnt);
+
+                setTimeout(() => {
+                    // TNT bắt đầu cháy
+                    playFuse();
+                    tnt.classList.remove('tnt-drop');
+                    tnt.classList.add('tnt-fuse');
+
+                    setTimeout(() => {
+                        // KABOOOMMM!!!
+                        playExplosion();
+                        document.body.classList.add('shake-screen');
+                        
+                        // Chớp trắng màn hình
+                        const flash = document.createElement('div');
+                        flash.className = 'explosion-flash';
+                        document.body.appendChild(flash);
+                        setTimeout(() => flash.remove(), 800);
+
+                        // Dọn dẹp xác TNT và nạp lại câu hỏi
+                        tnt.remove();
+                        qRow.innerHTML = ""; optArea.innerHTML = "";
+                        
+                        setTimeout(() => { loadQuestion(); }, 500); 
+                    }, 1500); // Đợi 1.5s xì xì rồi nổ
+                }, 500); // Đợi 0.5s rớt xuống
+            }
         }
     </script>
 </body>
