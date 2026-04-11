@@ -37,13 +37,13 @@
         .game-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 60px; position: relative; z-index: 5; }
 
         /* =========================================
-           KHỐI BLOCK (DÙNG TEXTURE ẢNH)
+           KHỐI BLOCK
            ========================================= */
         .question-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 90vw; }
         
         .mc-block {
             background-size: cover;
-            border: 4px solid rgba(0,0,0,0.4);
+            border: 4px solid rgba(0,0,0,0.5);
             min-width: 120px; height: 120px; 
             font-size: 28px; font-weight: 900;
             box-shadow: inset -6px -6px 0 rgba(0,0,0,0.4), 5px 10px 20px rgba(0,0,0,0.4);
@@ -59,7 +59,6 @@
             min-width: 120px; height: 120px;
         }
 
-        /* DÀNH CHO MEMORY CARD */
         .mc-memory { width: 250px; height: 250px; font-size: 36px; transition: 0.6s; transform-style: preserve-3d; }
         .mc-memory.flipped { transform: rotateY(180deg); }
         .mc-memory span { transition: 0.3s; backface-visibility: hidden; }
@@ -70,7 +69,7 @@
         .mc-ans:hover { transform: translateY(-8px) scale(1.05); filter: brightness(1.2); }
 
         /* =========================================
-           TNT & KHÓI (PARTICLES)
+           TNT & KHÓI
            ========================================= */
         .mc-tnt {
             position: absolute; width: 120px; height: 120px;
@@ -96,12 +95,7 @@
         .shake-screen { animation: shake 0.3s linear both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-4px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
 
-        /* Hạt bụi khói khi nổ */
-        .smoke {
-            position: fixed; background: rgba(255,255,255,0.8);
-            border-radius: 50%; z-index: 50; pointer-events: none;
-        }
-
+        .smoke { position: fixed; background: rgba(255,255,255,0.8); border-radius: 50%; z-index: 50; pointer-events: none; }
         .particle { position: fixed; width: 20px; height: 20px; z-index: 50; pointer-events: none; }
 
         .xp-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 12px; background: rgba(0,0,0,0.7); }
@@ -109,6 +103,9 @@
     </style>
 </head>
 <body>
+    <audio id="snd-orb" src="assets/orb.mp3" preload="auto"></audio>
+    <audio id="snd-tnt" src="assets/tnt-explosion.mp3" preload="auto"></audio>
+
     <div class="overlay-dim"></div>
 
     <div class="header">
@@ -131,13 +128,19 @@
 
         const textures = ['var(--tex-grass)', 'var(--tex-stone)', 'var(--tex-dirt)'];
 
-        // CẤU HÌNH ÂM THANH
-        const sndExplosion = new Audio('assets/tnt-explosion.mp3'); // tnt-explosion.mp3
-        const sndOrb = new Audio('assets/orb.mp3');       // orb.mp3
+        // HÀM PHÁT NHẠC (Dùng cloneNode để phát đè lên nhau không bị giật lag)
+        function playSoundInstant(id) {
+            let original = document.getElementById(id);
+            if (original) {
+                let clone = original.cloneNode();
+                clone.volume = 1.0;
+                clone.play().catch(e => console.log("Trình duyệt chặn autoplay", e));
+            }
+        }
 
         function spawnParticles(element, isSmoke = false) {
             const rect = element.getBoundingClientRect();
-            const tex = element.style.backgroundImage;
+            const tex = element.style.backgroundImage; // Lấy màu gạch hiện tại
             
             for(let i=0; i< (isSmoke ? 25 : 15); i++) {
                 let p = document.createElement('div');
@@ -189,10 +192,13 @@
             document.body.classList.remove('shake-screen');
             qRow.innerHTML = "";
             
+            // 🔥 CỐ ĐỊNH 1 LOẠI TEXTURE CHO TOÀN BỘ CÂU HỎI NÀY
+            const levelTexture = textures[currentIndex % textures.length];
+
             if (cur.type === 'memory') {
                 const block = document.createElement('div');
                 block.className = 'mc-block mc-memory';
-                block.style.backgroundImage = textures[Math.floor(Math.random() * textures.length)];
+                block.style.backgroundImage = levelTexture;
                 block.innerHTML = `<span>${cur.q}</span>`;
                 qRow.appendChild(block);
             } else {
@@ -208,7 +214,7 @@
                         hasBlank = true;
                     } else {
                         block.className = 'mc-block';
-                        block.style.backgroundImage = textures[Math.floor(Math.random() * textures.length)];
+                        block.style.backgroundImage = levelTexture;
                         block.innerHTML = `<span>${w}</span>`;
                     }
                     qRow.appendChild(block);
@@ -229,15 +235,16 @@
             opts.forEach(o => {
                 const btn = document.createElement('div');
                 btn.className = 'mc-block mc-ans'; 
-                btn.style.backgroundImage = 'var(--tex-grass)';
+                // Đáp án cũng dùng chung 1 loại gạch với câu hỏi cho đồng bộ
+                btn.style.backgroundImage = levelTexture;
                 btn.innerHTML = `<span>${o}</span>`;
-                btn.onclick = () => checkAnswer(o, btn);
+                btn.onclick = () => checkAnswer(o, btn, levelTexture);
                 optArea.appendChild(btn);
             });
             xpProgress.style.width = (currentIndex / questions.length) * 100 + "%";
         }
 
-        function checkAnswer(choice, element) {
+        function checkAnswer(choice, element, levelTexture) {
             if(isProcessing) return; isProcessing = true; 
             
             const cur = questions[currentIndex];
@@ -245,10 +252,9 @@
             const blankSpot = document.getElementById('blank-spot');
 
             if (isCorrect) {
-                sndOrb.currentTime = 0; sndOrb.play();
                 if (cur.type !== 'memory' && blankSpot) {
                     blankSpot.className = 'mc-block';
-                    blankSpot.style.backgroundImage = 'var(--tex-grass)';
+                    blankSpot.style.backgroundImage = levelTexture;
                     blankSpot.innerHTML = `<span>${choice}</span>`;
                     element.style.opacity = '0';
                 }
@@ -260,8 +266,11 @@
                         memBlock.querySelector('span').innerText = cur.a;
                     }
                     setTimeout(() => {
+                        // PHÁT NHẠC VÀ ĐẬP GẠCH CÙNG LÚC
+                        playSoundInstant('snd-orb');
                         Array.from(qRow.children).forEach(c => spawnParticles(c));
                         if(cur.type !== 'memory') spawnParticles(element);
+                        
                         setTimeout(() => { currentIndex++; loadQuestion(); }, 800);
                     }, cur.type === 'memory' ? 1000 : 600);
                 }, 100);
@@ -279,7 +288,8 @@
                     tnt.classList.add('tnt-fuse');
 
                     setTimeout(() => {
-                        sndExplosion.currentTime = 0; sndExplosion.play();
+                        // PHÁT NHẠC NỔ VÀ HIỆU ỨNG RUNG CÙNG LÚC
+                        playSoundInstant('snd-tnt');
                         document.body.classList.add('shake-screen');
                         
                         const flash = document.createElement('div');
@@ -287,7 +297,6 @@
                         document.body.appendChild(flash);
                         setTimeout(() => flash.remove(), 600);
 
-                        // Tạo khói
                         spawnParticles(tnt, true);
                         tnt.remove();
                         qRow.innerHTML = ""; optArea.innerHTML = "";
