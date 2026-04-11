@@ -17,24 +17,25 @@
         body { margin: 0; padding: 0; height: 100vh; background: var(--bg-dark); color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; transition: background-color 0.3s; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: var(--panel-bg); border-bottom: 2px solid #334155; z-index: 10; }
         .header h1 { margin: 0; color: #ef4444; font-size: 24px; text-shadow: 0 0 10px rgba(239,68,68,0.3); }
-        .arena { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .arena { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; box-sizing: border-box;}
 
+        /* CSS TỐI ƯU HÓA MÀN HÌNH NHỎ (DÙNG CLAMP VÀ VH) */
         .question-box {
             background: rgba(30, 41, 59, 0.95); border: 3px solid #3b82f6; border-radius: 20px;
-            padding: 25px 40px; font-size: 28px; font-weight: 900; text-align: center;
-            max-width: 80%; margin-bottom: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            padding: min(25px, 3vh) min(40px, 4vw); font-size: clamp(20px, 3vh, 28px); font-weight: 900; text-align: center;
+            max-width: 80%; margin-bottom: min(40px, 3vh); box-shadow: 0 10px 40px rgba(0,0,0,0.4);
             display: none; color: #f8fafc; z-index: 5;
             animation: fadeInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transition: 0.3s;
         }
-        .question-box span { color: #f59e0b; font-size: 18px; display: block; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 3px;}
+        .question-box span { color: #f59e0b; font-size: clamp(14px, 2vh, 18px); display: block; margin-bottom: 1vh; text-transform: uppercase; letter-spacing: 3px;}
         @keyframes fadeInDown { from {opacity:0; transform: translateY(-30px) scale(0.9);} to {opacity:1; transform: translateY(0) scale(1);} }
 
-        .status-badge { font-size: 28px; font-weight: 900; padding: 15px 40px; border-radius: 50px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; transition: 0.3s; background: #334155; color: #fff; border: 4px solid #475569; }
+        .status-badge { font-size: clamp(20px, 3vh, 28px); font-weight: 900; padding: min(15px, 2vh) min(40px, 4vw); border-radius: 50px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: min(30px, 3vh); transition: 0.3s; background: #334155; color: #fff; border: 4px solid #475569; }
         
         .bomb-container { position: relative; text-align: center; }
-        .bomb-icon { font-size: 180px; color: #334155; transition: 0.3s; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5)); }
+        .bomb-icon { font-size: clamp(120px, 20vh, 180px); color: #334155; transition: 0.3s; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5)); }
         .bomb-icon.active { color: #1e293b; }
-        .timer-display { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); font-family: monospace; font-size: 45px; font-weight: 900; color: #ef4444; background: #000; padding: 5px 15px; border-radius: 10px; border: 3px solid #333; text-shadow: 0 0 10px #ef4444; letter-spacing: 3px; }
+        .timer-display { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); font-family: monospace; font-size: clamp(30px, 5vh, 45px); font-weight: 900; color: #ef4444; background: #000; padding: 5px 15px; border-radius: 10px; border: 3px solid #333; text-shadow: 0 0 10px #ef4444; letter-spacing: 3px; }
         
         .reward-popup { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); color: #10b981; font-size: 40px; font-weight: 900; opacity: 0; pointer-events: none; }
         .reward-anim { animation: floatUp 0.8s ease-out; }
@@ -45,19 +46,20 @@
         .input-group label { font-weight: bold; color: #94a3b8; }
         .setup-panel input { font-size: 20px; text-align: center; padding: 8px; width: 80px; border-radius: 10px; border: 2px solid #475569; background: #0f172a; color: white; font-family: 'Nunito', sans-serif; font-weight: 900; outline: none; }
 
-        .btn { padding: 15px 30px; font-size: 20px; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; color: white; font-family: 'Nunito'; text-transform: uppercase; }
+        .btn { padding: min(15px, 2vh) min(30px, 3vw); font-size: clamp(16px, 2.5vh, 20px); font-weight: 900; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; color: white; font-family: 'Nunito'; text-transform: uppercase; }
         .btn-start { background: #10b981; box-shadow: 0 6px 0 #047857; margin-top: 10px; }
-        .btn-pass { background: #f59e0b; box-shadow: 0 8px 0 #b45309; font-size: 30px; padding: 20px 60px; margin-top: 40px; display: none; }
-        .btn-reset { background: #64748b; box-shadow: 0 6px 0 #475569; margin-top: 20px; display: none;}
-        .btn-next-round { background: #3b82f6; box-shadow: 0 6px 0 #1d4ed8; margin-top: 20px; display: none; font-size: 24px; padding: 15px 50px; }
+        .btn-pass { background: #f59e0b; box-shadow: 0 8px 0 #b45309; font-size: clamp(22px, 3.5vh, 30px); padding: min(20px, 2vh) min(60px, 5vw); margin-top: min(40px, 3vh); display: none; }
+        .btn-reset { background: #64748b; box-shadow: 0 6px 0 #475569; margin-top: min(20px, 2vh); display: none;}
+        .btn-next-round { background: #3b82f6; box-shadow: 0 6px 0 #1d4ed8; margin-top: min(20px, 2vh); display: none; font-size: clamp(18px, 3vh, 24px); padding: min(15px, 2vh) min(50px, 4vw); }
 
         .panic { animation: panic-shake 0.2s infinite; color: #ef4444 !important; filter: drop-shadow(0 0 50px rgba(239, 68, 68, 0.8)); }
         @keyframes panic-shake { 0% { transform: translate(0, 0) scale(1.1); } 50% { transform: translate(5px, 5px) scale(1.1); } 100% { transform: translate(0, 0) scale(1.1); } }
         body.exploded { animation: explode-screen 1s ease-out; }
         @keyframes explode-screen { 0% { background-color: #ffffff; } 10% { background-color: #ef4444; } 100% { background-color: var(--bg-dark); } }
         
-        .explosion-icon { font-size: 250px; color: #f59e0b; display: none; filter: drop-shadow(0 0 100px #ef4444); animation: pop-out 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .safe-icon { font-size: 250px; color: #10b981; display: none; filter: drop-shadow(0 0 100px #10b981); animation: pop-out 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* ĐÃ THU NHỎ SIZE CỦA 2 CÁI ICON KHỔNG LỒ NÀY */
+        .explosion-icon { font-size: clamp(140px, 25vh, 250px); color: #f59e0b; display: none; filter: drop-shadow(0 0 100px #ef4444); animation: pop-out 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .safe-icon { font-size: clamp(140px, 25vh, 250px); color: #10b981; display: none; filter: drop-shadow(0 0 100px #10b981); animation: pop-out 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop-out { 0% { transform: scale(0); opacity: 0; } 50% {transform: scale(1.1);} 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
