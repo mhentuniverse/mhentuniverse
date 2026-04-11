@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tug Of War - MHEnt. Edu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; padding: 0; height: 100vh; background: #0f172a; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        .score-board { display: flex; justify-content: space-between; align-items: stretch; height: 120px; background: #1e293b; border-bottom: 4px solid #334155; }
+        .team-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .team-1 { background: linear-gradient(90deg, #be123c 0%, #1e293b 100%); }
+        .team-2 { background: linear-gradient(-90deg, #1d4ed8 0%, #1e293b 100%); }
+        .team-name { font-size: 24px; font-weight: 900; text-transform: uppercase; color: rgba(255,255,255,0.8); letter-spacing: 2px; }
+        .team-score { font-size: 60px; font-weight: 900; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .t1-color { color: #f43f5e; } .t2-color { color: #3b82f6; }
+        .tug-arena { position: relative; height: 160px; display: flex; align-items: center; justify-content: center; padding: 0 10%; margin-top: 20px; }
+        .rope-container { position: relative; width: 100%; height: 20px; background: #8b4513; border-radius: 10px; border-top: 3px solid #a0522d; border-bottom: 3px solid #5c2e0b; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .center-mark { position: absolute; left: 50%; top: -30px; bottom: -30px; width: 4px; background: rgba(255,255,255,0.2); border-left: 2px dashed rgba(255,255,255,0.5); transform: translateX(-50%); }
+        .flag-marker { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; }
+        .flag-marker i { font-size: 70px; color: #fbbf24; text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        
+        /* CSS CHO UI TRẮC NGHIỆM MỚI */
+        .vocab-arena { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 30px; }
+        
+        /* Khối Câu hỏi */
+        .question-block { background: #1e293b; border: 4px solid #475569; border-radius: 20px; width: 90%; min-height: 120px; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 40px rgba(0,0,0,0.5); text-align: center; padding: 20px; }
+        .question-text { font-size: 40px; font-weight: 900; color: #f8fafc; margin: 0; line-height: 1.3; }
+        
+        /* Khối Đáp án */
+        .choices-area { display: flex; gap: 20px; width: 90%; justify-content: center; }
+        .choice-block { flex: 1; background: white; border-radius: 15px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; padding: 20px; border-bottom: 8px solid #cbd5e1; transition: 0.3s; cursor: pointer; color: #0f172a; border: 4px solid #fff; }
+        .choice-label { font-size: 24px; font-weight: 900; color: #3b82f6; text-transform: uppercase; margin-bottom: 10px;}
+        .choice-text { font-size: 45px; font-weight: 800; color: #0f172a; margin: 0;}
+
+        /* Hiệu ứng đáp án đúng */
+        @keyframes correct-pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 30px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        .choice-block.correct { background: #d1fae5; border-color: #10b981; animation: correct-pulse 1s infinite; }
+        .choice-block.correct .choice-label { color: #10b981; }
+        .choice-block.correct .choice-text { color: #064e3b; }
+        
+        /* Hiệu ứng các đáp án sai khi lộ kết quả */
+        .choice-block.wrong { opacity: 0.4; transform: scale(0.95); }
+
+        .controls { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px 40px; border-top: 2px solid #334155; }
+        .btn { padding: 15px 30px; font-size: 20px; font-weight: 900; font-family: 'Nunito'; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; color: white; }
+        .btn-t1 { background: #e11d48; box-shadow: 0 5px 0 #9f1239; } 
+        .btn-t2 { background: #2563eb; box-shadow: 0 5px 0 #1e40af; } 
+        .btn-reveal { background: #f59e0b; box-shadow: 0 5px 0 #b45309; font-size: 24px; padding: 15px 50px; }
+        .popup { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; flex-direction: column; text-align: center; padding: 20px;}
+        .popup.show { opacity: 1; pointer-events: auto; }
+        .win-title { font-size: 70px; font-weight: 900; margin: 0; text-shadow: 0 10px 30px rgba(0,0,0,0.5); text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="score-board">
+        <div class="team-box team-1">
+            <div class="team-name">TEAM ĐỎ</div>
+            <div class="team-score t1-color" id="score-1">0</div>
+        </div>
+        <div class="team-box team-2">
+            <div class="team-name">TEAM XANH</div>
+            <div class="team-score t2-color" id="score-2">0</div>
+        </div>
+    </div>
+
+    <div class="tug-arena">
+        <div class="rope-container">
+            <div class="center-mark"></div>
+            <div class="flag-marker" id="flag"><i class="fa-solid fa-flag"></i></div>
+        </div>
+    </div>
+
+    <div class="vocab-arena">
+        <div style="font-size: 20px; color: #94a3b8; font-weight: 800; letter-spacing: 2px;" id="q-count-display">CÂU HỎI 1/4</div>
+        
+        <div class="question-block">
+            <h2 class="question-text" id="question-text">Hệ thống đang tải dữ liệu demo...</h2>
+        </div>
+
+        <div class="choices-area" id="choices-area">
+            <div class="choice-block" id="choice-A">
+                <div class="choice-label">Đáp án A</div>
+                <h3 class="choice-text"></h3>
+            </div>
+            <div class="choice-block" id="choice-B">
+                <div class="choice-label">Đáp án B</div>
+                <h3 class="choice-text"></h3>
+            </div>
+            <div class="choice-block" id="choice-C">
+                <div class="choice-label">Đáp án C</div>
+                <h3 class="choice-text"></h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-t1" onclick="updateScore(1)">ĐỎ ĐÚNG (+1)</button>
+        <button class="btn btn-reveal" id="btn-reveal" onclick="revealAnswer()"><i class="fa-solid fa-check-circle"></i> HIỆN ĐÁP ÁN</button>
+        <button class="btn btn-reveal" id="btn-next" onclick="nextWord()" style="display: none; background: #10b981; box-shadow: 0 5px 0 #047857;"><i class="fa-solid fa-forward"></i> CÂU TIẾP THEO</button>
+        <button class="btn btn-t2" onclick="updateScore(2)">XANH ĐÚNG (+1)</button>
+    </div>
+
+    <div id="win-popup" class="popup">
+        <div id="final-stats" style="color: #94a3b8; font-size: 24px; margin-bottom: 20px; font-weight: 800;"></div>
+        <h1 class="win-title" id="win-text">TEAM ĐỎ THẮNG!</h1>
+        <button class="btn btn-reveal" style="margin-top: 40px;" onclick="location.reload()">Trận mới</button>
+    </div>
+
+    <script>
+        // --- DỮ LIỆU DEMO HARDCODE TỪ FILE WORD ---
+        const questionsList = [
+            { question: "1. Swans can __________ people who are kind to them.", choices: { A: "Pick up", B: "go up", C: "wait until" }, correct: "A" },
+            { question: "2. The birds can fly very __________ their home in winter.", choices: { A: "interested in", B: "far from", C: "chat on" }, correct: "B" },
+            { question: "3. The baby bird wants to __________ the egg.", choices: { A: "break open", B: "think about", C: "come up with" }, correct: "A" },
+            { question: "4. Katy wants to __________ more about designing apps.", choices: { A: "find out", B: "cycle up", C: "go up" }, correct: "A" },
+            { question: "5. Let's __________ a good idea for our project.", choices: { A: "turn into", B: "come up with", C: "wait until" }, correct: "B" },
+            { question: "6. We need to __________ this problem carefully.", choices: { A: "think about", B: "chat on", C: "pick up" }, correct: "A" },
+            { question: "7. My teacher can __________ me __________ my homework.", choices: { A: "help / with", B: "go / up", C: "break / open" }, correct: "A" },
+            { question: "8. The story can __________ a beautiful rainbow at the end.", choices: { A: "cycle back down", B: "turn into", C: "find out" }, correct: "B" },
+            { question: "9. They __________ the hill every morning on their bikes.", choices: { A: "go up", B: "cycle up", C: "wait until" }, correct: "B" },
+            { question: "10. We have to __________ the mountain before it gets dark.", choices: { A: "chat on", B: "go up", C: "interested in" }, correct: "B" },
+            { question: "11. After lunch, they __________ to go home.", choices: { A: "cycle back down", B: "break open", C: "pick up" }, correct: "A" },
+            { question: "12. The children like to __________ the phone for hours.", choices: { A: "think about", B: "chat on", C: "come up with" }, correct: "B" },
+            { question: "13. Please __________ I come back.", choices: { A: "wait until", B: "go up", C: "far from" }, correct: "A" },
+            { question: "14. She is very __________ learning English.", choices: { A: "break open", B: "interested in", C: "cycle up" }, correct: "B" }
+        ];
+
+        let questions = questionsList; // Dùng list demo này thay vì lấy từ localStorage
+        let currentIndex = 0;
+        let score1 = 0, score2 = 0, pullDiff = 0;
+        const MAX_PULL = 5;
+
+        const flag = document.getElementById('flag');
+        const qCount = document.getElementById('q-count-display');
+        const questionText = document.getElementById('question-text');
+        const choiceA = document.querySelector('#choice-A .choice-text');
+        const choiceB = document.querySelector('#choice-B .choice-text');
+        const choiceC = document.querySelector('#choice-C .choice-text');
+        const allChoiceBlocks = document.querySelectorAll('.choice-block');
+
+        // Bỏ logic loadFromAdmin cũ
+        // window.addEventListener('storage', (e) => { ... });
+
+        function loadQuestion() {
+            if (questions.length === 0) return;
+            if (currentIndex >= questions.length) {
+                determineFinalWinner();
+                return;
+            }
+
+            // Giao diện
+            btnPass = document.getElementById('btn-reveal').style.display = 'block';
+            document.getElementById('btn-next').style.display = 'none';
+
+            // Cập nhật câu hỏi
+            const currentQ = questions[currentIndex];
+            qCount.innerText = `CÂU HỎI ${currentIndex + 1}/${questions.length}`;
+            questionText.innerText = currentQ.question;
+            choiceA.innerText = currentQ.choices.A;
+            choiceB.innerText = currentQ.choices.B;
+            choiceC.innerText = currentQ.choices.C;
+
+            // Reset class các block đáp án
+            allChoiceBlocks.forEach(block => block.className = 'choice-block');
+        }
+
+        function updateScore(team) {
+            if (team === 1) { score1++; pullDiff--; } 
+            else { score2++; pullDiff++; }
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('score-1').innerText = score1;
+            document.getElementById('score-2').innerText = score2;
+            let movePercent = (pullDiff / MAX_PULL) * 40; 
+            if (movePercent < -40) movePercent = -40;
+            if (movePercent > 40) movePercent = 40;
+            flag.style.transform = `translate(calc(-50% + ${movePercent}vw), -50%)`;
+        }
+
+        function revealAnswer() {
+            const correctLetter = questions[currentIndex].correct;
+            const correctBlock = document.getElementById(`choice-${correctLetter}`);
+
+            // Tô xanh đáp án đúng
+            correctBlock.classList.add('correct');
+
+            // Làm mờ đáp án sai
+            allChoiceBlocks.forEach(block => {
+                if (block.id !== `choice-${correctLetter}`) {
+                    block.classList.add('wrong');
+                }
+            });
+
+            document.getElementById('btn-reveal').style.display = 'none';
+            document.getElementById('btn-next').style.display = 'block';
+        }
+
+        function nextWord() {
+            currentIndex++;
+            loadQuestion();
+        }
+
+        function determineFinalWinner() {
+            document.getElementById('final-stats').innerText = `TỈ SỐ CHUNG CUỘC: ${score1} - ${score2}`;
+            if (score1 > score2) showWin("TEAM ĐỎ THẮNG CHUNG CUỘC!", "t1-color");
+            else if (score2 > score1) showWin("TEAM XANH THẮNG CHUNG CUỘC!", "t2-color");
+            else showWin("TRẬN CHIẾN BẤT PHÂN THẮNG BẠI!", "white");
+        }
+
+        function showWin(txt, cls) {
+            document.getElementById('win-text').innerText = txt;
+            document.getElementById('win-text').className = "win-title " + cls;
+            document.getElementById('win-popup').classList.add('show');
+        }
+
+        // Bắt đầu ngay với dữ liệu demo
+        loadQuestion(); 
+    </script>
+</body>
+</html>
