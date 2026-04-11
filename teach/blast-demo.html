@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blast Block Demo - MHEnt. Edu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --tex-grass: url('assets/grass.jfif');
+            --tex-stone: url('assets/stone.png');
+            --tex-dirt: url('assets/wood.jpg');
+            --tex-tnt: url('assets/tnt.jfif');
+            --bg-world: url('assets/wp2586787.jpg');
+        }
+
+        body { margin: 0; padding: 0; height: 100vh; background: var(--bg-world) no-repeat center center; background-size: cover; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        .overlay-dim { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 0; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.6); border-bottom: 4px solid #000; z-index: 10; backdrop-filter: blur(5px); }
+        .header h1 { margin: 0; color: #55ff55; font-family: monospace; text-transform: uppercase; letter-spacing: 2px; text-shadow: 3px 3px 0 #000; }
+        .game-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 40px; position: relative; z-index: 5; }
+
+        /* KHỐI BLOCK */
+        .question-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 90vw; }
+        .mc-block { background-size: 100% 100%; border: 4px solid rgba(0,0,0,0.5); min-width: 100px; height: 100px; font-size: 24px; font-weight: 900; box-shadow: inset -6px -6px 0 rgba(0,0,0,0.4), 5px 10px 20px rgba(0,0,0,0.4); text-transform: uppercase; position: relative; display: flex; align-items: center; justify-content: center; text-shadow: 2px 2px 0 #000; transition: 0.15s; user-select: none; }
+        .mc-blank { background: rgba(0,0,0,0.7); border: 4px dashed rgba(255,255,255,0.4); box-shadow: inset 5px 5px 15px rgba(0,0,0,0.9); min-width: 100px; height: 100px; }
+
+        /* INPUT AREA DÀNH CHO DẠNG FILL */
+        .fill-area { display: flex; flex-direction: column; align-items: center; gap: 15px; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 15px; border: 3px solid #55ff55; box-shadow: 0 0 30px rgba(85,255,85,0.2); }
+        .mc-input { background: #1a1a1a; border: 4px solid #444; padding: 15px 25px; font-size: 24px; color: #55ff55; font-family: monospace; font-weight: 900; border-radius: 5px; text-align: center; outline: none; width: 300px; }
+        .mc-input:focus { border-color: #55ff55; }
+        .btn-group { display: flex; gap: 10px; }
+        .mc-btn { background: #5db026; border: none; border-bottom: 5px solid #3f7e14; color: white; padding: 10px 20px; font-size: 18px; font-weight: 900; cursor: pointer; border-radius: 5px; }
+        .mc-btn:active { transform: translateY(3px); border-bottom: 2px solid #3f7e14; }
+        .btn-hint { background: #f59e0b; border-bottom-color: #b45309; }
+
+        /* ĐÁP ÁN DẠNG CHOICE */
+        .options-area { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 10px; }
+        .mc-ans { cursor: pointer; }
+        .mc-ans:hover { transform: translateY(-8px) scale(1.05); filter: brightness(1.2); }
+
+        /* TNT */
+        .mc-tnt { position: absolute; width: 100px; height: 100px; background: var(--tex-tnt); background-size: 100% 100%; border: 2px solid #fff; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.6); pointer-events: none; opacity: 0; }
+        .tnt-drop { animation: dropTNT 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; opacity: 1; }
+        @keyframes dropTNT { 0% { transform: translateY(-500px) scale(0.5); } 100% { transform: translateY(0) scale(1); } }
+        .tnt-fuse { animation: fuseFlash 0.1s infinite alternate; }
+        @keyframes fuseFlash { 0% { filter: brightness(1); } 100% { filter: brightness(5) contrast(0); transform: scale(1.08); } }
+        .explosion-flash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999; pointer-events: none; animation: kaboom 0.6s ease-out forwards; }
+        @keyframes kaboom { 0% { opacity: 1; background: #fff; } 40% { background: #ffaa00; } 100% { opacity: 0; background: transparent; } }
+        .shake-screen { animation: shake 0.3s linear both; }
+        @keyframes shake { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-8px, 8px); } 50% { transform: translate(8px, -8px); } 75% { transform: translate(-8px, -8px); } }
+
+        .smoke { position: fixed; background: rgba(255,255,255,0.9); border-radius: 50%; z-index: 50; pointer-events: none; }
+        .particle { position: fixed; width: 15px; height: 15px; z-index: 50; pointer-events: none; }
+        .xp-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 10px; background: rgba(0,0,0,0.8); }
+        #xp-progress { width: 0%; height: 100%; background: #55ff55; box-shadow: 0 0 20px #55ff55; transition: 0.4s; }
+    </style>
+</head>
+<body>
+    <audio id="snd-orb" src="assets/orb.mp3" preload="auto"></audio>
+    <audio id="snd-tnt" src="assets/tnt-explosion.mp3" preload="auto"></audio>
+
+    <div class="overlay-dim"></div>
+    <div class="header">
+        <h1><i class="fa-solid fa-cube"></i> BLAST BLOCK: DEMO</h1>
+        <div id="level-txt" style="font-weight: 900; color: #ffff55; font-size: 20px; text-shadow: 2px 2px 0 #000;">LVL: 1/15</div>
+    </div>
+    <div class="game-container">
+        <div class="question-row" id="question-row"></div>
+        
+        <div id="interaction-zone"></div>
+    </div>
+    <div class="xp-bar"><div id="xp-progress"></div></div>
+
+    <script>
+        // ==========================================
+        // 📚 DỮ LIỆU DEMO TỪ WORD (15 CÂU)
+        // ==========================================
+        const DEMO_QUESTIONS = [
+            { type: 'choice', q: 'I work in a restaurant and I carry plates of food to your table. Who am I?', options: ['a mechanic', 'a waiter', 'an artist'], a: 'a waiter' },
+            { type: 'choice', q: 'Swans are clever and remember people who have been kind (at / to / with) them.', options: ['at', 'to', 'with'], a: 'to' },
+            { type: 'fill', q: 'Last weekend, we tried to cycle ___ Fairgreen Hill, but it was very steep.', a: 'up' },
+            { type: 'choice', q: 'this is a place where people wear costumes and act on a stage. Where is it?', options: ['a theatre', 'a university', 'a museum'], a: 'a theatre' },
+            { type: 'choice', q: 'David couldn\'t play in the match because he (fell / feels / fallen) over and hurt his knee.', options: ['fell', 'feels', 'fallen'], a: 'fell' },
+            { type: 'fill', q: 'In the app, a strange creature can turn ___ a rainbow.', a: 'into' },
+            { type: 'choice', q: '"You can watch these short, funny films on TV. They usually make you laugh."', options: ['quizzes', 'cartoons', 'channels'], a: 'cartoons' },
+            { type: 'choice', q: 'Katy and Michael decided to design an app (because / or / while) they loved computer games.', options: ['because', 'or', 'while'], a: 'because' },
+            { type: 'fill', q: 'The friends sat on the grass and chatted ___ about an hour.', a: 'on' },
+            { type: 'choice', q: 'I use a rocket to travel to the moon and study the stars. Who am I?', options: ['a pilot', 'an astronaut', 'a mechanic'], a: 'an astronaut' },
+            { type: 'choice', q: 'A journalist (who / which / where) worked for a magazine called the children.', options: ['who', 'which', 'where'], a: 'who' },
+            { type: 'fill', q: 'Swans don\'t usually fly very far ___ their nests.', a: 'from' },
+            { type: 'choice', q: 'you can play this on a computer or a phone. Katy and Michael want to design a new one. What is it?', options: ['a channel', 'an app', 'a quiz'], a: 'an app' },
+            { type: 'choice', q: 'I went too fast on my bike and now I (get / got / have) a problem with my wheel.', options: ['get', 'got', 'have'], a: 'have' },
+            { type: 'fill', q: 'A baby swan has to break ___ its egg to get out.', a: 'open' }
+        ];
+
+        // --- HỆ THỐNG ÂM THANH WEBAUDIO (Fix Lag) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const buffers = {};
+        async function loadSound(name, url) {
+            try {
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                buffers[name] = await audioCtx.decodeAudioData(arrayBuffer);
+            } catch (e) {}
+        }
+        loadSound('orb', 'assets/orb.mp3');
+        loadSound('tnt', 'assets/tnt-explosion.mp3');
+
+        function playSound(name) {
+            if (!buffers[name]) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffers[name];
+            source.connect(audioCtx.destination);
+            source.start(0);
+        }
+
+        let currentIndex = 0, isProcessing = false;
+        const qRow = document.getElementById('question-row');
+        const interactionZone = document.getElementById('interaction-zone');
+        const xpProgress = document.getElementById('xp-progress');
+        const textures = ['var(--tex-grass)', 'var(--tex-stone)', 'var(--tex-dirt)'];
+
+        function spawnParticles(element, isSmoke = false) {
+            const rect = element.getBoundingClientRect();
+            const tex = element.style.backgroundImage;
+            const count = isSmoke ? 15 : 10;
+            for(let i=0; i<count; i++) {
+                let p = document.createElement('div');
+                p.className = isSmoke ? 'smoke' : 'particle';
+                p.style.left = rect.left + (rect.width/2) + 'px';
+                p.style.top = rect.top + (rect.height/2) + 'px';
+                if (isSmoke) {
+                    const size = Math.random() * 30 + 20;
+                    p.style.width = size + 'px'; p.style.height = size + 'px';
+                } else {
+                    p.style.backgroundImage = tex;
+                    p.style.backgroundSize = '400%';
+                }
+                document.body.appendChild(p);
+                let angle = Math.random() * Math.PI * 2;
+                let velocity = 50 + Math.random() * 80;
+                let tx = Math.cos(angle) * velocity;
+                let ty = Math.sin(angle) * velocity + (isSmoke ? -80 : 100);
+                p.animate([{ transform: `translate(0,0) scale(1)`, opacity: 1 }, { transform: `translate(${tx}px, ${ty}px) scale(${isSmoke ? 2.5 : 0})`, opacity: 0 }], { duration: isSmoke ? 800 : 500, easing: 'ease-out' });
+                setTimeout(() => p.remove(), 800);
+            }
+            if(!isSmoke) element.style.opacity = 0;
+        }
+
+        function loadQuestion() {
+            if (currentIndex >= DEMO_QUESTIONS.length) {
+                qRow.innerHTML = `<div class="mc-block" style="width: auto; padding: 0 40px; background-image:var(--tex-grass)"><span style="color:#55ff55;">MISSION COMPLETE!</span></div>`;
+                interactionZone.innerHTML = ""; return;
+            }
+            isProcessing = false; 
+            const cur = DEMO_QUESTIONS[currentIndex];
+            document.getElementById('level-txt').innerText = `LVL: ${currentIndex + 1}/${DEMO_QUESTIONS.length}`;
+            document.body.classList.remove('shake-screen');
+            qRow.innerHTML = "";
+            const levelTexture = textures[currentIndex % textures.length];
+
+            // RENDER CÂU HỎI
+            const safeQ = cur.q.replace(/___/g, ' ___ ').trim();
+            const words = safeQ.split(/\s+/); 
+            let hasBlank = false;
+            words.forEach(w => {
+                const block = document.createElement('div');
+                if (w === '___') { block.className = 'mc-blank'; block.id = 'blank-spot'; hasBlank = true; } 
+                else { block.className = 'mc-block'; block.style.backgroundImage = levelTexture; block.innerHTML = `<span>${w}</span>`; }
+                qRow.appendChild(block);
+            });
+            if (!hasBlank && cur.type === 'fill') { const blankBlock = document.createElement('div'); blankBlock.className = 'mc-blank'; blankBlock.id = 'blank-spot'; qRow.appendChild(blankBlock); }
+
+            // RENDER VÙNG TƯƠNG TÁC
+            interactionZone.innerHTML = "";
+            if (cur.type === 'choice') {
+                const area = document.createElement('div'); area.className = 'options-area';
+                cur.options.forEach(o => {
+                    const btn = document.createElement('div');
+                    btn.className = 'mc-block mc-ans'; 
+                    btn.style.backgroundImage = 'var(--tex-grass)';
+                    btn.innerHTML = `<span>${o}</span>`;
+                    btn.onclick = () => checkAnswer(o, btn, levelTexture);
+                    area.appendChild(btn);
+                });
+                interactionZone.appendChild(area);
+            } else {
+                const area = document.createElement('div'); area.className = 'fill-area';
+                area.innerHTML = `
+                    <input type="text" class="mc-input" id="fill-input" placeholder="Gõ đáp án..." autocomplete="off">
+                    <div class="btn-group">
+                        <button class="mc-btn" onclick="submitFill()">KIỂM TRA (ENTER)</button>
+                        <button class="mc-btn btn-hint" onclick="showHint()">SHOW ANSWER</button>
+                    </div>
+                `;
+                interactionZone.appendChild(area);
+                const input = document.getElementById('fill-input');
+                input.focus();
+                input.addEventListener('keypress', (e) => { if(e.key === 'Enter') submitFill(); });
+            }
+            xpProgress.style.width = (currentIndex / DEMO_QUESTIONS.length) * 100 + "%";
+        }
+
+        function submitFill() {
+            const val = document.getElementById('fill-input').value.trim().toLowerCase();
+            const btn = document.querySelector('.mc-btn');
+            checkAnswer(val, btn, textures[currentIndex % textures.length]);
+        }
+
+        function showHint() {
+            const correct = DEMO_QUESTIONS[currentIndex].a;
+            document.getElementById('fill-input').value = correct;
+            document.getElementById('fill-input').style.color = "#f59e0b";
+        }
+
+        function checkAnswer(choice, element, levelTexture) {
+            if(isProcessing) return; isProcessing = true; 
+            const cur = DEMO_QUESTIONS[currentIndex];
+            const isCorrect = (choice.toLowerCase() === cur.a.toLowerCase());
+            const blankSpot = document.getElementById('blank-spot');
+
+            if (isCorrect) {
+                playSound('orb'); 
+                if (blankSpot) {
+                    blankSpot.className = 'mc-block';
+                    blankSpot.style.backgroundImage = levelTexture;
+                    blankSpot.innerHTML = `<span>${cur.a}</span>`;
+                    if(element.classList.contains('mc-ans')) element.style.opacity = '0';
+                }
+                setTimeout(() => {
+                    Array.from(qRow.children).forEach(c => spawnParticles(c));
+                    if(element.classList.contains('mc-ans')) spawnParticles(element);
+                    setTimeout(() => { currentIndex++; loadQuestion(); }, 600);
+                }, 500);
+            } 
+            else {
+                playSound('tnt');
+                let targetRect = (blankSpot || qRow.firstChild).getBoundingClientRect();
+                const tnt = document.createElement('div');
+                tnt.className = 'mc-tnt tnt-drop';
+                tnt.style.left = targetRect.left + 'px'; tnt.style.top = targetRect.top + 'px';
+                document.body.appendChild(tnt);
+                setTimeout(() => {
+                    tnt.classList.add('tnt-fuse');
+                    setTimeout(() => {
+                        document.body.classList.add('shake-screen');
+                        const flash = document.createElement('div');
+                        flash.className = 'explosion-flash';
+                        document.body.appendChild(flash);
+                        setTimeout(() => flash.remove(), 600);
+                        spawnParticles(tnt, true);
+                        tnt.remove();
+                        qRow.innerHTML = ""; interactionZone.innerHTML = "";
+                        setTimeout(() => loadQuestion(), 500); 
+                    }, 1000); 
+                }, 400);
+            }
+        }
+        loadQuestion();
+    </script>
+</body>
+</html>
