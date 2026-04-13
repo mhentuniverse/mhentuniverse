@@ -10,6 +10,7 @@
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="teach-theme.css">
+    <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -659,6 +660,12 @@
                 if(result.success) {
                     window.cloudState[gameType] = result.games || [];
                     updateCloudDropdown(gameType);
+                    
+                    // Nếu bấm nút Tải Lại trực tiếp -> Dọn ô nhập và báo Toast
+                    if (window.event && window.event.type === 'click') {
+                        document.querySelector(`.cloud-data-name-${gameType}`).value = '';
+                        showToast('Đồng bộ', 'Đã tải dữ liệu mới nhất từ Đám mây!', 'info');
+                    }
                 }
             } catch(e) { showToast('Lỗi', 'Không thể kết nối đến máy chủ!', 'error'); }
         };
@@ -836,10 +843,15 @@
             let gameData = getGamePayload(gameType);
             if(!gameData) return;
 
-            const btn = event.currentTarget;
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
-            btn.disabled = true;
+            // FIX TRÁNH CRASH JS
+            const e = window.event;
+            const btn = e ? (e.currentTarget || e.target.closest('button')) : null;
+            let originalHtml = '';
+            if(btn) {
+                originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+                btn.disabled = true;
+            }
 
             try {
                 const res = await fetch(SCRIPT_URL, {
@@ -849,11 +861,19 @@
                 const result = await res.json();
                 if(result.success) {
                     showToast('Thành công', isNew ? 'Tạo bộ dữ liệu trên Đám mây thành công!' : 'Đã cập nhật dữ liệu!', 'success');
-                    loadCloudGames(gameType); 
+                    
+                    // Tải lại list mới và TỰ ĐỘNG CHỌN CÁI VỪA LƯU
+                    const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
+                    const loadResult = await loadRes.json();
+                    if(loadResult.success) {
+                        window.cloudState[gameType] = loadResult.games || [];
+                        updateCloudDropdown(gameType);
+                        selector.value = result.rowId; // Chọn ngay lập tức
+                    }
                 }
             } catch(e) { showToast('Lỗi', 'Lỗi kết nối mạng!', 'error'); }
             
-            btn.innerHTML = originalHtml; btn.disabled = false;
+            if(btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
         };
 
         // XÓA KHỎI MÂY
@@ -865,10 +885,15 @@
 
             if(!confirm('Cậu có chắc chắn muốn xóa bộ dữ liệu này khỏi Két Sắt vĩnh viễn không?')) return;
 
-            const btn = event.currentTarget;
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xóa...';
-            btn.disabled = true;
+            // FIX TRÁNH CRASH JS
+            const e = window.event;
+            const btn = e ? (e.currentTarget || e.target.closest('button')) : null;
+            let originalHtml = '';
+            if(btn) {
+                originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xóa...';
+                btn.disabled = true;
+            }
 
             try {
                 const res = await fetch(SCRIPT_URL, {
@@ -879,11 +904,18 @@
                 if(result.success) {
                     showToast('Thành công', 'Đã xóa bộ dữ liệu!', 'success');
                     document.querySelector(`.cloud-data-name-${gameType}`).value = '';
-                    loadCloudGames(gameType);
+                    
+                    // Cập nhật lại dropdown cho sạch sẽ
+                    const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
+                    const loadResult = await loadRes.json();
+                    if(loadResult.success) {
+                        window.cloudState[gameType] = loadResult.games || [];
+                        updateCloudDropdown(gameType);
+                    }
                 }
             } catch(e) { showToast('Lỗi', 'Lỗi mạng khi xóa!', 'error'); }
             
-            btn.innerHTML = originalHtml; btn.disabled = false;
+            if(btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
         };
 
         // KÉO CÁC HÀM CŨ XUỐNG DƯỚI CÙNG ĐỂ KHÔNG BỊ LỖI SCOPE
@@ -934,5 +966,6 @@
 
         addBlastRow();
     </script>
+    <script src="/mhent-ui.js"></script>
 </body>
 </html>

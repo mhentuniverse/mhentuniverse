@@ -9,6 +9,7 @@
     <link rel="apple-touch-icon" href="/assets/icon-web.png">
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -87,15 +88,6 @@
     <div id="security-shield">
         <i class="fa-solid fa-shield-halved fa-beat fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i>
         <h2 style="font-weight: 900;">ĐANG XÁC THỰC QUYỀN TRUY CẬP...</h2>
-    </div>
-
-    <div id="custom-popup" class="modal-overlay">
-        <div class="popup-box">
-            <div id="popup-icon" style="font-size: 45px; margin-bottom:15px;">✨</div>
-            <h2 id="popup-title" style="margin-top:0; margin-bottom: 10px; font-weight: 900;">Thành công!</h2>
-            <p id="popup-message" style="color:#64748b; font-weight:700; margin-bottom:20px;"></p>
-            <button class="btn-admin" id="btn-popup-ok" onclick="closePopup()" style="width:100%; justify-content:center;">Đóng</button>
-        </div>
     </div>
 
     <div id="confirm-popup" class="modal-overlay" style="z-index: 10001;">
@@ -347,58 +339,6 @@
             localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
         };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
-
-        // --- HÀM GỌI POPUP ARENA STYLE ---
-        window.showPopup = function(message, isError = false) {
-            const popup = document.getElementById('custom-popup');
-            const box = document.querySelector('.popup-box');
-            const icon = document.getElementById('popup-icon');
-            const title = document.getElementById('popup-title');
-            const msg = document.getElementById('popup-message');
-
-            const successSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
-            const errorSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-
-            if (isError) {
-                box.classList.add('error'); icon.innerHTML = errorSVG; title.innerText = "Lỗi rùi!";
-            } else {
-                box.classList.remove('error'); icon.innerHTML = successSVG; title.innerText = "Thành công!";
-            }
-            msg.innerText = message;
-            popup.style.display = 'flex';
-
-            if (isError) { setTimeout(() => { popup.style.display = 'none'; }, 3000); }
-        };
-
-        window.closePopup = function() {
-            const popup = document.getElementById('custom-popup');
-            const box = popup.querySelector('.popup-box');
-            popup.style.opacity = '0'; box.classList.remove('pop-active');
-            setTimeout(() => { popup.style.display = 'none'; }, 300);
-        };
-
-        window.showConfirmPopup = function(message, onConfirmCallback) {
-            document.getElementById('confirm-message').innerText = message;
-            const popup = document.getElementById('confirm-popup');
-            const box = popup.querySelector('.popup-box');
-            
-            popup.style.opacity = '0'; popup.style.display = 'flex'; box.classList.remove('pop-active');
-            setTimeout(() => { popup.style.opacity = '1'; box.classList.add('pop-active'); }, 10);
-            
-            const btnYes = document.getElementById('btn-confirm-yes');
-            btnYes.onclick = null; 
-            btnYes.onclick = function() {
-                closeConfirmPopup();
-                onConfirmCallback(); 
-            };
-        };
-
-        window.closeConfirmPopup = function() {
-            const popup = document.getElementById('confirm-popup');
-            const box = popup.querySelector('.popup-box');
-            popup.style.opacity = '0'; box.classList.remove('pop-active');
-            setTimeout(() => { popup.style.display = 'none'; }, 300);
-        };
 
         // --- 🚨 KIỂM TRA QUYỀN LỰC TỐI CAO ---
         onAuthStateChanged(auth, async (user) => {
@@ -860,6 +800,7 @@
             };
         });
     </script>
+    <script src="/mhent-ui.js"></script>
     <script src="/check-token.js"></script>
 </body>
 </html>

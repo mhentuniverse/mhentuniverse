@@ -10,6 +10,7 @@
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/arena/arena-theme.css">
+    <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -150,15 +151,6 @@
         <i class="fa-solid fa-wand-magic-sparkles fa-beat fa-4x" style="color: var(--studio-color); margin-bottom: 20px;"></i>
         <h2 style="font-weight: 900;">ĐANG NẠP KHÔNG GIAN SÁNG TẠO...</h2>
         <p style="color: #94a3b8;">Chỉ dành cho Creator được cấp phép!</p>
-    </div>
-
-    <div id="custom-popup" class="modal-overlay">
-        <div class="popup-box">
-            <h2 id="popup-title" style="margin-top:0;">Thành công!</h2>
-            <div id="popup-icon" style="font-size: 40px; margin-bottom:15px;">✨</div>
-            <p id="popup-message" style="color:#64748b; font-weight:700; margin-bottom:20px;"></p>
-            <button class="btn-admin" onclick="closePopup()" style="width:100%; justify-content:center;">Đóng</button>
-        </div>
     </div>
 
     <div id="delete-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
@@ -476,28 +468,6 @@
         function kickOut() { showPopup("⚠️ Bạn chưa đăng ký làm Creator!", true); setTimeout(() => { window.location.href = '/arena/'; }, 2000); }
 
         window.switchTab = function(tabName) { document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active')); document.getElementById('tab-' + tabName).classList.add('active'); document.getElementById('menu-' + tabName).classList.add('active'); };
-
-        window.showPopup = function(message, isError = false) {
-            const popup = document.getElementById('custom-popup');
-            const box = document.querySelector('.popup-box');
-            const icon = document.getElementById('popup-icon');
-            const title = document.getElementById('popup-title');
-            const msg = document.getElementById('popup-message');
-
-            const successSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
-            const errorSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-
-            if (isError) {
-                box.classList.add('error'); icon.innerHTML = errorSVG; title.innerText = "Lỗi rùi!";
-            } else {
-                box.classList.remove('error'); icon.innerHTML = successSVG; title.innerText = "Thành công!";
-            }
-            msg.innerText = message;
-            popup.style.display = 'flex';
-
-            if (isError) { setTimeout(() => { popup.style.display = 'none'; }, 3000); }
-        };
-        window.closePopup = function() { const popup = document.getElementById('custom-popup'); const box = popup.querySelector('.popup-box'); popup.style.opacity = '0'; box.classList.remove('pop-active'); setTimeout(() => { popup.style.display = 'none'; }, 300); };
 
         const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
 
@@ -916,6 +886,7 @@
             }
         };
     </script>
+    <script src="/mhent-ui.js"></script>
     <script src="/check-token.js"></script>
 </body>
 </html>

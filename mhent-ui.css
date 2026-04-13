@@ -1,0 +1,275 @@
+/* ==========================================================================
+   MHEnt. UI LIBRARY - THE ULTIMATE ALERT & POPUP SYSTEM
+   Tối ưu hóa: Responsive, Dark Mode Native, Smooth Cubic-Bezier Animations
+   ========================================================================== */
+
+/* ==========================================
+   1. THÔNG BÁO NHANH (TOAST NOTIFICATION)
+   ========================================== */
+#mhent-toast-container {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none; /* Tránh click nhầm vùng trống */
+}
+
+.mhent-toast {
+    pointer-events: auto; /* Cho phép click vào chính cái toast */
+    width: 320px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border-left: 6px solid #10b981;
+    /* Hiệu ứng nảy đặc trưng mà cậu đã dùng */
+    animation: mhentSlideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Các tone màu theo trạng thái */
+.mhent-toast.error { border-left-color: #ef4444; }
+.mhent-toast.info { border-left-color: #f59e0b; }
+.mhent-toast.success { border-left-color: #10b981; }
+
+.mhent-toast-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mhent-toast-icon svg {
+    width: 26px;
+    height: 26px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.mhent-toast-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.mhent-toast-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    color: #1e293b;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.mhent-toast-desc {
+    font-family: 'Nunito', sans-serif;
+    color: #64748b;
+    font-size: 13.5px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* ==========================================
+   2. BẢNG THÔNG BÁO Ở GIỮA (POPUP & CONFIRM)
+   ========================================== */
+.mhent-ui-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.5); /* Nền mờ tinh tế */
+    backdrop-filter: blur(6px);
+    z-index: 999998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.mhent-ui-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mhent-ui-box {
+    background: #ffffff;
+    width: 90%;
+    max-width: 400px;
+    padding: 35px 30px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    /* Hiệu ứng Pop-in nảy lên */
+    transform: scale(0.8) translateY(20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mhent-ui-overlay.show .mhent-ui-box {
+    transform: scale(1) translateY(0);
+}
+
+.mhent-ui-icon {
+    margin-bottom: 20px;
+    display: inline-block;
+    padding: 15px;
+    border-radius: 50%;
+}
+
+/* Tô màu nền nhạt cho Icon tùy trạng thái */
+.mhent-ui-box.success .mhent-ui-icon { background: rgba(16, 185, 129, 0.1); }
+.mhent-ui-box.error .mhent-ui-icon { background: rgba(239, 68, 68, 0.1); }
+.mhent-ui-box.warning .mhent-ui-icon { background: rgba(245, 158, 11, 0.1); }
+
+.mhent-ui-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: #1e293b;
+    margin: 0 0 10px 0;
+}
+
+.mhent-ui-msg {
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    color: #64748b;
+    font-weight: 700;
+    line-height: 1.6;
+    margin: 0 0 25px 0;
+}
+
+/* ==========================================
+   3. HỆ THỐNG NÚT BẤM (BUTTONS)
+   ========================================== */
+.mhent-ui-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.mhent-ui-btn-primary, 
+.mhent-ui-btn-outline {
+    font-family: 'Nunito', sans-serif;
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+}
+
+.mhent-ui-btn-primary {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: white;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+}
+
+.mhent-ui-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+}
+
+.mhent-ui-btn-outline {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.mhent-ui-btn-outline:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+/* Nút xóa chuyên dụng cho phần Confirm */
+.mhent-ui-box.warning .mhent-ui-btn-primary {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+.mhent-ui-box.warning .mhent-ui-btn-primary:hover {
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* ==========================================
+   4. HIỆU ỨNG CHUYỂN ĐỘNG (ANIMATIONS)
+   ========================================== */
+@keyframes mhentSlideInRight {
+    0% { opacity: 0; transform: translateX(80px) scale(0.9); }
+    100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes mhentPopOut {
+    0% { transform: scale(1); opacity: 1; }
+    30% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(0.8) translateX(50px); opacity: 0; }
+}
+
+/* ==========================================
+   5. HỖ TRỢ CHẾ ĐỘ TỐI (DARK MODE)
+   ========================================== */
+body.dark-mode .mhent-toast {
+    background: rgba(30, 41, 59, 0.95);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .mhent-toast-title { color: #f8fafc; }
+body.dark-mode .mhent-toast-desc { color: #94a3b8; }
+
+body.dark-mode .mhent-ui-box {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .mhent-ui-title { color: #f8fafc; }
+body.dark-mode .mhent-ui-msg { color: #cbd5e1; }
+
+body.dark-mode .mhent-ui-btn-outline {
+    background: #334155;
+    color: #cbd5e1;
+}
+body.dark-mode .mhent-ui-btn-outline:hover {
+    background: #475569;
+    color: #f8fafc;
+}
+
+/* ==========================================
+   6. RESPONSIVE (MÀN HÌNH ĐIỆN THOẠI)
+   ========================================== */
+@media (max-width: 480px) {
+    #mhent-toast-container {
+        top: 20px; left: 20px; right: 20px; /* Trải dài hai bên */
+    }
+    .mhent-toast { width: 100%; box-sizing: border-box; }
+    
+    .mhent-ui-box { padding: 25px 20px; }
+    .mhent-ui-title { font-size: 20px; }
+    .mhent-ui-actions { flex-direction: column; } /* Xếp dọc nút bấm cho dễ bấm */
+}
+
+/* ==========================================
+   🔒 BẢO VỆ SVG (CHỐNG VỠ SIZE, CHỐNG MẤT HÌNH)
+   ========================================== */
+.mhent-toast-icon svg { 
+    width: 26px !important; 
+    height: 26px !important; 
+    display: block !important; 
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); 
+}
+
+.mhent-ui-icon svg {
+    width: 50px !important;
+    height: 50px !important;
+    display: block !important;
+    margin: 0 auto; /* Ép nó ra giữa */
+}
