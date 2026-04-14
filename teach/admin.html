@@ -126,13 +126,12 @@
         <aside class="admin-sidebar">
             <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Công cụ giảng dạy</div>
             <a class="admin-menu-item active" id="menu-vocab" onclick="switchAdminTab('vocab')"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</a>
-            
             <a class="admin-menu-item" id="menu-baam" onclick="switchAdminTab('baam')"><i class="fa-solid fa-gift"></i> Hộp Quà Nhân Phẩm</a>
-            
             <a class="admin-menu-item" id="menu-spin" onclick="switchAdminTab('spin')"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Định Mệnh</a>
             <a class="admin-menu-item" id="menu-tug" onclick="switchAdminTab('tug')"><i class="fa-solid fa-people-pulling"></i> Kéo Co Từ Vựng</a>
             <a class="admin-menu-item" id="menu-bomb" onclick="switchAdminTab('bomb')"><i class="fa-solid fa-bomb"></i> Bom Hẹn Giờ</a>
             <a class="admin-menu-item" id="menu-blast" onclick="switchAdminTab('blast')"><i class="fa-solid fa-cubes"></i> Blast Block</a>
+            <a class="admin-menu-item" id="menu-unscramble" onclick="switchAdminTab('unscramble')"><i class="fa-solid fa-shuffle"></i> Unscramble Sentences</a>
         </aside>
 
         <main class="admin-content">
@@ -477,6 +476,38 @@
                     </button>
                 </div>
             </div>
+
+            <div id="tab-unscram" class="admin-tab">
+                <h1 class="admin-title" style="color: #0ea5e9;"><i class="fa-solid fa-hurricane"></i> Word Tornado</h1>
+                <div class="admin-card">
+                    <div class="cloud-sync-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
+                            <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('unscram')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
+                        </div>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                            <select class="admin-select cloud-selector-unscram" style="flex: 2;" onchange="loadSelectedGame('unscram')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-unscram" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">------</div>
+                            <input type="text" class="admin-input cloud-data-name-unscram" style="flex: 2;" placeholder="Nhập tên giáo án...">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('unscram', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('unscram', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('unscram')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('unscram')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        </div>
+                    </div>
+
+                    <button class="btn-admin" onclick="window.open('/teach/unscramble', '_blank')" style="width: 100%; margin-bottom: 25px; background: #0ea5e9;">
+                        <i class="fa-solid fa-play"></i> MỞ MÀN CHIẾU & BẮT ĐẦU TRẬN LỐC XOÁY TỪ NGỮ
+                    </button>
+
+                    <div class="data-box">
+                        <label style="color: #475569; font-weight: 800; margin-bottom: 10px; display: block;">Nhập danh sách câu (Mỗi câu nằm trên 1 dòng):</label>
+                        <textarea id="unscram-sentences" class="admin-textarea" style="height: 250px; font-size: 16px; line-height: 1.5;" placeholder="Ví dụ:&#10;I wanna buy a .com domain so much!&#10;The quick brown fox jumps over the lazy dog."></textarea>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -785,6 +816,16 @@
                 });
                 return { questions: questions };
             }
+            // 🔥 THÊM LOGIC CỦA WORD TORNADO VÀO ĐÂY
+            if(gameType === 'unscram') {
+                const text = document.getElementById('unscram-sentences').value;
+                const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
+                if (sentences.length === 0) {
+                    showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
+                    return null;
+                }
+                return { sentences: sentences };
+            }
             return null;
         };
 
@@ -856,6 +897,11 @@
                     addBlastRow(q.q, q.a, q.type, (q.options || []).join(', '), false); 
                 });
             }
+            // 🔥 THÊM LOGIC LOAD WORD TORNADO TỪ MÂY XUỐNG
+            if(gameType === 'unscram') {
+                document.getElementById('unscram-sentences').value = (data.sentences || []).join('\n');
+            }
+            
             showToast('Tải thành công', 'Dữ liệu đã được nạp xuống bảng điều khiển!', 'success');
         };
 

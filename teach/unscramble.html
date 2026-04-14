@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unscramble Sentences - MHEnt. Edu</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0ea5e9">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/teach/teach-theme.css"> 
+    <link rel="stylesheet" href="/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; padding: 0; height: 100vh; background: #0f172a; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #1e293b; border-bottom: 2px solid #334155; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 10; }
+        .header h1 { margin: 0; font-size: 24px; color: #0ea5e9; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .controls { display: flex; align-items: center; gap: 15px; }
+        .btn-game { padding: 10px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; border: none; cursor: pointer; transition: 0.2s; font-family: 'Nunito'; color: white; }
+        .btn-shuffle { background: linear-gradient(135deg, #ef4444, #f43f5e); box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); }
+        .btn-reveal { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); }
+        .btn-nav { background: #334155; color: white; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .btn-game:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-game:active { transform: translateY(1px); }
+
+        .speed-control { display: flex; align-items: center; gap: 10px; background: #0f172a; padding: 5px 15px; border-radius: 20px; border: 1px solid #475569; }
+        .speed-control input[type="range"] { accent-color: #0ea5e9; cursor: pointer; }
+
+        .arena { flex: 1; position: relative; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); overflow: hidden; }
+        
+        /* CỤC TỪ VỰNG */
+        .word-block { 
+            position: absolute; 
+            top: 0; left: 0; 
+            padding: 15px 25px; 
+            background: linear-gradient(135deg, #3b82f6, #0ea5e9); 
+            color: white; 
+            font-size: 28px; 
+            font-weight: 900; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.3); 
+            border: 2px solid #60a5fa;
+            user-select: none; 
+            white-space: nowrap;
+            /* Đặt gốc tọa độ chuẩn để JS điều khiển qua Transform */
+            transform-origin: center center;
+        }
+
+        .sentence-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30, 41, 59, 0.8); padding: 5px 20px; border-radius: 20px; font-weight: 800; color: #94a3b8; border: 1px solid #334155; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="/teach/admin" style="color: #94a3b8; font-size: 24px; transition: 0.2s;"><i class="fa-solid fa-circle-arrow-left"></i></a>
+            <h1><i class="fa-solid fa-hurricane"></i> Word Tornado</h1>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-game btn-nav" onclick="prevSentence()"><i class="fa-solid fa-backward-step"></i></button>
+            <button class="btn-game btn-nav" onclick="nextSentence()"><i class="fa-solid fa-forward-step"></i></button>
+            
+            <div class="speed-control">
+                <i class="fa-solid fa-gauge-high" style="color: #0ea5e9;"></i>
+                <input type="range" id="speed-slider" min="1" max="10" value="4">
+            </div>
+
+            <button class="btn-game btn-shuffle" onclick="startShuffle()"><i class="fa-solid fa-shuffle"></i> LỐC XOÁY</button>
+            <button class="btn-game btn-reveal" onclick="revealAnswer()"><i class="fa-solid fa-check-double"></i> XẾP LẠI</button>
+        </div>
+    </div>
+
+    <div class="arena" id="arena">
+        <div class="sentence-counter" id="counter">Câu 0 / 0</div>
+    </div>
+
+    <div id="startup-panel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: #1e293b; padding: 40px; border-radius: 20px; border: 2px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); z-index: 1000; width: 90%; max-width: 450px;">
+        <i class="fa-solid fa-cloud-arrow-down fa-bounce fa-3x" style="color: #0ea5e9; margin-bottom: 20px;"></i>
+        <h2 style="color: white; margin-top: 0; font-weight: 900; font-size: 24px;">KẾT NỐI ĐÁM MÂY</h2>
+        <input type="text" id="game-id-input" placeholder="Dán mã ID Giáo án vào đây..." style="width: 100%; padding: 14px 15px; border-radius: 12px; border: 2px solid #475569; background: #0f172a; color: white; margin-bottom: 15px; font-weight: 800; outline: none;">
+        <button onclick="manualLoadGame()" style="width: 100%; background: #0ea5e9; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer;">TẢI GIÁO ÁN <i class="fa-solid fa-download"></i></button>
+        <div id="startup-status" style="margin-top: 20px; font-size: 14px; font-weight: bold; display: none;"></div>
+    </div>
+
+    <script src="/mhent-ui.js"></script>
+    <script>
+        // --- LOGIC GAME LỐC XOÁY TỪ VỰNG ---
+        let sentenceList = [];
+        let currentIndex = 0;
+        let blocks = [];
+        let animationId;
+        let isMoving = false;
+
+        function loadSentence(index) {
+            cancelAnimationFrame(animationId);
+            isMoving = false;
+            const arena = document.getElementById('arena');
+            
+            // Xóa rác cũ (trừ cái counter)
+            Array.from(arena.children).forEach(child => {
+                if(!child.classList.contains('sentence-counter')) child.remove();
+            });
+            blocks = [];
+
+            if(!sentenceList || sentenceList.length === 0) return;
+            document.getElementById('counter').innerText = `Câu ${index + 1} / ${sentenceList.length}`;
+            
+            // Tách câu thành mảng từ
+            let words = sentenceList[index].split(' ').filter(w => w.trim() !== '');
+
+            words.forEach((word, i) => {
+                const el = document.createElement('div');
+                el.className = 'word-block';
+                el.innerText = word;
+                arena.appendChild(el);
+
+                // Khởi tạo vị trí ngẫu nhiên
+                const rect = el.getBoundingClientRect();
+                const arenaRect = arena.getBoundingClientRect();
+                let x = Math.random() * (arenaRect.width - rect.width - 40) + 20;
+                let y = Math.random() * (arenaRect.height - rect.height - 40) + 20;
+                
+                // Gia tốc ngẫu nhiên (chống đi ngang hoàn toàn)
+                let vx = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
+                let vy = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
+
+                blocks.push({ el, x, y, vx, vy, width: rect.width, height: rect.height, order: i });
+                
+                // Xếp sẵn thành một đống bùi nhùi ở giữa trước khi bấm trộn cho nó kích thích
+                el.style.transform = `translate(${arenaRect.width/2 - rect.width/2}px, ${arenaRect.height/2 - rect.height/2}px)`;
+            });
+        }
+
+        function startShuffle() {
+            if(blocks.length === 0 || isMoving) return;
+            isMoving = true;
+            blocks.forEach(b => {
+                b.el.style.transition = 'none'; // Tắt mượt để chạy vật lý 60fps
+            });
+            animate();
+        }
+
+        function animate() {
+            const arena = document.getElementById('arena');
+            const arenaRect = arena.getBoundingClientRect();
+            let speedMulti = parseFloat(document.getElementById('speed-slider').value);
+
+            blocks.forEach(b => {
+                b.x += b.vx * speedMulti;
+                b.y += b.vy * speedMulti;
+
+                // Đập tường nảy lại
+                if(b.x <= 0 || b.x + b.width >= arenaRect.width) b.vx *= -1;
+                if(b.y <= 0 || b.y + b.height >= arenaRect.height) b.vy *= -1;
+
+                // Giới hạn không cho lọt ra ngoài viền
+                b.x = Math.max(0, Math.min(b.x, arenaRect.width - b.width));
+                b.y = Math.max(0, Math.min(b.y, arenaRect.height - b.height));
+
+                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+            });
+
+            if(isMoving) { animationId = requestAnimationFrame(animate); }
+        }
+
+        function revealAnswer() {
+            if(blocks.length === 0) return;
+            isMoving = false;
+            cancelAnimationFrame(animationId);
+
+            const arenaRect = document.getElementById('arena').getBoundingClientRect();
+            const gap = 20; // Khoảng cách giữa các chữ
+
+            // Tính toán tổng chiều dài của câu
+            let totalWidth = blocks.reduce((sum, b) => sum + b.width, 0) + gap * (blocks.length - 1);
+            
+            // Xếp các block về đúng số báo danh
+            blocks.sort((a,b) => a.order - b.order);
+
+            // Bắt đầu xếp từ trái sang phải, căn giữa màn hình
+            let currentX = (arenaRect.width - totalWidth) / 2;
+            let startY = arenaRect.height / 2 - blocks[0].height / 2; 
+
+            blocks.forEach((b, i) => {
+                b.el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'; // Hiệu ứng nảy lò xo nhẹ lúc ghép
+                b.x = currentX;
+                b.y = startY;
+                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+                currentX += b.width + gap;
+            });
+        }
+
+        function nextSentence() { if(currentIndex < sentenceList.length - 1) { currentIndex++; loadSentence(currentIndex); } }
+        function prevSentence() { if(currentIndex > 0) { currentIndex--; loadSentence(currentIndex); } }
+
+        // --- MÁY TẢI GIÁO ÁN TỪ MÂY ---
+        async function fetchGameData(gameId, gameType) {
+            const statusText = document.getElementById('startup-status');
+            const startupPanel = document.getElementById('startup-panel');
+            if(statusText) { statusText.style.display = 'block'; statusText.style.color = '#0ea5e9'; statusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; }
+            
+            try {
+                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
+                let res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getGameById', gameType: gameType, rowId: gameId }) });
+                let result = await res.json();
+                
+                if (result.success) {
+                    if (startupPanel) startupPanel.style.display = 'none';
+                    sentenceList = result.gameData.sentences || [];
+                    currentIndex = 0;
+                    loadSentence(currentIndex);
+                    showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
+                } else {
+                    if(statusText) { statusText.style.color = '#ef4444'; statusText.innerHTML = `Lỗi: Không tìm thấy giáo án!`; }
+                }
+            } catch(e) {
+                if(statusText) { statusText.style.color = '#ef4444'; statusText.innerHTML = `Lỗi kết nối mạng!`; }
+            }
+        }
+
+        function manualLoadGame() { fetchGameData(document.getElementById('game-id-input').value.trim(), 'unscram'); }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get('id');
+            if (gameId) { document.getElementById('game-id-input').value = gameId; fetchGameData(gameId, 'unscram'); }
+        });
+    </script>
+</body>
+</html>
