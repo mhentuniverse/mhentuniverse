@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực Hệ thống - MHEnt. Universe</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff85a2">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f8fafc; font-family: 'Nunito', sans-serif !important;}
+        body.dark-mode { background: #0f172a; }
+        
+        .auth-box { width: 100%; max-width: 450px; padding: 40px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; border: 1px solid rgba(255, 133, 162, 0.1); }
+        body.dark-mode .auth-box { background: rgba(30, 41, 59, 0.95); box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.05);}
+        
+        .auth-logo { width: 90px; height: 90px; margin-bottom: 20px; border-radius: 50%; border: 3px solid #ff85a2; box-shadow: 0 10px 20px rgba(255,133,162,0.3); }
+        .auth-title { font-size: 24px; font-weight: 900; color: #1e293b; margin: 0 0 10px 0; }
+        body.dark-mode .auth-title { color: #f8fafc; }
+        .auth-desc { color: #64748b; font-size: 15px; font-weight: 700; margin-bottom: 30px; line-height: 1.5; }
+        body.dark-mode .auth-desc { color: #94a3b8; }
+        
+        .password-wrapper { position: relative; width: 100%; margin-bottom: 15px; }
+        .password-wrapper input { width: 100%; padding: 14px 45px 14px 15px; border-radius: 12px; border: 2px solid #e2e8f0; font-family: 'Nunito'; font-weight: 700; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .password-wrapper input:focus { border-color: #ff85a2; box-shadow: 0 0 0 3px rgba(255, 133, 162, 0.2); }
+        body.dark-mode .password-wrapper input { background: #1e293b; border-color: #334155; color: white; }
+        body.dark-mode .password-wrapper input:focus { border-color: #ff85a2; }
+        
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 16px; transition: 0.2s; }
+        .toggle-password:hover { color: #ff5c8a; }
+        
+        .btn-action { width: 100%; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, #ff85a2, #ff5c8a); color: white; font-weight: 900; font-size: 16px; border: none; cursor: pointer; transition: 0.3s; font-family: 'Nunito'; box-shadow: 0 10px 20px rgba(255, 92, 138, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 92, 138, 0.4); }
+        .btn-action:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        
+        /* CÁC GIAO DIỆN ĐƯỢC ẨN ĐI, TÙY NGỮ CẢNH MỚI HIỆN */
+        .action-section { display: none; }
+        .action-section.active { display: block; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body class="gradient-bg">
+
+    <div class="auth-box">
+        <img src="/assets/avt-web.jpg" class="auth-logo" alt="Logo">
+        
+        <div id="ui-loading" class="action-section active">
+            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: #ff85a2; margin-bottom: 20px;"></i>
+            <h2 class="auth-title">Đang kiểm tra liên kết...</h2>
+            <p class="auth-desc">Đợi tớ một xíu để đối chiếu dữ liệu với vệ tinh nhé!</p>
+        </div>
+
+        <div id="ui-reset-password" class="action-section">
+            <h2 class="auth-title">Khôi phục Mật khẩu</h2>
+            <p class="auth-desc">Chào mừng trở lại! Hãy tạo một mật khẩu mới thật mạnh để bảo vệ tài khoản nhé.</p>
+            <div class="password-wrapper">
+                <input type="password" id="new-pass" placeholder="Mật khẩu mới (Tối thiểu 6 ký tự)..." required>
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('new-pass', this)"></i>
+            </div>
+            <div class="password-wrapper">
+                <input type="password" id="confirm-pass" placeholder="Nhập lại mật khẩu mới..." required>
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('confirm-pass', this)"></i>
+            </div>
+            <button class="btn-action" id="btn-submit-reset" onclick="executePasswordReset()">
+                <i class="fa-solid fa-key"></i> Đổi Mật Khẩu
+            </button>
+        </div>
+
+        <div id="ui-success" class="action-section">
+            <i class="fa-solid fa-circle-check fa-4x" style="color: #10b981; margin-bottom: 20px;"></i>
+            <h2 class="auth-title" id="success-title">Thành công rực rỡ!</h2>
+            <p class="auth-desc" id="success-desc">Mọi thủ tục đã hoàn tất.</p>
+            <button class="btn-action" onclick="window.location.href='/login'" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">
+                <i class="fa-solid fa-right-to-bracket"></i> Về trang Đăng nhập
+            </button>
+        </div>
+
+        <div id="ui-error" class="action-section">
+            <i class="fa-solid fa-triangle-exclamation fa-4x" style="color: #ef4444; margin-bottom: 20px;"></i>
+            <h2 class="auth-title">Liên kết không hợp lệ!</h2>
+            <p class="auth-desc" id="error-desc">Đường link này có thể đã hết hạn hoặc đã được sử dụng. Vui lòng quay lại tài khoản và yêu cầu link mới nhé!</p>
+            <button class="btn-action" onclick="window.location.href='/login'" style="background: #64748b; box-shadow: 0 10px 20px rgba(100, 116, 139, 0.3);">
+                <i class="fa-solid fa-house"></i> Về Đăng nhập
+            </button>
+        </div>
+
+    </div>
+
+    <script src="/mhent-ui.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getAuth, applyActionCode, verifyPasswordResetCode, confirmPasswordReset } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+        // ⚠️ NHỚ DÁN FIREBASE CONFIG CỦA CẬU VÀO ĐÂY NHA!
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
+            authDomain: "mhentuniverse.firebaseapp.com",
+            projectId: "mhentuniverse",
+            // ... (Copy từ login.html qua)
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // HÀM ẨN/HIỆN MẮT CHO MẬT KHẨU
+        window.togglePassword = function(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text"; icon.classList.replace('fa-eye', 'fa-eye-slash'); icon.style.color = '#ff5c8a';
+            } else {
+                input.type = "password"; icon.classList.replace('fa-eye-slash', 'fa-eye'); icon.style.color = '#94a3b8';
+            }
+        };
+
+        // CHUYỂN GIAO DIỆN
+        function showUI(uiId) {
+            document.querySelectorAll('.action-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(uiId).classList.add('active');
+        }
+
+        // ĐỌC THÔNG TIN TỪ LINK FIREBASE GỬI TỚI
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode'); // Chế độ (resetPassword, verifyEmail, recoverEmail)
+        const actionCode = urlParams.get('oobCode'); // Mã bí mật
+
+        // Nếu có ai đó tò mò vô thẳng trang này mà không có link từ Email
+        if (!mode || !actionCode) {
+            showUI('ui-error');
+        } else {
+            // =====================================
+            // BỘ NÃO ĐIỀU CHUYỂN LOGIC
+            // =====================================
+            if (mode === 'resetPassword') {
+                // 1. ĐỔI MẬT KHẨU: Firebase phải kiểm tra mã còn sống không đã
+                verifyPasswordResetCode(auth, actionCode).then((email) => {
+                    showUI('ui-reset-password'); // Chuyển sang form cho user nhập pass mới
+                }).catch((error) => {
+                    showUI('ui-error');
+                });
+
+            } else if (mode === 'verifyEmail') {
+                // 2. XÁC MINH EMAIL: Bấm là verify luôn
+                applyActionCode(auth, actionCode).then(() => {
+                    document.getElementById('success-title').innerText = "Đã xác minh Email!";
+                    document.getElementById('success-desc').innerText = "Chào mừng cậu gia nhập Hệ sinh thái MHEnt. Universe.";
+                    showUI('ui-success');
+                }).catch((error) => {
+                    document.getElementById('error-desc').innerText = "Link xác minh đã hết hạn hoặc Email này đã được xác minh từ trước rồi!";
+                    showUI('ui-error');
+                });
+
+            } else if (mode === 'recoverEmail') {
+                // 3. KHÔI PHỤC EMAIL (Nếu ai đó đổi email của bạn)
+                applyActionCode(auth, actionCode).then(() => {
+                    document.getElementById('success-title').innerText = "Khôi phục thành công!";
+                    document.getElementById('success-desc').innerText = "Email của cậu đã được khôi phục về trạng thái an toàn. Hãy đổi mật khẩu ngay nhé!";
+                    showUI('ui-success');
+                }).catch((error) => {
+                    showUI('ui-error');
+                });
+            } else {
+                // Các mode không xác định
+                showUI('ui-error');
+            }
+        }
+
+        // =====================================
+        // HÀM CHẠY KHI USER BẤM "ĐỔI MẬT KHẨU"
+        // =====================================
+        window.executePasswordReset = function() {
+            const pass1 = document.getElementById('new-pass').value;
+            const pass2 = document.getElementById('confirm-pass').value;
+            const btn = document.getElementById('btn-submit-reset');
+
+            if (!pass1 || pass1.length < 6) return showToast("Cảnh báo", "Mật khẩu mới phải có ít nhất 6 ký tự nha!", "error");
+            if (pass1 !== pass2) return showToast("Cảnh báo", "Hai mật khẩu chưa khớp nhau kìa!", "error");
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+            btn.disabled = true;
+
+            confirmPasswordReset(auth, actionCode, pass1).then(() => {
+                document.getElementById('success-title').innerText = "Đổi Mật Khẩu Thành Công!";
+                document.getElementById('success-desc').innerText = "Cậu có thể đăng nhập bằng mật khẩu mới rồi đó.";
+                showUI('ui-success');
+            }).catch((error) => {
+                showToast("Lỗi", "Không thể cập nhật lúc này!", "error");
+                btn.innerHTML = '<i class="fa-solid fa-key"></i> Đổi Mật Khẩu';
+                btn.disabled = false;
+            });
+        };
+
+        // BẬT DARK MODE NẾU MÁY LƯU
+        if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
+    </script>
+</body>
+</html>

@@ -86,6 +86,15 @@
             .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
             .login-box { max-width: 90% !important; padding: 30px 20px !important; }
         }
+        /* Bọc ô mật khẩu để gắn con mắt */
+        .password-wrapper { position: relative; width: 100%; margin-bottom: 12px; }
+        .password-wrapper .auth-input { width: 100%; margin-bottom: 0; padding-right: 40px; box-sizing: border-box; }
+        
+        .toggle-password { 
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
+            cursor: pointer; color: #94a3b8; font-size: 16px; transition: 0.2s; 
+        }
+        .toggle-password:hover { color: #ff5c8a; }
     </style>
 </head>
 <body class="gradient-bg">
@@ -201,7 +210,15 @@
             <div id="tab-login" class="auth-content active">
                 <div class="auth-form">
                     <input type="email" id="login-email" class="auth-input" placeholder="Địa chỉ Email..." required>
-                    <input type="password" id="login-password" class="auth-input" placeholder="Mật khẩu..." required>
+                    
+                    <div class="password-wrapper">
+                        <input type="password" id="login-password" class="auth-input" placeholder="Mật khẩu..." required>
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('login-password', this)"></i>
+                    </div>
+
+                    <div style="text-align: right; margin-top: -5px; margin-bottom: 15px;">
+                        <a href="#" onclick="forgotPassword(); return false;" style="font-size: 13px; color: #ff5c8a; font-weight: 800; text-decoration: none; transition: 0.2s;">Quên mật khẩu?</a>
+                    </div>
                     
                     <div id="recap-holder-login" style="display: flex; justify-content: center; margin-bottom: 15px; min-height: 78px;">
                         <div id="recaptcha-main-box"></div>
@@ -216,8 +233,16 @@
             <div id="tab-register" class="auth-content">
                 <div class="auth-form">
                     <input type="email" id="reg-email" class="auth-input" placeholder="Nhập Email mới..." required>
-                    <input type="password" id="reg-password" class="auth-input" placeholder="Tạo mật khẩu (Tối thiểu 6 ký tự)..." required>
-                    <input type="password" id="reg-confirm-password" class="auth-input" placeholder="Nhập lại mật khẩu..." required>
+                    
+                    <div class="password-wrapper">
+                        <input type="password" id="reg-password" class="auth-input" placeholder="Tạo mật khẩu (Tối thiểu 6 ký tự)..." required>
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('reg-password', this)"></i>
+                    </div>
+                    
+                    <div class="password-wrapper">
+                        <input type="password" id="reg-confirm-password" class="auth-input" placeholder="Nhập lại mật khẩu..." required>
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('reg-confirm-password', this)"></i>
+                    </div>
                     
                     <div id="recap-holder-register" style="display: flex; justify-content: center; margin-bottom: 15px; min-height: 78px;"></div>
 
