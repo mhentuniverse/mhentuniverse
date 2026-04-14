@@ -506,6 +506,10 @@
                         <label style="color: #475569; font-weight: 800; margin-bottom: 10px; display: block;">Nhập danh sách câu (Mỗi câu nằm trên 1 dòng):</label>
                         <textarea id="unscram-sentences" class="admin-textarea" style="height: 250px; font-size: 16px; line-height: 1.5;" placeholder="Ví dụ:&#10;I wanna buy a .com domain so much!&#10;The quick brown fox jumps over the lazy dog."></textarea>
                     </div>
+
+                    <button class="btn-admin" style="width: 100%; margin-top: 20px; background: #0ea5e9; padding: 15px;" onclick="syncUnscramble()">
+                        <i class="fa-solid fa-paper-plane"></i> TẠO GAME & GỬI QUA MÁY CHIẾU
+                    </button>
                 </div>
             </div>
         </main>
@@ -1052,6 +1056,25 @@
             const link = `${window.location.origin}/teach/${gameType}?id=${rowId}`;
             navigator.clipboard.writeText(link);
             showToast('Thành công!', 'Đã copy Link. Cậu có thể dán thẳng vào giáo án rồi đó!', 'success');
+        };
+
+        // 🌪️ HÀM ĐẨY DỮ LIỆU WORD TORNADO SANG MÁY CHIẾU (LOCAL STORAGE)
+        window.syncUnscramble = function() {
+            const text = document.getElementById('unscram-sentences').value;
+            const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
+            
+            if (sentences.length === 0) {
+                return showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
+            }
+
+            // Bắn tín hiệu mhent_unscram_cmd đi
+            localStorage.setItem('mhent_unscram_cmd', JSON.stringify({ 
+                action: 'SYNC', 
+                payload: { sentences: sentences }, 
+                rand: Math.random() 
+            }));
+            
+            showToast("Tuyệt vời!", `Đã gửi ${sentences.length} câu bão táp sang Máy chiếu!`, "success");
         };
     </script>
     <script src="/mhent-ui.js"></script>
