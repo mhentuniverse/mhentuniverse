@@ -36,14 +36,24 @@
 
         .arena { flex: 1; position: relative; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); overflow: hidden; }
         
+        /* 🔥 CẤU CẤU LẠI CSS ĐỂ NHẬN ĐA MÀU SẮC */
         .word-block { 
             position: absolute; top: 0; left: 0; padding: 15px 25px; 
-            background: linear-gradient(135deg, #3b82f6, #0ea5e9); color: white; 
             font-size: 28px; font-weight: 900; border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.3); 
-            border: 2px solid #60a5fa; user-select: none; white-space: nowrap;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.2); 
+            border: 2px solid rgba(255, 255, 255, 0.3); /* Viền mờ mặc định */
+            user-select: none; white-space: nowrap;
             transform-origin: center center;
+            color: white; /* Mặc định chữ trắng */
         }
+
+        /* 🌈 6 LỚP MÀU ĐẠI DIỆN CHO 6 CON NGƯỜI CỦA CÔNG TY */
+        .block-turquoise { background: linear-gradient(135deg, #2dd4bf, #14b8a6); border-color: #5eead4; }
+        .block-pink { background: linear-gradient(135deg, #f472b6, #db2777); border-color: #f9a8d4; }
+        .block-yellow { background: linear-gradient(135deg, #facc15, #f59e0b); border-color: #fbef7e; color: #1e293b; } /* Chữ tối màu cho dễ đọc */
+        .block-purple { background: linear-gradient(135deg, #c084fc, #9333ea); border-color: #d8b4fe; }
+        .block-silver { background: linear-gradient(135deg, #e2e8f0, #cbd5e1); border-color: #f1f5f9; color: #1e293b; } /* Chữ tối màu cho dễ đọc */
+        .block-lightblue { background: linear-gradient(135deg, #38bdf8, #0ea5e9); border-color: #7dd3fc; }
 
         .sentence-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30, 41, 59, 0.8); padding: 5px 20px; border-radius: 20px; font-weight: 800; color: #94a3b8; border: 1px solid #334155; }
     </style>
@@ -56,7 +66,7 @@
         <div class="header">
             <div style="display: flex; align-items: center; gap: 20px;">
                 <a href="/teach/admin" style="color: #94a3b8; font-size: 24px; transition: 0.2s;"><i class="fa-solid fa-circle-arrow-left"></i></a>
-                <h1><i class="fa-solid fa-hurricane"></i> Word Tornado</h1>
+                <h1><i class="fa-solid fa-hurricane"></i> Word Tornado (MHEnt Version)</h1>
             </div>
             
             <div class="controls">
@@ -86,7 +96,9 @@
         let animationId;
         let isMoving = false;
 
-        // --- BỘ THU SÓNG TỪ ADMIN (LOCAL STORAGE) ---
+        // 🔥 DANH SÁCH 6 LỚP MÀU TƯƠNG ỨNG VỚI 6 TRỤ CỘT
+        const colorClasses = ['block-turquoise', 'block-pink', 'block-yellow', 'block-purple', 'block-silver', 'block-lightblue'];
+
         window.addEventListener('storage', e => {
             if(e.key !== 'mhent_unscram_cmd') return;
             const data = JSON.parse(e.newValue);
@@ -96,7 +108,6 @@
             }
         });
 
-        // --- HÀM KHỞI ĐỘNG GAME ---
         function initGame(sentences) {
             document.getElementById('waiting-msg').style.display = 'none';
             document.getElementById('main-game').style.display = 'flex';
@@ -106,7 +117,6 @@
             if(sentenceList.length > 0) loadSentence(currentIndex);
         }
 
-        // --- MÁY TẢI GIÁO ÁN TỪ ĐÁM MÂY (NẾU CÓ LINK) ---
         document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const gameId = urlParams.get('id');
@@ -132,7 +142,6 @@
             }
         });
 
-        // --- LOGIC VẬT LÝ & LỐC XOÁY ---
         function loadSentence(index) {
             cancelAnimationFrame(animationId);
             isMoving = false;
@@ -150,7 +159,11 @@
 
             words.forEach((word, i) => {
                 const el = document.createElement('div');
-                el.className = 'word-block';
+                
+                // 🌀 TÔ MÀU NGẪU NHIÊN CHO TỪNG TỪ BẰNG CÁCH CHỌN 1 TRONG 6 MÀU
+                const randomColorClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+                el.className = `word-block ${randomColorClass}`; // Gán lớp màu
+                
                 el.innerText = word;
                 arena.appendChild(el);
 
