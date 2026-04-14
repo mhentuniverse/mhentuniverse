@@ -570,23 +570,20 @@
 
         function addTableRow() {
             const row = document.createElement('div'); row.className = 'row-input';
-            row.innerHTML = `<input type="text" class="admin-input input-w" placeholder="Từ vựng">
-                             <input type="text" class="admin-input input-m" placeholder="Ý nghĩa">
-                             <button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+            row.innerHTML = `<input type="text" class="admin-input input-w" placeholder="Từ vựng"><input type="text" class="admin-input input-m" placeholder="Ý nghĩa"><button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
             document.getElementById('table-rows').appendChild(row);
         }
-        
-        // ==========================================
-        // 🚨 PHỤC HỒI CÁC HÀM ĐỒNG BỘ BỊ MẤT 🚨
-        // ==========================================
-        
-        // 1. ĐẤU TRƯỜNG TỪ VỰNG
+
+        // =========================================================
+        // 🚀 BỘ TỔNG TƯ LỆNH - CÁC HÀM BẮN DỮ LIỆU SANG MÁY CHIẾU
+        // =========================================================
+
+        // 1. TỪ VỰNG (VOCAB)
         window.adminSyncData = function() {
             let list = [];
             if (activeInputMode === 'table') {
                 document.querySelectorAll('#tab-vocab .row-input').forEach((row, i) => {
-                    const w = row.querySelector('.input-w').value.trim();
-                    const m = row.querySelector('.input-m').value.trim();
+                    const w = row.querySelector('.input-w').value.trim(), m = row.querySelector('.input-m').value.trim();
                     if(w && m) list.push({ id: 'w_'+i, word: w, meaning: m });
                 });
             } else {
@@ -596,89 +593,60 @@
                 });
             }
             if (list.length === 0) return showToast("Lỗi", "Cần ít nhất 1 từ vựng!", "error");
-            globalWordList = list;
-            currentGridOrder = [...globalWordList].sort(() => 0.5 - Math.random());
-            solvedWords = [];
-            sendCmd('SYNC_DATA', { order: currentGridOrder, mode: document.getElementById('mode-select').value, strikes: parseInt(document.getElementById('strike-input').value) || 0 });
+            globalWordList = list; currentGridOrder = [...list].sort(() => 0.5 - Math.random()); solvedWords = [];
+            localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: 'SYNC_DATA', payload: { order: currentGridOrder, mode: document.getElementById('mode-select').value, strikes: parseInt(document.getElementById('strike-input').value) || 0 }, rand: Math.random() }));
             document.getElementById('control-station').style.display = 'block';
             renderAdminQuestionList(); renderMirrorGrid();
-            showToast("Thành công!", "Đã đẩy dữ liệu sang máy chiếu!", "success");
+            showToast("Thành công!", "Đã đẩy dữ liệu Từ vựng sang máy chiếu!", "success");
         };
 
-        window.renderAdminQuestionList = function() {
-            const list = document.getElementById('admin-question-list'); list.innerHTML = '';
-            globalWordList.forEach(item => {
-                const btn = document.createElement('button'); btn.className = 'q-btn';
-                btn.innerHTML = `<b>${item.word}</b> - ${item.meaning}`;
-                if(solvedWords.includes(item.id)) btn.classList.add('solved');
-                btn.onclick = () => {
-                    if(solvedWords.includes(item.id)) return;
-                    document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    activeWordId = item.id;
-                    document.getElementById('admin-reading-meaning').innerText = item.meaning;
-                    sendCmd('SET_QUESTION', item);
-                };
-                list.appendChild(btn);
-            });
-        };
-
-        window.renderMirrorGrid = function() {
-            const grid = document.getElementById('admin-mirror-grid'); grid.innerHTML = '';
-            currentGridOrder.forEach(item => {
-                const card = document.createElement('div'); card.className = 'mirror-card'; card.id = 'mirror-' + item.id; card.innerText = item.word;
-                if(solvedWords.includes(item.id)) { card.classList.add('correct'); card.style.pointerEvents = 'none'; }
-                card.onclick = () => { if(activeWordId) sendCmd('ADMIN_CLICK', item.id); else showToast("Nhắc nhở", "Giám đốc chọn câu hỏi trước đã!", "warning"); };
-                grid.appendChild(card);
-            });
-        };
-
-        window.adminShuffle = function() {
-            if(globalWordList.length === 0) return;
-            currentGridOrder = [...globalWordList].sort(() => 0.5 - Math.random());
-            sendCmd('SHUFFLE', currentGridOrder);
-            renderMirrorGrid();
-        };
-
-        window.addEventListener('storage', e => {
-            if(e.key !== 'mhent_edu_cmd') return;
-            const data = JSON.parse(e.newValue);
-            if(data.action === 'SYNC_COLOR') {
-                const mirror = document.getElementById('mirror-' + data.payload.id);
-                if(mirror) { mirror.classList.remove('correct', 'incorrect'); mirror.classList.add(data.payload.status); }
-            }
-            if(data.action === 'REPORT_SOLVED') {
-                if(!solvedWords.includes(data.payload.id)) solvedWords.push(data.payload.id);
-                activeWordId = null; document.getElementById('admin-reading-meaning').innerText = "Chưa chọn câu hỏi";
-                renderAdminQuestionList(); renderMirrorGrid();
-            }
-        });
-
-        // 2. VÒNG QUAY ĐỊNH MỆNH
+        // 2. VÒNG QUAY ĐỊNH MỆNH (SPIN)
         window.syncSpinner = function() {
             const items = document.getElementById('spin-items').value.trim().split('\n').map(i => i.trim()).filter(i => i !== "");
             if(items.length === 0) return showToast("Lỗi", "Nhập ít nhất 1 tên nhé!", "error");
             const isRigged = document.getElementById('spin-rigged-mode').checked;
             const rawOrder = document.getElementById('spin-rigged-order').value;
             let orderArray = isRigged ? rawOrder.split(',').map(n => parseInt(n.trim()) - 1).filter(n => !isNaN(n) && n >= 0 && n < items.length) : [];
-            localStorage.setItem('mhent_spin_cmd', JSON.stringify({ payload: { items, isRigged, riggedOrder: orderArray }, rand: Math.random() }));
-            showToast("Thành công!", `Đã xuất xưởng ${items.length} thành viên sang Vòng quay!`, "success");
+            localStorage.setItem('mhent_spin_cmd', JSON.stringify({ action: 'SYNC', payload: { items, isRigged, riggedOrder: orderArray }, rand: Math.random() }));
+            showToast("Thành công!", `Đã gửi ${items.length} thành viên sang Vòng quay!`, "success");
         };
 
-        // 3. KÉO CO TỪ VỰNG
+        // 3. HỘP QUÀ NHÂN PHẨM (BAAMBOOZLE)
+        window.syncBaamboozle = function() {
+            const teamCount = parseInt(document.getElementById('baam-teams').value) || 2;
+            let cards = [];
+            document.querySelectorAll('.baam-q-row').forEach(row => {
+                let qText = row.querySelector('.q-text').value.trim(), imgText = row.querySelector('.q-img').value.trim();
+                let points = parseInt(row.querySelector('.q-points').value) || 10;
+                let optInputs = row.querySelectorAll('.q-opt');
+                let correctIndex = parseInt(row.querySelector('.q-correct').value);
+                let options = []; optInputs.forEach(input => { if(input.value.trim() !== '') options.push(input.value.trim()); });
+                if(qText && options.length >= 2) {
+                    if (correctIndex >= options.length) correctIndex = options.length - 1;
+                    cards.push({ type: 'question', text: qText, img: imgText, options: options, correct: correctIndex, points: points });
+                }
+            });
+            document.querySelectorAll('.baam-s-row').forEach(row => {
+                let sText = row.querySelector('.s-text').value.trim(), sPoints = parseInt(row.querySelector('.s-points').value) || 0;
+                if(sText) cards.push({ type: 'special', text: sText, points: sPoints });
+            });
+            if(cards.length < 2) return showToast("Lỗi", "Vui lòng tạo ít nhất 2 thẻ hợp lệ!", "error");
+            localStorage.setItem('mhent_baam_cmd', JSON.stringify({ action: 'SYNC', payload: { teams: teamCount, cards: cards.sort(() => 0.5 - Math.random()) }, rand: Math.random() }));
+            showToast("Tuyệt vời!", `Đã xuất xưởng ${cards.length} Thẻ bài sang Máy chiếu!`, "success");
+        };
+
+        // 4. KÉO CO (TUG)
         window.syncTugOfWar = function() {
             let qaList = [];
             document.getElementById('tug-items').value.trim().split('\n').filter(l => l.trim() !== "").forEach(line => {
-                const parts = line.split('-');
-                if (parts.length >= 2) qaList.push({ q: parts[0].trim(), a: parts[1].trim() });
+                const parts = line.split('-'); if (parts.length >= 2) qaList.push({ q: parts[0].trim(), a: parts[1].trim() });
             });
             if (qaList.length === 0) return showToast("Lỗi", "Vui lòng nhập ít nhất 1 câu hỏi kéo co!", "error");
-            const winN = parseInt(document.getElementById('tug-win-n').value) || 5;
-            localStorage.setItem('mhent_tug_cmd', JSON.stringify({ payload: { questions: qaList, winningPoints: winN }, rand: Math.random() }));
+            localStorage.setItem('mhent_tug_cmd', JSON.stringify({ action: 'SYNC', payload: { questions: qaList, winningPoints: parseInt(document.getElementById('tug-win-n').value) || 5 }, rand: Math.random() }));
             showToast("Thành công", `Đã gửi ${qaList.length} câu hỏi sang Tiền tuyến!`, "success");
         };
 
-        // 4. BOM HẸN GIỜ
+        // 5. BOM HẸN GIỜ (BOMB)
         window.syncBombGame = function() {
             const payload = {
                 questions: document.getElementById('bomb-questions').value.trim().split('\n').map(l => l.trim()).filter(l => l !== ""),
@@ -688,9 +656,34 @@
                 mode: document.getElementById('bomb-mode').value
             };
             localStorage.setItem('mhent_bomb_cmd', JSON.stringify({ action: 'SYNC', payload: payload, rand: Math.random() }));
-            showToast("Thành công", "Đã thiết lập xong Bom Hẹn Giờ!", "success");
+            showToast("Thành công", "Đã gửi cấu hình sang Máy chiếu Bom!", "success");
         };
-        
+
+        // 6. BLAST BLOCK V2
+        window.syncBlastBlockV2 = function() {
+            let questions = [];
+            document.querySelectorAll('.blast-row').forEach(row => {
+                const type = row.querySelector('.blast-type').value;
+                let q = row.querySelector('.blast-q').value.trim(), a = row.querySelector('.blast-a').value.trim();
+                const opts = row.querySelector('.blast-opt').value.split(',').map(s => s.trim()).filter(s => s !== "");
+                const rev = row.querySelector('.blast-rev').checked;
+                if(type === 'memory' && rev) { [q, a] = [a, q]; }
+                if(q && a) { questions.push({ q, a, type, options: opts }); }
+            });
+            if(questions.length === 0) return showToast("Lỗi", "Cậu chưa nhập câu hỏi nào!", "error");
+            localStorage.setItem('mhent_blast_cmd', JSON.stringify({ action: 'SYNC', payload: { questions }, rand: Math.random() }));
+            showToast("Thành công", `Đã xây dựng ${questions.length} khối Minecraft!`, "success");
+        };
+
+        // 7. WORD TORNADO (UNSCRAMBLE)
+        window.syncUnscramble = function() {
+            const text = document.getElementById('unscram-sentences').value;
+            const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
+            if (sentences.length === 0) return showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
+            localStorage.setItem('mhent_unscram_cmd', JSON.stringify({ action: 'SYNC', payload: { sentences: sentences }, rand: Math.random() }));
+            showToast("Tuyệt vời!", `Đã gửi ${sentences.length} câu bão táp sang Máy chiếu!`, "success");
+        };
+
         function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
 
         // ==========================================
@@ -1170,25 +1163,6 @@
             const link = `${window.location.origin}/teach/${gameType}?id=${rowId}`;
             navigator.clipboard.writeText(link);
             showToast('Thành công!', 'Đã copy Link. Cậu có thể dán thẳng vào giáo án rồi đó!', 'success');
-        };
-
-        // 🌪️ HÀM ĐẨY DỮ LIỆU WORD TORNADO SANG MÁY CHIẾU (LOCAL STORAGE)
-        window.syncUnscramble = function() {
-            const text = document.getElementById('unscram-sentences').value;
-            const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
-            
-            if (sentences.length === 0) {
-                return showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
-            }
-
-            // Bắn tín hiệu mhent_unscram_cmd đi
-            localStorage.setItem('mhent_unscram_cmd', JSON.stringify({ 
-                action: 'SYNC', 
-                payload: { sentences: sentences }, 
-                rand: Math.random() 
-            }));
-            
-            showToast("Tuyệt vời!", `Đã gửi ${sentences.length} câu bão táp sang Máy chiếu!`, "success");
         };
     </script>
     <script src="/mhent-ui.js"></script>

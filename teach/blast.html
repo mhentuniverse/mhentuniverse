@@ -293,81 +293,20 @@
         }
     </script>
     <script>
-    // =========================================================
-    // 🚀 AUTO-LOADER: TỰ ĐỘNG TẢI GAME TỪ LINK GIÁO ÁN
-    // =========================================================
+    // CHIP NHẬN DỮ LIỆU (BLAST BLOCK)
     document.addEventListener("DOMContentLoaded", async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameId = urlParams.get('id');
-        
-        // Tự động phân tích xem mình đang ở trang game nào (baam, tug, bomb...)
-        const pathParts = window.location.pathname.split('/');
-        let gameType = pathParts[pathParts.length - 1].replace('.html', '');
-        if(!gameType || gameType === 'teach') gameType = 'index'; // Fallback
-
-        if (gameId && gameType) {
-            const waitingMsg = document.getElementById('waiting-msg');
-            if(waitingMsg) waitingMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><br><br>Đang tải giáo án từ Két sắt Đám Mây...';
-            
+        const gameId = new URLSearchParams(window.location.search).get('id');
+        if (gameId) {
             try {
-                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
-                let res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'getGameById', gameType: gameType, rowId: gameId })
-                });
+                let res = await fetch("https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec", { method: 'POST', body: JSON.stringify({ action: 'getGameById', gameType: 'blast', rowId: gameId }) });
                 let result = await res.json();
-                
                 if (result.success) {
-                    const payload = result.gameData;
-                    
-                    // KIỂM TRA TỪNG LOẠI GAME ĐỂ KHỞI ĐỘNG CHO ĐÚNG CÁCH
-                    if (gameType === 'baam') {
-                        initGame(payload.teams, payload.cards);
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
-                    } 
-                    else if (gameType === 'blast') {
-                        questions = payload.questions; 
-                        currentIndex = 0; 
-                        document.getElementById('waiting-msg').style.display = 'none';
-                        document.querySelector('.game-container').style.display = 'flex'; // Hiện game
-                        loadQuestion();
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
-                    }
-                    else if (gameType === 'tug') {
-                        questions = payload.qaList;
-                        MAX_PULL = payload.winN || 5;
-                        currentIndex = 0; score1 = 0; score2 = 0; pullDiff = 0;
-                        document.getElementById('waiting-msg').style.display = 'none';
-                        updateUI(); loadQuestion();
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
-                    }
-                    else if (gameType === 'bomb') {
-                        // Logic của Bomb
-                        document.getElementById('time-input').value = payload.time || 30;
-                        numTeams = payload.teams || 2;
-                        timeReward = payload.reward || 0;
-                        gameMode = payload.mode || 'pass';
-                        questionsList = payload.questions || [];
-                        document.getElementById('mode-display').innerText = gameMode === 'pass' ? "CHẾ ĐỘ: 🔥 CHUYỀN BOM" : "CHẾ ĐỘ: 🛡️ GỠ BOM";
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName} đã được nạp!`, "success");
-                    }
-                    else if (gameType === 'spin') {
-                        // Cần nhét data vào mảng của Spinner
-                        activeItems = payload.items.map((name, index) => ({ id: index, name: name }));
-                        isRigged = payload.isRigged;
-                        riggedOrder = payload.riggedOrder || [];
-                        riggedStep = 0;
-                        document.getElementById('waiting-msg').style.display = 'none';
-                        resetWheelPos();
-                        showToast("Sẵn sàng!", `Danh sách quay đã được nạp!`, "success");
-                    }
-
-                } else {
-                    if(waitingMsg) waitingMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><br><br>Lỗi: Không tìm thấy giáo án này!`;
+                    questions = result.gameData.questions; 
+                    currentIndex = 0; 
+                    loadQuestion();
+                    showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
                 }
-            } catch(e) {
-                if(waitingMsg) waitingMsg.innerHTML = `<i class="fa-solid fa-wifi"></i><br><br>Lỗi mạng rồi cậu ơi!`;
-            }
+            } catch(e) { console.error(e); }
         }
     });
     </script>

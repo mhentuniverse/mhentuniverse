@@ -14,151 +14,68 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            margin: 0; padding: 0; height: 100vh;
-            background: #0f172a; color: white; font-family: 'Nunito', sans-serif;
-            overflow: hidden; display: flex; flex-direction: column;
-        }
-
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 30px; background: #1e293b; border-bottom: 2px solid #334155; z-index: 10;
-        }
+        body { margin: 0; padding: 0; height: 100vh; background: #0f172a; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #1e293b; border-bottom: 2px solid #334155; z-index: 10; }
         .header h1 { margin: 0; color: #f472b6; font-size: 24px; text-shadow: 0 0 10px rgba(244,114,182,0.3); }
         .fullscreen-btn { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
         .fullscreen-btn:hover { color: white; }
-
         .main-layout { display: flex; flex: 1; overflow: hidden; }
-
-        .wheel-section {
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            position: relative; padding: 20px;
-        }
-        .wheel-wrapper {
-            position: relative; width: min(80vh, 90%); aspect-ratio: 1/1;
-            cursor: pointer; transition: transform 0.2s;
-        }
+        .wheel-section { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; }
+        .wheel-wrapper { position: relative; width: min(80vh, 90%); aspect-ratio: 1/1; cursor: pointer; transition: transform 0.2s; }
         .wheel-wrapper:hover { transform: scale(1.02); }
         .wheel-wrapper.spinning { pointer-events: none; cursor: default; }
-
-        .pointer {
-            position: absolute; top: -5%; left: 50%; transform: translateX(-50%);
-            width: 0; height: 0; z-index: 20;
-            border-left: 20px solid transparent; border-right: 20px solid transparent;
-            border-top: 40px solid #e11d48; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5));
-        }
-        
-        canvas {
-            width: 100%; height: 100%; border-radius: 50%; box-sizing: border-box;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.5);
-            border: 8px solid #334155; transition: transform 5s cubic-bezier(0.15, 0.85, 0.15, 1);
-        }
-
-        .center-hub {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 22%; height: 22%; background: white; border-radius: 50%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.1);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; color: #1e293b; font-size: clamp(14px, 2.5vmin, 26px); 
-            text-align: center; line-height: 1.2; z-index: 10;
-            border: 4px solid #e2e8f0; pointer-events: none;
-        }
-
-        .sidebar {
-            width: 350px; background: #1e293b; border-left: 2px solid #334155;
-            display: flex; flex-direction: column; z-index: 10;
-        }
+        .pointer { position: absolute; top: -5%; left: 50%; transform: translateX(-50%); width: 0; height: 0; z-index: 20; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #e11d48; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
+        canvas { width: 100%; height: 100%; border-radius: 50%; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.5); border: 8px solid #334155; transition: transform 5s cubic-bezier(0.15, 0.85, 0.15, 1); }
+        .center-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 22%; height: 22%; background: white; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #1e293b; font-size: clamp(14px, 2.5vmin, 26px); text-align: center; line-height: 1.2; z-index: 10; border: 4px solid #e2e8f0; pointer-events: none; }
+        .sidebar { width: 350px; background: #1e293b; border-left: 2px solid #334155; display: flex; flex-direction: column; z-index: 10; }
         .tab-headers { display: flex; border-bottom: 2px solid #334155; }
-        .tab-btn {
-            flex: 1; padding: 15px 0; background: none; border: none; color: #94a3b8;
-            font-size: 16px; font-family: 'Nunito'; font-weight: bold; cursor: pointer;
-        }
+        .tab-btn { flex: 1; padding: 15px 0; background: none; border: none; color: #94a3b8; font-size: 16px; font-family: 'Nunito'; font-weight: bold; cursor: pointer; }
         .tab-btn.active { color: #f472b6; border-bottom: 3px solid #f472b6; background: rgba(244,114,182,0.1); }
         .tab-content { flex: 1; padding: 20px; display: none; flex-direction: column; }
         .tab-content.active { display: flex; }
-
-        textarea {
-            flex: 1; background: #0f172a; border: 1px solid #334155; color: white;
-            font-family: 'Nunito'; font-size: 16px; padding: 15px; border-radius: 8px;
-            resize: none; outline: none; line-height: 1.6;
-        }
+        textarea { flex: 1; background: #0f172a; border: 1px solid #334155; color: white; font-family: 'Nunito'; font-size: 16px; padding: 15px; border-radius: 8px; resize: none; outline: none; line-height: 1.6; }
         textarea:focus { border-color: #f472b6; }
         .action-btns { display: flex; gap: 10px; margin-top: 15px; }
-        .action-btns button {
-            flex: 1; padding: 10px; background: #334155; color: white; border: none;
-            border-radius: 6px; cursor: pointer; font-family: 'Nunito'; font-weight: bold;
-        }
+        .action-btns button { flex: 1; padding: 10px; background: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: 'Nunito'; font-weight: bold; }
         .action-btns button:hover { background: #475569; }
-
         #winner-list { flex: 1; list-style: none; padding: 0; margin: 0; overflow-y: auto; }
-        #winner-list li {
-            background: #0f172a; margin-bottom: 8px; padding: 12px 15px; border-radius: 6px;
-            border-left: 4px solid #f472b6; display: flex; justify-content: space-between;
-        }
+        #winner-list li { background: #0f172a; margin-bottom: 8px; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #f472b6; display: flex; justify-content: space-between; }
         .winner-count { color: #94a3b8; font-size: 12px; }
-
-        .popup {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
-        }
+        .popup { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100; }
         .popup.show { opacity: 1; pointer-events: auto; }
-        .popup-content { 
-            background: #1e293b; border-radius: 12px; text-align: center; 
-            transform: scale(0.8); transition: transform 0.3s; width: 500px; max-width: 90%;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden; border: 1px solid #334155;
-        }
+        .popup-content { background: #1e293b; border-radius: 12px; text-align: center; transform: scale(0.8); transition: transform 0.3s; width: 500px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden; border: 1px solid #334155; }
         .popup.show .popup-content { transform: scale(1); }
         .popup-header { background: #0ea5e9; padding: 15px 20px; text-align: left; }
         .popup-header h3 { margin: 0; color: white; font-size: 20px; font-weight: 900; }
         .popup-body { padding: 40px 20px; }
         .popup-body h2 { font-size: 3.5rem; color: white; margin: 0 0 40px 0; word-break: break-word;}
         .popup-btn-group { display: flex; justify-content: center; gap: 15px; }
-        
         .popup-btn { padding: 12px 25px; font-size: 16px; font-family: 'Nunito'; font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.2s; }
         .btn-close { background: transparent; color: white; border: 2px solid #475569; }
         .btn-close:hover { background: #334155; }
         .btn-remove { background: #3b82f6; border: 2px solid #3b82f6; color: white; }
         .btn-remove:hover { background: #2563eb; border-color: #2563eb; }
-
-        /* ==========================================
-           CSS CHO CHẾ ĐỘ LẬT BÀI 
-           ========================================== */
-        .card-section {
-            flex: 1; display: none; flex-direction: column; align-items: center; 
-            justify-content: center; gap: 30px; padding: 20px;
-        }
+        .card-section { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding: 20px; }
         .team-row { display: flex; gap: 15px; justify-content: center; width: 100%; min-height: 180px; }
         .team-title { font-weight: 900; font-size: 20px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
-        
         .card-item { width: 120px; height: 170px; perspective: 1000px; cursor: pointer; }
-        .card-inner {
-            position: relative; width: 100%; height: 100%; text-align: center;
-            transition: transform 0.6s; transform-style: preserve-3d;
-        }
+        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
         .card-item.flipped .card-inner { transform: rotateY(180deg); }
-        .card-front, .card-back {
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-size: 18px; font-weight: 900; border: 3px solid #334155;
-        }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; border: 3px solid #334155; }
         .card-front { background: #1e293b; color: #f472b6; flex-direction: column; gap: 5px; }
         .card-back { background: white; color: #1e293b; transform: rotateY(180deg); }
-        
         .team1 .card-back { border-color: #f43f5e; color: #f43f5e; }
         .team2 .card-back { border-color: #3b82f6; color: #3b82f6; }
-
-        @keyframes shuffle-effect {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1) rotate(5deg); }
-            100% { transform: scale(1); }
-        }
+        @keyframes shuffle-effect { 0% { transform: scale(1); } 50% { transform: scale(1.1) rotate(5deg); } 100% { transform: scale(1); } }
         .shuffling-card { animation: shuffle-effect 0.3s infinite; }
+        #waiting-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-size: 30px; color: #64748b; font-weight: 800; z-index: 100; display: none;}
     </style>
 </head>
 <body>
 
-    <div style="display: flex; align-items: center; gap: 15px; position: absolute; top: 15px; left: 30px; z-index: 50;">
+    <div id="waiting-msg"><i class="fa-solid fa-dharmachakra fa-spin"></i><br><br>Waiting for connection...</div>
+
+    <div style="display: flex; align-items: center; gap: 15px; position: absolute; top: 15px; left: 30px; z-index: 50;" id="header-controls">
         <h1 style="margin: 0; color: #f472b6; font-size: 24px; text-shadow: 0 0 10px rgba(244,114,182,0.3);"><i class="fa-solid fa-dharmachakra"></i> Spinner - MHEnt. Edu</h1>
         <select id="mode-selector" onchange="switchViewMode()" style="background: #334155; color: white; border: 1px solid #475569; padding: 5px 10px; border-radius: 5px; font-family: 'Nunito'; font-weight: 800; cursor: pointer; outline: none;">
             <option value="spinner">Chế độ: Vòng Quay</option>
@@ -166,7 +83,7 @@
         </select>
     </div>
 
-    <div class="main-layout" style="padding-top: 60px;">
+    <div class="main-layout" style="padding-top: 60px;" id="main-game">
         
         <div class="wheel-section" id="view-spinner">
             <div class="wheel-wrapper" id="wheel-wrapper" onclick="spinWheel()">
@@ -192,7 +109,7 @@
             </div>
         </div>
 
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar-panel">
             <div class="tab-headers">
                 <button class="tab-btn active" onclick="switchTab('input')">Danh sách</button>
                 <button class="tab-btn" onclick="switchTab('result')"><span id="result-count">0</span> Kết quả</button>
@@ -229,10 +146,8 @@
         </div>
     </div>
 
+    <script src="/mhent-ui.js"></script>
     <script>
-        // ==========================================
-        // CORE LOGIC (VÒNG QUAY) - KHÔNG ĐỔI
-        // ==========================================
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         const wrapper = document.getElementById('wheel-wrapper');
@@ -253,37 +168,23 @@
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
-
-        function initAudio() {
-            if (!audioCtx) audioCtx = new AudioContext();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
 
         function playTickSound() {
             if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.05);
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05);
         }
 
         function playWinSound() {
             if (!audioCtx) return;
             const freqs = [523.25, 659.25, 783.99, 1046.50]; 
             freqs.forEach((freq, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0, audioCtx.currentTime + i*0.1);
-                gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + i*0.1 + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i*0.1 + 0.6);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(audioCtx.currentTime + i*0.1); osc.stop(audioCtx.currentTime + i*0.1 + 0.6);
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i*0.1); gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + i*0.1 + 0.05); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i*0.1 + 0.6);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(audioCtx.currentTime + i*0.1); osc.stop(audioCtx.currentTime + i*0.1 + 0.6);
             });
         }
 
@@ -291,339 +192,139 @@
             const cColors = ['#f43f5e', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#fbbf24'];
             for(let i=0; i<80; i++) {
                 let conf = document.createElement('div');
-                conf.style.position = 'fixed'; conf.style.width = '12px'; conf.style.height = '12px';
-                conf.style.backgroundColor = cColors[Math.floor(Math.random()*cColors.length)];
-                conf.style.left = '50%'; conf.style.top = '50%'; conf.style.zIndex = '99';
-                document.body.appendChild(conf);
-
-                let angle = Math.random() * Math.PI * 2;
-                let velocity = 15 + Math.random() * 25;
-                let x = Math.cos(angle) * velocity;
-                let y = Math.sin(angle) * velocity;
-                let rot = Math.random() * 360;
-
+                conf.style.position = 'fixed'; conf.style.width = '12px'; conf.style.height = '12px'; conf.style.backgroundColor = cColors[Math.floor(Math.random()*cColors.length)];
+                conf.style.left = '50%'; conf.style.top = '50%'; conf.style.zIndex = '99'; document.body.appendChild(conf);
+                let angle = Math.random() * Math.PI * 2, velocity = 15 + Math.random() * 25, x = Math.cos(angle) * velocity, y = Math.sin(angle) * velocity, rot = Math.random() * 360;
                 let start = performance.now();
                 requestAnimationFrame(function animate(t) {
-                    let progress = (t - start) / 2500;
-                    if(progress > 1) { conf.remove(); return; }
-                    x *= 0.96; y += 0.8; 
-                    conf.style.transform = `translate(calc(-50% + ${x*20}px), calc(-50% + ${y*15}px)) rotate(${rot + progress*500}deg)`;
-                    conf.style.opacity = 1 - progress;
-                    requestAnimationFrame(animate);
+                    let progress = (t - start) / 2500; if(progress > 1) { conf.remove(); return; }
+                    x *= 0.96; y += 0.8; conf.style.transform = `translate(calc(-50% + ${x*20}px), calc(-50% + ${y*15}px)) rotate(${rot + progress*500}deg)`; conf.style.opacity = 1 - progress; requestAnimationFrame(animate);
                 });
             }
         }
 
-        function loadFromAdmin() {
-            const data = localStorage.getItem('mhent_spin_cmd');
-            if (data) {
-                const cmd = JSON.parse(data);
-                activeItems = cmd.payload.items.map((name, index) => ({ id: index, name: name }));
-                isRigged = cmd.payload.isRigged;
-                riggedOrder = cmd.payload.riggedOrder || [];
-                riggedStep = 0; 
-                syncTextarea(); resetWheelPos();
-            }
-        }
-
-        window.addEventListener('storage', (e) => { if (e.key === 'mhent_spin_cmd') loadFromAdmin(); });
         function syncTextarea() { textarea.value = activeItems.map(i => i.name).join('\n'); }
+        function handleManualEdit() { isRigged = false; activeItems = textarea.value.split('\n').map(i => i.trim()).filter(i => i !== "").map((name, index) => ({ id: index, name: name })); resetWheelPos(); }
 
-        function handleManualEdit() {
-            isRigged = false; 
-            const raw = textarea.value.split('\n').map(i => i.trim()).filter(i => i !== "");
-            activeItems = raw.map((name, index) => ({ id: index, name: name }));
-            resetWheelPos(); 
-        }
-
-        function resetWheelPos() {
-            currentRotation = 0; canvas.style.transition = 'none'; canvas.style.transform = `rotate(0deg)`;
-            centerHub.innerHTML = "CLICK<br>ĐỂ QUAY"; drawWheel();
-        }
+        function resetWheelPos() { currentRotation = 0; canvas.style.transition = 'none'; canvas.style.transform = `rotate(0deg)`; centerHub.innerHTML = "CLICK<br>ĐỂ QUAY"; drawWheel(); }
 
         function drawWheel() {
-            ctx.clearRect(0, 0, 800, 800);
-            const numSlices = activeItems.length;
-            if (numSlices === 0) return;
+            ctx.clearRect(0, 0, 800, 800); const numSlices = activeItems.length; if (numSlices === 0) return;
             const sliceAngle = (2 * Math.PI) / numSlices; const center = 400; const radius = 390; 
-
             for (let i = 0; i < numSlices; i++) {
-                ctx.beginPath(); ctx.moveTo(center, center);
-                ctx.arc(center, center, radius, i * sliceAngle, (i + 1) * sliceAngle);
-                ctx.fillStyle = colors[i % colors.length]; ctx.fill();
-                ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
-                ctx.save(); ctx.translate(center, center); ctx.rotate(i * sliceAngle + sliceAngle / 2);
-                ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff";
-                let fontSize = numSlices > 15 ? 20 : (numSlices > 8 ? 28 : 36);
-                ctx.font = `bold ${fontSize}px Nunito`;
-                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 4; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
-                ctx.fillText(activeItems[i].name, radius - 30, 0); ctx.restore();
+                ctx.beginPath(); ctx.moveTo(center, center); ctx.arc(center, center, radius, i * sliceAngle, (i + 1) * sliceAngle);
+                ctx.fillStyle = colors[i % colors.length]; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
+                ctx.save(); ctx.translate(center, center); ctx.rotate(i * sliceAngle + sliceAngle / 2); ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff";
+                let fontSize = numSlices > 15 ? 20 : (numSlices > 8 ? 28 : 36); ctx.font = `bold ${fontSize}px Nunito`;
+                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 4; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2; ctx.fillText(activeItems[i].name, radius - 30, 0); ctx.restore();
             }
         }
 
         function spinWheel() {
             if (isSpinning || activeItems.length === 0) return;
-            initAudio(); 
-            isSpinning = true; wrapper.classList.add('spinning'); centerHub.innerHTML = "ĐANG<br>QUAY...";
-
-            const numSlices = activeItems.length;
-            const sliceAngleDeg = 360 / numSlices;
-            
+            initAudio(); isSpinning = true; wrapper.classList.add('spinning'); centerHub.innerHTML = "ĐANG<br>QUAY...";
+            const numSlices = activeItems.length, sliceAngleDeg = 360 / numSlices;
             if (isRigged && riggedStep < riggedOrder.length) {
-                const targetOriginalId = riggedOrder[riggedStep];
-                currentWinningIndex = activeItems.findIndex(item => item.id === targetOriginalId);
-                if (currentWinningIndex === -1) currentWinningIndex = Math.floor(Math.random() * numSlices);
-                else riggedStep++; 
-            } else {
-                currentWinningIndex = Math.floor(Math.random() * numSlices);
-            }
-
-            const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + (sliceAngleDeg / 2);
-            const targetR = (270 - currentTargetAngle + 360) % 360;
-            const currentRemainder = currentRotation % 360; 
-            
-            let diff = targetR - currentRemainder;
-            if (diff <= 0) diff += 360; 
-
-            const extraSpins = 6 * 360; 
-            const stopAngle = extraSpins + diff; 
-            currentRotation += stopAngle; 
-            canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)'; 
-            canvas.style.transform = `rotate(${currentRotation}deg)`;
-
+                const targetOriginalId = riggedOrder[riggedStep]; currentWinningIndex = activeItems.findIndex(item => item.id === targetOriginalId);
+                if (currentWinningIndex === -1) currentWinningIndex = Math.floor(Math.random() * numSlices); else riggedStep++; 
+            } else { currentWinningIndex = Math.floor(Math.random() * numSlices); }
+            const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + (sliceAngleDeg / 2), targetR = (270 - currentTargetAngle + 360) % 360, currentRemainder = currentRotation % 360; 
+            let diff = targetR - currentRemainder; if (diff <= 0) diff += 360; 
+            currentRotation += (6 * 360) + diff; 
+            canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)'; canvas.style.transform = `rotate(${currentRotation}deg)`;
             let tickDelay = 20;
-            function playTicks() {
-                if (!isSpinning) return;
-                playTickSound();
-                tickDelay *= 1.07; 
-                if (tickDelay < 500) setTimeout(playTicks, tickDelay);
-            }
+            function playTicks() { if (!isSpinning) return; playTickSound(); tickDelay *= 1.07; if (tickDelay < 500) setTimeout(playTicks, tickDelay); }
             playTicks();
-
             setTimeout(() => {
-                const winner = activeItems[currentWinningIndex];
-                document.getElementById('winner-name').innerText = winner.name;
-                document.getElementById('result-popup').classList.add('show');
-                
-                playWinSound(); 
-                throwConfetti(); 
-                
-                winners.push(winner.name);
-                updateResultTab();
+                const winner = activeItems[currentWinningIndex]; document.getElementById('winner-name').innerText = winner.name; document.getElementById('result-popup').classList.add('show');
+                playWinSound(); throwConfetti(); winners.push(winner.name); updateResultTab();
             }, 5000);
         }
 
         function closePopup(action) {
-            document.getElementById('result-popup').classList.remove('show');
-            isSpinning = false; wrapper.classList.remove('spinning');
-            
-            if (action === 'remove' && currentWinningIndex !== -1) {
-                activeItems.splice(currentWinningIndex, 1);
-                syncTextarea(); 
-                if (activeItems.length > 0) drawWheel(); 
-            }
-            
+            document.getElementById('result-popup').classList.remove('show'); isSpinning = false; wrapper.classList.remove('spinning');
+            if (action === 'remove' && currentWinningIndex !== -1) { activeItems.splice(currentWinningIndex, 1); syncTextarea(); if (activeItems.length > 0) drawWheel(); }
             currentWinningIndex = -1;
-
-            if (activeItems.length > 0) {
-                centerHub.innerHTML = "CLICK<br>ĐỂ QUAY";
-            } else {
-                centerHub.innerHTML = "HẾT<br>NGƯỜI";
-                ctx.clearRect(0, 0, 800, 800); 
-            }
+            if (activeItems.length > 0) centerHub.innerHTML = "CLICK<br>ĐỂ QUAY"; else { centerHub.innerHTML = "HẾT<br>NGƯỜI"; ctx.clearRect(0, 0, 800, 800); }
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('tab-' + tabId).classList.add('active');
-        }
-        function updateResultTab() {
-            document.getElementById('result-count').innerText = winners.length;
-            const ul = document.getElementById('winner-list'); ul.innerHTML = '';
-            winners.forEach((w, idx) => { ul.innerHTML += `<li><span>${w}</span> <span class="winner-count">#${idx + 1}</span></li>`; });
-        }
+        function switchTab(tabId) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); event.target.classList.add('active'); document.getElementById('tab-' + tabId).classList.add('active'); }
+        function updateResultTab() { document.getElementById('result-count').innerText = winners.length; const ul = document.getElementById('winner-list'); ul.innerHTML = ''; winners.forEach((w, idx) => { ul.innerHTML += `<li><span>${w}</span> <span class="winner-count">#${idx + 1}</span></li>`; }); }
         function clearResults() { winners = []; updateResultTab(); }
-        
-        function shuffleList() {
-            activeItems = activeItems.sort(() => 0.5 - Math.random());
-            isRigged = false; syncTextarea(); resetWheelPos();
-        }
-        function sortList() {
-            activeItems.sort((a, b) => a.name.localeCompare(b.name));
-            isRigged = false; syncTextarea(); resetWheelPos();
-        }
+        function shuffleList() { activeItems = activeItems.sort(() => 0.5 - Math.random()); isRigged = false; syncTextarea(); resetWheelPos(); }
+        function sortList() { activeItems.sort((a, b) => a.name.localeCompare(b.name)); isRigged = false; syncTextarea(); resetWheelPos(); }
 
-
-        // ==========================================
-        // NEW LOGIC: CHIA TEAM & LẬT BÀI
-        // ==========================================
+        // LOGIC LẬT BÀI
         function switchViewMode() {
             const mode = document.getElementById('mode-selector').value;
-            // Ở đây gọi đúng id="view-spinner" vừa nãy bị thiếu
-            if(mode === 'spinner') {
-                document.getElementById('view-spinner').style.display = 'flex';
-                document.getElementById('view-cards').style.display = 'none';
-            } else {
-                document.getElementById('view-spinner').style.display = 'none';
-                document.getElementById('view-cards').style.display = 'flex';
-                initCardPlaceholder();
-            }
+            if(mode === 'spinner') { document.getElementById('view-spinner').style.display = 'flex'; document.getElementById('view-cards').style.display = 'none'; document.getElementById('sidebar-panel').style.display = 'flex'; } 
+            else { document.getElementById('view-spinner').style.display = 'none'; document.getElementById('view-cards').style.display = 'flex'; document.getElementById('sidebar-panel').style.display = 'none'; initCardPlaceholder(); }
         }
-
         function initCardPlaceholder() {
-            const r1 = document.getElementById('card-row-1');
-            const r2 = document.getElementById('card-row-2');
-            r1.innerHTML = ''; r2.innerHTML = '';
-            for(let i=0; i<8; i++) {
-                const html = `<div class="card-item ${i<4?'team1':'team2'}"><div class="card-inner"><div class="card-front"><i class="fa-solid fa-ghost"></i></div><div class="card-back">?</div></div></div>`;
-                if(i<4) r1.innerHTML += html; else r2.innerHTML += html;
-            }
-            // Reset nút bấm
-            document.getElementById('btn-card-shuffle').style.display = 'block';
-            document.getElementById('btn-reveal-1').style.display = 'none';
-            document.getElementById('btn-reveal-2').style.display = 'none';
+            const r1 = document.getElementById('card-row-1'); const r2 = document.getElementById('card-row-2'); r1.innerHTML = ''; r2.innerHTML = '';
+            for(let i=0; i<8; i++) { const html = `<div class="card-item ${i<4?'team1':'team2'}"><div class="card-inner"><div class="card-front"><i class="fa-solid fa-ghost"></i></div><div class="card-back">?</div></div></div>`; if(i<4) r1.innerHTML += html; else r2.innerHTML += html; }
+            document.getElementById('btn-card-shuffle').style.display = 'block'; document.getElementById('btn-reveal-1').style.display = 'none'; document.getElementById('btn-reveal-2').style.display = 'none';
         }
-
         function startCardShuffle() {
-            // Rào chặn an toàn: Dù danh sách có 9 người thì ta chỉ lấy 8 người đầu tiên để trộn
-            if(activeItems.length < 8) {
-                return showToast("Cần ít nhất 8 người trong danh sách để chia đội nha Giám đốc!", true);
-            }
-            initAudio();
-            const cards = document.querySelectorAll('.card-item');
-            cards.forEach(c => { c.classList.add('shuffling-card'); c.classList.remove('flipped'); });
-
+            if(activeItems.length < 8) return showToast("Cần ít nhất 8 người trong danh sách để chia đội nha Giám đốc!", true);
+            initAudio(); const cards = document.querySelectorAll('.card-item'); cards.forEach(c => { c.classList.add('shuffling-card'); c.classList.remove('flipped'); });
             setTimeout(() => {
                 cards.forEach(c => c.classList.remove('shuffling-card'));
-                
-                let finalNames = [];
-                let pool = activeItems.slice(0, 8); // Chỉ lấy đúng 8 người đầu tiên
-
-                // Cơ cấu thần chưởng
-                if (isRigged && riggedOrder.length >= 8) {
-                    riggedOrder.slice(0, 8).forEach(id => {
-                        const person = activeItems.find(p => p.id === id);
-                        if(person) finalNames.push(person.name);
-                    });
-                } else {
-                    // Chơi xanh chín
-                    finalNames = pool.map(p => p.name).sort(() => Math.random() - 0.5);
-                }
-
-                // Gắn tên vào mặt sau
-                const backs = document.querySelectorAll('.card-back');
-                finalNames.forEach((name, idx) => { backs[idx].innerText = name; });
-
-                document.getElementById('btn-card-shuffle').style.display = 'none';
-                document.getElementById('btn-reveal-1').style.display = 'block';
+                let finalNames = []; let pool = activeItems.slice(0, 8);
+                if (isRigged && riggedOrder.length >= 8) { riggedOrder.slice(0, 8).forEach(id => { const person = activeItems.find(p => p.id === id); if(person) finalNames.push(person.name); }); } 
+                else { finalNames = pool.map(p => p.name).sort(() => Math.random() - 0.5); }
+                const backs = document.querySelectorAll('.card-back'); finalNames.forEach((name, idx) => { backs[idx].innerText = name; });
+                document.getElementById('btn-card-shuffle').style.display = 'none'; document.getElementById('btn-reveal-1').style.display = 'block';
             }, 2000);
         }
-
         function revealCards(teamNum) {
             const teamCards = document.querySelectorAll(`.card-item.team${teamNum}`);
-            teamCards.forEach((card, idx) => {
-                setTimeout(() => {
-                    card.classList.add('flipped');
-                    playTickSound();
-                }, idx * 400);
-            });
-
-            if(teamNum === 1) {
-                document.getElementById('btn-reveal-1').style.display = 'none';
-                setTimeout(() => { document.getElementById('btn-reveal-2').style.display = 'block'; }, 1500);
-            } else {
-                document.getElementById('btn-reveal-2').style.display = 'none';
-                setTimeout(() => { 
-                    document.getElementById('btn-card-shuffle').style.display = 'block';
-                    document.getElementById('btn-card-shuffle').innerHTML = '<i class="fa-solid fa-rotate-right"></i> CHIA LẠI';
-                }, 2000);
-            }
+            teamCards.forEach((card, idx) => { setTimeout(() => { card.classList.add('flipped'); playTickSound(); }, idx * 400); });
+            if(teamNum === 1) { document.getElementById('btn-reveal-1').style.display = 'none'; setTimeout(() => { document.getElementById('btn-reveal-2').style.display = 'block'; }, 1500); } 
+            else { document.getElementById('btn-reveal-2').style.display = 'none'; setTimeout(() => { document.getElementById('btn-card-shuffle').style.display = 'block'; document.getElementById('btn-card-shuffle').innerHTML = '<i class="fa-solid fa-rotate-right"></i> CHIA LẠI'; }, 2000); }
         }
 
-        // Khởi động
-        loadFromAdmin();
-    </script>
-    <script>
-    // =========================================================
-    // 🚀 AUTO-LOADER: TỰ ĐỘNG TẢI GAME TỪ LINK GIÁO ÁN
-    // =========================================================
-    document.addEventListener("DOMContentLoaded", async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameId = urlParams.get('id');
-        
-        // Tự động phân tích xem mình đang ở trang game nào (baam, tug, bomb...)
-        const pathParts = window.location.pathname.split('/');
-        let gameType = pathParts[pathParts.length - 1].replace('.html', '');
-        if(!gameType || gameType === 'teach') gameType = 'index'; // Fallback
+        // =====================================
+        // NHẬN DỮ LIỆU CHUẨN TỪ MÂY / LOCAL STORAGE
+        // =====================================
+        window.addEventListener('storage', e => {
+            if(e.key === 'mhent_spin_cmd') {
+                const data = JSON.parse(e.newValue);
+                if(data.action === 'SYNC') loadGameData(data.payload);
+            }
+        });
 
-        if (gameId && gameType) {
+        document.addEventListener("DOMContentLoaded", async () => {
+            const gameId = new URLSearchParams(window.location.search).get('id');
             const waitingMsg = document.getElementById('waiting-msg');
-            if(waitingMsg) waitingMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><br><br>Đang tải giáo án từ Két sắt Đám Mây...';
-            
-            try {
-                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
-                let res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'getGameById', gameType: gameType, rowId: gameId })
-                });
-                let result = await res.json();
+            if (gameId) {
+                if(waitingMsg) waitingMsg.style.display = 'block';
+                document.getElementById('header-controls').style.display = 'none';
+                document.getElementById('main-game').style.opacity = '0';
                 
-                if (result.success) {
-                    const payload = result.gameData;
-                    
-                    // KIỂM TRA TỪNG LOẠI GAME ĐỂ KHỞI ĐỘNG CHO ĐÚNG CÁCH
-                    if (gameType === 'baam') {
-                        initGame(payload.teams, payload.cards);
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
-                    } 
-                    else if (gameType === 'blast') {
-                        questions = payload.questions; 
-                        currentIndex = 0; 
-                        document.getElementById('waiting-msg').style.display = 'none';
-                        document.querySelector('.game-container').style.display = 'flex'; // Hiện game
-                        loadQuestion();
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
-                    }
-                    else if (gameType === 'tug') {
-                        questions = payload.qaList;
-                        MAX_PULL = payload.winN || 5;
-                        currentIndex = 0; score1 = 0; score2 = 0; pullDiff = 0;
-                        document.getElementById('waiting-msg').style.display = 'none';
-                        updateUI(); loadQuestion();
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
-                    }
-                    else if (gameType === 'bomb') {
-                        // Logic của Bomb
-                        document.getElementById('time-input').value = payload.time || 30;
-                        numTeams = payload.teams || 2;
-                        timeReward = payload.reward || 0;
-                        gameMode = payload.mode || 'pass';
-                        questionsList = payload.questions || [];
-                        document.getElementById('mode-display').innerText = gameMode === 'pass' ? "CHẾ ĐỘ: 🔥 CHUYỀN BOM" : "CHẾ ĐỘ: 🛡️ GỠ BOM";
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName} đã được nạp!`, "success");
-                    }
-                    else if (gameType === 'spin') {
-                        // Cần nhét data vào mảng của Spinner
-                        activeItems = payload.items.map((name, index) => ({ id: index, name: name }));
-                        isRigged = payload.isRigged;
-                        riggedOrder = payload.riggedOrder || [];
-                        riggedStep = 0;
-                        document.getElementById('waiting-msg').style.display = 'none';
-                        resetWheelPos();
-                        showToast("Sẵn sàng!", `Danh sách quay đã được nạp!`, "success");
-                    }
-
-                } else {
-                    if(waitingMsg) waitingMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><br><br>Lỗi: Không tìm thấy giáo án này!`;
-                }
-            } catch(e) {
-                if(waitingMsg) waitingMsg.innerHTML = `<i class="fa-solid fa-wifi"></i><br><br>Lỗi mạng rồi cậu ơi!`;
+                try {
+                    let res = await fetch("https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec", { method: 'POST', body: JSON.stringify({ action: 'getGameById', gameType: 'spin', rowId: gameId }) });
+                    let result = await res.json();
+                    if (result.success) loadGameData(result.gameData);
+                } catch(e) { console.error(e); }
             }
+        });
+
+        function loadGameData(payload) {
+            activeItems = payload.items.map((name, index) => ({ id: index, name: name }));
+            isRigged = payload.isRigged;
+            riggedOrder = payload.riggedOrder || [];
+            riggedStep = 0;
+            
+            const waiting = document.getElementById('waiting-msg');
+            if(waiting) waiting.style.display = 'none';
+            document.getElementById('header-controls').style.display = 'flex';
+            document.getElementById('main-game').style.opacity = '1';
+            
+            syncTextarea();
+            resetWheelPos(); 
+            showToast("Thành công!", "Đã nạp danh sách vòng quay!", "success");
         }
-    });
     </script>
-    <script src="/mhent-ui.js"></script>
 </body>
 </html>
