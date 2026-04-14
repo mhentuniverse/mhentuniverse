@@ -146,6 +146,9 @@
                         </div>
                         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                             <select class="admin-select cloud-selector-vocab" style="flex: 2;" onchange="loadSelectedGame('vocab')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-vocab" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
+                                ------
+                            </div>
                             <input type="text" class="admin-input cloud-data-name-vocab" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Bài 1 - Tiếng Anh)...">
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -223,6 +226,9 @@
                         </div>
                         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                             <select class="admin-select cloud-selector-baam" style="flex: 2;" onchange="loadSelectedGame('baam')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-baam" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
+                                ------
+                            </div>
                             <input type="text" class="admin-input cloud-data-name-baam" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Unit 10 Quiz)...">
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -269,6 +275,10 @@
                         </div>
                         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                             <select class="admin-select cloud-selector-spin" style="flex: 2;" onchange="loadSelectedGame('spin')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-spin" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
+                                ------
+                            </div>
+
                             <input type="text" class="admin-input cloud-data-name-spin" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Danh sách Lớp 12A1)...">
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -317,6 +327,10 @@
                         </div>
                         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                             <select class="admin-select cloud-selector-tug" style="flex: 2;" onchange="loadSelectedGame('tug')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-tug" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
+                                ------
+                            </div>
+
                             <input type="text" class="admin-input cloud-data-name-tug" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Bộ Kéo co Tiếng Anh)...">
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -359,6 +373,10 @@
                         </div>
                         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                             <select class="admin-select cloud-selector-bomb" style="flex: 2;" onchange="loadSelectedGame('bomb')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-bomb" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
+                                ------
+                            </div>
+
                             <input type="text" class="admin-input cloud-data-name-bomb" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Bom Flashcard bài 5)...">
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -415,6 +433,9 @@
                         </div>
                         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                             <select class="admin-select cloud-selector-blast" style="flex: 2;" onchange="loadSelectedGame('blast')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-blast" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
+                                ------
+                            </div>
                             <input type="text" class="admin-input cloud-data-name-blast" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Map Minecraft bài 10)...">
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -772,13 +793,20 @@
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
             const rowId = selector.value;
             const nameInput = document.querySelector(`.cloud-data-name-${gameType}`);
+            const idDisplay = document.getElementById(`display-id-${gameType}`); // Bắt lấy cái ô hiển thị ID
 
-            if(!rowId) { nameInput.value = ''; return; }
+            if(!rowId) { 
+                nameInput.value = ''; 
+                if(idDisplay) idDisplay.innerText = '------'; // Nếu chưa chọn gì thì hiện dấu gạch
+                return; 
+            }
 
             const game = window.cloudState[gameType].find(g => g.rowId === rowId);
             if(!game) return;
 
             nameInput.value = game.dataName;
+            if(idDisplay) idDisplay.innerText = game.rowId; // Bắn mã ID ra màn hình
+
             const data = game.gameData;
 
             if(gameType === 'vocab') {
@@ -971,7 +999,7 @@
         };
 
         addBlastRow();
-        
+
         // 🔗 HÀM LẤY LINK TRỰC TIẾP CHÈN VÀO GIÁO ÁN
         window.copyDirectLink = function(gameType) {
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
