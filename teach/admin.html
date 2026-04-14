@@ -911,45 +911,38 @@
         };
 
         // XÓA KHỎI MÂY
-        window.deleteFromCloud = async function(gameType) {
+        window.deleteFromCloud = function(gameType) {
             if(!window.auth.currentUser) return;
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
             const rowId = selector.value;
             if(!rowId) return showToast('Lỗi', 'Cậu chưa chọn bộ dữ liệu để xóa!', 'error');
 
-            if(!confirm('Cậu có chắc chắn muốn xóa bộ dữ liệu này khỏi Két Sắt vĩnh viễn không?')) return;
+            // GỌI BẢNG XÁC NHẬN XỊN XÒ TỪ MHEnt UI
+            showConfirmPopup("Cảnh báo chà bá!", "Cậu có chắc chắn muốn xóa bộ dữ liệu này khỏi Két Sắt vĩnh viễn không?", async function() {
+                
+                showToast('Đang xử lý', 'Hệ thống đang tiến hành xóa...', 'info');
 
-            // FIX TRÁNH CRASH JS
-            const e = window.event;
-            const btn = e ? (e.currentTarget || e.target.closest('button')) : null;
-            let originalHtml = '';
-            if(btn) {
-                originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xóa...';
-                btn.disabled = true;
-            }
-
-            try {
-                const res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'deleteGame', uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user', gameType: gameType, rowId: rowId })
-                });
-                const result = await res.json();
-                if(result.success) {
-                    showToast('Thành công', 'Đã xóa bộ dữ liệu!', 'success');
-                    document.querySelector(`.cloud-data-name-${gameType}`).value = '';
+                try {
+                    const res = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'deleteGame', uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user', gameType: gameType, rowId: rowId })
+                    });
+                    const result = await res.json();
                     
-                    // Cập nhật lại dropdown cho sạch sẽ
-                    const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
-                    const loadResult = await loadRes.json();
-                    if(loadResult.success) {
-                        window.cloudState[gameType] = loadResult.games || [];
-                        updateCloudDropdown(gameType);
+                    if(result.success) {
+                        showToast('Thành công', 'Đã xóa bộ dữ liệu!', 'success');
+                        document.querySelector(`.cloud-data-name-${gameType}`).value = '';
+                        
+                        // Cập nhật lại dropdown cho sạch sẽ
+                        const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
+                        const loadResult = await loadRes.json();
+                        if(loadResult.success) {
+                            window.cloudState[gameType] = loadResult.games || [];
+                            updateCloudDropdown(gameType);
+                        }
                     }
-                }
-            } catch(e) { showToast('Lỗi', 'Lỗi mạng khi xóa!', 'error'); }
-            
-            if(btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
+                } catch(e) { showToast('Lỗi', 'Lỗi mạng khi xóa!', 'error'); }
+            });
         };
 
         // KÉO CÁC HÀM CŨ XUỐNG DƯỚI CÙNG ĐỂ KHÔNG BỊ LỖI SCOPE

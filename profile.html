@@ -406,17 +406,17 @@
         window.deleteMyAccount = function() {
             const user = auth.currentUser;
             if(!user) return;
-            const confirmDelete = confirm("Cảnh báo: Cậu có chắc chắn muốn xóa vĩnh viễn tài khoản không? Hành động này không thể hoàn tác!");
-            if(confirmDelete) {
+            
+            showConfirmPopup("KHU VỰC NGUY HIỂM", "Cậu có chắc chắn muốn xóa vĩnh viễn tài khoản không? Hành động này KHÔNG THỂ hoàn tác!", function() {
                 deleteUser(user).then(() => {
-                    showToast("Tài khoản của cậu đã được xóa. Hẹn gặp lại nhé!");
-                    window.location.href = '/';
+                    showPopup("Tài khoản của cậu đã được xóa. Hẹn gặp lại nhé!");
+                    setTimeout(() => window.location.href = '/', 2000);
                 }).catch((error) => {
                     if(error.code === 'auth/requires-recent-login') {
-                        showToast('Lỗi bảo mật', 'Cậu cần Đăng xuất rồi Đăng nhập lại để thực hiện lệnh này!', 'error');
-                    } else { showToast('Lỗi', 'Không thể xóa tài khoản lúc này.', 'error'); }
+                        showPopup("Cậu cần Đăng xuất rồi Đăng nhập lại để thực hiện lệnh bảo mật này!", true);
+                    } else { showPopup("Không thể xóa tài khoản lúc này.", true); }
                 });
-            }
+            });
         };
 
         // LÕI NAVBAR DÙNG CHUNG

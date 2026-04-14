@@ -920,17 +920,25 @@
                 else if (serverType === 'linkDuPhong2') { document.getElementById('btn-server-dp2').classList.add('active'); }
             };
 
-            window.reportEpisode = async function() {
-                const user = auth.currentUser;
-                if (!user) { showToast("Cậu đăng nhập để gửi báo cáo lỗi nha! 🕵️‍♂️"); return; }
-                let isConfirm = confirm("Tập này bị lỗi không xem được hả cậu? Tớ sẽ báo cho Admin ngay!");
-                if (isConfirm) {
-                    try {
-                        await addDoc(collection(db, "reports"), { movieId: window.currentMovieId, movieName: window.currentMovieData.title, epIndex: window.currentEpIndex, server: window.currentServerType, userId: user.uid, userName: user.displayName || user.email, time: new Date().toISOString(), status: "Chưa xử lý" });
-                        showToast("Cảm ơn cậu! Báo cáo đã bay thẳng đến bàn làm việc của Giám đốc Kỹ thuật 🚀");
-                    } catch (e) { console.error("Lỗi:", e); showToast("Ui, có lỗi mạng rồi, cậu thử lại sau nha."); }
+            window.reportEpisode = function() {
+            const user = auth.currentUser;
+            if (!user) { showToast("Cảnh báo", "Cậu đăng nhập để gửi báo cáo lỗi nha! 🕵️‍♂️", "error"); return; }
+            
+            showConfirmPopup("Báo cáo lỗi", "Tập này bị lỗi không xem được hả cậu? Tớ sẽ báo cho Admin ngay!", async function() {
+                try {
+                    const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+                    await addDoc(collection(db, "reports"), { 
+                        movieId: window.currentMovieId, movieName: window.currentMovieData.title, epIndex: window.currentEpIndex, 
+                        server: window.currentServerType, userId: user.uid, userName: user.displayName || user.email, 
+                        time: new Date().toISOString(), status: "Chưa xử lý" 
+                    });
+                    showToast("Thành công", "Cảm ơn cậu! Báo cáo đã bay thẳng đến bàn làm việc của Giám đốc Kỹ thuật 🚀", "success");
+                } catch (e) { 
+                    console.error("Lỗi:", e); 
+                    showToast("Lỗi", "Ui, có lỗi mạng rồi, cậu thử lại sau nha.", "error"); 
                 }
-            };
+            });
+        };
 
             window.rateMovie = async function(stars) {
                 const user = auth.currentUser;
