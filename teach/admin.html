@@ -152,6 +152,7 @@
                             <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('vocab', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
                             <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('vocab', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
                             <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('vocab')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('vocab')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -228,6 +229,7 @@
                             <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('baam', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
                             <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('baam', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
                             <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('baam')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('baam')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -273,6 +275,7 @@
                             <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('spin', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
                             <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('spin', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
                             <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('spin')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('spin')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -320,6 +323,7 @@
                             <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('tug', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
                             <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('tug', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
                             <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('tug')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('tug')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -361,6 +365,7 @@
                             <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('bomb', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
                             <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('bomb', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
                             <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('bomb')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('bomb')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -416,6 +421,7 @@
                             <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('blast', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
                             <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('blast', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
                             <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('blast')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('blast')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -965,6 +971,21 @@
         };
 
         addBlastRow();
+        
+        // 🔗 HÀM LẤY LINK TRỰC TIẾP CHÈN VÀO GIÁO ÁN
+        window.copyDirectLink = function(gameType) {
+            const selector = document.querySelector(`.cloud-selector-${gameType}`);
+            const rowId = selector.value;
+            
+            if(!rowId) {
+                showToast('Lỗi', 'Cậu phải chọn một bộ dữ liệu từ danh sách trước đã!', 'error');
+                return;
+            }
+            
+            const link = `${window.location.origin}/teach/${gameType}?id=${rowId}`;
+            navigator.clipboard.writeText(link);
+            showToast('Thành công!', 'Đã copy Link. Cậu có thể dán thẳng vào giáo án rồi đó!', 'success');
+        };
     </script>
     <script src="/mhent-ui.js"></script>
 </body>
