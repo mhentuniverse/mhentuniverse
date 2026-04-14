@@ -215,20 +215,53 @@
             cancelAnimationFrame(animationId);
 
             const arenaRect = document.getElementById('arena').getBoundingClientRect();
-            const gap = 20; 
+            const gapX = 20; // Khoảng cách ngang giữa các chữ
+            const gapY = 30; // Khoảng cách dọc giữa các dòng
+            const maxWidth = arenaRect.width - 100; // Cách 2 lề 50px cho an toàn không bị lẹm
 
-            let totalWidth = blocks.reduce((sum, b) => sum + b.width, 0) + gap * (blocks.length - 1);
+            // Xếp các block về đúng số báo danh ban đầu
             blocks.sort((a,b) => a.order - b.order);
 
-            let currentX = (arenaRect.width - totalWidth) / 2;
-            let startY = arenaRect.height / 2 - blocks[0].height / 2; 
+            // 🔥 THUẬT TOÁN CHIA DÒNG (WORD WRAP)
+            let lines = [];
+            let currentLine = [];
+            let currentLineWidth = 0;
 
-            blocks.forEach((b, i) => {
-                b.el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'; 
-                b.x = currentX;
-                b.y = startY;
-                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
-                currentX += b.width + gap;
+            blocks.forEach(b => {
+                // Nếu độ dài dòng hiện tại + chữ mới vượt quá màn hình -> Cắt sang dòng mới
+                if (currentLineWidth + b.width > maxWidth && currentLine.length > 0) {
+                    lines.push({ items: currentLine, width: currentLineWidth - gapX });
+                    currentLine = [b];
+                    currentLineWidth = b.width + gapX;
+                } else {
+                    currentLine.push(b);
+                    currentLineWidth += b.width + gapX;
+                }
+            });
+            // Đẩy dòng cuối cùng vào mảng
+            if (currentLine.length > 0) {
+                lines.push({ items: currentLine, width: currentLineWidth - gapX });
+            }
+
+            // 🔥 TÍNH TOÁN CHIỀU CAO TỔNG ĐỂ CĂN GIỮA THEO TRỤC Y
+            const blockHeight = blocks[0].height;
+            const totalHeight = (lines.length * blockHeight) + ((lines.length - 1) * gapY);
+            let startY = (arenaRect.height - totalHeight) / 2;
+
+            // 🔥 CHO CHỮ BAY VỀ VỊ TRÍ THEO TỪNG DÒNG
+            lines.forEach(line => {
+                let currentX = (arenaRect.width - line.width) / 2; // Căn giữa trục X cho dòng này
+                
+                line.items.forEach(b => {
+                    b.el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'; 
+                    b.x = currentX;
+                    b.y = startY;
+                    b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+                    currentX += b.width + gapX;
+                });
+                
+                // Xếp xong 1 dòng thì tụt tọa độ Y xuống để xếp dòng tiếp theo
+                startY += blockHeight + gapY;
             });
         }
 
