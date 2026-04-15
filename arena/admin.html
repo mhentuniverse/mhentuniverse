@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body, h1, h2, h3, h4, p, span, button, input, select, textarea, td, th { font-family: 'Nunito', sans-serif !important; }
         body { background: #f8fafc; overflow-x: hidden; margin: 0; padding: 0; }
@@ -466,476 +467,287 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // ==========================================
+        // 1. KHỞI TẠO FIREBASE & SUPABASE
+        // ==========================================
         const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
         const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
 
-        window.globalResultsData = []; window.globalQuestionsData = []; window.globalQuizList = [];
+        const SUPABASE_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // BIẾN TOÀN CỤC CHUNG
+        window.globalResultsData = []; window.globalQuestionsData = []; window.globalQuizList = []; window.currentExportData = []; window.currentQuizQuestions = [];
+        window.currentUserEmail = ""; window.isStudioMode = window.location.pathname.includes('studio');
+
+        // ==========================================
+        // 2. UI CƠ BẢN & PHÂN QUYỀN
+        // ==========================================
         window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+        window.switchTab = function(tabName) { document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active')); document.getElementById('tab-' + tabName).classList.add('active'); document.getElementById('menu-' + tabName).classList.add('active'); };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
-                    if (userSnap.exists() && userSnap.data().role.includes('admin')) {
+                    let role = userSnap.exists() ? userSnap.data().role : "";
+                    
+                    // Logic bảo vệ: Admin vào được cả 2, Studio/Arena chỉ vào được Studio
+                    if (role.includes('admin') || (window.isStudioMode && role.includes('arena'))) {
+                        window.currentUserEmail = user.email;
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
-                        loadAllQuizzesIntoSelects(); 
+                        
+                        // Nạp tên nếu ở Studio
+                        if(window.isStudioMode && document.getElementById('creator-name-title')) {
+                            document.getElementById('creator-name-title').innerText = user.displayName || user.email.split('@')[0];
+                            document.getElementById('creator-email-display').innerText = user.email;
+                            document.getElementById('creator-email-display').style.display = 'inline';
+                        }
+                        loadAllQuizzesIntoSelects();
                     } else kickOut();
                 } catch(e) { kickOut(); }
             } else kickOut();
         });
-        function kickOut() { showPopup("⚠️ CẢNH BÁO: Khu vực cấm!", true); setTimeout(() => { window.location.href = '/arena/'; }, 2000); }
+        function kickOut() { showPopup("⚠️ Khu vực cấm hoặc bạn chưa có quyền!", true); setTimeout(() => { window.location.href = '/arena/'; }, 2000); }
 
-        window.switchTab = function(tabName) {
-            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.add('active');
-            document.getElementById('menu-' + tabName).classList.add('active');
-        };
-
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
-
+        // ==========================================
+        // 3. QUẢN LÝ HỘI THI (CRUD BẰNG SUPABASE)
+        // ==========================================
         async function loadAllQuizzesIntoSelects() {
             try {
-                let res = await fetch(API_URL + "?action=getQuizList&t=" + new Date().getTime());
-                let result = await res.json();
-                if (result.success) {
-                    window.globalQuizList = result.data;
-                    let optionsHTML = '<option value="" disabled selected>-- Chọn Hội thi --</option>';
-                    result.data.forEach(q => { optionsHTML += `<option value="${q.id}">[${q.id}] ${q.title}</option>`; });
-                    document.getElementById('inp-quiz-id').innerHTML = optionsHTML;
-                    document.getElementById('select-view-q').innerHTML = optionsHTML;
-                    document.getElementById('select-view-res').innerHTML = optionsHTML;
-                    document.getElementById('select-view-dash').innerHTML = optionsHTML;
-                    document.getElementById('inp-edit-quiz-id').innerHTML = optionsHTML;
-                }
-            } catch(e) { console.log(e); }
+                let query = supabase.schema('arena').from('quizzes').select('*').order('created_at', { ascending: false });
+                if (window.isStudioMode) query = query.eq('creator_email', window.currentUserEmail);
+                
+                const { data, error } = await query;
+                if (error) throw error;
+
+                window.globalQuizList = data;
+                let options = '<option value="" disabled selected>-- Chọn Hội thi --</option>';
+                data.forEach(q => { options += `<option value="${q.id}">[${q.id}] ${q.title}</option>`; });
+                
+                ['inp-quiz-id', 'select-view-q', 'select-view-res', 'select-view-dash', 'inp-edit-quiz-id'].forEach(id => {
+                    let el = document.getElementById(id); if(el) el.innerHTML = options;
+                });
+            } catch (e) { console.error("Lỗi tải hội thi:", e); }
         }
 
+        // TẠO HỘI THI MỚI
         document.getElementById('create-quiz-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            let btn = document.getElementById('btn-submit-quiz'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true;
-            let isSchoolNew = document.getElementById('inp-new-is-school').checked ? '_aca' : '';
-            let optM_new = document.getElementById('inp-new-opt-mssv').value;
-            let optC_new = document.getElementById('inp-new-opt-class').value;
-            let optF_new = document.getElementById('inp-new-opt-faculty').value;
-            let finalModeNew = document.getElementById('inp-new-mode').value + isSchoolNew + optM_new + optC_new + optF_new;
-            let payload = { action: 'addQuiz', quizId: document.getElementById('inp-new-id').value.trim().toUpperCase(), title: document.getElementById('inp-new-title').value.trim(), desc: document.getElementById('inp-new-desc').value.trim(), qCount: document.getElementById('inp-new-count').value, timeLimit: document.getElementById('inp-new-time').value, status: document.getElementById('inp-new-status').value, mode: finalModeNew, startTime: document.getElementById('inp-new-start').value, endTime: document.getElementById('inp-new-end').value };
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
-                if(result.success) { showPopup(result.message); document.getElementById('create-quiz-form').reset(); loadAllQuizzesIntoSelects(); } else showPopup(result.error, true);
-            } catch (err) { showPopup("Lỗi mạng!", true); }
+            e.preventDefault(); let btn = document.getElementById('btn-submit-quiz'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
+            let mode = document.getElementById('inp-new-mode').value + (document.getElementById('inp-new-is-school').checked ? '_aca' : '') + document.getElementById('inp-new-opt-mssv').value + document.getElementById('inp-new-opt-class').value + document.getElementById('inp-new-opt-faculty').value;
+            
+            let payload = { 
+                id: document.getElementById('inp-new-id').value.trim().toUpperCase(), title: document.getElementById('inp-new-title').value.trim(), 
+                description: document.getElementById('inp-new-desc').value.trim(), question_count: parseInt(document.getElementById('inp-new-count').value), 
+                time_limit: parseInt(document.getElementById('inp-new-time').value), status: document.getElementById('inp-new-status').value, mode: mode, 
+                start_time: document.getElementById('inp-new-start').value || null, end_time: document.getElementById('inp-new-end').value || null,
+                creator_email: window.currentUserEmail, is_verified: !window.isStudioMode // Admin tạo thì tự động verified
+            };
+            const { error } = await supabase.schema('arena').from('quizzes').insert([payload]);
+            if(error) showPopup("Lỗi tạo đề: Mã này đã tồn tại!", true);
+            else { showPopup("Tạo Hội Thi thành công!"); document.getElementById('create-quiz-form').reset(); loadAllQuizzesIntoSelects(); }
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
+        // ĐỔ DỮ LIỆU VÀO FORM SỬA
         window.fillEditQuizForm = function() {
             let qId = document.getElementById('inp-edit-quiz-id').value; let q = window.globalQuizList.find(x => x.id === qId);
             if(q) {
-                let modeStr = q.mode || 'default';
+                let m = q.mode || 'default';
+                document.getElementById('inp-edit-is-school').checked = m.includes('_aca') || m.includes('_school');
+                document.getElementById('inp-edit-opt-mssv').value = m.includes('_mH') ? '_mH' : (m.includes('_mO') ? '_mO' : '_mR');
+                document.getElementById('inp-edit-opt-class').value = m.includes('_cH') ? '_cH' : (m.includes('_cO') ? '_cO' : '_cR');
+                document.getElementById('inp-edit-opt-faculty').value = m.includes('_fH') ? '_fH' : (m.includes('_fO') ? '_fO' : '_fR');
+                document.getElementById('inp-edit-mode').value = m.includes('quizz') ? 'quizz' : 'default';
                 
-                document.getElementById('inp-edit-is-school').checked = modeStr.includes('_aca') || modeStr.includes('_academic') || modeStr.includes('_school');
+                document.getElementById('inp-edit-title').value = q.title; document.getElementById('inp-edit-desc').value = q.description;
+                document.getElementById('inp-edit-count').value = q.question_count; document.getElementById('inp-edit-time').value = q.time_limit;
+                document.getElementById('inp-edit-status').value = q.status; 
                 
-                // Giải mã 3 ô nhập liệu độc lập
-                if(modeStr.includes('_mH')) document.getElementById('inp-edit-opt-mssv').value = '_mH';
-                else if(modeStr.includes('_mO')) document.getElementById('inp-edit-opt-mssv').value = '_mO';
-                else document.getElementById('inp-edit-opt-mssv').value = '_mR';
-
-                if(modeStr.includes('_cH')) document.getElementById('inp-edit-opt-class').value = '_cH';
-                else if(modeStr.includes('_cO')) document.getElementById('inp-edit-opt-class').value = '_cO';
-                else document.getElementById('inp-edit-opt-class').value = '_cR';
-
-                if(modeStr.includes('_fH')) document.getElementById('inp-edit-opt-faculty').value = '_fH';
-                else if(modeStr.includes('_fO')) document.getElementById('inp-edit-opt-faculty').value = '_fO';
-                else document.getElementById('inp-edit-opt-faculty').value = '_fR';
-
-                // Loại bỏ rác để lấy mode chuẩn (default / quizz)
-                document.getElementById('inp-edit-mode').value = modeStr.includes('quizz') ? 'quizz' : 'default';
-                
-                document.getElementById('inp-edit-title').value = q.title; document.getElementById('inp-edit-desc').value = q.desc;
-                document.getElementById('inp-edit-count').value = q.questionCount; document.getElementById('inp-edit-time').value = q.timeLimit;
-                document.getElementById('inp-edit-status').value = q.rawStatus || q.status; 
-                document.getElementById('inp-edit-start').value = q.startTime || ""; document.getElementById('inp-edit-end').value = q.endTime || "";
-            // MỚI THÊM: Hiện nút Xóa
+                // Cắt đuôi giây thừa nếu có của Timestamp
+                document.getElementById('inp-edit-start').value = q.start_time ? q.start_time.substring(0, 16) : ""; 
+                document.getElementById('inp-edit-end').value = q.end_time ? q.end_time.substring(0, 16) : "";
                 document.getElementById('btn-delete-quiz-action').style.display = 'inline-flex';
-            } else {
-                // Nếu không chọn gì, giấu nút Xóa đi
-                document.getElementById('btn-delete-quiz-action').style.display = 'none';
-            }
+            } else document.getElementById('btn-delete-quiz-action').style.display = 'none';
         }
 
-        // Sự kiện khi bấm nút Xóa Hội Thi
-        document.getElementById('btn-delete-quiz-action').addEventListener('click', function() {
-            const selectBox = document.getElementById('inp-edit-quiz-id');
-            const quizId = selectBox.value;
-            const quizName = selectBox.options[selectBox.selectedIndex].text;
-            if (!quizId) return;
-            triggerDelete('quiz', quizId, quizName);
-        });
-
+        // LƯU CẬP NHẬT HỘI THI
         document.getElementById('edit-quiz-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            let btn = document.getElementById('btn-save-quiz-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true;
-            let isSchoolEdit = document.getElementById('inp-edit-is-school').checked ? '_aca' : '';
-            let optM_edit = document.getElementById('inp-edit-opt-mssv').value;
-            let optC_edit = document.getElementById('inp-edit-opt-class').value;
-            let optF_edit = document.getElementById('inp-edit-opt-faculty').value;
-            let finalModeEdit = document.getElementById('inp-edit-mode').value + isSchoolEdit + optM_edit + optC_edit + optF_edit;
-            let payload = { action: 'editQuiz', quizId: document.getElementById('inp-edit-quiz-id').value, title: document.getElementById('inp-edit-title').value.trim(), desc: document.getElementById('inp-edit-desc').value.trim(), qCount: document.getElementById('inp-edit-count').value, timeLimit: document.getElementById('inp-edit-time').value, status: document.getElementById('inp-edit-status').value, mode: finalModeEdit, startTime: document.getElementById('inp-edit-start').value, endTime: document.getElementById('inp-edit-end').value };
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
-                if(result.success) { showPopup(result.message); loadAllQuizzesIntoSelects(); } else showPopup(result.error, true);
-            } catch (err) { showPopup("Lỗi mạng!", true); }
+            e.preventDefault(); let btn = document.getElementById('btn-save-quiz-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
+            let qId = document.getElementById('inp-edit-quiz-id').value;
+            let mode = document.getElementById('inp-edit-mode').value + (document.getElementById('inp-edit-is-school').checked ? '_aca' : '') + document.getElementById('inp-edit-opt-mssv').value + document.getElementById('inp-edit-opt-class').value + document.getElementById('inp-edit-opt-faculty').value;
+            
+            let payload = { 
+                title: document.getElementById('inp-edit-title').value.trim(), description: document.getElementById('inp-edit-desc').value.trim(), 
+                question_count: parseInt(document.getElementById('inp-edit-count').value), time_limit: parseInt(document.getElementById('inp-edit-time').value), 
+                status: document.getElementById('inp-edit-status').value, mode: mode, 
+                start_time: document.getElementById('inp-edit-start').value || null, end_time: document.getElementById('inp-edit-end').value || null 
+            };
+            const { error } = await supabase.schema('arena').from('quizzes').update(payload).eq('id', qId);
+            if(error) showPopup("Cập nhật thất bại!", true); else { showPopup("Lưu cài đặt thành công!"); loadAllQuizzesIntoSelects(); }
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
+        // ==========================================
+        // 4. QUẢN LÝ CÂU HỎI (SUPABASE)
+        // ==========================================
+        // THÊM CÂU HỎI
         document.getElementById('add-question-form').addEventListener('submit', async function(e) {
-            e.preventDefault(); let btn = document.getElementById('btn-submit-q'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...'; btn.disabled = true;
-            let payload = { action: 'addQuestion', quizId: document.getElementById('inp-quiz-id').value, question: document.getElementById('inp-question').value.trim(), correct: document.getElementById('inp-correct').value.trim(), wrong1: document.getElementById('inp-wrong1').value.trim(), wrong2: document.getElementById('inp-wrong2').value.trim(), wrong3: document.getElementById('inp-wrong3').value.trim(), explanation: document.getElementById('inp-exp').value.trim() };
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
-                if(result.success) { showPopup(result.message); document.getElementById('add-question-form').reset(); } else showPopup(result.error, true);
-            } catch (err) { showPopup("Lỗi mạng!", true); }
+            e.preventDefault(); let btn = document.getElementById('btn-submit-q'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
+            let payload = { 
+                quiz_id: document.getElementById('inp-quiz-id').value, question_text: document.getElementById('inp-question').value.trim(), 
+                correct_answer: document.getElementById('inp-correct').value.trim(), wrong_1: document.getElementById('inp-wrong1').value.trim(), 
+                wrong_2: document.getElementById('inp-wrong2').value.trim(), wrong_3: document.getElementById('inp-wrong3').value.trim(), 
+                explanation: document.getElementById('inp-exp').value.trim() 
+            };
+            const { error } = await supabase.schema('arena').from('questions').insert([payload]);
+            if(error) showPopup("Lỗi thêm câu hỏi!", true); else { showPopup("Đã thêm vào két sắt!"); document.getElementById('add-question-form').reset(); }
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
+        // TẢI DANH SÁCH CÂU HỎI
         window.loadQuestionsTable = async function() {
             let qId = document.getElementById('select-view-q').value; let tbody = document.getElementById('table-body-quest'); if(!qId) return;
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
-            try {
-                let res = await fetch(API_URL + "?action=getQuestions&quizId=" + qId + "&t=" + new Date().getTime()); let result = await res.json();
-                window.currentQuizQuestions = result.data;
-                if(result.success && result.data.length > 0) {
-                    window.globalQuestionsData = result.data; let html = '';
-                    result.data.forEach((q, idx) => {
-                        let wrongs = q.wrongs.filter(w => w !== "").map(w => `<span style="display:block; margin-bottom:4px; font-size:13px; color:#ef4444;">• ${w}</span>`).join('');
-                        html += `<tr><td style="text-align:center; font-weight:900; color:var(--hub-color);">${idx + 1}</td><td><div style="font-weight:800;">${q.question}</div>${q.explanation ? `<div style="font-size:12px; color:#10b981; margin-top:5px;"><i class="fa-solid fa-lightbulb"></i> ${q.explanation}</div>` : ''}</td><td><span class="badge green"><i class="fa-solid fa-check"></i> ${q.correct}</span></td><td>${wrongs}</td><td><button class="btn-admin" style="padding: 8px 12px; font-size: 13px;" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Sửa</button></td></tr>` + `<button class="btn-admin" style="padding: 8px 12px; font-size: 13px; background: #fee2e2; color: #ef4444;" onclick="triggerDelete('question', '${document.getElementById('select-view-q').value}', 'Câu số ${idx + 1}')" data-row="${idx}"><i class="fa-solid fa-trash-can"></i></button>`;
-                    });
-                    tbody.innerHTML = html;
-                } else tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Hội thi này chưa có câu hỏi nào!</td></tr>';
-            } catch(e) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Lỗi kết nối máy chủ!</td></tr>'; }
+            const { data, error } = await supabase.schema('arena').from('questions').select('*').eq('quiz_id', qId).order('created_at', { ascending: true });
+            
+            if (error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Lỗi kết nối máy chủ!</td></tr>'; return; }
+            
+            window.globalQuestionsData = data; window.currentQuizQuestions = data;
+            if(data.length > 0) {
+                let html = '';
+                data.forEach((q, idx) => {
+                    let wrongs = [q.wrong_1, q.wrong_2, q.wrong_3].filter(w => w).map(w => `<span style="display:block; margin-bottom:4px; font-size:13px; color:#ef4444;">• ${w}</span>`).join('');
+                    html += `<tr><td style="text-align:center; font-weight:900; color:var(--hub-color);">${idx + 1}</td><td><div style="font-weight:800;">${q.question_text}</div>${q.explanation ? `<div style="font-size:12px; color:#10b981; margin-top:5px;"><i class="fa-solid fa-lightbulb"></i> ${q.explanation}</div>` : ''}</td><td><span class="badge green"><i class="fa-solid fa-check"></i> ${q.correct_answer}</span></td><td>${wrongs}</td><td><button class="btn-admin" style="padding: 8px 12px; font-size: 13px;" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Sửa</button> <button class="btn-admin" style="padding: 8px 12px; font-size: 13px; background: #fee2e2; color: #ef4444;" onclick="triggerDelete('question', '${q.id}', 'Câu số ${idx + 1}')"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+                });
+                tbody.innerHTML = html;
+            } else tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Bài thi này chưa có câu hỏi nào!</td></tr>';
         }
 
+        // SỬA CÂU HỎI
         window.openEditModal = function(index) {
-            let q = window.globalQuestionsData[index]; document.getElementById('edit-row-index').value = index; 
-            document.getElementById('edit-question').value = q.question; document.getElementById('edit-correct').value = q.correct;
-            document.getElementById('edit-wrong1').value = q.wrongs[0] || ""; document.getElementById('edit-wrong2').value = q.wrongs[1] || ""; document.getElementById('edit-wrong3').value = q.wrongs[2] || ""; document.getElementById('edit-exp').value = q.explanation || "";
-            let modal = document.getElementById('edit-modal'); modal.style.display = 'flex'; modal.style.pointerEvents = 'auto';
-            setTimeout(() => { modal.style.opacity = '1'; document.getElementById('edit-box').style.transform = 'scale(1)'; }, 10);
+            let q = window.globalQuestionsData[index]; 
+            document.getElementById('edit-row-index').value = q.id; // LƯU ID CỦA SUPABASE CHỨ KHÔNG LƯU INDEX NỮA
+            document.getElementById('edit-question').value = q.question_text; document.getElementById('edit-correct').value = q.correct_answer; 
+            document.getElementById('edit-wrong1').value = q.wrong_1 || ""; document.getElementById('edit-wrong2').value = q.wrong_2 || ""; 
+            document.getElementById('edit-wrong3').value = q.wrong_3 || ""; document.getElementById('edit-exp').value = q.explanation || "";
+            
+            let modal = document.getElementById('edit-modal'); let box = document.getElementById('edit-box'); 
+            modal.style.display = 'flex'; modal.style.pointerEvents = 'auto'; setTimeout(() => { modal.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
         }
-        window.closeEditModal = function() { let modal = document.getElementById('edit-modal'); modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; document.getElementById('edit-box').style.transform = 'scale(0.8)'; setTimeout(() => modal.style.display = 'none', 300); }
+        window.closeEditModal = function() { let modal = document.getElementById('edit-modal'); let box = document.getElementById('edit-box'); modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; box.style.transform = 'scale(0.8)'; setTimeout(() => modal.style.display = 'none', 300); }
 
         document.getElementById('edit-question-form').addEventListener('submit', async function(e) {
-            e.preventDefault(); let btn = document.getElementById('btn-save-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...'; btn.disabled = true;
-            let payload = { action: 'editQuestion', quizId: document.getElementById('select-view-q').value, rowIndex: document.getElementById('edit-row-index').value, question: document.getElementById('edit-question').value.trim(), correct: document.getElementById('edit-correct').value.trim(), wrong1: document.getElementById('edit-wrong1').value.trim(), wrong2: document.getElementById('edit-wrong2').value.trim(), wrong3: document.getElementById('edit-wrong3').value.trim(), explanation: document.getElementById('edit-exp').value.trim() };
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); let result = await res.json();
-                if(result.success) { showPopup(result.message); closeEditModal(); loadQuestionsTable(); } else showPopup(result.error, true);
-            } catch (err) { showPopup("Lỗi mạng!", true); }
+            e.preventDefault(); let btn = document.getElementById('btn-save-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
+            let qId = document.getElementById('edit-row-index').value; // Lấy ID của Supabase
+            let payload = { 
+                question_text: document.getElementById('edit-question').value.trim(), correct_answer: document.getElementById('edit-correct').value.trim(), 
+                wrong_1: document.getElementById('edit-wrong1').value.trim(), wrong_2: document.getElementById('edit-wrong2').value.trim(), 
+                wrong_3: document.getElementById('edit-wrong3').value.trim(), explanation: document.getElementById('edit-exp').value.trim() 
+            };
+            const { error } = await supabase.schema('arena').from('questions').update(payload).eq('id', qId);
+            if(error) showPopup("Lỗi lưu câu hỏi!", true); else { showPopup("Đã cập nhật câu hỏi!"); closeEditModal(); loadQuestionsTable(); }
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
+        // ==========================================
+        // 5. KẾT QUẢ & DASHBOARD (SUPABASE)
+        // ==========================================
         window.loadResultsTable = async function(isDash = false) {
-            let qId = isDash ? document.getElementById('select-view-dash').value : document.getElementById('select-view-res').value;
+            let qId = isDash ? document.getElementById('select-view-dash').value : document.getElementById('select-view-res').value; 
             let tbody = document.getElementById('table-body-res'); if(!qId) return;
             if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
-            try {
-                let res = await fetch(API_URL + "?action=getAllResults&quizId=" + qId + "&t=" + new Date().getTime()); let result = await res.json();
-                window.currentExportData = result.data;
-                if(result.success) { window.globalResultsData = result.data; if(!isDash) renderResultsTable(window.globalResultsData); else calcDashboardStats(window.globalResultsData); }
-            } catch(e) { if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi!</td></tr>'; }
+            
+            const { data, error } = await supabase.schema('arena').from('results').select('*').eq('quiz_id', qId).order('score', { ascending: false });
+            
+            if (error) { if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi tải điểm!</td></tr>'; return; }
+            
+            // Format lại dữ liệu cho giống chuẩn cũ để code xuất Excel và Render chạy mượt
+            let formattedData = data.map(d => ({
+                name: d.name, mssv: d.student_id, email: d.email, className: d.class_name, faculty: d.faculty, 
+                correct: d.correct_answers, score: d.score, timeStr: d.time_taken, progress: d.progress, 
+                submitTime: new Date(d.submit_time).toLocaleString('vi-VN')
+            }));
+
+            window.currentExportData = formattedData; window.globalResultsData = formattedData;
+            if(!isDash) renderResultsTable(formattedData); else calcDashboardStats(formattedData);
         }
 
-        function renderResultsTable(data) {
-            let tbody = document.getElementById('table-body-res');
-            if(data.length > 0) {
-                let html = '';
-                data.forEach(u => { let pStyle = (u.progress === 'Hoàn thành') ? 'green' : 'orange'; html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:#f1f5f9;">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${pStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;">${u.submitTime}</td></tr>`; });
-                tbody.innerHTML = html;
-            } else tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Chưa có ai thi!</td></tr>';
-        }
-
+        function renderResultsTable(data) { let tbody = document.getElementById('table-body-res'); if(data.length > 0) { let html = ''; data.forEach(u => { let pStyle = (u.progress === 'Hoàn thành') ? 'green' : 'orange'; html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:#f1f5f9;">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${pStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;">${u.submitTime}</td></tr>`; }); tbody.innerHTML = html; } else tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Chưa có ai nộp bài!</td></tr>'; }
+        
         window.loadDashboardStats = function() { document.getElementById('dash-widgets').style.display = 'grid'; document.getElementById('stat-total').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; loadResultsTable(true); }
         function calcDashboardStats(data) { let total = data.length; let done = data.filter(d => d.progress === 'Hoàn thành').length; let sum = data.reduce((acc, curr) => acc + curr.score, 0); document.getElementById('stat-total').innerText = total; document.getElementById('stat-done').innerText = done; document.getElementById('stat-avg').innerText = total > 0 ? (sum/total).toFixed(1) + " đ" : "0 đ"; }
-        window.openLivescore = function() { let qId = document.getElementById('select-view-dash').value; if(qId) window.open('/arena/livescore?id=' + qId, '_blank'); else showPopup("Chọn Hội thi trước!", true); }
+        window.openLivescore = function() { let qId = document.getElementById('select-view-dash').value; if(qId) window.open('/arena/livescore?id=' + qId, '_blank'); else showPopup("Chọn Bài thi trước!", true); }
+        window.sortResultsData = function() { if(window.globalResultsData.length === 0) return; window.globalResultsData.sort((a, b) => { if (b.score !== a.score) return b.score - a.score; let pt = (str) => { let m = str.match(/(\d+)\s*phút/); let s = str.match(/(\d+)\s*giây/); return (m ? parseInt(m[1]) : 0) * 60 + (s ? parseInt(s[1]) : 0); }; let tA = pt(a.timeStr) || 999999; let tB = pt(b.timeStr) || 999999; if (tA !== tB) return tA - tB; return new Date(a.submitTime) - new Date(b.submitTime); }); renderResultsTable(window.globalResultsData); }
 
-        window.sortResultsData = function() {
-            if(window.globalResultsData.length === 0) return;
-            window.globalResultsData.sort((a, b) => {
-                if (b.score !== a.score) return b.score - a.score; 
-                let pt = (str) => { let m = str.match(/(\d+)\s*phút/); let s = str.match(/(\d+)\s*giây/); return (m ? parseInt(m[1]) : 0) * 60 + (s ? parseInt(s[1]) : 0); };
-                let tA = pt(a.timeStr) || 999999; let tB = pt(b.timeStr) || 999999;
-                if (tA !== tB) return tA - tB; return new Date(a.submitTime) - new Date(b.submitTime); 
-            });
-            renderResultsTable(window.globalResultsData); 
-        }
-
-        window.downloadCSV = function() {
-            if(window.globalResultsData.length === 0) { showPopup("Không có dữ liệu!", true); return; }
-            let csv = "\uFEFFHo Ten,MSSV,Email,Lop,Khoa,So Cau Dung,Diem,Thoi Gian Lam Bai,Tien Do,Gio Nop Bai\n";
-            window.globalResultsData.forEach(r => { csv += [r.name, r.mssv, r.email, r.className, r.faculty, r.correct, r.score, r.timeStr, r.progress, r.submitTime].map(v => `"${v}"`).join(",") + "\n"; });
-            let l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); l.download = `KQ_${document.getElementById('select-view-res').value}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
-        }
-
-        // LOGIC TẠO MÃ QR (ĐÃ THU NHỎ WHITE BOX XUỐNG 25%)
-        window.showQRCode = function() {
-            let qId = document.getElementById('select-view-dash').value;
-            if(!qId) { showPopup("Giám đốc chọn Hội thi trước đã nha!", true); return; }
-            
-            let quizLink = window.location.origin + "/arena/description?id=" + qId;
-            let logoUrl = window.location.origin + "/assets/icon-web.png"; 
-            
-            // Ép centerImageSize=0.2 (Thu nhỏ thêm tí nữa cho tinh tế.)
-            let qrBwUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
-            let qrColorUrl = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
-
-            document.getElementById('qr-image-bw').src = qrBwUrl;
-            document.getElementById('qr-image-color').src = qrColorUrl;
-            document.getElementById('qr-link-input').value = quizLink;
-            
-            let modal = document.getElementById('qr-popup');
-            let box = document.getElementById('qr-box');
-            modal.style.display = 'flex'; modal.style.pointerEvents = 'auto';
-            setTimeout(() => { 
-                modal.style.opacity = '1'; 
-                box.classList.add('pop-active'); // Gắn class kích hoạt Animation Nảy
-            }, 10);
-        }
-
-        window.closeQRCode = function() {
-            let modal = document.getElementById('qr-popup');
-            let box = document.getElementById('qr-box');
-            modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; 
-            box.classList.remove('pop-active'); // Xóa class để lần sau bật lại nó nảy tiếp
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
-
-        window.copyQuizLink = function(btn) {
-            let copyText = document.getElementById("qr-link-input"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value);
-            let originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã Copy!'; btn.style.background = '#10b981';
-            setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = '#3b82f6'; }, 2000);
-        }
-
-        // Biến toàn cục để nhớ xem mình đang định xóa cái gì
+        // ==========================================
+        // 6. XÓA DỮ LIỆU (SUPABASE)
+        // ==========================================
         let itemToDelete = { type: null, id: null };
-
-        // Hàm gọi Popup hù dọa (Gắn hàm này vào các nút Xóa trên giao diện)
         window.triggerDelete = function(type, id, name) {
             itemToDelete = { type: type, id: id };
-            const modal = document.getElementById('delete-modal-overlay');
-            const text = document.getElementById('delete-modal-text');
-            
-            let typeName = type === 'quiz' ? 'Hội thi' : 'Câu hỏi';
-            text.innerHTML = `Cậu đang chuẩn bị xóa <b>${typeName} [${name}]</b>.<br>Dữ liệu bốc hơi <b>KHÔNG THỂ</b> khôi phục. Chắc chưa?`;
-            
-            modal.style.display = 'flex';
+            document.getElementById('delete-modal-text').innerHTML = `Cậu đang chuẩn bị xóa <b>${type === 'quiz' ? 'Hội thi' : 'Câu hỏi'} [${name}]</b>.<br>Dữ liệu bốc hơi <b>KHÔNG THỂ</b> khôi phục. Chắc chưa?`;
+            document.getElementById('delete-modal-overlay').style.display = 'flex';
         };
 
-        // Hàm thực thi án tử khi bấm nút "Xóa Bỏ" màu đỏ
         document.getElementById('btn-confirm-delete').addEventListener('click', async function() {
-            const modal = document.getElementById('delete-modal-overlay');
-            const btn = this;
-            
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xóa...';
-            btn.disabled = true;
+            const modal = document.getElementById('delete-modal-overlay'); const btn = this;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
 
             try {
-                let apiUrlParams = "";
-                if (itemToDelete.type === 'quiz') {
-                    apiUrlParams = `?action=deleteQuiz&id=${itemToDelete.id}`;
-                } else if (itemToDelete.type === 'question') {
-                    // Cần cả quizId và rowIndex
-                    // Cậu để ý lúc tạo nút Xóa câu hỏi, tớ truyền quizId vào itemToDelete.id, 
-                    // còn rowIndex tớ lấy ngầm qua cái Tên "Câu số X"
-                    let rowIndex = parseInt(document.getElementById('delete-modal-text').innerHTML.match(/Câu số (\d+)/)[1]) - 1;
-                    apiUrlParams = `?action=deleteQuestion&quizId=${itemToDelete.id}&rowIndex=${rowIndex}`;
-                }
-
-                let response = await fetch(`${API_URL}${apiUrlParams}`);
-                let result = await response.json();
-
-                if(result.success) {
-                    showToast('Thành công', result.message, 'success');
-                    modal.style.display = 'none';
-                    // Tự động tải lại bảng dữ liệu tương ứng
-                    if (itemToDelete.type === 'quiz') {
-                        loadAllQuizzesIntoSelects();
-                    } else {
-                        loadQuestionsTable();
-                    }
-                } else {
-                    showToast('Lỗi', result.message, 'error');
-                }
-            } catch(e) {
-                showToast('Lỗi mạng', 'Không thể kết nối với máy chủ!', 'error');
-            } finally {
-                btn.innerHTML = 'Xóa Bỏ';
-                btn.disabled = false;
-                modal.style.display = 'none';
-            }
+                let table = itemToDelete.type === 'quiz' ? 'quizzes' : 'questions';
+                const { error } = await supabase.schema('arena').from(table).delete().eq('id', itemToDelete.id);
+                if(error) throw error;
+                
+                showToast('Thành công', 'Đã dọn dẹp sạch sẽ!', 'success');
+                if (itemToDelete.type === 'quiz') loadAllQuizzesIntoSelects(); else loadQuestionsTable();
+            } catch(e) { showToast('Lỗi', 'Không xóa được!', 'error'); } 
+            finally { btn.innerHTML = 'Xóa Bỏ'; btn.disabled = false; modal.style.display = 'none'; }
         });
 
         // ==========================================
-        // HÀM XUẤT FILE CSV CÓ ĐÓNG DẤU MIENT
+        // 7. CÁC TIỆN ÍCH UI (QR CODE & XUẤT CSV CỦA CẬU)
         // ==========================================
+        window.showQRCode = function() {
+            let qId = document.getElementById('select-view-dash').value; if(!qId) return showPopup("Chọn Hội thi trước đã nha!", true);
+            let quizLink = window.location.origin + "/arena/description?id=" + qId; let logoUrl = window.location.origin + "/assets/icon-web.png"; 
+            document.getElementById('qr-image-bw').src = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
+            document.getElementById('qr-image-color').src = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
+            document.getElementById('qr-link-input').value = quizLink;
+            let modal = document.getElementById('qr-popup'); let box = document.getElementById('qr-box');
+            modal.style.display = 'flex'; modal.style.pointerEvents = 'auto'; setTimeout(() => { modal.style.opacity = '1'; box.classList.add('pop-active'); }, 10);
+        }
+        window.closeQRCode = function() { let modal = document.getElementById('qr-popup'); let box = document.getElementById('qr-box'); modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; box.classList.remove('pop-active'); setTimeout(() => modal.style.display = 'none', 300); }
+        window.copyQuizLink = function(btn) { let copyText = document.getElementById("qr-link-input"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value); let originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã Copy!'; btn.style.background = '#10b981'; setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = '#3b82f6'; }, 2000); }
+
         window.exportCSVWithMHEntBrand = function() {
-            // 1. Lấy mã hội thi đang xem và dữ liệu
-            const quizId = document.getElementById('select-view-res').value;
-            const resultsArray = window.currentExportData; // Biến này tụi mình sẽ tạo ở Bước 2
-
-            if (!quizId) {
-                return showToast('Lỗi', 'Cậu chưa chọn Hội thi nào để tải!', 'error');
-            }
-            if (!resultsArray || resultsArray.length === 0) {
-                return showToast('Lỗi', 'Hội thi này chưa có thí sinh nào nộp bài!', 'error');
-            }
-
-            // 2. Thêm BOM \uFEFF để Excel không bị lỗi font tiếng Việt
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            
-            // 3. ĐÓNG DẤU BẢN QUYỀN
-            csvContent += "👑 MHEnt. Universe - DANH SÁCH KẾT QUẢ THÍ SINH\r\n";
-            csvContent += "© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved.\r\n";
-            csvContent += `Mã Hội Thi: ${quizId}\r\n`;
-            csvContent += `Ngày xuất dữ liệu: ${new Date().toLocaleString('vi-VN')}\r\n`;
-            csvContent += "------------------------------------------------------\r\n\r\n";
-            
-            // 4. TIÊU ĐỀ CỘT
-            csvContent += "Thời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
-            
-            // 5. ĐỔ DỮ LIỆU TỪ MẢNG VÀO FILE
-            resultsArray.forEach(row => {
-                // Bọc trong ngoặc kép "" để lỡ tên/lớp có dấu phẩy (,) thì file CSV không bị vỡ cột
-                let rowData = [
-                    `"${row.submitTime}"`, `"${row.name}"`, `"${row.email}"`, 
-                    `"${row.mssv}"`, `"${row.className}"`, `"${row.faculty}"`, 
-                    `"${row.correct}"`, `"${row.score}"`, `"${row.timeStr}"`, `"${row.progress}"`
-                ];
-                csvContent += rowData.join(",") + "\r\n";
-            });
-            
-            // 6. TẠO LỆNH TẢI XUỐNG
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `KetQua_${quizId}_MHEntArena.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showToast('Thành công', 'Đã tải xong danh sách thí sinh!', 'success');
+            const quizId = document.getElementById('select-view-res').value; const arr = window.currentExportData;
+            if (!quizId || !arr || arr.length === 0) return showToast('Lỗi', 'Không có dữ liệu để tải!', 'error');
+            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Universe - KẾT QUẢ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nThời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
+            arr.forEach(r => csv += [`"${r.submitTime}"`,`"${r.name}"`,`"${r.email}"`,`"${r.mssv}"`,`"${r.className}"`,`"${r.faculty}"`,`"${r.correct}"`,`"${r.score}"`,`"${r.timeStr}"`,`"${r.progress}"`].join(",") + "\r\n");
+            let l = document.createElement("a"); l.href = encodeURI(csv); l.download = `KQ_${quizId}_MHEntArena.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         };
-
-        // ==========================================
-        // HÀM XUẤT FILE CSV SAO LƯU KHO ĐỀ (CÓ BẢN QUYỀN)
-        // ==========================================
         window.exportQuizQuestionsCSV = function() {
-            // Lấy ID kho đề đang xem (dựa vào id của thẻ select trong tab Kho đề của cậu)
-            const quizId = document.getElementById('select-view-q').value; 
-            const questionsArray = window.currentQuizQuestions; // Biến này tạo ở Bước 2
-
-            if (!quizId) {
-                return showToast('Lỗi', 'Cậu chưa chọn Kho đề nào để tải!', 'error');
-            }
-            if (!questionsArray || questionsArray.length === 0) {
-                return showToast('Lỗi', 'Kho đề này đang trống không có gì để tải!', 'error');
-            }
-
-            // Thêm BOM \uFEFF cho tiếng Việt
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            
-            // ĐÓNG DẤU BẢN QUYỀN
-            csvContent += "👑 MHEnt. Universe - KHO ĐỀ TRẮC NGHIỆM\r\n";
-            csvContent += "© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved.\r\n";
-            csvContent += `Mã Kho Đề: ${quizId}\r\n`;
-            csvContent += `Ngày xuất dữ liệu: ${new Date().toLocaleString('vi-VN')}\r\n`;
-            csvContent += "------------------------------------------------------\r\n\r\n";
-            
-            // TIÊU ĐỀ CỘT
-            csvContent += "Câu Hỏi,Đáp án Đúng,Đáp án Sai 1,Đáp án Sai 2,Đáp án Sai 3,Giải thích\r\n";
-            
-            // Hàm xử lý chuỗi an toàn (Tránh lỗi vỡ cột nếu câu hỏi có chứa dấu phẩy hoặc dấu ngoặc kép)
-            const safeText = (text) => `"${(text || "").toString().replace(/"/g, '""')}"`;
-
-            // ĐỔ DỮ LIỆU TỪ MẢNG VÀO FILE
-            questionsArray.forEach(q => {
-                let rowData = [
-                    safeText(q.question),
-                    safeText(q.correct),
-                    safeText(q.wrongs[0]),
-                    safeText(q.wrongs[1]),
-                    safeText(q.wrongs[2]),
-                    safeText(q.explanation)
-                ];
-                csvContent += rowData.join(",") + "\r\n";
-            });
-            
-            // LỆNH TẢI XUỐNG
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `KhoDe_${quizId}_MHEntArena.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showToast('Thành công', 'Đã tải xong toàn bộ câu hỏi!', 'success');
+            const quizId = document.getElementById('select-view-q').value; const arr = window.currentQuizQuestions;
+            if (!quizId || !arr || arr.length === 0) return showToast('Lỗi', 'Kho đề trống!', 'error');
+            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Universe - KHO ĐỀ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nCâu Hỏi,Đáp án Đúng,Đáp án Sai 1,Đáp án Sai 2,Đáp án Sai 3,Giải thích\r\n";
+            const safeText = (t) => `"${(t || "").toString().replace(/"/g, '""')}"`;
+            arr.forEach(q => csv += [safeText(q.question_text), safeText(q.correct_answer), safeText(q.wrong_1), safeText(q.wrong_2), safeText(q.wrong_3), safeText(q.explanation)].join(",") + "\r\n");
+            let l = document.createElement("a"); l.href = encodeURI(csv); l.download = `KhoDe_${quizId}_MHEntArena.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         };
-
-        // ==========================================
-        // HÀM TẢI ẢNH QR VỀ MÁY (BẢN V3 TỐI THƯỢNG - CHỐNG LIỆT)
-        // ==========================================
         window.downloadQR = async function(type) {
             try {
-                let imgId = type === 'bw' ? 'qr-image-bw' : 'qr-image-color';
-                let imgElement = document.getElementById(imgId);
-                
-                // Kiểm tra xem ảnh đã load ra màn hình chưa
-                if (!imgElement || !imgElement.src || imgElement.src === window.location.href) {
-                    return showToast('Lỗi', 'Chưa có ảnh QR để tải!', 'error');
-                }
-                
-                let imgSrc = imgElement.src;
-                
-                // VŨ KHÍ BÍ MẬT: Bóc tách mã Hội Thi trực tiếp từ link QR (Chống liệt nút do lỗi UI)
-                let quizId = "MHEnt";
-                let match = imgSrc.match(/id=([A-Z0-9_]+)/i);
-                if (match && match[1]) {
-                    quizId = match[1]; // Ví dụ: bóc ra được chữ ANM032026
-                }
-
-                showToast('Thông báo', 'Đang kết xuất ảnh QR xịn xò...', 'info');
-                
-                // Tải ảnh trực tiếp (QuickChart có hỗ trợ tải thẳng không bị chặn CORS)
-                let response = await fetch(imgSrc);
-                if (!response.ok) throw new Error("Fetch failed");
-                
-                let blob = await response.blob();
-                let blobUrl = window.URL.createObjectURL(blob);
-                
-                // Ép tải xuống với tên xịn
-                let a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = `QR_Code_${quizId}_${type.toUpperCase()}_MHEntArena.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                window.URL.revokeObjectURL(blobUrl); // Dọn dẹp rác bộ nhớ
-                showToast('Thành công', 'Đã lưu file thành công!', 'success');
-                
-            } catch (error) {
-                console.error("Lỗi tải ảnh:", error);
-                
-                // Phương án dự phòng: Mở Tab mới nếu mạng của máy cậu chặn fetch
-                let imgId = type === 'bw' ? 'qr-image-bw' : 'qr-image-color';
-                let backupImg = document.getElementById(imgId);
-                if(backupImg && backupImg.src) {
-                    window.open(backupImg.src, '_blank');
-                    showToast('Cảnh báo', 'Đã mở ảnh sang Tab mới, cậu chuột phải để lưu nha!', 'info');
-                }
-            }
+                let imgId = type === 'bw' ? 'qr-image-bw' : 'qr-image-color'; let img = document.getElementById(imgId);
+                if (!img || !img.src || img.src === window.location.href) return showToast('Lỗi', 'Chưa có ảnh QR!', 'error');
+                let quizId = "MHEnt"; let match = img.src.match(/id=([A-Z0-9_]+)/i); if(match) quizId = match[1];
+                showToast('Thông báo', 'Đang tải QR...', 'info');
+                let res = await fetch(img.src); let blob = await res.blob(); let url = window.URL.createObjectURL(blob);
+                let a = document.createElement('a'); a.href = url; a.download = `QR_${quizId}_${type.toUpperCase()}.png`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
+            } catch (e) { let img = document.getElementById(type === 'bw' ? 'qr-image-bw' : 'qr-image-color'); if(img && img.src) window.open(img.src, '_blank'); }
         };
     </script>
     <script src="/mhent-ui.js"></script>
