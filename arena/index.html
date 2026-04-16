@@ -333,10 +333,26 @@
                 let displayCount = 0; 
 
                 quizzes.forEach(quiz => {
+                    let currentUserRole = localStorage.getItem('mhent_user_role') || 'guest';
+                    let hasTestAccess = currentUserRole.includes('admin') || currentUserRole.includes('tester') || currentUserRole.includes('arena');
+                    
                     if (quiz.status === 'test' && !hasTestAccess) return; // Mắt thần kiểm duyệt
+
+                    // 👉 BÙA KIỂM TRA THỜI GIAN THỰC TẾ
+                    let now = new Date();
+                    let currentStatus = quiz.status;
+                    let sTime = quiz.start_time ? new Date(quiz.start_time) : null;
+                    let eTime = quiz.end_time ? new Date(quiz.end_time) : null;
+
+                    if (currentStatus === 'open' || currentStatus === 'challenge') {
+                        if (sTime && now < sTime) currentStatus = 'closed'; // Chưa tới giờ
+                        if (eTime && now > eTime) currentStatus = 'closed'; // Đã quá hạn
+                    }
+
                     displayCount++;
 
-                    let statusHtml = quiz.status === 'open' || quiz.status === 'challenge' ? `<span class="quiz-status status-open">Đang mở</span>` : (quiz.status === 'test' ? `<span class="quiz-status" style="background: #fef08a; color: #ca8a04;">Đang Test</span>` : `<span class="quiz-status status-closed">Đã đóng</span>`);
+                    let statusHtml = currentStatus === 'open' || currentStatus === 'challenge' ? `<span class="quiz-status status-open">Đang mở</span>` : (currentStatus === 'test' ? `<span class="quiz-status" style="background: #fef08a; color: #ca8a04;">Đang Test</span>` : `<span class="quiz-status status-closed">Đã đóng</span>`);
+                    
                     let verifiedBadge = quiz.is_verified ? `<span style="background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #bae6fd;"><i class="fa-solid fa-circle-check"></i> OFFICIAL</span>` : `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e2e8f0;"><i class="fa-solid fa-users"></i> COMMUNITY</span>`;
                     let schoolBadge = (quiz.mode && (quiz.mode.includes('_aca') || quiz.mode.includes('_academic') || quiz.mode.includes('_school'))) ? `<span style="background: #fef08a; color: #a16207; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #fde047;"><i class="fa-solid fa-school-flag"></i> ACADEMIC</span>` : '';
 
