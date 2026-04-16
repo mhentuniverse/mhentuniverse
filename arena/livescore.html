@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body, h1, h2, h3, h4, h5, p, span, div { font-family: 'Nunito', sans-serif !important; }
         
@@ -136,65 +137,75 @@
         </div>
     </main>
 
-    <div class="live-footer">
+    <footer class="live-footer">
         Hệ thống Khảo thí Trực tuyến MHEnt. Arena | Cập nhật lần cuối: <span id="last-update">--:--:--</span>
-    </div>
+    </footer>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
+        // 1. KHỞI TẠO CĂN CỨ SUPABASE
+        const SUPABASE_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get('id');
 
         // BẢO VỆ CHỮA CHÁY NẾU KHÔNG CÓ MÃ
         if(!quizId) {
-            document.body.innerHTML = `<div style="text-align:center; padding:100px; color:#ef4444;"><i class="fa-solid fa-triangle-exclamation fa-5x"></i><h1 style="font-weight:900;">LỖI: THIẾU MÃ CUỘC THI!</h1><p>Bạn phải truy cập bằng link: livescore?id=MÃ_CUỘC_THI</p></div>`;
+            document.body.innerHTML = `<div style="text-align:center; padding:100px; color:#ef4444;"><i class="fa-solid fa-triangle-exclamation fa-5x"></i><h1 style="font-weight:900;">LỖI: THIẾU MÃ CUỘC THI!</h1><p>Cậu phải truy cập bằng link: livescore?id=MÃ_CUỘC_THI</p></div>`;
         } else {
             document.getElementById('display-id').innerText = quizId;
-            loadQuizTitle(); // Chỉ cần tải tên 1 lần
-            fetchLiveScore(); // Lấy điểm lần đầu
+            loadQuizTitle(); 
+            fetchLiveScore(); 
             
-            // THẦN CHÚ AUTO-REFRESH MỖI 5 GIÂY
-            setInterval(fetchLiveScore, 5000); 
+            // 🚀 BẬT SÓNG THẦN REAL-TIME (THAY CHO SET_INTERVAL CŨ)
+            supabase.channel('arena-livescore')
+                .on('postgres_changes', { event: '*', schema: 'arena', table: 'results', filter: `quiz_id=eq.${quizId}` }, payload => {
+                    console.log("Có thí sinh nộp bài! Đang cập nhật bảng vàng...");
+                    fetchLiveScore(); // Có data mới là tự động tải lại ngay lập tức!
+                }).subscribe();
         }
 
-        // LẤY TÊN CUỘC THI ĐỂ HIỂN THỊ
+        // LẤY TÊN CUỘC THI
         async function loadQuizTitle() {
             try {
-                let res = await fetch(API_URL + "?action=getQuizList&t=" + new Date().getTime());
-                let result = await res.json();
-                let quiz = result.data.find(q => q.id === quizId);
+                const { data: quiz } = await supabase.schema('arena').from('quizzes').select('title').eq('id', quizId).single();
                 if(quiz) document.getElementById('display-title').innerText = quiz.title;
-            } catch(e) { console.log(e); }
+            } catch(e) { console.error(e); }
         }
 
-        // HÀM HÚT ĐIỂM TRỰC TIẾP
+        // HÀM HÚT ĐIỂM XẾP HẠNG
         async function fetchLiveScore() {
             try {
-                // Thêm timestamp để ép Trình duyệt không xài đồ cũ (Cache)
-                let res = await fetch(API_URL + "?action=getLeaderboard&quizId=" + quizId + "&t=" + new Date().getTime());
-                let result = await res.json();
+                const { data: results, error } = await supabase.schema('arena').from('results')
+                    .select('*').eq('quiz_id', quizId).eq('is_test_mode', false).order('score', { ascending: false });
+
+                // Cập nhật đồng hồ
+                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+
                 let grid = document.getElementById('board-grid');
 
-                // Cập nhật đồng hồ phía dưới
-                let now = new Date();
-                document.getElementById('last-update').innerText = now.toLocaleTimeString('vi-VN');
-
-                if (!result.success || result.data.length === 0) {
+                if (error || !results || results.length === 0) {
                     grid.innerHTML = `<div style="text-align: center; color: #64748b; padding: 100px 0; font-size: 20px; font-weight: 800; border: 2px dashed #334155; border-radius: 20px;"><i class="fa-solid fa-ghost fa-3x" style="margin-bottom:20px; opacity: 0.5;"></i><br>Đấu trường đang trống. Chờ người hùng đầu tiên xuất hiện...</div>`;
                     return;
                 }
 
-                // Render Bảng điểm
+                // Thuật toán gỡ hòa (Nhanh tay hơn thì xếp trên)
+                results.sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score; 
+                    let pt = (str) => { let m = str.match(/(\d+)\s*phút/); let s = str.match(/(\d+)\s*giây/); return (m ? parseInt(m[1]) : 0) * 60 + (s ? parseInt(s[1]) : 0); };
+                    let tA = pt(a.time_taken) || 999999; let tB = pt(b.time_taken) || 999999;
+                    if (tA !== tB) return tA - tB; return new Date(a.submit_time) - new Date(b.submit_time); 
+                });
+
+                // Render Bảng điểm (Giữ nguyên UI/Animation xịn của cậu)
                 let html = '';
-                result.data.forEach((user, index) => {
-                    let rankClass = '';
-                    let rankIcon = index + 1;
-                    
+                results.forEach((user, index) => {
+                    let rankClass = ''; let rankIcon = index + 1;
                     if(index === 0) { rankClass = 'top-1'; rankIcon = '<i class="fa-solid fa-crown fa-beat" style="--fa-animation-duration: 2s;"></i>'; }
                     else if(index === 1) { rankClass = 'top-2'; }
                     else if(index === 2) { rankClass = 'top-3'; }
 
-                    // Dùng animation-delay xếp tầng để nó rơi xuống từ từ rất ngầu
                     html += `
                         <div class="rank-row ${rankClass}" style="animation-delay: ${index * 0.1}s">
                             <div class="rank-left">
@@ -202,9 +213,9 @@
                                 <div class="player-info">
                                     <div class="player-name">${user.name}</div>
                                     <div class="player-meta">
-                                        <span><i class="fa-solid fa-graduation-cap"></i> ${user.className}</span>
+                                        <span><i class="fa-solid fa-graduation-cap"></i> ${user.class_name}</span>
                                         <span><i class="fa-solid fa-bars-progress"></i> <strong style="color:${user.progress === 'Hoàn thành' ? '#10b981' : '#fbbf24'}">${user.progress}</strong></span>
-                                        <span><i class="fa-regular fa-clock"></i> ${user.timeStr}</span>
+                                        <span><i class="fa-regular fa-clock"></i> ${user.time_taken}</span>
                                     </div>
                                 </div>
                             </div>
@@ -212,25 +223,15 @@
                         </div>
                     `;
                 });
-
                 grid.innerHTML = html;
-
-            } catch(e) {
-                console.log("Lỗi load Livescore: ", e);
-            }
+            } catch(e) { console.error("Lỗi load Livescore: ", e); }
         }
 
-        // HÀM ÉP TOÀN MÀN HÌNH (DÀNH CHO MÁY CHIẾU)
+        // HÀM ÉP TOÀN MÀN HÌNH MÁY CHIẾU
         function toggleFullScreen() {
-            let elem = document.documentElement;
-            let icon = document.getElementById('fs-icon');
-            if (!document.fullscreenElement) {
-                if (elem.requestFullscreen) { elem.requestFullscreen(); }
-                icon.className = "fa-solid fa-compress"; // Đổi icon thu nhỏ
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-                icon.className = "fa-solid fa-expand"; // Đổi icon phóng to
-            }
+            let elem = document.documentElement; let icon = document.getElementById('fs-icon');
+            if (!document.fullscreenElement) { if (elem.requestFullscreen) elem.requestFullscreen(); icon.className = "fa-solid fa-compress"; } 
+            else { if (document.exitFullscreen) document.exitFullscreen(); icon.className = "fa-solid fa-expand"; }
         }
     </script>
     <script src="/mhent-ui.js"></script>
