@@ -158,12 +158,24 @@
             loadQuizTitle(); 
             fetchLiveScore(); 
             
-            // 🚀 BẬT SÓNG THẦN REAL-TIME (THAY CHO SET_INTERVAL CŨ)
-            supabase.channel('arena-livescore')
-                .on('postgres_changes', { event: '*', schema: 'arena', table: 'results', filter: `quiz_id=eq.${quizId}` }, payload => {
-                    console.log("Có thí sinh nộp bài! Đang cập nhật bảng vàng...");
-                    fetchLiveScore(); // Có data mới là tự động tải lại ngay lập tức!
-                }).subscribe();
+            // 🚀 BẬT SÓNG THẦN REAL-TIME (CỰC MẠNH)
+            const myChannel = supabase.channel('arena-room');
+            myChannel
+                .on('postgres_changes', { event: '*', schema: 'arena', table: 'results' }, payload => {
+                    console.log("🔥 Supabase báo có biến động:", payload);
+                    // Lọc tay tại web thay vì nhờ Supabase lọc
+                    if (payload.new && payload.new.quiz_id === quizId) {
+                        fetchLiveScore(); // Gọi tải lại điểm ngay!
+                    }
+                })
+                .subscribe((status) => {
+                    console.log("Trạng thái cắm dây mạng Realtime:", status);
+                    if (status === 'SUBSCRIBED') {
+                        console.log("✅ Đã kết nối màng nhĩ với Supabase thành công!");
+                    } else if (status === 'CHANNEL_ERROR') {
+                        console.error("❌ Mất kết nối! Cậu nhớ bật table 'results' trong Publication nhé.");
+                    }
+                });
         }
 
         // LẤY TÊN CUỘC THI
