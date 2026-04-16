@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
 
@@ -277,93 +278,48 @@
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ==========================================
-        // CẤU HÌNH FIREBASE
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-            authDomain: "mhentuniverse.firebaseapp.com",
-            projectId: "mhentuniverse",
-            storageBucket: "mhentuniverse.firebasestorage.app",
-            messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
-        };
+        // 1. KHỞI TẠO FIREBASE & SUPABASE
+        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const SUPABASE_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // UI & AUTH (CƠ BẢN)
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
-if (btnLogin) {
-            btnLogin.addEventListener('click', () => {
-                if (navigator.userAgent.includes('Electron')) {
-                    // NẾU LÀ APP: Gọi 'Điệp viên' (preload.js) để mở Chrome ở ngoài
-                    window.openChrome('https://mhentuniverse.vercel.app/login.html?source=app');
-                } else {
-                    // NẾU LÀ WEB: Chuyển trang bình thường (Vẫn giữ clean url /login của cậu)
-                    window.location.href = '/login';
-                }
-            });
-        }
-        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); }
-        
+        // 2. UI CƠ BẢN
+        const btnLogin = document.getElementById('btn-login'); const btnLogout = document.getElementById('btn-logout');
+        if (btnLogin) { btnLogin.addEventListener('click', () => { window.location.href = '/login'; }); }
+        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); localStorage.removeItem('mhent_user_role'); window.location.reload(); }); }
         window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
         window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
         window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
-        
-        window.toggleDarkMode = function() { 
-            document.body.classList.toggle('dark-mode'); 
-            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
-        };
+        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+        window.onclick = function(e) { if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); } if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active'); };
         
-        window.onclick = function(e) {
-            if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); }
-            if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active');
-        };
-        
-        // KIỂM TRA ĐĂNG NHẬP & PHÂN QUYỀN ADMIN
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
                 if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
                 if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
-
-                // Quét thẻ Admin
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
-                    if (userSnap.exists()) {
-                        let userRole = userSnap.data().role || 'user';
-                        
-                        // LƯU CẤP BẬC VÀO TRÌNH DUYỆT ĐỂ BỘ LỌC BÊN DƯỚI LẤY RA XÀI
-                        localStorage.setItem('mhent_user_role', userRole);
-
-                        if (userRole.includes('admin')) {
-                            document.getElementById('admin-panel-btn').style.display = 'block';
-                            document.getElementById('admin-divider').style.display = 'block';
-                            document.getElementById('studio-panel-btn').style.display = 'block';
-                        }
-                        if (userRole.includes('arena')) {
-                            document.getElementById('studio-panel-btn').style.display = 'block';
-                            document.getElementById('admin-divider').style.display = 'block';
-                        }
-                    } else {
-                        localStorage.setItem('mhent_user_role', 'user');
+                    let userRole = userSnap.exists() ? (userSnap.data().role || 'user') : 'user';
+                    localStorage.setItem('mhent_user_role', userRole);
+                    if (userRole.includes('admin') || userRole.includes('arena')) {
+                        document.getElementById('studio-panel-btn').style.display = 'block';
+                        document.getElementById('admin-divider').style.display = 'block';
+                        if(userRole.includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
                     }
-                } catch(e) { console.log(e); localStorage.setItem('mhent_user_role', 'user'); }
-
+                } catch(e) { localStorage.setItem('mhent_user_role', 'user'); }
             } else {
-                localStorage.setItem('mhent_user_role', 'guest'); // Chưa đăng nhập là khách
+                localStorage.setItem('mhent_user_role', 'guest');
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
         });
 
-        // Lấy API URL
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvZ5kkhteHrZ02rTN-bAR015PlqUm1TM_LgxRAKE2_vtHHGBzYgfPh-5NdilEECx_J_g/exec";
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get('id');
 
@@ -371,59 +327,36 @@ if (btnLogin) {
         window.closeModal = function() { document.getElementById('info-modal').classList.remove('active'); document.body.style.overflow = ''; }
         document.getElementById('info-modal').addEventListener('click', function(e) { if(e.target === this) window.closeModal(); });
 
+        // 3. TẢI THÔNG TIN CUỘC THI TỪ SUPABASE
         async function loadQuizDetails() {
-            if (!quizId) {
-                document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Lỗi: Không tìm thấy mã cuộc thi!</h3>';
-                return;
-            }
+            if (!quizId) return document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Lỗi: Không tìm thấy mã cuộc thi!</h3>';
+            
             try {
-                // 1. DỰNG KHUNG MÔ TẢ TRƯỚC
-                let response = await fetch(API_URL + "?action=getQuizList");
-                let result = await response.json();
-                let quiz = result.data.find(q => q.id === quizId);
+                const { data: quiz, error } = await supabase.schema('arena').from('quizzes').select('*').eq('id', quizId).single();
+                if (error || !quiz) return document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Lỗi bùa chú! Đề thi chưa sẵn sàng hoặc mã sai.</h3>';
 
-                if (!quiz) {
-                    document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Lỗi bùa chú! Đề thi chưa sẵn sàng hoặc mã sai.</h3>';
-                    return;
-                }
-
-                // ĐỔI TÊN TAB TRÌNH DUYỆT Ở ĐÂY NÈ GIÁM ĐỐC
                 document.title = quiz.title + " - MHEnt. Arena";
 
-                // ====================================================
-                // 🛑 VÁ LỖ HỔNG: ÔNG BẢO VỆ GÁC CỬA PHÒNG CHỜ
-                // ====================================================
                 let currentUserRole = localStorage.getItem('mhent_user_role') || 'guest';
-                // Nhớ thêm chữ 'creator' vào nữa vì hệ thống cậu có role creator
-                let hasTestAccess = currentUserRole.includes('admin') || currentUserRole.includes('creator') || currentUserRole.includes('tester');
+                let hasTestAccess = currentUserRole.includes('admin') || currentUserRole.includes('creator') || currentUserRole.includes('arena') || currentUserRole.includes('tester');
 
                 if (quiz.status === 'test' && !hasTestAccess) {
                     showToast('CẢNH BÁO BẢO MẬT', 'Khu vực này đang được phong tỏa để thử nghiệm nội bộ!', 'error');
-                    // Giấu luôn cái hộp thông tin đi không cho xem lén
                     document.getElementById('quiz-details-box').style.display = 'none'; 
-                    // Đá văng ra ngoài sau 2 giây
-                    setTimeout(() => { window.location.href = '/arena'; }, 2000);
-                    return; 
+                    setTimeout(() => { window.location.href = '/arena'; }, 2000); return; 
                 }
-                // ====================================================
 
                 let btnDisabled = (quiz.status === 'closed') ? 'disabled' : '';
-                let btnText = '';
-                
-                if (quiz.status === 'closed') btnText = 'HỘI THI ĐANG KHÓA <i class="fa-solid fa-lock"></i>';
-                else if (quiz.status === 'test') btnText = 'VÀO TEST ĐỀ <i class="fa-solid fa-vial-circle-check"></i>';
-                else btnText = 'BẮT ĐẦU THI NGAY <i class="fa-solid fa-bolt"></i>';
+                let btnText = quiz.status === 'closed' ? 'HỘI THI ĐANG KHÓA <i class="fa-solid fa-lock"></i>' : (quiz.status === 'test' ? 'VÀO TEST ĐỀ <i class="fa-solid fa-vial-circle-check"></i>' : 'BẮT ĐẦU THI NGAY <i class="fa-solid fa-bolt"></i>');
 
                 document.getElementById('quiz-details-box').innerHTML = `
                     <h1 class="quiz-title-big">${quiz.title}</h1>
                     <div class="quiz-meta-tag">
                         <span style="color:var(--hub-color); background:var(--hub-bg);"><i class="fa-solid fa-fingerprint"></i> Mã: ${quiz.id}</span>
-                        <span style="color:#64748b; background:#f1f5f9;"><i class="fa-solid fa-list-ol"></i> ${quiz.questionCount} câu hỏi</span>
-                        <span style="color:#ef4444; background:#fee2e2;"><i class="fa-solid fa-stopwatch"></i> ${quiz.timeLimit ? quiz.timeLimit + ' phút' : 'Không giới hạn'}</span>
+                        <span style="color:#64748b; background:#f1f5f9;"><i class="fa-solid fa-list-ol"></i> ${quiz.question_count} câu hỏi</span>
+                        <span style="color:#ef4444; background:#fee2e2;"><i class="fa-solid fa-stopwatch"></i> ${quiz.time_limit ? quiz.time_limit + ' phút' : 'Không giới hạn'}</span>
                     </div>
-                    
-                    <div class="quiz-rules"><strong>Mô tả & Thể lệ:</strong>\n${quiz.desc}</div>
-
+                    <div class="quiz-rules"><strong>Mô tả & Thể lệ:</strong>\n${quiz.description}</div>
                     <div id="leaderboard-section" style="margin-bottom: 30px; border-top: 2px dashed #e2e8f0; padding-top: 25px;">
                         <h3 style="font-weight: 900; color: ${document.body.classList.contains('dark-mode') ? '#fff' : '#1e293b'}; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                             <i class="fa-solid fa-trophy" style="color: #fbbf24;"></i> BẢNG VÀNG THÀNH TÍCH (TOP 10)
@@ -432,50 +365,32 @@ if (btnLogin) {
                             <div style="text-align: center; color: #888; padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp danh sách...</div>
                         </div>
                     </div>
-
-                    <button class="btn-trigger-popup" onclick="window.openModal()" ${btnDisabled}>
-                        ${btnText}
-                    </button>
+                    <button class="btn-trigger-popup" onclick="window.openModal()" ${btnDisabled}>${btnText}</button>
                 `;
 
-                // 2. GỌI API LẤY ĐIỂM (Tách riêng biệt để không lây bệnh cho nhau)
-                loadLeaderboard(quizId).catch(e => console.log("Lỗi bảng vàng:", e));
+                loadLeaderboard(quizId);
 
-                // --- GIẢI MÃ CHẾ ĐỘ ĐỘC LẬP TỪNG Ô ---
+                // Setup Ô nhập liệu theo Mode
                 let modeStr = quiz.mode || '';
                 let isAcademic = modeStr.includes('_aca') || modeStr.includes('_academic') || modeStr.includes('_school');
-                
-                // Giải mã dữ liệu
-                let isLegacyReq = modeStr.includes('_req') || (!modeStr.includes('_opt') && !modeStr.includes('_hid') && !modeStr.includes('_m'));
-                let isLegacyOpt = modeStr.includes('_opt');
-                let isLegacyHid = modeStr.includes('_hid');
-
+                let isLegacyHid = modeStr.includes('_hid'); let isLegacyOpt = modeStr.includes('_opt');
                 let mssvMode = modeStr.includes('_mH') ? 'H' : (modeStr.includes('_mO') ? 'O' : (modeStr.includes('_mR') ? 'R' : (isLegacyHid ? 'H' : (isLegacyOpt ? 'O' : 'R'))));
                 let classMode = modeStr.includes('_cH') ? 'H' : (modeStr.includes('_cO') ? 'O' : (modeStr.includes('_cR') ? 'R' : (isLegacyHid ? 'H' : (isLegacyOpt ? 'O' : 'R'))));
                 let facMode = modeStr.includes('_fH') ? 'H' : (modeStr.includes('_fO') ? 'O' : (modeStr.includes('_fR') ? 'R' : (isLegacyHid ? 'H' : (isLegacyOpt ? 'O' : 'R'))));
-
                 window.fieldModes = { mssv: mssvMode, cls: classMode, fac: facMode };
-                let extraFieldsBox = document.getElementById('academic-fields');
                 
-                // BỌC GIÁP CHỐNG LỖI
+                let extraFieldsBox = document.getElementById('academic-fields');
                 if (extraFieldsBox) {
-                    if (mssvMode === 'H' && classMode === 'H' && facMode === 'H') {
-                        extraFieldsBox.style.display = 'none';
-                    } else {
+                    if (mssvMode === 'H' && classMode === 'H' && facMode === 'H') extraFieldsBox.style.display = 'none';
+                    else {
                         extraFieldsBox.style.display = 'block';
                         let setupField = (id, labelId, groupId, mode, acaLabel, defLabel, acaPh, defPh) => {
-                            let group = document.getElementById(groupId);
-                            let input = document.getElementById(id);
-                            let label = document.getElementById(labelId);
-                            
-                            // CHỈ THỰC THI NẾU TÌM THẤY ĐỦ 3 PHẦN TỬ
+                            let group = document.getElementById(groupId); let input = document.getElementById(id); let label = document.getElementById(labelId);
                             if (group && input && label) {
-                                if (mode === 'H') {
-                                    group.style.display = 'none'; input.required = false;
-                                } else {
+                                if (mode === 'H') { group.style.display = 'none'; input.required = false; }
+                                else {
                                     group.style.display = 'block'; input.required = (mode === 'R');
-                                    let reqMark = (mode === 'R') ? " <span style='color:#ef4444;'>*</span>" : " <span style='color:#94a3b8; font-weight:normal;'>(Bỏ qua nếu không có)</span>";
-                                    label.innerHTML = (isAcademic ? acaLabel : defLabel) + reqMark;
+                                    label.innerHTML = (isAcademic ? acaLabel : defLabel) + ((mode === 'R') ? " <span style='color:#ef4444;'>*</span>" : " <span style='color:#94a3b8; font-weight:normal;'>(Bỏ qua nếu không có)</span>");
                                     input.placeholder = isAcademic ? acaPh : defPh;
                                 }
                             }
@@ -486,98 +401,84 @@ if (btnLogin) {
                     }
                 }
 
-                // 3. XỬ LÝ NÚT VÀO PHÒNG THI
+                // SUBMIT FORM (Check Chống thi hộ bằng Supabase)
                 let studentForm = document.getElementById('student-form');
                 if (studentForm) {
                     studentForm.addEventListener('submit', async function(e) {
                         e.preventDefault(); 
-                        
                         let sName = document.getElementById('inp-name').value.trim();
                         let sEmail = document.getElementById('inp-email').value.trim();
-                        
-                        // Hút an toàn chống null
                         let rawMSSV = document.getElementById('inp-mssv') ? document.getElementById('inp-mssv').value.trim() : "";
                         let rawClass = document.getElementById('inp-class') ? document.getElementById('inp-class').value.trim() : "";
                         let rawFaculty = document.getElementById('inp-faculty') ? document.getElementById('inp-faculty').value.trim() : "";
 
-                        // Chữa cháy theo cấu hình
                         let sMSSV = (window.fieldModes.mssv === 'H' || (window.fieldModes.mssv === 'O' && rawMSSV === '')) ? "Khách Tự Do" : rawMSSV;
                         let sClass = (window.fieldModes.cls === 'H' || (window.fieldModes.cls === 'O' && rawClass === '')) ? "Tự do" : rawClass;
                         let sFaculty = (window.fieldModes.fac === 'H' || (window.fieldModes.fac === 'O' && rawFaculty === '')) ? "Cộng đồng" : rawFaculty;
 
-                        let btn = document.querySelector('.btn-start-quiz');
-                        let originalText = btn.innerHTML;
-                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra hồ sơ...';
-                        btn.disabled = true;
-
+                        let btn = document.querySelector('.btn-start-quiz'); let originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra hồ sơ...'; btn.disabled = true;
                         let isTest = (quiz.status === 'test');
 
                         try {
-                            let payload = { action: 'checkParticipant', quizId: quizId, isTestMode: isTest, studentId: sMSSV, email: sEmail };
-                            let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                            let result = await res.json();
+                            // Supabase Query: Kiểm tra xem sMSSV đã thi bài này chưa
+                            const { data: existing, error: checkErr } = await supabase.schema('arena').from('results')
+                                .select('id').eq('quiz_id', quizId).eq('student_id', sMSSV).eq('is_test_mode', isTest);
 
-                            if (result.success && result.eligible === false) {
-                                showToast("❌ TỪ CHỐI TRUY CẬP: " + result.message + "\nMỗi bạn chỉ được thi 1 lần duy nhất!");
-                                btn.innerHTML = originalText;
-                                btn.disabled = false;
-                                return; 
+                            if (existing && existing.length > 0) {
+                                showToast("❌ TỪ CHỐI TRUY CẬP: Cậu đã thi rồi!\nMỗi bạn chỉ được nộp bài 1 lần duy nhất!");
+                                btn.innerHTML = originalText; btn.disabled = false; return; 
                             }
 
                             localStorage.setItem('mhent_arena_user', JSON.stringify({ fullName: sName, email: sEmail, studentId: sMSSV, className: sClass, faculty: sFaculty }));
                             window.closeModal();
                             window.location.href = `/arena/quiz?id=${quizId}${isTest ? '&mode=test' : ''}`;
                         } catch (err) {
-                            showToast("❌ Mạng yếu, không kiểm tra được hệ thống. Vui lòng F5 thử lại!");
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
+                            showToast("❌ Mạng yếu, không kết nối được Két Sắt. Cậu thử lại nha!");
+                            btn.innerHTML = originalText; btn.disabled = false;
                         }
                     });
                 }
-
-            } catch (err) {
-                console.error("Lỗi ngầm được giấu kín nay đã lộ diện:", err); // In thẳng lỗi ra màn hình F12
-                document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Mất kết nối với Két Sắt! Vui lòng F5 lại trang.</h3>';
-            }
+            } catch (err) { document.getElementById('quiz-details-box').innerHTML = '<h3 style="color:red; text-align:center;">Mất kết nối với Căn Cứ Supabase!</h3>'; }
         }
 
-        // HÀM TẢI BẢNG XẾP HẠNG ĐỘC LẬP
+        // 4. LẤY BẢNG XẾP HẠNG TỪ SUPABASE
         async function loadLeaderboard(qId) {
             try {
-                let res = await fetch(API_URL + "?action=getLeaderboard&quizId=" + qId + "&t=" + new Date().getTime());
-                let result = await res.json();
+                // Lấy danh sách điểm thi thật (is_test_mode = false), sắp xếp theo điểm giảm dần
+                const { data: results, error } = await supabase.schema('arena').from('results')
+                    .select('*').eq('quiz_id', qId).eq('is_test_mode', false)
+                    .order('score', { ascending: false });
+                
+                if (error) throw error;
                 let listContainer = document.getElementById('leaderboard-list');
 
-                if (!result.success || result.data.length === 0) {
-                    listContainer.innerHTML = `<div style="text-align: center; padding: 20px; background: rgba(0,0,0,0.02); border-radius: 10px; color: #64748b; font-weight: 700;">Chưa có ai ghi danh. Hãy là người đầu tiên!</div>`;
-                    return;
-                }
+                if (!results || results.length === 0) return listContainer.innerHTML = `<div style="text-align: center; padding: 20px; background: rgba(0,0,0,0.02); border-radius: 10px; color: #64748b; font-weight: 700;">Chưa có ai ghi danh. Hãy là người đầu tiên!</div>`;
 
+                // Sắp xếp tay: Nếu điểm bằng nhau, ai nộp nhanh hơn (time_taken ít hơn) thì xếp trên
+                results.sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score; 
+                    let pt = (str) => { let m = str.match(/(\d+)\s*phút/); let s = str.match(/(\d+)\s*giây/); return (m ? parseInt(m[1]) : 0) * 60 + (s ? parseInt(s[1]) : 0); };
+                    let tA = pt(a.time_taken) || 999999; let tB = pt(b.time_taken) || 999999;
+                    if (tA !== tB) return tA - tB; return new Date(a.submit_time) - new Date(b.submit_time); 
+                });
+
+                let top10 = results.slice(0, 10); // Cắt lấy 10 người đứng đầu
                 let html = '';
-                result.data.forEach((user, index) => {
+                top10.forEach((user, index) => {
                     let rankIcon = ''; let rankStyle = '';
-                    
-                    if (index === 0) {
-                        rankIcon = '<i class="fa-solid fa-medal"></i> 1';
-                        rankStyle = 'background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #fbbf24; color: #d97706; font-size: 16px; padding: 15px;';
-                    } else if (index === 1) {
-                        rankIcon = '<i class="fa-solid fa-medal"></i> 2';
-                        rankStyle = 'background: #f1f5f9; border-color: #cbd5e1; color: #475569; padding: 12px;';
-                    } else if (index === 2) {
-                        rankIcon = '<i class="fa-solid fa-medal"></i> 3';
-                        rankStyle = 'background: #fff7ed; border-color: #fdba74; color: #c2410c; padding: 12px;';
-                    } else {
-                        rankIcon = `<span style="font-size: 14px; font-weight: 800; color: #94a3b8;">#${index + 1}</span>`;
-                        rankStyle = 'background: transparent; border-color: #e2e8f0; padding: 10px;';
-                    }
+                    if (index === 0) { rankIcon = '<i class="fa-solid fa-medal"></i> 1'; rankStyle = 'background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #fbbf24; color: #d97706; font-size: 16px; padding: 15px;'; } 
+                    else if (index === 1) { rankIcon = '<i class="fa-solid fa-medal"></i> 2'; rankStyle = 'background: #f1f5f9; border-color: #cbd5e1; color: #475569; padding: 12px;'; } 
+                    else if (index === 2) { rankIcon = '<i class="fa-solid fa-medal"></i> 3'; rankStyle = 'background: #fff7ed; border-color: #fdba74; color: #c2410c; padding: 12px;'; } 
+                    else { rankIcon = `<span style="font-size: 14px; font-weight: 800; color: #94a3b8;">#${index + 1}</span>`; rankStyle = 'background: transparent; border-color: #e2e8f0; padding: 10px;'; }
 
                     html += `
                         <div style="display: flex; align-items: center; justify-content: space-between; border: 2px solid transparent; border-radius: 12px; ${rankStyle}">
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <div style="width: 40px; text-align: center; font-weight: 900; font-size: 18px;">${rankIcon}</div>
                                 <div>
-                                    <div style="font-weight: 800; color: ${index < 3 ? 'inherit' : (document.body.classList.contains('dark-mode') ? '#fff' : '#1e293b')};">${user.name} <span style="font-size: 12px; font-weight: 700; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; margin-left: 5px;">${user.className}</span></div>
-                                    <div style="font-size: 12px; font-weight: 700; margin-top: 3px; opacity: 0.8;"><i class="fa-regular fa-clock"></i> ${user.timeStr}</div>
+                                    <div style="font-weight: 800; color: ${index < 3 ? 'inherit' : (document.body.classList.contains('dark-mode') ? '#fff' : '#1e293b')};">${user.name} <span style="font-size: 12px; font-weight: 700; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 10px; margin-left: 5px;">${user.class_name}</span></div>
+                                    <div style="font-size: 12px; font-weight: 700; margin-top: 3px; opacity: 0.8;"><i class="fa-regular fa-clock"></i> ${user.time_taken}</div>
                                 </div>
                             </div>
                             <div style="font-weight: 900; font-size: 18px; color: var(--hub-color); background: #fff; padding: 5px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
@@ -586,12 +487,8 @@ if (btnLogin) {
                         </div>
                     `;
                 });
-                
                 listContainer.innerHTML = html;
-
-            } catch (e) {
-                document.getElementById('leaderboard-list').innerHTML = `<div style="text-align: center; color: #ef4444; font-weight: 700;">Lỗi tải bảng xếp hạng!</div>`;
-            }
+            } catch (e) { document.getElementById('leaderboard-list').innerHTML = `<div style="text-align: center; color: #ef4444; font-weight: 700;">Lỗi tải bảng xếp hạng!</div>`; }
         }
 
         loadQuizDetails();
