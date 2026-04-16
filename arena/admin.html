@@ -665,10 +665,11 @@
             
             if (error) { if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi tải điểm!</td></tr>'; return; }
             
-            // Format lại dữ liệu cho giống chuẩn cũ để code xuất Excel và Render chạy mượt
+            // Format lại dữ liệu
             let formattedData = data.map(d => ({
                 name: d.name, mssv: d.student_id, email: d.email, className: d.class_name, faculty: d.faculty, 
                 correct: d.correct_answers, score: d.score, timeStr: d.time_taken, progress: d.progress, 
+                startTime: d.started_at ? new Date(d.started_at).toLocaleString('vi-VN') : 'Không rõ', // 👉 THÊM DÒNG NÀY
                 submitTime: new Date(d.submit_time).toLocaleString('vi-VN')
             }));
 
@@ -676,8 +677,19 @@
             if(!isDash) renderResultsTable(formattedData); else calcDashboardStats(formattedData);
         }
 
-        function renderResultsTable(data) { let tbody = document.getElementById('table-body-res'); if(data.length > 0) { let html = ''; data.forEach(u => { let pStyle = (u.progress === 'Hoàn thành') ? 'green' : 'orange'; html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:#f1f5f9;">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${pStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;">${u.submitTime}</td></tr>`; }); tbody.innerHTML = html; } else tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Chưa có ai nộp bài!</td></tr>'; }
-        
+        function renderResultsTable(data) { 
+            let tbody = document.getElementById('table-body-res'); 
+            if(data.length > 0) { 
+                let html = ''; 
+                data.forEach(u => { 
+                    let pStyle = (u.progress === 'Hoàn thành') ? 'green' : 'orange'; 
+                    // 👉 Sửa dòng html += để thêm cột Thời gian bắt đầu:
+                    html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:#f1f5f9;">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${pStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;"><b>Bắt đầu:</b> ${u.startTime}<br><b>Nộp bài:</b> ${u.submitTime}</td></tr>`; 
+                }); 
+                tbody.innerHTML = html; 
+            } else tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Chưa có ai nộp bài!</td></tr>'; 
+        }
+
         window.loadDashboardStats = function() { document.getElementById('dash-widgets').style.display = 'grid'; document.getElementById('stat-total').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; loadResultsTable(true); }
         function calcDashboardStats(data) { let total = data.length; let done = data.filter(d => d.progress === 'Hoàn thành').length; let sum = data.reduce((acc, curr) => acc + curr.score, 0); document.getElementById('stat-total').innerText = total; document.getElementById('stat-done').innerText = done; document.getElementById('stat-avg').innerText = total > 0 ? (sum/total).toFixed(1) + " đ" : "0 đ"; }
         window.openLivescore = function() { let qId = document.getElementById('select-view-dash').value; if(qId) window.open('/arena/livescore?id=' + qId, '_blank'); else showPopup("Chọn Bài thi trước!", true); }
@@ -726,8 +738,13 @@
         window.exportCSVWithMHEntBrand = function() {
             const quizId = document.getElementById('select-view-res').value; const arr = window.currentExportData;
             if (!quizId || !arr || arr.length === 0) return showToast('Lỗi', 'Không có dữ liệu để tải!', 'error');
-            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Universe - KẾT QUẢ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nThời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
-            arr.forEach(r => csv += [`"${r.submitTime}"`,`"${r.name}"`,`"${r.email}"`,`"${r.mssv}"`,`"${r.className}"`,`"${r.faculty}"`,`"${r.correct}"`,`"${r.score}"`,`"${r.timeStr}"`,`"${r.progress}"`].join(",") + "\r\n");
+            
+            // 👉 THÊM TIÊU ĐỀ "Thời Gian Bắt Đầu"
+            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Universe - KẾT QUẢ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nThời Gian Bắt Đầu,Thời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
+            
+            // 👉 THÊM BIẾN r.startTime VÀO MẢNG XUẤT DATA
+            arr.forEach(r => csv += [`"${r.startTime}"`,`"${r.submitTime}"`,`"${r.name}"`,`"${r.email}"`,`"${r.mssv}"`,`"${r.className}"`,`"${r.faculty}"`,`"${r.correct}"`,`"${r.score}"`,`"${r.timeStr}"`,`"${r.progress}"`].join(",") + "\r\n");
+            
             let l = document.createElement("a"); l.href = encodeURI(csv); l.download = `KQ_${quizId}_MHEntArena.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         };
         window.exportQuizQuestionsCSV = function() {

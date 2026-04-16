@@ -340,7 +340,9 @@
 
         window.selectOption = function(idx) {
             userAnswers[currentQIndex] = idx;
-            if (quizMode.includes('quizz')) syncLiveProgress(false);
+            
+            // 👉 BẮN TIẾN ĐỘ THỜI GIAN THỰC LÊN LIVESCORE NGAY LẬP TỨC
+            syncLiveProgress(false); 
 
             if (quizMode === 'default') document.getElementById('nav-btn-' + currentQIndex).classList.add('answered');
             else {
@@ -396,7 +398,7 @@
             let endTime = new Date(); let elapsedSec = Math.floor((endTime - startTime) / 1000);
             let formattedTime = isFinal ? `${Math.floor(elapsedSec / 60)} phút ${elapsedSec % 60} giây` : "Đang làm...";
 
-            // Bắn đạn Upsert vào Supabase (Tuyệt kỹ chống lặp dòng)
+            // Bắn đạn Upsert vào Supabase
             try {
                 await supabase.schema('arena').from('results').upsert({
                     quiz_id: quizId,
@@ -410,8 +412,9 @@
                     score: currentScore,
                     time_taken: formattedTime,
                     progress: isFinal ? "Hoàn thành" : `Câu ${answeredCount}/${questions.length}`,
-                    submit_time: new Date()
-                }, { onConflict: 'quiz_id, student_id, is_test_mode' }); // Bùa chú dò MSSV đè lên đây nè!
+                    started_at: startTime.toISOString(), // 👉 LƯU GIỜ BẮT ĐẦU THI
+                    submit_time: new Date().toISOString()
+                }, { onConflict: 'quiz_id, student_id, is_test_mode' }); 
             } catch(e) { console.error("Lỗi cập nhật điểm Supabase:", e); }
         }
 
