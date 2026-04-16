@@ -707,7 +707,7 @@
             if (!quizId || !arr || arr.length === 0) return showToast('Lỗi', 'Không có dữ liệu để tải!', 'error');
             
             // 👉 THÊM TIÊU ĐỀ "Thời Gian Bắt Đầu"
-            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Universe - KẾT QUẢ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nThời Gian Bắt Đầu,Thời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
+            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Arena - KẾT QUẢ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nThời Gian Bắt Đầu,Thời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
             
             // 👉 THÊM BIẾN r.startTime VÀO MẢNG XUẤT DATA
             arr.forEach(r => csv += [`"${r.startTime}"`,`"${r.submitTime}"`,`"${r.name}"`,`"${r.email}"`,`"${r.mssv}"`,`"${r.className}"`,`"${r.faculty}"`,`"${r.correct}"`,`"${r.score}"`,`"${r.timeStr}"`,`"${r.progress}"`].join(",") + "\r\n");
@@ -717,7 +717,7 @@
         window.exportQuizQuestionsCSV = function() {
             const quizId = document.getElementById('select-view-q').value; const arr = window.currentQuizQuestions;
             if (!quizId || !arr || arr.length === 0) return showToast('Lỗi', 'Kho đề trống!', 'error');
-            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Universe - KHO ĐỀ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nCâu Hỏi,Đáp án Đúng,Đáp án Sai 1,Đáp án Sai 2,Đáp án Sai 3,Giải thích\r\n";
+            let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Arena - KHO ĐỀ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nCâu Hỏi,Đáp án Đúng,Đáp án Sai 1,Đáp án Sai 2,Đáp án Sai 3,Giải thích\r\n";
             const safeText = (t) => `"${(t || "").toString().replace(/"/g, '""')}"`;
             arr.forEach(q => csv += [safeText(q.question_text), safeText(q.correct_answer), safeText(q.wrong_1), safeText(q.wrong_2), safeText(q.wrong_3), safeText(q.explanation)].join(",") + "\r\n");
             let l = document.createElement("a"); l.href = encodeURI(csv); l.download = `KhoDe_${quizId}_MHEntArena.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
