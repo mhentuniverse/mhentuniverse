@@ -411,6 +411,47 @@ footer { background: #f9f9f9; padding: 20px 0; width: 100%; margin-top: 40px; te
 .p-tab-content { display: none; width: 100%; max-width: 500px; flex-direction: column; align-items: center; }
 .p-tab-content.active { display: flex; }
 
+/* ======================================================
+   VÁ LỖI MÀN HÌNH LOADING (OVERLAY) & SPINNER
+   ====================================================== */
+.loading-overlay {
+    position: fixed;
+    top: 0; 
+    left: 0;
+    width: 100vw; 
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.75); /* Nền trắng với Opacity 75% đúng ý sếp */
+    backdrop-filter: blur(8px); /* Làm nhòe nhẹ cảnh phía sau cho xịn */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999; /* Ưu tiên cao nhất, đè lên cả Navbar */
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+/* Hình dáng của vòng tròn xoay */
+.spinner {
+    width: 55px;
+    height: 55px;
+    border: 5px solid rgba(255, 133, 162, 0.2); /* Vòng viền nhạt */
+    border-top-color: #ff85a2; /* Đầu vòng màu hồng MHEnt */
+    border-radius: 50%;
+    animation: spin 1s linear infinite !important;
+    margin-bottom: 20px;
+}
+
+/* Động cơ xoay (Nếu có rồi thì nó đè lên ko sao) */
+@keyframes spin { 
+    0% { transform: rotate(0deg); } 
+    100% { transform: rotate(360deg); } 
+}
+
+/* Dark mode cho màn loading */
+body.dark-mode .loading-overlay {
+    background: rgba(15, 15, 22, 0.85); /* Nền tối mờ */
+}
+
 /* =========================================
    9. CHẾ ĐỘ TỐI (DARK MODE - ĐÃ FIX LỖI)
    ========================================= */
