@@ -120,6 +120,16 @@
             if(data.action === 'SYNC') { initGame(data.payload.teams, data.payload.cards); }
         });
 
+        // THUẬT TOÁN XÓC BÀI (Chống học sinh học thuộc vị trí)
+        function shuffleArray(array) {
+            let shuffled = [...array]; // Tạo bản sao để không làm hỏng data gốc
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
         function initGame(numTeams, cardsData) {
             document.getElementById('waiting-msg').style.display = 'none';
             document.getElementById('podium-screen').style.display = 'none';
@@ -128,8 +138,13 @@
             teams = [];
             for(let i=1; i<=numTeams; i++) { teams.push({ id: i, name: `Team ${i}`, score: 0 }); }
             
-            cards = cardsData; cardsRemaining = cards.length; currentTurnIndex = 0;
-            renderTeamsBar(); renderCardGrid();
+            // 👉 ĐÃ SỬA CHỖ NÀY: Xóc tung mảng thẻ lên trước khi gán vào game
+            cards = shuffleArray(cardsData); 
+            
+            cardsRemaining = cards.length; 
+            currentTurnIndex = 0;
+            renderTeamsBar(); 
+            renderCardGrid();
         }
 
         function renderTeamsBar() {
