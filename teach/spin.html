@@ -226,21 +226,51 @@
             if (isSpinning || activeItems.length === 0) return;
             initAudio(); isSpinning = true; wrapper.classList.add('spinning'); centerHub.innerHTML = "ĐANG<br>QUAY...";
             const numSlices = activeItems.length, sliceAngleDeg = 360 / numSlices;
+
+            // 1. TẠO HÀM RANDOM SIÊU CẤP BẰNG CRYPTO (Triệt tiêu hoàn toàn tỷ lệ trùng lặp của Math.random thông thường)
+            function getSecureRandom() {
+                const array = new Uint32Array(1);
+                window.crypto.getRandomValues(array);
+                return array[0] / (0xFFFFFFFF + 1);
+            }
+
             if (isRigged && riggedStep < riggedOrder.length) {
-                const targetOriginalId = riggedOrder[riggedStep]; currentWinningIndex = activeItems.findIndex(item => item.id === targetOriginalId);
-                if (currentWinningIndex === -1) currentWinningIndex = Math.floor(Math.random() * numSlices); else riggedStep++; 
-            } else { currentWinningIndex = Math.floor(Math.random() * numSlices); }
-            const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + (sliceAngleDeg / 2), targetR = (270 - currentTargetAngle + 360) % 360, currentRemainder = currentRotation % 360; 
+                const targetOriginalId = riggedOrder[riggedStep]; 
+                currentWinningIndex = activeItems.findIndex(item => item.id === targetOriginalId);
+                if (currentWinningIndex === -1) currentWinningIndex = Math.floor(getSecureRandom() * numSlices); 
+                else riggedStep++; 
+            } else { 
+                // Quay random 100% bằng thuật toán mã hóa mới
+                currentWinningIndex = Math.floor(getSecureRandom() * numSlices); 
+            }
+            
+            // 2. TẠO ĐỘ LỆCH NGẪU NHIÊN BÊN TRONG Ô (Kim sẽ không chỉ mãi vào chính giữa nữa)
+            // Lấy random từ 10% đến 90% diện tích của góc ô đó (tránh vạch kẻ sát mép gây tranh cãi)
+            const randomOffsetWithinSlice = (getSecureRandom() * 0.8 + 0.1) * sliceAngleDeg;
+            const currentTargetAngle = (currentWinningIndex * sliceAngleDeg) + randomOffsetWithinSlice; 
+            
+            const targetR = (270 - currentTargetAngle + 360) % 360, currentRemainder = currentRotation % 360; 
             let diff = targetR - currentRemainder; if (diff <= 0) diff += 360; 
-            currentRotation += (6 * 360) + diff; 
-            canvas.style.transition = 'transform 5s cubic-bezier(0.1, 0.8, 0.1, 1)'; canvas.style.transform = `rotate(${currentRotation}deg)`;
+            
+            // 3. Tăng số vòng quay lót ngẫu nhiên từ 6 đến 10 vòng cho chóng mặt chơi
+            const extraSpins = Math.floor(getSecureRandom() * 5) + 6;
+            currentRotation += (extraSpins * 360) + diff; 
+            
+            // Thời gian quay tỷ lệ thuận với số vòng quay
+            const spinDuration = extraSpins * 0.8;
+            canvas.style.transition = `transform ${spinDuration}s cubic-bezier(0.1, 0.8, 0.1, 1)`; 
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+            
             let tickDelay = 20;
             function playTicks() { if (!isSpinning) return; playTickSound(); tickDelay *= 1.07; if (tickDelay < 500) setTimeout(playTicks, tickDelay); }
             playTicks();
+            
             setTimeout(() => {
-                const winner = activeItems[currentWinningIndex]; document.getElementById('winner-name').innerText = winner.name; document.getElementById('result-popup').classList.add('show');
+                const winner = activeItems[currentWinningIndex]; 
+                document.getElementById('winner-name').innerText = winner.name; 
+                document.getElementById('result-popup').classList.add('show');
                 playWinSound(); throwConfetti(); winners.push(winner.name); updateResultTab();
-            }, 5000);
+            }, spinDuration * 1000);
         }
 
         function closePopup(action) {
