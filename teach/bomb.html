@@ -222,7 +222,8 @@
                 qBox.style.display = 'block';
                 qBox.style.opacity = '1';
                 qCounter.innerText = `CÂU HỎI 1/${questionsList.length}`;
-                qText.innerText = questionsList[0];
+                let curQ = questionsList[0];
+                qText.innerText = typeof curQ === 'object' ? curQ.q : curQ;
             } else {
                 qBox.style.display = 'none';
             }
@@ -287,7 +288,8 @@
                     void qBox.offsetWidth; 
                     qBox.style.animation = 'fadeInDown 0.3s ease-out';
                     qCounter.innerText = `CÂU HỎI ${currentQIndex + 1}/${questionsList.length}`;
-                    qText.innerText = questionsList[currentQIndex];
+                    let curQ = questionsList[currentQIndex];
+                    qText.innerText = typeof curQ === 'object' ? curQ.q : curQ;
                 }
             }
 
@@ -326,13 +328,21 @@
             statusBadge.style.background = '#10b981';
             statusBadge.style.color = 'white';
             statusBadge.style.borderColor = '#fff';
-            statusBadge.innerText = `🎉 GỠ BOM THÀNH CÔNG!`;
+            
+            // LẤY ĐÁP ÁN ĐỂ HIỂN THỊ
+            let curQ = questionsList[currentQIndex];
+            let ans = (typeof curQ === 'object' && curQ.a) ? curQ.a : "";
+            if (ans) {
+                statusBadge.innerHTML = `🎉 ĐÚNG RỒI: <b>${ans}</b>`;
+            } else {
+                statusBadge.innerText = `🎉 GỠ BOM THÀNH CÔNG!`;
+            }
 
             // Kiểm tra xem còn câu hỏi không
             if (questionsList.length > 0 && currentQIndex < questionsList.length - 1) {
                 btnNext.style.display = 'block';
             } else {
-                btnReset.style.display = 'block'; // Hết câu thì chỉ cho Reset
+                btnReset.style.display = 'block';
                 if(questionsList.length > 0) qCounter.innerText = "HOÀN THÀNH TẤT CẢ!";
             }
         }
@@ -363,7 +373,8 @@
             void qBox.offsetWidth; 
             qBox.style.animation = 'fadeInDown 0.3s ease-out';
             qCounter.innerText = `CÂU HỎI ${currentQIndex + 1}/${questionsList.length}`;
-            qText.innerText = questionsList[currentQIndex];
+            let curQ = questionsList[currentQIndex];
+            qText.innerText = typeof curQ === 'object' ? curQ.q : curQ;
 
             updateTeamUI();
             isPlaying = true;
@@ -411,7 +422,15 @@
             statusBadge.style.background = '#ef4444';
             statusBadge.style.color = 'white';
             statusBadge.style.borderColor = '#fff';
-            statusBadge.innerText = `💥 BÙMMM! TEAM ${currentTeam} THẤT BẠI!`;
+            
+            // LẤY ĐÁP ÁN ĐỂ HIỂN THỊ KHI NỔ
+            let curQ = questionsList[currentQIndex];
+            let ans = (typeof curQ === 'object' && curQ.a) ? curQ.a : "";
+            if (ans) {
+                statusBadge.innerHTML = `💥 BÙMMM! TEAM ${currentTeam} THẤT BẠI! (Đ/A: <b>${ans}</b>)`;
+            } else {
+                statusBadge.innerText = `💥 BÙMMM! TEAM ${currentTeam} THẤT BẠI!`;
+            }
 
             // Nếu chơi Gỡ bom mà nổ, cho phép qua câu tiếp theo
             if (gameMode === 'defuse' && questionsList.length > 0 && currentQIndex < questionsList.length - 1) {

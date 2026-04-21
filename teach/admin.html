@@ -399,7 +399,8 @@
                     </div>
 
                     <h3 style="margin-top: 20px; color: #ef4444;"><i class="fa-solid fa-list-ol"></i> Ngân hàng câu hỏi (Tùy chọn)</h3>
-                    <textarea id="bomb-questions" class="admin-textarea" placeholder="Ví dụ:&#10;Quả táo (Tìm thẻ Apple)&#10;Thủ đô của Việt Nam là gì?" style="min-height: 150px; border-color: #fee2e2; font-size: 16px;"></textarea>
+                    <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Nhập theo cú pháp: <b>Nội dung hiển thị | Đáp án đúng</b> (Mỗi câu 1 dòng)</p>
+                    <textarea id="bomb-questions" class="admin-textarea" placeholder="Ví dụ:&#10;Quả táo | Apple&#10;Thủ đô của Việt Nam là gì? | Hà Nội" style="min-height: 150px; border-color: #fee2e2; font-size: 16px;"></textarea>
 
                     <div class="form-grid" style="margin-top: 20px;">
                         <div class="input-group" style="margin-bottom:0;">
@@ -648,8 +649,17 @@
 
         // 5. BOM HẸN GIỜ (BOMB)
         window.syncBombGame = function() {
+            let qList = [];
+            document.getElementById('bomb-questions').value.trim().split('\n').forEach(line => {
+                if (line.trim() !== "") {
+                    const parts = line.split('|');
+                    if (parts.length >= 2) qList.push({ q: parts[0].trim(), a: parts[1].trim() });
+                    else qList.push({ q: line.trim(), a: "" }); // Lỡ giáo viên quên nhập đáp án
+                }
+            });
+
             const payload = {
-                questions: document.getElementById('bomb-questions').value.trim().split('\n').map(l => l.trim()).filter(l => l !== ""),
+                questions: qList,
                 time: parseInt(document.getElementById('bomb-time').value) || 30,
                 teams: parseInt(document.getElementById('bomb-teams').value) || 2,
                 reward: parseInt(document.getElementById('bomb-reward').value) || 0,
@@ -906,8 +916,16 @@
                 return { qaList: qaList, winN: parseInt(document.getElementById('tug-win-n').value) || 5 };
             }
             if(gameType === 'bomb') {
+                let qList = [];
+                document.getElementById('bomb-questions').value.trim().split('\n').forEach(line => {
+                    if (line.trim() !== "") {
+                        const parts = line.split('|');
+                        if (parts.length >= 2) qList.push({ q: parts[0].trim(), a: parts[1].trim() });
+                        else qList.push({ q: line.trim(), a: "" });
+                    }
+                });
                 return {
-                    questions: document.getElementById('bomb-questions').value.trim().split('\n').map(l => l.trim()).filter(l => l !== ""),
+                    questions: qList,
                     time: parseInt(document.getElementById('bomb-time').value) || 30,
                     teams: parseInt(document.getElementById('bomb-teams').value) || 2,
                     reward: parseInt(document.getElementById('bomb-reward').value) || 0,
@@ -996,7 +1014,10 @@
                 document.getElementById('tug-items').value = (data.qaList || []).map(q => `${q.q} - ${q.a}`).join('\n');
             }
             if(gameType === 'bomb') {
-                document.getElementById('bomb-questions').value = (data.questions || []).join('\n');
+                document.getElementById('bomb-questions').value = (data.questions || []).map(item => {
+                    if (typeof item === 'object') return `${item.q}${item.a ? ' | ' + item.a : ''}`;
+                    return item; // Đảm bảo tương thích với dữ liệu cũ chưa có đáp án
+                }).join('\n');
                 document.getElementById('bomb-time').value = data.time || 30;
                 document.getElementById('bomb-teams').value = data.teams || 2;
                 document.getElementById('bomb-reward').value = data.reward || 0;
