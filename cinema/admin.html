@@ -371,7 +371,24 @@
             
             if(tabName === 'approve') loadPendingMovies();
             if(tabName === 'report') loadReports();
+            
+            // Cập nhật URL Hash mà không làm rác lịch sử
+            history.replaceState(null, null, '#' + tabName);
         };
+
+        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            // Các tab hợp lệ của Admin Cinema
+            const validTabs = ['movie', 'episode', 'edit', 'approve', 'tag', 'report'];
+            
+            if (validTabs.includes(hash)) {
+                switchTab(hash);
+            } else {
+                // Mặc định về trang Tạo phim
+                switchTab('movie');
+            }
+        });
 
         // ==============================================
         // LOGIC TẠO MỚI (GIỮ NGUYÊN)

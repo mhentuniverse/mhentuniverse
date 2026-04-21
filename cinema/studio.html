@@ -335,7 +335,24 @@
             document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('menu-' + tabName).classList.add('active');
+            
+            // Cập nhật URL Hash mà không làm rác lịch sử
+            history.replaceState(null, null, '#' + tabName);
         };
+
+        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            // Các tab hợp lệ của Studio Cinema
+            const validTabs = ['episode', 'movie', 'edit', 'tag'];
+            
+            if (validTabs.includes(hash)) {
+                switchTab(hash);
+            } else {
+                // Studio thì tab ưu tiên mặc định là Đăng Tập
+                switchTab('episode');
+            }
+        });
 
         // --- TẢI DANH SÁCH PHIM ---
         async function loadMovies() {

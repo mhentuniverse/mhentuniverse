@@ -556,7 +556,23 @@
             document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('menu-' + tabName).classList.add('active');
+            
+            // Cập nhật URL Hash mà không làm rác lịch sử trình duyệt (Nút Back)
+            history.replaceState(null, null, '#' + tabName);
         };
+
+        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            const validTabs = ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram'];
+            
+            if (validTabs.includes(hash)) {
+                switchAdminTab(hash);
+            } else {
+                // Nếu không có hash hoặc nhập sai hash thì mặc định về trang đầu
+                switchAdminTab('vocab');
+            }
+        });
 
         for(let i=0; i<4; i++) addTableRow();
         let globalWordList = [], currentGridOrder = [], solvedWords = [], activeInputMode = 'table', activeWordId = null;

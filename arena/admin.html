@@ -486,8 +486,29 @@
         // ==========================================
         window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
-        window.switchTab = function(tabName) { document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active')); document.getElementById('tab-' + tabName).classList.add('active'); document.getElementById('menu-' + tabName).classList.add('active'); };
+        window.switchTab = function(tabName) { 
+                    document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active')); 
+                    document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active')); 
+                    document.getElementById('tab-' + tabName).classList.add('active'); 
+                    document.getElementById('menu-' + tabName).classList.add('active'); 
+                    
+                    // Cập nhật URL Hash mà không làm rác lịch sử trình duyệt (Nút Back)
+                    history.replaceState(null, null, '#' + tabName);
+                };
 
+                // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
+                window.addEventListener('DOMContentLoaded', () => {
+                    const hash = window.location.hash.replace('#', '');
+                    // Khai báo các tab hợp lệ của MHEnt. Arena
+                    const validTabs = ['dash', 'create', 'editquiz', 'add', 'quest', 'result'];
+                    
+                    if (validTabs.includes(hash)) {
+                        switchTab(hash);
+                    } else {
+                        // Nếu không có hash hoặc nhập sai hash thì mặc định về trang Dashboard
+                        switchTab('dash');
+                    }
+                });
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
