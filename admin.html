@@ -369,8 +369,6 @@
             else switchTab('users'); // Mặc định vào thẳng Quản lý Cư dân
         });
 
-        
-
         function sendGlobalMail() {
             const sub = document.getElementById('mail-subject').value;
             const body = document.getElementById('mail-body').value;
@@ -382,7 +380,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -418,6 +416,7 @@
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
                         loadAllUsers();
+                        loadAuditLogs();
                         loadSystemStatus();
                     }
                 } catch (error) { 
@@ -616,6 +615,7 @@
                 });
                 
                 closeModal();
+                logAdminAction(`Đã thay đổi quyền của user: ${document.getElementById('edit-email').value}`, "Root Admin");
                 await loadAllUsers();
                 
             } catch (error) {
@@ -669,6 +669,8 @@
                 
                 isMaintenance = newState;
                 updateMaintenanceUI();
+
+                logAdminAction(newState ? "Đã ĐÓNG CỬA (Bảo trì) hệ thống" : "Đã MỞ CỬA lại hệ thống", "Root Admin");
                 
                 if(newState) showToast("Cảnh báo", "Hệ thống đã bị KHÓA trên toàn server!", "info");
                 else showToast("Thành công", "Đã MỞ CỬA lại toàn bộ hệ sinh thái!", "success");
@@ -678,6 +680,61 @@
                 updateMaintenanceUI(); // Reset lại UI nếu lỗi
             } finally {
                 btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // CAMERA CHẠY BẰNG CƠM (AUDIT LOGS)
+        // ==========================================
+        window.logAdminAction = async function(actionText, moduleName) {
+            if(!auth.currentUser) return;
+            try {
+                let adminName = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
+                await addDoc(collection(db, "logs"), {
+                    timestamp: Date.now(),
+                    adminName: adminName,
+                    action: actionText,
+                    module: moduleName
+                });
+                loadAuditLogs(); // Cập nhật lại bảng ngay khi có log mới
+            } catch(e) {
+                console.error("Lỗi ghi log:", e);
+            }
+        }
+
+        async function loadAuditLogs() {
+            const tbody = document.querySelector('#tab-logs tbody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang cuộn băng camera...</td></tr>';
+            try {
+                // Lấy 20 hành động mới nhất
+                const q = query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(20));
+                const querySnapshot = await getDocs(q);
+                
+                let html = '';
+                querySnapshot.forEach((docSnap) => {
+                    let data = docSnap.data();
+                    let timeStr = new Date(data.timestamp).toLocaleString('vi-VN');
+                    
+                    // Chọn màu thẻ cho đẹp
+                    let badgeClass = 'user';
+                    if(data.module === 'Root Admin') badgeClass = 'admin';
+                    if(data.module === 'Cinema') badgeClass = 'cinema';
+                    if(data.module === 'Arena') badgeClass = 'arena';
+
+                    html += `
+                        <tr>
+                            <td style="color:#64748b; font-size: 13px;">${timeStr}</td>
+                            <td><strong>${data.adminName}</strong></td>
+                            <td>${data.action}</td>
+                            <td><span class="badge ${badgeClass}">${data.module}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                if(html === '') html = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Chưa có hành động nào bị bắt quả tang!</td></tr>';
+                tbody.innerHTML = html;
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Lỗi cuộn băng camera!</td></tr>';
             }
         }
     </script>
