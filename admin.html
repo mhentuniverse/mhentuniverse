@@ -369,19 +369,56 @@
             else switchTab('users'); // Mặc định vào thẳng Quản lý Cư dân
         });
 
-        // TÍNH NĂNG MOCK (Sẽ nối DB sau)
+        // ==========================================
+        // TÍNH NĂNG BẢO TRÌ SERVER (REAL)
+        // ==========================================
         let isMaintenance = false;
-        function toggleMaintenance() {
-            isMaintenance = !isMaintenance;
+
+        // Hàm này tự chạy khi sếp vào trang để check xem server đang mở hay đóng
+        async function loadSystemStatus() {
+            try {
+                const docSnap = await getDoc(doc(db, "system", "status"));
+                if (docSnap.exists()) {
+                    isMaintenance = docSnap.data().isMaintenance || false;
+                    updateMaintenanceUI();
+                }
+            } catch (error) {
+                console.log("Chưa có data system, không sao cả!");
+            }
+        }
+
+        function updateMaintenanceUI() {
             const btn = document.getElementById('btn-maintenance');
             if(isMaintenance) {
                 btn.style.background = "#10b981"; btn.style.boxShadow = "0 10px 0 #047857";
                 btn.innerHTML = '<i class="fa-solid fa-lock-open"></i> MỞ LẠI SERVER';
-                showToast("Cảnh báo", "Hệ thống đã bị khóa với User!", "info");
             } else {
                 btn.style.background = "#ef4444"; btn.style.boxShadow = "0 10px 0 #b91c1c";
                 btn.innerHTML = '<i class="fa-solid fa-power-off"></i> ĐÓNG CỬA SERVER';
-                showToast("Thành công", "Đã mở lại toàn bộ hệ sinh thái!", "success");
+            }
+        }
+
+        window.toggleMaintenance = async function() {
+            const btn = document.getElementById('btn-maintenance');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG GỬI LỆNH LÊN CLOUD...';
+            btn.disabled = true;
+
+            try {
+                const newState = !isMaintenance;
+                // Ghi thẳng trạng thái mới lên Firebase (Collection: system, Document: status)
+                await setDoc(doc(db, "system", "status"), { isMaintenance: newState }, { merge: true });
+                
+                isMaintenance = newState;
+                updateMaintenanceUI();
+                
+                if(newState) showToast("Cảnh báo", "Hệ thống đã bị KHÓA trên toàn server!", "info");
+                else showToast("Thành công", "Đã MỞ CỬA lại toàn bộ hệ sinh thái!", "success");
+            } catch(error) {
+                showToast("Lỗi", "Không thể liên lạc với máy chủ Cloud!", "error");
+                console.error(error);
+                updateMaintenanceUI(); // Reset lại UI nếu lỗi
+            } finally {
+                btn.disabled = false;
             }
         }
 
@@ -396,7 +433,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -432,6 +469,7 @@
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
                         loadAllUsers();
+                        loadSystemStatus();
                     }
                 } catch (error) { 
                     showPopup("Lỗi kết nối máy chủ an ninh!"); 
