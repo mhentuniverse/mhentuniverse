@@ -12,7 +12,8 @@ const firebaseConfig = {
     appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
 };
 
-const app = initializeApp(firebaseConfig, "MaintenanceApp"); 
+// Kiểm tra xem web đã có app Firebase nào chạy chưa. Nếu có rồi thì "xài ké", nếu chưa thì mới tạo mới.
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp(); 
 const db = getFirestore(app);
 const auth = getAuth(app);
 
