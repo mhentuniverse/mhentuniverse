@@ -332,6 +332,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        import { logAdminAction } from '/logger.js';
         
         // --- CHẾ ĐỘ DARK MODE CƠ BẢN ---
         window.toggleDarkMode = function() { 
@@ -415,6 +417,7 @@
                     episodes: [], updatedAt: Date.now() 
                 });
                 showPopup("Tạo phim thành công!"); 
+                logAdminAction(`Đã tạo phim mới: ${document.getElementById('input-title').value.trim()}`, "Cinema");
                 
                 document.getElementById('input-id').value = ''; document.getElementById('input-title').value = ''; document.getElementById('input-alttitle').value = ''; document.getElementById('input-tag').value = ''; document.getElementById('input-custom-tag').value = ''; document.getElementById('input-poster-text').value = ''; document.getElementById('input-trailer').value = ''; document.getElementById('input-desc').value = ''; document.getElementById('input-type').selectedIndex = 0; document.getElementById('input-status').selectedIndex = 0;
                 document.querySelectorAll('#create-tag-picker .tag-btn').forEach(btn => btn.classList.remove('selected'));
@@ -442,6 +445,7 @@
                     updatedAt: Date.now() 
                 });
                 showPopup("Đăng tập thành công!");
+                logAdminAction(`Đã đăng tập mới: ${document.getElementById('ep-title').value.trim()}`, "Cinema");
                 document.getElementById('ep-title').value = ''; document.getElementById('ep-super').value = ''; document.getElementById('ep-vip').value = ''; document.getElementById('ep-dp1').value = ''; document.getElementById('ep-dp2').value = '';
             } catch (error) { showPopup("Lỗi: " + error.message, true); } 
             finally { document.getElementById('loading-episode').style.display = 'none'; }
@@ -531,6 +535,7 @@
                     updatedAt: Date.now()
                 });
                 showPopup("Đã cập nhật xong thông tin Phim!");
+                logAdminAction(`Đã cập nhật phim: ${document.getElementById('edit-title').value.trim()}`, "Cinema");
             } catch (error) { showPopup("Lỗi cập nhật!", true); }
             finally { document.getElementById('loading-edit').style.display = 'none'; }
         });
@@ -566,6 +571,7 @@
                 
                 await updateDoc(doc(db, "movies", movieId), { episodes: window.currentEditMovieData.episodes, updatedAt: Date.now() });
                 showPopup("Đã cập nhật xong link Tập phim!");
+                logAdminAction(`Đã cập nhật tập phim: ${document.getElementById('edit-ep-title').value.trim()}`, "Cinema");
             } catch (error) { showPopup("Lỗi cập nhật tập!", true); }
             finally { document.getElementById('loading-edit').style.display = 'none'; }
         });
@@ -604,7 +610,7 @@
             window.globalTags.push(newTag);
             try {
                 await setDoc(doc(db, "system", "tags"), { list: window.globalTags }, {merge: true});
-                input.value = ''; window.renderTagPickers(); showPopup("Đã thêm Tag mới vào kho!");
+                input.value = ''; window.renderTagPickers(); showPopup("Đã thêm Tag mới vào kho!"); logAdminAction(`Đã thêm tag mới: ${newTag}`, "Cinema");
             } catch(e) { showPopup("Lỗi lưu Tag lên mây!", true); }
         };
 
@@ -613,7 +619,7 @@
                 window.globalTags = window.globalTags.filter(t => t !== tagToRemove);
                 try {
                     await setDoc(doc(db, "system", "tags"), { list: window.globalTags }, {merge: true});
-                    window.renderTagPickers(); showPopup("Đã xóa Tag khỏi kho!");
+                    window.renderTagPickers(); showPopup("Đã xóa Tag khỏi kho!"); logAdminAction(`Đã xóa tag: ${tagToRemove}`, "Cinema");
                 } catch(e) { showPopup("Lỗi xóa Tag!", true); }
             });
         };
@@ -719,6 +725,7 @@
                         await deleteDoc(doc(db, "pending_movies", id));
                         showPopup("Đã đưa phim ra Rạp thành công!");
                         loadPendingMovies(); loadMovies(); 
+                        logAdminAction(`Đã duyệt phim: ${docSnap.data().title}`, "Cinema");
                     }
                 } catch(e) { showPopup("Lỗi duyệt phim!", true); }
             });
@@ -730,6 +737,7 @@
                     await deleteDoc(doc(db, "pending_movies", id));
                     showPopup("Đã từ chối và xóa đề xuất!");
                     loadPendingMovies();
+                    logAdminAction(`Đã từ chối phim: ${docSnap.data().title}`, "Cinema");
                 } catch(e) { showPopup("Lỗi xóa!", true); }
             });
         };
@@ -803,6 +811,7 @@
                             const posterUrl = `https://lh3.googleusercontent.com/u/0/d/${result.fileId}`;
                             document.getElementById(currentPosterInputId).value = posterUrl;
                             showPopup('Đã tải Poster lên hệ thống Mây!');
+                            logAdminAction(`Đã tải poster mới lên mây: ${posterUrl}`, "Cinema");
                         } else {
                             showPopup('Lỗi: ' + result.message, true);
                         }
