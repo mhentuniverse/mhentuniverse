@@ -54,12 +54,35 @@
         .search-bar:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1); }
         body.dark-mode .search-bar { background: #0f172a; border-color: #334155; color: #fff; }
 
-        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
+       /* 1. ĐÓNG KHUNG CHIỀU CAO CHO BẢNG VÀ HIỆN SCROLL LUÔN Ở ĐÂY */
+        .table-container { 
+            overflow-x: auto; 
+            overflow-y: auto; /* Thêm cuộn dọc bên trong bảng */
+            max-height: calc(100vh - 280px); /* Tự động tính toán chiều cao để không bị lẹm xuống đáy */
+            border-radius: 12px; 
+            border: 1px solid #e2e8f0; 
+        }
         body.dark-mode .table-container { border-color: #334155; }
+        
         .user-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .user-table th { background: #f1f5f9; padding: 15px 20px; font-weight: 900; color: #475569; font-size: 14px; text-transform: uppercase; white-space: nowrap;}
+        
+        /* 2. GHIM CỐ ĐỊNH THANH TIÊU ĐỀ BÊN TRÊN (STICKY HEADER) */
+        .user-table th { 
+            background: #f1f5f9; 
+            padding: 15px 20px; 
+            font-weight: 900; 
+            color: #475569; 
+            font-size: 14px; 
+            text-transform: uppercase; 
+            white-space: nowrap;
+            position: sticky; /* Ma thuật ghim cố định ở đây */
+            top: 0; 
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Viền bóng mờ cho đẹp */
+        }
+        body.dark-mode .user-table th { background: #0f172a; color: #94a3b8; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        
         .user-table td { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; font-size: 15px; font-weight: 700; vertical-align: middle; }
-        body.dark-mode .user-table th { background: #0f172a; color: #94a3b8; }
         body.dark-mode .user-table td { border-color: #334155; color: #cbd5e1; }
         
         .badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 4px; margin-right: 4px;}
