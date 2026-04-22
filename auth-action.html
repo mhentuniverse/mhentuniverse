@@ -91,7 +91,7 @@
 
     <script src="/mhent-ui.js"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
         import { getAuth, applyActionCode, verifyPasswordResetCode, confirmPasswordReset } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
         // ⚠️ NHỚ DÁN FIREBASE CONFIG CỦA CẬU VÀO ĐÂY NHA!
@@ -102,7 +102,7 @@
             // ... (Copy từ login.html qua)
         };
 
-        const app = initializeApp(firebaseConfig);
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
 
         // HÀM ẨN/HIỆN MẮT CHO MẬT KHẨU

@@ -258,7 +258,7 @@
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
@@ -273,7 +273,7 @@
             appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
         };
 
-        const app = initializeApp(firebaseConfig);
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const dbRTDB = getDatabase(app);
 
