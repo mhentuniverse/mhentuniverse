@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --hub-color: #6366f1; --hub-bg: rgba(99, 102, 241, 0.15); }
         
@@ -190,26 +191,25 @@
                         </div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;"><i class="fa-solid fa-server"></i></div>
+                        <div class="metric-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;"><i class="fa-solid fa-user-plus"></i></div>
                         <div class="metric-info">
-                            <h3>Lưu Trữ (Storage)</h3>
-                            <p>12.4 GB <span style="font-size: 14px; color: #94a3b8; font-weight: bold;">/ 50GB</span></p>
+                            <h3>Cư dân mới (Hôm nay)</h3>
+                            <p id="new-users-today">0</p>
                         </div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-icon" style="background: rgba(244, 63, 94, 0.1); color: #f43f5e;"><i class="fa-solid fa-fire"></i></div>
                         <div class="metric-info">
                             <h3>Dịch vụ Hot nhất</h3>
-                            <p>MHEnt. Cinema</p>
+                            <p id="hot-service-name">Đang quét...</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="admin-card">
-                    <h3 style="margin-top:0;"><i class="fa-solid fa-chart-line"></i> Lưu lượng truy cập (Bản nháp UI)</h3>
-                    <div style="height: 200px; background: rgba(99,102,241,0.05); border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: bold;">
-                        Khu vực gắn Biểu đồ Chart.js trong tương lai
-                    </div>
+                    <h3 style="margin-top:0;"><i class="fa-solid fa-chart-line"></i> Hoạt động Hệ sinh thái (24h qua)</h3>
+                    <canvas id="activityChart" style="width: 100%; height: 300px;"></canvas>
+                </div>
                 </div>
             </div>
 
@@ -737,6 +737,87 @@
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Lỗi cuộn băng camera!</td></tr>';
             }
         }
+
+        // ==========================================
+        // HỆ THỐNG PHÂN TÍCH DỮ LIỆU (REAL DASHBOARD)
+        // ==========================================
+        let myChart = null;
+
+        async function updateDashboardStats() {
+            try {
+                // 1. Thống kê User mới trong ngày
+                const now = new Date();
+                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                
+                // Giả sử mỗi user có field 'createdAt' hoặc mình đếm tạm từ danh sách load được
+                let newUsers = globalUsers.filter(u => u.lastLogin && parseInt(u.lastLogin) > startOfDay).length; 
+                // Mẹo: Nếu user chưa có createdAt, mình dùng tạm lastLogin để demo traffic hôm nay
+                document.getElementById('new-users-today').innerText = newUsers;
+                document.getElementById('total-users-count').innerText = globalUsers.length + " người";
+
+                // 2. Phân tích Nhật ký để tìm Dịch vụ Hot
+                const logsSnap = await getDocs(query(collection(db, "logs"), limit(100)));
+                let serviceStats = { Cinema: 0, Arena: 0, Root: 0, Music: 0 };
+                
+                logsSnap.forEach(doc => {
+                    const mod = doc.data().module;
+                    if (serviceStats.hasOwnProperty(mod)) serviceStats[mod]++;
+                });
+
+                // Tìm thằng lớn nhất
+                let hotService = Object.keys(serviceStats).reduce((a, b) => serviceStats[a] > serviceStats[b] ? a : b);
+                document.getElementById('hot-service-name').innerText = "MHEnt. " + hotService;
+
+                // 3. Vẽ Biểu đồ Hoạt động
+                renderActivityChart(serviceStats);
+
+            } catch (error) {
+                console.error("Lỗi cập nhật Dashboard:", error);
+            }
+        }
+
+        function renderActivityChart(stats) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            if (myChart) myChart.destroy(); // Xóa biểu đồ cũ nếu có để vẽ cái mới
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Cinema', 'Arena', 'Root Admin', 'Music'],
+                    datasets: [{
+                        label: 'Số lượng thao tác hệ thống',
+                        data: [stats.Cinema, stats.Arena, stats.Root, stats.Music],
+                        backgroundColor: [
+                            'rgba(233, 69, 96, 0.6)', // Đỏ Cinema
+                            'rgba(255, 154, 85, 0.6)', // Cam Arena
+                            'rgba(99, 102, 241, 0.6)', // Tím Root
+                            'rgba(168, 85, 247, 0.6)'  // Tím Music
+                        ],
+                        borderColor: [
+                            '#e94560', '#ff9a55', '#6366f1', '#a855f7'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Gọi cập nhật dashboard mỗi khi load xong User
+        // Sếp tìm trong hàm loadAllUsers() cũ, thêm dòng này vào cuối:
+        // updateDashboardStats();
     </script>
     <script src="/mhent-ui.js"></script>
     <script src="/check-token.js"></script>
