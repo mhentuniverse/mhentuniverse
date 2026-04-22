@@ -242,16 +242,19 @@
 
             <div id="tab-notify" class="admin-tab">
                 <h1 class="page-title">Phát Thanh Toàn Vũ Trụ</h1>
-                <p class="page-subtitle">Gửi Email thông báo trực tiếp đến tất cả tài khoản cư dân.</p>
+                <p class="page-subtitle">Gửi Email thông báo trực tiếp đến tài khoản cư dân.</p>
 
                 <div class="admin-card" style="max-width: 800px;">
-                    <label style="font-weight: 800; display: block; margin-bottom: 8px;">Tiêu đề Email:</label>
+                    <label style="font-weight: 800; display: block; margin-bottom: 8px; color: #a855f7;"><i class="fa-solid fa-crosshairs"></i> Người nhận (Để trống nếu muốn gửi TOÀN SERVER):</label>
+                    <input type="text" id="mail-target" class="admin-input" placeholder="VD: user1@gmail.com, user2@gmail.com (Ngăn cách bằng dấu phẩy)">
+
+                    <label style="font-weight: 800; display: block; margin-bottom: 8px; margin-top: 20px;">Tiêu đề Email:</label>
                     <input type="text" id="mail-subject" class="admin-input" placeholder="VD: MHEnt. ra mắt tính năng Đấu trường mới!">
                     
                     <label style="font-weight: 800; display: block; margin-bottom: 8px;">Nội dung thông báo:</label>
                     <textarea id="mail-body" class="admin-textarea" rows="8" placeholder="Soạn nội dung tại đây..."></textarea>
                     
-                    <button class="btn-large" onclick="sendGlobalMail()"><i class="fa-solid fa-paper-plane"></i> GỬI MAIL HÀNG LOẠT</button>
+                    <button class="btn-large" onclick="sendGlobalMail()"><i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ</button>
                 </div>
             </div>
 
@@ -369,14 +372,6 @@
             if (validTabs.includes(hash)) switchTab(hash);
             else switchTab('users'); // Mặc định vào thẳng Quản lý Cư dân
         });
-
-        function sendGlobalMail() {
-            const sub = document.getElementById('mail-subject').value;
-            const body = document.getElementById('mail-body').value;
-            if(!sub || !body) return showToast("Lỗi", "Chưa nhập đủ thông tin kìa sếp!", "error");
-            showToast("Thành công", `Đang chuẩn bị gửi mail tới ${document.getElementById('total-users-count').innerText} cư dân...`, "success");
-            setTimeout(() => { document.getElementById('mail-subject').value = ''; document.getElementById('mail-body').value = ''; }, 1000);
-        }
     </script>
 
     <script type="module">
@@ -817,9 +812,73 @@
             });
         }
 
-        // Gọi cập nhật dashboard mỗi khi load xong User
-        // Sếp tìm trong hàm loadAllUsers() cũ, thêm dòng này vào cuối:
-        // updateDashboardStats();
+        // ==========================================
+        // PHÁT THANH TOÀN VŨ TRỤ (REAL MAIL SENDER - V2)
+        // ==========================================
+        window.sendGlobalMail = async function() {
+            const targetInput = document.getElementById('mail-target').value.trim();
+            const sub = document.getElementById('mail-subject').value;
+            const body = document.getElementById('mail-body').value;
+            
+            if(!sub || !body) return showToast("Lỗi", "Sếp chưa soạn nội dung thư kìa!", "error");
+
+            let emailList = [];
+
+            // LOGIC KIỂM TRA MỤC TIÊU
+            if (targetInput !== "") {
+                // Nếu sếp nhập email, thì tách ra thành mảng (bằng dấu phẩy)
+                emailList = targetInput.split(',').map(e => e.trim()).filter(e => e.includes('@'));
+                if(emailList.length === 0) return showToast("Lỗi", "Danh sách người nhận không hợp lệ!", "error");
+            } else {
+                // Nếu sếp để trống, hỏi lại cho chắc ăn (tránh bấm nhầm gửi full server)
+                const isConfirm = confirm("Sếp ĐANG ĐỂ TRỐNG người nhận. Hệ thống sẽ gửi thư này cho TOÀN BỘ CƯ DÂN. Sếp có chắc chắn không?");
+                if (!isConfirm) return; // Nếu sếp bấm Cancel thì dừng gửi
+                
+                // Quét DB lấy toàn bộ email
+                emailList = globalUsers.map(u => u.email).filter(e => e && e.includes('@')); 
+                if(emailList.length === 0) return showToast("Lỗi", "Chưa có cư dân nào có email hợp lệ!", "error");
+            }
+
+            const btn = document.querySelector('#tab-notify .btn-large');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG PHÓNG THƯ TỚI ' + emailList.length + ' NGƯỜI...';
+            btn.disabled = true;
+
+            try {
+                // SẾP DÁN CÁI LINK WEB APP (CỦA SẾP) VÀO ĐÂY NHA:
+                const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
+
+                const response = await fetch(MAILER_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        subject: sub,
+                        body: body.replace(/\n/g, "<br>"), 
+                        emails: emailList
+                    })
+                });
+
+                const result = await response.json();
+                
+                if(result.status === "success") {
+                    showToast("Thành công", `Đã rải truyền đơn đến ${emailList.length} hộp thư!`, "success");
+                    // Xóa trắng form sau khi gửi xong
+                    document.getElementById('mail-target').value = '';
+                    document.getElementById('mail-subject').value = '';
+                    document.getElementById('mail-body').value = '';
+                    
+                    let logMsg = targetInput ? `Đã gửi mail riêng cho ${emailList.length} người` : `Đã phát thanh Mail Toàn Server`;
+                    logAdminAction(`${logMsg}: "${sub}"`, "Root Admin");
+                } else {
+                    showToast("Lỗi Bưu điện", result.message, "error");
+                }
+            } catch (error) {
+                showToast("Lỗi kết nối", "Không thể liên lạc với Trạm bưu điện!", "error");
+                console.error(error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
     </script>
     <script src="/mhent-ui.js"></script>
     <script src="/check-token.js"></script>
