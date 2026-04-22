@@ -526,6 +526,8 @@
         window.db = getFirestore(app);
         window.auth = getAuth(app);
 
+        import { logAdminAction } from '/logger.js';
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) window.location.href = '/login';
             else {
@@ -549,6 +551,7 @@
     </script>
 
     <script>
+        import { logAdminAction } from '/logger.js';
         // LOGIC CHỨC NĂNG CƠ BẢN GIỮ NGUYÊN
         window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
@@ -617,6 +620,7 @@
             document.getElementById('control-station').style.display = 'block';
             renderAdminQuestionList(); renderMirrorGrid();
             showToast("Thành công!", "Đã đẩy dữ liệu Từ vựng sang máy chiếu!", "success");
+            logAdminAction(`Đồng bộ ${list.length} từ vựng sang máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         // 2. VÒNG QUAY ĐỊNH MỆNH (SPIN)
@@ -628,6 +632,7 @@
             let orderArray = isRigged ? rawOrder.split(',').map(n => parseInt(n.trim()) - 1).filter(n => !isNaN(n) && n >= 0 && n < items.length) : [];
             localStorage.setItem('mhent_spin_cmd', JSON.stringify({ action: 'SYNC', payload: { items, isRigged, riggedOrder: orderArray }, rand: Math.random() }));
             showToast("Thành công!", `Đã gửi ${items.length} thành viên sang Vòng quay!`, "success");
+            logAdminAction(`Đồng bộ ${items.length} thành viên sang Vòng quay (Chế độ: ${document.getElementById('spin-mode').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         // 3. HỘP QUÀ NHÂN PHẨM (BAAMBOOZLE)
@@ -652,6 +657,7 @@
             if(cards.length < 2) return showToast("Lỗi", "Vui lòng tạo ít nhất 2 thẻ hợp lệ!", "error");
             localStorage.setItem('mhent_baam_cmd', JSON.stringify({ action: 'SYNC', payload: { teams: teamCount, cards: cards.sort(() => 0.5 - Math.random()) }, rand: Math.random() }));
             showToast("Tuyệt vời!", `Đã xuất xưởng ${cards.length} Thẻ bài sang Máy chiếu!`, "success");
+            logAdminAction(`Đồng bộ ${cards.length} thẻ bài sang Máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         // 4. KÉO CO (TUG)
@@ -663,6 +669,7 @@
             if (qaList.length === 0) return showToast("Lỗi", "Vui lòng nhập ít nhất 1 câu hỏi kéo co!", "error");
             localStorage.setItem('mhent_tug_cmd', JSON.stringify({ action: 'SYNC', payload: { questions: qaList, winningPoints: parseInt(document.getElementById('tug-win-n').value) || 5 }, rand: Math.random() }));
             showToast("Thành công", `Đã gửi ${qaList.length} câu hỏi sang Tiền tuyến!`, "success");
+            logAdminAction(`Đồng bộ ${qaList.length} câu hỏi kéo co sang Máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         // 5. BOM HẸN GIỜ (BOMB)
@@ -685,6 +692,7 @@
             };
             localStorage.setItem('mhent_bomb_cmd', JSON.stringify({ action: 'SYNC', payload: payload, rand: Math.random() }));
             showToast("Thành công", "Đã gửi cấu hình sang Máy chiếu Bom!", "success");
+            logAdminAction(`Đồng bộ ${qList.length} câu hỏi Bom sang Máy chiếu (Chế độ: ${document.getElementById('bomb-mode').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         // 6. BLAST BLOCK V2
@@ -701,6 +709,7 @@
             if(questions.length === 0) return showToast("Lỗi", "Cậu chưa nhập câu hỏi nào!", "error");
             localStorage.setItem('mhent_blast_cmd', JSON.stringify({ action: 'SYNC', payload: { questions }, rand: Math.random() }));
             showToast("Thành công", `Đã xây dựng ${questions.length} khối Minecraft!`, "success");
+            logAdminAction(`Đồng bộ ${questions.length} khối Blast Block sang Máy chiếu; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         // 7. WORD TORNADO (UNSCRAMBLE)
@@ -710,6 +719,7 @@
             if (sentences.length === 0) return showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
             localStorage.setItem('mhent_unscram_cmd', JSON.stringify({ action: 'SYNC', payload: { sentences: sentences }, rand: Math.random() }));
             showToast("Tuyệt vời!", `Đã gửi ${sentences.length} câu bão táp sang Máy chiếu!`, "success");
+            logAdminAction(`Đồng bộ ${sentences.length} câu Unscramble sang Máy chiếu; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
@@ -785,6 +795,7 @@
             parsedCards = parsedCards.sort(() => 0.5 - Math.random());
             localStorage.setItem('mhent_baam_cmd', JSON.stringify({ action: 'SYNC', payload: { teams: teamCount, cards: parsedCards }, rand: Math.random() }));
             showToast("Tuyệt vời!", `Đã xuất xưởng ${parsedCards.length} Thẻ bài sang Máy chiếu!`, "success");
+            logAdminAction(`Đồng bộ ${parsedCards.length} thẻ bài sang Máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         }
 
         // Tạo sẵn 2 câu hỏi mẫu
@@ -1053,6 +1064,7 @@
             }
             
             showToast('Tải thành công', 'Dữ liệu đã được nạp xuống bảng điều khiển!', 'success');
+            logAdminAction(`Tải dữ liệu ${gameType} từ Đám mây; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         // LƯU LÊN MÂY
@@ -1091,6 +1103,7 @@
                 const result = await res.json();
                 if(result.success) {
                     showToast('Thành công', isNew ? 'Tạo bộ dữ liệu trên Đám mây thành công!' : 'Đã cập nhật dữ liệu!', 'success');
+                    logAdminAction(`Lưu dữ liệu ${gameType} lên Đám mây; Teacher: ${document.getElementById('teacher-name').value}, Education`);
                     
                     // Tải lại list mới và TỰ ĐỘNG CHỌN CÁI VỪA LƯU
                     const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
@@ -1127,6 +1140,7 @@
                     
                     if(result.success) {
                         showToast('Thành công', 'Đã xóa bộ dữ liệu!', 'success');
+                        logAdminAction(`Xóa dữ liệu ${gameType} khỏi Đám mây; Teacher: ${document.getElementById('teacher-name').value}, Education`);
                         document.querySelector(`.cloud-data-name-${gameType}`).value = '';
                         
                         // Cập nhật lại dropdown cho sạch sẽ
@@ -1202,6 +1216,7 @@
             const link = `${window.location.origin}/teach/${gameType}?id=${rowId}`;
             navigator.clipboard.writeText(link);
             showToast('Thành công!', 'Đã copy Link. Cậu có thể dán thẳng vào giáo án rồi đó!', 'success');
+            logAdminAction(`Copy Link trực tiếp của ${gameType} (ID: ${rowId}) vào clipboard; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
     </script>
     <script src="/mhent-ui.js"></script>
