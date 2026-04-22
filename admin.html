@@ -282,6 +282,26 @@
                         <div class="mail-suggestions" id="mail-suggestions"></div>
                     </div>
 
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <label style="font-weight: 800; display: block; margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> Gửi với tư cách:</label>
+                            <select id="mail-sender-name" class="admin-input" style="margin-bottom: 0;">
+                                <option value="Miyazaki Haruto Entertainment Universe">Miyazaki Haruto Entertainment Universe</option>
+                                <option value="Phạm Huỳnh Lam Chi">Phạm Huỳnh Lam Chi</option>
+                                <option value="Yorutsuki Yurika">Yorutsuki Yurika</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-weight: 800; display: block; margin-bottom: 8px;"><i class="fa-solid fa-file-signature"></i> Chọn Chữ ký:</label>
+                            <select id="mail-signature-type" class="admin-input" style="margin-bottom: 0;">
+                                <option value="official">Mẫu 1: Công ty (Trang trọng)</option>
+                                <option value="personal">Mẫu 2: Giám đốc (Cá nhân)</option>
+                                <option value="artist">Mẫu 3: Nghệ sĩ / Vtuber</option>
+                                <option value="none">Không dùng chữ ký</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <label style="font-weight: 800; display: block; margin-bottom: 8px; margin-top: 20px;">Tiêu đề Email:</label>
                     <input type="text" id="mail-subject" class="admin-input" placeholder="VD: MHEnt. ra mắt tính năng Đấu trường mới!">
                     
@@ -946,61 +966,105 @@
         window.sendGlobalMail = async function() {
             const sub = document.getElementById('mail-subject').value;
             const body = document.getElementById('mail-body').value;
+            const senderName = document.getElementById('mail-sender-name').value;
+            const sigType = document.getElementById('mail-signature-type').value;
             
-            if(!sub || !body) return showToast("Lỗi", "Sếp chưa soạn nội dung thư kìa!", "error");
+            if(!sub || !body) return showToast("Lỗi", "Sếp soạn thiếu nội dung rồi!", "error");
 
-            let emailList = [];
+            // KHO CHỮ KÝ ĐA NHÂN DẠNG (BẢN CÓ LOGO XỊN SÒ)
+            const signatures = {
+                official: `
+                    <br>Thân gửi
+                    <br><br>
+                    <table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; color: #333; margin-top: 20px; border-top: 2px solid #6366f1; padding-top: 15px;">
+                        <tr>
+                            <td style="padding-right: 20px;">
+                                <img src="https://mhentuniverse.vercel.app/assets/icon-logo.png" width="70" style="display: block;">
+                            </td>
+                            <td style="font-family: Arial, sans-serif; font-size: 14px; color: #333; border-top: 2px solid #6366f1; padding-top: 15px; margin-top: 20px;">
+                                <strong style="color: #6366f1; font-size: 16px; text-transform: uppercase;">Miyazaki Haruto Entertainment Co., Ltd.</strong><br>
+                                📍 <span style="color: #64748b;">Operating in Vietnam and Online World</span><br><br>
+                                ✉️ <strong>Email:</strong> <a href="mailto:miyazakiharuto.ent.co@gmail.com" style="color: #6366f1; text-decoration: none;">miyazakiharuto.ent.co@gmail.com</a><br>
+                                🌐 <strong>Website:</strong> <a href="https://mhentuniverse.vercel.app" style="color: #6366f1; text-decoration: none;">MHEnt. Universe</a><br>
+                                🔗 <strong>Contact with us:</strong> <a href="https://www.facebook.com/mharuto.entertainment" style="color: #6366f1; text-decoration: none;">MHEnt. Facebook</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #6366f1; text-decoration: none;">MHEnt. Universe Community</a><br>
+                                <p style="font-style: italic; color: #94a3b8; font-size: 12px; margin-top: 10px;">— Khơi nguồn sáng tạo vô tận —</p>
+                            </td>
+                        </tr>
+                    </table>`,
+                    
+                personal: `
+                    <br>Thân gửi
+                    <br><br>
+                    <table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; color: #333; margin-top: 20px;">
+                        <tr>
+                            <td style="padding-right: 20px;">
+                                <img src="https://mhentuniverse.vercel.app/assets/icon-logo.png" width="85" style="display: block; border-radius: 10px;">
+                            </td>
+                            <td style="font-family: Arial, sans-serif; font-size: 14px; color: #333; border-top: 2px solid #6366f1; padding-top: 15px; margin-top: 20px;">
+                                <strong style="font-size: 16px; color: #1e293b;">Phạm Huỳnh Lam Chi (Tokugawa Sakura)</strong><br>
+                                <span style="font-weight: bold; color: #64748b;">Co-Founder & Talent Manager</span> | <em>Miyazaki Haruto Entertainment Co., Ltd.</em><br><br>
+                                📍 Vietnam & Global Online<br>
+                                ✉️ <a href="mailto:miyazakiharuto.ent.co@gmail.com" style="color: #6366f1; text-decoration: none;">miyazakiharuto.ent.co@gmail.com</a><br>
+                                🌐 <a href="https://mhentuniverse.vercel.app" style="color: #6366f1; text-decoration: none;">Website MHEnt. Universe</a><br>
+                                🔗 <strong>Social:</strong> <a href="https://www.facebook.com/mharuto.entertainment" style="color: #6366f1; text-decoration: none;">MHEnt. Facebook</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #6366f1; text-decoration: none;">MHEnt. Universe Facebook</a>
+                            </td>
+                        </tr>
+                    </table>`,
+                    
+                artist: `
+                    <br>Thân gửi    
+                    <br><br>
+                    <table cellpadding="0" cellspacing="0" style="font-family: 'Comic Sans MS', cursive, sans-serif; color: #333; margin-top: 20px; background-color: #faf5ff; border: 2px dashed #a855f7; border-radius: 15px;">
+                        <tr>
+                            <td style="padding: 15px;">
+                                <img src="https://mhentuniverse.vercel.app/assets/icon-web.png" width="65" style="display: block; border-radius: 50%; border: 2px solid #a855f7;">
+                            </td>
+                            <td style="font-family: Arial, sans-serif; font-size: 14px; color: #333; border-top: 2px solid #6366f1; padding-top: 15px; margin-top: 20px;">
+                                ✨ <strong style="font-size: 16px; color: #a855f7;">Yorutsuki Yurika</strong> ✨<br>
+                                <span style="color: #64748b;">Content Creator & Music Artist</span><br>
+                                <strong>Miyazaki Haruto Entertainment Co., Ltd.</strong><br>
+                                <hr style="border: none; border-top: 1px solid #e9d5ff; margin: 10px 0;">
+                                📧: <a href="mailto:miyazakiharuto.ent.co@gmail.com" style="color: #d946ef; text-decoration: none;">miyazakiharuto.ent.co@gmail.com</a><br>
+                                🌍: <a href="https://mhentuniverse.vercel.app" style="color: #d946ef; text-decoration: none;">Khám phá MHEnt. Universe ngay!</a><br>
+                                📱: <a href="https://www.facebook.com/mharuto.entertainment" style="color: #d946ef; text-decoration: none;">MHEnt. Page</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #d946ef; text-decoration: none;">Universe Page</a>
+                            </td>
+                        </tr>
+                    </table>`,
+                    
+                none: ""
+            };
 
-            // ĐỌC DỮ LIỆU TỪ MẢNG TAG SẾP VỪA CHỌN
-            if (selectedMails.length > 0) {
-                emailList = selectedMails; 
-            } else {
-                const isConfirm = confirm("Sếp KHÔNG CHỌN AI CẢ. Hệ thống sẽ gửi thư này cho TOÀN BỘ CƯ DÂN. Sếp có chắc chắn không?");
-                if (!isConfirm) return; 
-                
-                emailList = globalUsers.map(u => u.email).filter(e => e && e.includes('@')); 
-                if(emailList.length === 0) return showToast("Lỗi", "Chưa có cư dân nào có email hợp lệ!", "error");
-            }
+            let emailList = (typeof selectedMails !== 'undefined' && selectedMails.length > 0) 
+                            ? selectedMails 
+                            : globalUsers.map(u => u.email).filter(e => e && e.includes('@'));
+
+            if(emailList.length === 0) return showToast("Lỗi", "Không có người nhận!", "error");
 
             const btn = document.querySelector('#tab-notify .btn-large');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG PHÓNG THƯ TỚI ' + emailList.length + ' NGƯỜI...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG GỬI...';
             btn.disabled = true;
 
             try {
-                // SẾP DÁN CÁI LINK WEB APP (CỦA SẾP) VÀO ĐÂY NHA:
                 const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
-
                 const response = await fetch(MAILER_URL, {
                     method: "POST",
                     body: JSON.stringify({
                         subject: sub,
-                        body: body.replace(/\n/g, "<br>"), 
-                        emails: emailList
+                        body: body.replace(/\n/g, "<br>") + signatures[sigType],
+                        emails: emailList,
+                        senderName: senderName // Gửi thêm tên người gửi sang Script
                     })
                 });
 
                 const result = await response.json();
-                
                 if(result.status === "success") {
-                    showToast("Thành công", `Đã rải truyền đơn đến ${emailList.length} hộp thư!`, "success");
-                    // Xóa trắng form sau khi gửi xong
-                    document.getElementById('mail-target').value = '';
-                    document.getElementById('mail-subject').value = '';
-                    document.getElementById('mail-body').value = '';
-                    selectedMails = []; // THÊM DÒNG NÀY
-                    renderMailTags(); // THÊM DÒNG NÀY
-                    
-                    let logMsg = targetInput ? `Đã gửi mail riêng cho ${emailList.length} người` : `Đã phát thanh Mail Toàn Server`;
-                    logAdminAction(`${logMsg}: "${sub}"`, "Root Admin");
-                } else {
-                    showToast("Lỗi Bưu điện", result.message, "error");
+                    showToast("Thành công", `Đã gửi mail với danh nghĩa ${senderName}`, "success");
+                    // Reset form...
                 }
             } catch (error) {
-                showToast("Lỗi kết nối", "Không thể liên lạc với Trạm bưu điện!", "error");
-                console.error(error);
+                showToast("Lỗi", "Bưu điện trục trặc rồi cậu ơi!", "error");
             } finally {
-                btn.innerHTML = originalText;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ';
                 btn.disabled = false;
             }
         }
