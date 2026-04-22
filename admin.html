@@ -147,6 +147,34 @@
         #group-cinema.show { border-left-color: #ff85a2; } #group-arena.show { border-left-color: #ff9a55; } #group-manga.show { border-left-color: #d97706; } #group-novel.show { border-left-color: #65a30d; } #group-music.show { border-left-color: #a855f7; } #group-teacher.show { border-left-color: #0ea5e9; } #group-tester.show { border-left-color: #475569; }
 
         #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; text-align: center; }
+        
+        /* STYLE CHO Ô CHỌN NGƯỜI NHẬN MAIL (TAGGING INPUT) */
+        .mail-target-container { position: relative; width: 100%; margin-bottom: 15px; }
+        .mail-tags-box { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; min-height: 50px; align-items: center; transition: 0.3s; }
+        .mail-tags-box:focus-within { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+        body.dark-mode .mail-tags-box { background: #0f172a; border-color: #334155; }
+        
+        .mail-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--hub-bg); color: var(--hub-color); padding: 4px 10px 4px 4px; border-radius: 20px; font-size: 13px; font-weight: 800; border: 1px solid rgba(99,102,241,0.3); }
+        .mail-tag img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+        .mail-tag .remove-tag { cursor: pointer; color: #ef4444; font-size: 14px; margin-left: 4px; }
+        .mail-tag .remove-tag:hover { color: #b91c1c; }
+        
+        #mail-target-input { border: none; outline: none; background: transparent; flex: 1; min-width: 150px; font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 600; color: #1e293b; }
+        body.dark-mode #mail-target-input { color: #fff; }
+
+        .mail-suggestions { position: absolute; top: 100%; left: 0; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; z-index: 100; display: none; margin-top: 5px; }
+        body.dark-mode .mail-suggestions { background: #1e293b; border-color: #334155; }
+        
+        .suggestion-item { display: flex; align-items: center; gap: 10px; padding: 10px 15px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background: #f8fafc; }
+        body.dark-mode .suggestion-item { border-color: #0f172a; }
+        body.dark-mode .suggestion-item:hover { background: #334155; }
+        
+        .suggestion-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        .suggestion-item .sugg-name { font-weight: 800; color: #1e293b; font-size: 14px; }
+        .suggestion-item .sugg-email { color: #64748b; font-size: 12px; }
+        body.dark-mode .suggestion-item .sugg-name { color: #fff; }
     </style>
 </head>
 <body>
@@ -245,8 +273,14 @@
                 <p class="page-subtitle">Gửi Email thông báo trực tiếp đến tài khoản cư dân.</p>
 
                 <div class="admin-card" style="max-width: 800px;">
-                    <label style="font-weight: 800; display: block; margin-bottom: 8px; color: #a855f7;"><i class="fa-solid fa-crosshairs"></i> Người nhận (Để trống nếu muốn gửi TOÀN SERVER):</label>
-                    <input type="text" id="mail-target" class="admin-input" placeholder="VD: user1@gmail.com, user2@gmail.com (Ngăn cách bằng dấu phẩy)">
+                    <label style="font-weight: 800; display: block; margin-bottom: 8px; color: #a855f7;"><i class="fa-solid fa-users-viewfinder"></i> Chọn Cư dân nhận Mail (Để trống sẽ gửi TOÀN SERVER):</label>
+                    
+                    <div class="mail-target-container">
+                        <div class="mail-tags-box" id="mail-tags-box">
+                            <input type="text" id="mail-target-input" placeholder="Gõ tên hoặc email để tìm kiếm...">
+                        </div>
+                        <div class="mail-suggestions" id="mail-suggestions"></div>
+                    </div>
 
                     <label style="font-weight: 800; display: block; margin-bottom: 8px; margin-top: 20px;">Tiêu đề Email:</label>
                     <input type="text" id="mail-subject" class="admin-input" placeholder="VD: MHEnt. ra mắt tính năng Đấu trường mới!">
@@ -813,10 +847,103 @@
         }
 
         // ==========================================
+        // HỆ THỐNG TÌM KIẾM & TAG NGƯỜI DÙNG (GMAIL STYLE)
+        // ==========================================
+        let selectedMails = []; // Mảng chứa các email sếp đã chọn
+
+        const mailInput = document.getElementById('mail-target-input');
+        const suggBox = document.getElementById('mail-suggestions');
+        const tagsBox = document.getElementById('mail-tags-box');
+
+        // Khi sếp gõ chữ
+        mailInput.addEventListener('input', function() {
+            const keyword = this.value.toLowerCase().trim();
+            suggBox.innerHTML = '';
+            
+            if (keyword.length === 0) {
+                suggBox.style.display = 'none';
+                return;
+            }
+
+            // Tìm những user có tên hoặc email khớp từ khóa, và CHƯA được chọn
+            let matches = globalUsers.filter(u => {
+                let name = (u.displayName || u.email.split('@')[0]).toLowerCase();
+                let email = (u.email || "").toLowerCase();
+                let isMatch = name.includes(keyword) || email.includes(keyword);
+                let notSelectedYet = !selectedMails.includes(u.email);
+                return isMatch && notSelectedYet && u.email && u.email.includes('@');
+            }).slice(0, 5); // Chỉ hiện tối đa 5 người gợi ý cho đỡ rối
+
+            if (matches.length > 0) {
+                matches.forEach(u => {
+                    let nameText = u.displayName || u.email.split('@')[0];
+                    let avtUrl = u.photoURL || '/assets/avt-web.jpg';
+                    
+                    let div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerHTML = `
+                        <img src="${avtUrl}">
+                        <div>
+                            <div class="sugg-name">${nameText}</div>
+                            <div class="sugg-email">${u.email}</div>
+                        </div>
+                    `;
+                    // Khi sếp bấm vào 1 người trong danh sách gợi ý
+                    div.onclick = () => addMailTag(u.email, nameText, avtUrl);
+                    suggBox.appendChild(div);
+                });
+                suggBox.style.display = 'block';
+            } else {
+                suggBox.style.display = 'none';
+            }
+        });
+
+        // Ẩn danh sách gợi ý khi click ra ngoài
+        document.addEventListener('click', function(e) {
+            if (!document.querySelector('.mail-target-container').contains(e.target)) {
+                suggBox.style.display = 'none';
+            }
+        });
+
+        // Hàm thêm tag vào hộp
+        function addMailTag(email, name, avtUrl) {
+            selectedMails.push(email);
+            mailInput.value = ''; // Xóa trắng ô gõ
+            suggBox.style.display = 'none'; // Ẩn gợi ý
+            renderMailTags();
+        }
+
+        // Hàm vẽ lại các tag
+        function renderMailTags() {
+            // Xóa hết tag cũ (nhưng giữ lại ô input)
+            document.querySelectorAll('.mail-tag').forEach(tag => tag.remove());
+            
+            selectedMails.forEach(email => {
+                // Tìm lại data user để lấy avatar và tên
+                let u = globalUsers.find(user => user.email === email);
+                let name = u ? (u.displayName || u.email.split('@')[0]) : email;
+                let avt = u ? (u.photoURL || '/assets/avt-web.jpg') : '/assets/avt-web.jpg';
+
+                let span = document.createElement('span');
+                span.className = 'mail-tag';
+                span.innerHTML = `
+                    <img src="${avt}"> ${name}
+                    <i class="fa-solid fa-circle-xmark remove-tag" onclick="removeMailTag('${email}')"></i>
+                `;
+                tagsBox.insertBefore(span, mailInput);
+            });
+        }
+
+        // Hàm xóa tag
+        window.removeMailTag = function(emailToRemove) {
+            selectedMails = selectedMails.filter(e => e !== emailToRemove);
+            renderMailTags();
+        }
+
+        // ==========================================
         // PHÁT THANH TOÀN VŨ TRỤ (REAL MAIL SENDER - V2)
         // ==========================================
         window.sendGlobalMail = async function() {
-            const targetInput = document.getElementById('mail-target').value.trim();
             const sub = document.getElementById('mail-subject').value;
             const body = document.getElementById('mail-body').value;
             
@@ -824,17 +951,13 @@
 
             let emailList = [];
 
-            // LOGIC KIỂM TRA MỤC TIÊU
-            if (targetInput !== "") {
-                // Nếu sếp nhập email, thì tách ra thành mảng (bằng dấu phẩy)
-                emailList = targetInput.split(',').map(e => e.trim()).filter(e => e.includes('@'));
-                if(emailList.length === 0) return showToast("Lỗi", "Danh sách người nhận không hợp lệ!", "error");
+            // ĐỌC DỮ LIỆU TỪ MẢNG TAG SẾP VỪA CHỌN
+            if (selectedMails.length > 0) {
+                emailList = selectedMails; 
             } else {
-                // Nếu sếp để trống, hỏi lại cho chắc ăn (tránh bấm nhầm gửi full server)
-                const isConfirm = confirm("Sếp ĐANG ĐỂ TRỐNG người nhận. Hệ thống sẽ gửi thư này cho TOÀN BỘ CƯ DÂN. Sếp có chắc chắn không?");
-                if (!isConfirm) return; // Nếu sếp bấm Cancel thì dừng gửi
+                const isConfirm = confirm("Sếp KHÔNG CHỌN AI CẢ. Hệ thống sẽ gửi thư này cho TOÀN BỘ CƯ DÂN. Sếp có chắc chắn không?");
+                if (!isConfirm) return; 
                 
-                // Quét DB lấy toàn bộ email
                 emailList = globalUsers.map(u => u.email).filter(e => e && e.includes('@')); 
                 if(emailList.length === 0) return showToast("Lỗi", "Chưa có cư dân nào có email hợp lệ!", "error");
             }
@@ -865,6 +988,8 @@
                     document.getElementById('mail-target').value = '';
                     document.getElementById('mail-subject').value = '';
                     document.getElementById('mail-body').value = '';
+                    selectedMails = []; // THÊM DÒNG NÀY
+                    renderMailTags(); // THÊM DÒNG NÀY
                     
                     let logMsg = targetInput ? `Đã gửi mail riêng cho ${emailList.length} người` : `Đã phát thanh Mail Toàn Server`;
                     logAdminAction(`${logMsg}: "${sub}"`, "Root Admin");
