@@ -442,7 +442,7 @@
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('menu-' + tabName).classList.add('active');
             history.replaceState(null, null, '#' + tabName);
-            
+
             // TÍNH NĂNG MỚI: KIỂM TRA VÀ CẬP NHẬT DỮ LIỆU TÙY THEO TAB
             if (tabName === 'notify') {
                 if (typeof loadMailHistory === 'function') loadMailHistory();
@@ -1175,10 +1175,11 @@
 
         // HÀM HỦY LỊCH / XÓA BÀI
         window.deleteMailCampaign = async function(id) {
-            if(!confirm("Cậu có chắc muốn xóa/hủy chiến dịch này không?")) return;
-            await deleteDoc(doc(db, "mail_campaigns", id));
-            showToast("Đã xóa", "Chiến dịch đã được gỡ bỏ.", "info");
-            loadMailHistory();
+            showConfirm("Cậu có chắc muốn xóa/hủy chiến dịch này không?", async () => {
+                await deleteDoc(doc(db, "mail_campaigns", id));
+                showToast("Đã xóa", "Chiến dịch đã được gỡ bỏ.", "info");
+                loadMailHistory();
+            });
         }
 
         // HÀM GỬI NGAY (PHÁ LỊCH)
