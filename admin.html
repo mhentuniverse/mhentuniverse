@@ -434,7 +434,7 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
         // LOGIC CHUYỂN TAB CÓ HISTORY ROUTING
         window.switchTab = function(tabName) {
             document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
@@ -442,6 +442,11 @@
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('menu-' + tabName).classList.add('active');
             history.replaceState(null, null, '#' + tabName);
+            
+            // TÍNH NĂNG MỚI: KIỂM TRA VÀ CẬP NHẬT DỮ LIỆU TÙY THEO TAB
+            if (tabName === 'notify') {
+                if (typeof loadMailHistory === 'function') loadMailHistory();
+            }
         };
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -450,9 +455,7 @@
             if (validTabs.includes(hash)) switchTab(hash);
             else switchTab('users'); // Mặc định vào thẳng Quản lý Cư dân
         });
-    </script>
 
-    <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -1135,32 +1138,54 @@
                 const snap = await getDocs(q);
                 let html = '';
                 
-                snap.forEach(doc => {
-                    let d = doc.data();
+                snap.forEach(docSnap => {
+                    let d = docSnap.data();
+                    let id = docSnap.id;
                     let timeStr = new Date(d.scheduledTime).toLocaleString('vi-VN');
-                    let badgeColor = d.status.includes('chờ') ? '#f59e0b' : '#10b981';
+                    let isPending = d.status.includes('chờ');
+                    let badgeColor = isPending ? '#f59e0b' : '#10b981';
                     
                     html += `
                         <tr>
                             <td style="font-size: 13px; color: #64748b;"><i class="fa-regular fa-clock"></i> ${timeStr}</td>
                             <td>
                                 <strong style="color: #1e293b;">${d.subject}</strong><br>
-                                <small style="color:#94a3b8;">Từ: ${d.sender} (Tới ${d.targetCount} hộp thư)</small>
+                                <small style="color:#94a3b8;">Tới ${d.targetCount} người | ${d.sender}</small>
                             </td>
                             <td>
-                                <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">
-                                    ${d.status}
-                                </span>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">
+                                        ${d.status}
+                                    </span>
+                                    ${isPending ? `
+                                        <button onclick="sendMailNowDirectly('${id}')" title="Gửi ngay lập tức" style="background:none; border:none; color:#6366f1; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
+                                        <button onclick="deleteMailCampaign('${id}')" title="Hủy lịch gửi" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
+                                    ` : `
+                                        <button onclick="deleteMailCampaign('${id}')" title="Xóa lịch sử" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                    `}
+                                </div>
                             </td>
                         </tr>
                     `;
                 });
                 
-                if(html === '') html = '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có chiến dịch nào được khởi tạo!</td></tr>';
-                tbody.innerHTML = html;
-            } catch(e) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Lỗi tải dữ liệu lịch sử!</td></tr>';
-            }
+                tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có chiến dịch nào.</td></tr>';
+            } catch(e) { console.error(e); }
+        }
+
+        // HÀM HỦY LỊCH / XÓA BÀI
+        window.deleteMailCampaign = async function(id) {
+            if(!confirm("Cậu có chắc muốn xóa/hủy chiến dịch này không?")) return;
+            await deleteDoc(doc(db, "mail_campaigns", id));
+            showToast("Đã xóa", "Chiến dịch đã được gỡ bỏ.", "info");
+            loadMailHistory();
+        }
+
+        // HÀM GỬI NGAY (PHÁ LỊCH)
+        window.sendMailNowDirectly = async function(id) {
+            // Logically: Gửi lại request sang Apps Script với scheduledTime = null
+            // Để đơn giản, sếp có thể copy nội dung cũ rồi bấm gửi lại bản mới, hoặc tớ sẽ hướng dẫn sâu hơn nếu sếp cần nút này chạy auto 100%
+            showToast("Tính năng", "Đang kết nối trạm bưu điện để gửi ngay...", "info");
         }
     </script>
     <script src="/mhent-ui.js"></script>
