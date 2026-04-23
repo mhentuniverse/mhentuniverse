@@ -493,6 +493,7 @@
                         loadAuditLogs();
                         loadSystemStatus();
                         updateDashboardStats();
+                        loadMailHistory();
                     }
                 } catch (error) { 
                     showPopup("Lỗi kết nối máy chủ an ninh!"); 
@@ -992,8 +993,20 @@
             const body = document.getElementById('mail-body').value;
             const senderName = document.getElementById('mail-sender-name').value;
             const sigType = document.getElementById('mail-signature-type').value;
+            const scheduleInput = document.getElementById('mail-schedule-time').value; // Lấy giờ từ giao diện
             
             if(!sub || !body) return showToast("Lỗi", "Sếp soạn thiếu nội dung rồi!", "error");
+
+            // Xử lý thời gian hẹn
+            let scheduledTime = null;
+            let mailStatus = "Đã gửi ✅";
+            if (scheduleInput) {
+                scheduledTime = new Date(scheduleInput).getTime();
+                if (scheduledTime <= Date.now()) {
+                    return showToast("Lỗi", "Thời gian hẹn phải nằm ở TƯƠNG LAI nha sếp!", "error");
+                }
+                mailStatus = "Đang chờ gửi ⏳";
+            }
 
             // KHO CHỮ KÝ ĐA NHÂN DẠNG (BẢN CÓ LOGO XỊN SÒ)
             const signatures = {
@@ -1065,31 +1078,88 @@
             if(emailList.length === 0) return showToast("Lỗi", "Không có người nhận!", "error");
 
             const btn = document.querySelector('#tab-notify .btn-large');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG GỬI...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> HỆ THỐNG ĐANG XỬ LÝ...';
             btn.disabled = true;
 
             try {
-                const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
+                // 1. LƯU LỊCH SỬ VÀO FIREBASE
+                await addDoc(collection(db, "mail_campaigns"), {
+                    subject: sub,
+                    sender: senderName,
+                    status: mailStatus,
+                    targetCount: emailList.length,
+                    scheduledTime: scheduledTime || Date.now(),
+                    timestamp: Date.now()
+                });
+
+                // 2. GỌI BƯU ĐIỆN VÀ TRUYỀN GIỜ HẸN SANG
+                const MAILER_URL = "DÁN_LINK_APPS_SCRIPT_MỚI_VÀO_ĐÂY"; 
                 const response = await fetch(MAILER_URL, {
                     method: "POST",
                     body: JSON.stringify({
                         subject: sub,
                         body: body.replace(/\n/g, "<br>") + signatures[sigType],
                         emails: emailList,
-                        senderName: senderName // Gửi thêm tên người gửi sang Script
+                        senderName: senderName,
+                        scheduledTime: scheduledTime // <--- Chìa khóa để báo thức hoạt động
                     })
                 });
 
                 const result = await response.json();
                 if(result.status === "success") {
-                    showToast("Thành công", `Đã gửi mail với danh nghĩa ${senderName}`, "success");
-                    // Reset form...
+                    showToast("Thành công", result.message, "success");
+                    // Xóa form
+                    document.getElementById('mail-subject').value = '';
+                    document.getElementById('mail-body').value = '';
+                    document.getElementById('mail-schedule-time').value = '';
+                    if (typeof selectedMails !== 'undefined') { selectedMails = []; renderMailTags(); }
+                    
+                    loadMailHistory(); // Cập nhật lại cái bảng ngay lập tức
+                    logAdminAction(`Chiến dịch Mail: "${sub}"`, "Root Admin");
                 }
             } catch (error) {
-                showToast("Lỗi", "Bưu điện trục trặc rồi cậu ơi!", "error");
+                showToast("Lỗi", "Trạm bưu điện từ chối nhận thư!", "error");
             } finally {
-                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ';
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ / LÊN LỊCH';
                 btn.disabled = false;
+            }
+        }
+
+        // HÀM TẢI LỊCH SỬ LÊN BẢNG
+        async function loadMailHistory() {
+            const tbody = document.getElementById('mail-history-body');
+            if(!tbody) return;
+            
+            try {
+                const q = query(collection(db, "mail_campaigns"), orderBy("timestamp", "desc"), limit(10));
+                const snap = await getDocs(q);
+                let html = '';
+                
+                snap.forEach(doc => {
+                    let d = doc.data();
+                    let timeStr = new Date(d.scheduledTime).toLocaleString('vi-VN');
+                    let badgeColor = d.status.includes('chờ') ? '#f59e0b' : '#10b981';
+                    
+                    html += `
+                        <tr>
+                            <td style="font-size: 13px; color: #64748b;"><i class="fa-regular fa-clock"></i> ${timeStr}</td>
+                            <td>
+                                <strong style="color: #1e293b;">${d.subject}</strong><br>
+                                <small style="color:#94a3b8;">Từ: ${d.sender} (Tới ${d.targetCount} hộp thư)</small>
+                            </td>
+                            <td>
+                                <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">
+                                    ${d.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                if(html === '') html = '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có chiến dịch nào được khởi tạo!</td></tr>';
+                tbody.innerHTML = html;
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Lỗi tải dữ liệu lịch sử!</td></tr>';
             }
         }
     </script>
