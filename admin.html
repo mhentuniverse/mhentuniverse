@@ -457,7 +457,7 @@
         });
 
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -474,6 +474,8 @@
         const auth = getAuth(app);
 
         let globalUsers = [];
+
+        const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
 
         window.toggleDarkMode = function() { 
             document.body.classList.toggle('dark-mode'); 
@@ -996,18 +998,15 @@
             const body = document.getElementById('mail-body').value;
             const senderName = document.getElementById('mail-sender-name').value;
             const sigType = document.getElementById('mail-signature-type').value;
-            const scheduleInput = document.getElementById('mail-schedule-time').value; // Lấy giờ từ giao diện
+            const scheduleInput = document.getElementById('mail-schedule-time').value; 
             
             if(!sub || !body) return showToast("Lỗi", "Sếp soạn thiếu nội dung rồi!", "error");
 
-            // Xử lý thời gian hẹn
             let scheduledTime = null;
             let mailStatus = "Đã gửi ✅";
             if (scheduleInput) {
                 scheduledTime = new Date(scheduleInput).getTime();
-                if (scheduledTime <= Date.now()) {
-                    return showToast("Lỗi", "Thời gian hẹn phải nằm ở TƯƠNG LAI nha sếp!", "error");
-                }
+                if (scheduledTime <= Date.now()) return showToast("Lỗi", "Thời gian hẹn phải ở TƯƠNG LAI nha!", "error");
                 mailStatus = "Đang chờ gửi ⏳";
             }
 
@@ -1074,10 +1073,7 @@
                 none: ""
             };
 
-            let emailList = (typeof selectedMails !== 'undefined' && selectedMails.length > 0) 
-                            ? selectedMails 
-                            : globalUsers.map(u => u.email).filter(e => e && e.includes('@'));
-
+            let emailList = (typeof selectedMails !== 'undefined' && selectedMails.length > 0) ? selectedMails : globalUsers.map(u => u.email).filter(e => e && e.includes('@'));
             if(emailList.length === 0) return showToast("Lỗi", "Không có người nhận!", "error");
 
             const btn = document.querySelector('#tab-notify .btn-large');
@@ -1085,40 +1081,39 @@
             btn.disabled = true;
 
             try {
-                // 1. LƯU LỊCH SỬ VÀO FIREBASE
-                await addDoc(collection(db, "mail_campaigns"), {
-                    subject: sub,
-                    sender: senderName,
-                    status: mailStatus,
-                    targetCount: emailList.length,
-                    scheduledTime: scheduledTime || Date.now(),
-                    timestamp: Date.now()
-                });
-
-                // 2. GỌI BƯU ĐIỆN VÀ TRUYỀN GIỜ HẸN SANG
-                const MAILER_URL = "DÁN_LINK_APPS_SCRIPT_MỚI_VÀO_ĐÂY"; 
+                // GỌI BƯU ĐIỆN TRƯỚC ĐỂ LẤY MÃ SỐ BÍ MẬT (gasId)
                 const response = await fetch(MAILER_URL, {
                     method: "POST",
                     body: JSON.stringify({
+                        action: "send",
                         subject: sub,
                         body: body.replace(/\n/g, "<br>") + signatures[sigType],
                         emails: emailList,
                         senderName: senderName,
-                        scheduledTime: scheduledTime // <--- Chìa khóa để báo thức hoạt động
+                        scheduledTime: scheduledTime
                     })
                 });
 
                 const result = await response.json();
                 if(result.status === "success") {
+                    // CÓ MÃ RỒI MỚI LƯU VÀO FIREBASE
+                    await addDoc(collection(db, "mail_campaigns"), {
+                        subject: sub,
+                        sender: senderName,
+                        status: mailStatus,
+                        targetCount: emailList.length,
+                        scheduledTime: scheduledTime || Date.now(),
+                        timestamp: Date.now(),
+                        gasId: result.gasId || null
+                    });
+
                     showToast("Thành công", result.message, "success");
-                    // Xóa form
                     document.getElementById('mail-subject').value = '';
                     document.getElementById('mail-body').value = '';
                     document.getElementById('mail-schedule-time').value = '';
                     if (typeof selectedMails !== 'undefined') { selectedMails = []; renderMailTags(); }
                     
-                    loadMailHistory(); // Cập nhật lại cái bảng ngay lập tức
-                    logAdminAction(`Chiến dịch Mail: "${sub}"`, "Root Admin");
+                    loadMailHistory(); 
                 }
             } catch (error) {
                 showToast("Lỗi", "Trạm bưu điện từ chối nhận thư!", "error");
@@ -1128,11 +1123,9 @@
             }
         }
 
-        // HÀM TẢI LỊCH SỬ LÊN BẢNG
         async function loadMailHistory() {
             const tbody = document.getElementById('mail-history-body');
             if(!tbody) return;
-            
             try {
                 const q = query(collection(db, "mail_campaigns"), orderBy("timestamp", "desc"), limit(10));
                 const snap = await getDocs(q);
@@ -1141,6 +1134,7 @@
                 snap.forEach(docSnap => {
                     let d = docSnap.data();
                     let id = docSnap.id;
+                    let gasId = d.gasId || '';
                     let timeStr = new Date(d.scheduledTime).toLocaleString('vi-VN');
                     let isPending = d.status.includes('chờ');
                     let badgeColor = isPending ? '#f59e0b' : '#10b981';
@@ -1148,45 +1142,68 @@
                     html += `
                         <tr>
                             <td style="font-size: 13px; color: #64748b;"><i class="fa-regular fa-clock"></i> ${timeStr}</td>
-                            <td>
-                                <strong style="color: #1e293b;">${d.subject}</strong><br>
-                                <small style="color:#94a3b8;">Tới ${d.targetCount} người | ${d.sender}</small>
-                            </td>
+                            <td><strong style="color: #1e293b;">${d.subject}</strong><br><small style="color:#94a3b8;">Tới ${d.targetCount} người | ${d.sender}</small></td>
                             <td>
                                 <div style="display:flex; align-items:center; gap:10px;">
-                                    <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">
-                                        ${d.status}
-                                    </span>
+                                    <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">${d.status}</span>
                                     ${isPending ? `
-                                        <button onclick="sendMailNowDirectly('${id}')" title="Gửi ngay lập tức" style="background:none; border:none; color:#6366f1; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
-                                        <button onclick="deleteMailCampaign('${id}')" title="Hủy lịch gửi" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
+                                        <button onclick="sendMailNowDirectly('${id}', '${gasId}', this)" title="Gửi ngay lập tức" style="background:none; border:none; color:#6366f1; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
+                                        <button onclick="deleteMailCampaign('${id}', '${gasId}')" title="Hủy lịch gửi" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
                                     ` : `
-                                        <button onclick="deleteMailCampaign('${id}')" title="Xóa lịch sử" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                        <button onclick="deleteMailCampaign('${id}', '${gasId}')" title="Xóa lịch sử" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
                                     `}
                                 </div>
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                 });
-                
                 tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có chiến dịch nào.</td></tr>';
             } catch(e) { console.error(e); }
         }
 
-        // HÀM HỦY LỊCH / XÓA BÀI
-        window.deleteMailCampaign = async function(id) {
-            showConfirm("Cậu có chắc muốn xóa/hủy chiến dịch này không?", async () => {
-                await deleteDoc(doc(db, "mail_campaigns", id));
-                showToast("Đã xóa", "Chiến dịch đã được gỡ bỏ.", "info");
-                loadMailHistory();
-            });
+        window.deleteMailCampaign = async function(id, gasId) {
+            if(!confirm("Cậu có chắc muốn xóa/hủy chiến dịch này không?")) return;
+            
+            // Nếu thư đang ở trạm, gửi lệnh gọi nó về
+            if (gasId) {
+                try {
+                    await fetch(MAILER_URL, { method: "POST", body: JSON.stringify({ action: "cancel", gasId: gasId }) });
+                } catch(e) { console.log("Lỗi gọi API hủy", e); }
+            }
+            
+            // Xóa sổ trên bảng lịch sử Web
+            await deleteDoc(doc(db, "mail_campaigns", id));
+            showToast("Đã hủy", "Chiến dịch đã được gỡ bỏ an toàn.", "info");
+            loadMailHistory();
         }
 
-        // HÀM GỬI NGAY (PHÁ LỊCH)
-        window.sendMailNowDirectly = async function(id) {
-            // Logically: Gửi lại request sang Apps Script với scheduledTime = null
-            // Để đơn giản, sếp có thể copy nội dung cũ rồi bấm gửi lại bản mới, hoặc tớ sẽ hướng dẫn sâu hơn nếu sếp cần nút này chạy auto 100%
-            showToast("Tính năng", "Đang kết nối trạm bưu điện để gửi ngay...", "info");
+        window.sendMailNowDirectly = async function(id, gasId, btnElement) {
+            if(!gasId) return showToast("Lỗi", "Không tìm thấy thư trong kho!", "error");
+            
+            let originalIcon = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btnElement.disabled = true;
+
+            try {
+                // ÉP TRẠM BƯU ĐIỆN PHÓNG THƯ NGAY LẬP TỨC
+                const response = await fetch(MAILER_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "send_now", gasId: gasId })
+                });
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    await updateDoc(doc(db, "mail_campaigns", id), { status: "Đã gửi ✅" });
+                    showToast("Thành công", "Đã phóng thư thành công!", "success");
+                    loadMailHistory();
+                } else {
+                    showToast("Lỗi", result.message, "error");
+                }
+            } catch(e) {
+                showToast("Lỗi", "Không thể liên lạc trạm bưu điện!", "error");
+            } finally {
+                btnElement.innerHTML = originalIcon;
+                btnElement.disabled = false;
+            }
         }
     </script>
     <script src="/mhent-ui.js"></script>
