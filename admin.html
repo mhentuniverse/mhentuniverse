@@ -1002,14 +1002,6 @@
             
             if(!sub || !body) return showToast("Lỗi", "Sếp soạn thiếu nội dung rồi!", "error");
 
-            let scheduledTime = null;
-            let mailStatus = "Đã gửi ✅";
-            if (scheduleInput) {
-                scheduledTime = new Date(scheduleInput).getTime();
-                if (scheduledTime <= Date.now()) return showToast("Lỗi", "Thời gian hẹn phải ở TƯƠNG LAI nha!", "error");
-                mailStatus = "Đang chờ gửi ⏳";
-            }
-
             // KHO CHỮ KÝ ĐA NHÂN DẠNG (BẢN CÓ LOGO XỊN SÒ)
             const signatures = {
                 official: `
@@ -1073,55 +1065,84 @@
                 none: ""
             };
 
-            let emailList = (typeof selectedMails !== 'undefined' && selectedMails.length > 0) ? selectedMails : globalUsers.map(u => u.email).filter(e => e && e.includes('@'));
-            if(emailList.length === 0) return showToast("Lỗi", "Không có người nhận!", "error");
+            // 1. Xác định danh sách người nhận
+            let emailList = (typeof selectedMails !== 'undefined' && selectedMails.length > 0) 
+                            ? selectedMails 
+                            : [];
 
-            const btn = document.querySelector('#tab-notify .btn-large');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> HỆ THỐNG ĐANG XỬ LÝ...';
-            btn.disabled = true;
+            // 2. Logic Gửi Mail Thực Sự (Tách ra để dùng chung)
+            const executeSend = async (finalEmails, isAllServer = false) => {
+                let scheduledTime = null;
+                let mailStatus = "Đã gửi ✅";
+                if (scheduleInput) {
+                    scheduledTime = new Date(scheduleInput).getTime();
+                    if (scheduledTime <= Date.now()) return showToast("Lỗi", "Thời gian hẹn phải ở TƯƠNG LAI nha!", "error");
+                    mailStatus = "Đang chờ gửi ⏳";
+                }
 
-            try {
-                // GỌI BƯU ĐIỆN TRƯỚC ĐỂ LẤY MÃ SỐ BÍ MẬT (gasId)
-                const response = await fetch(MAILER_URL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        action: "send",
-                        subject: sub,
-                        body: body.replace(/\n/g, "<br>") + signatures[sigType],
-                        emails: emailList,
-                        senderName: senderName,
-                        scheduledTime: scheduledTime
-                    })
-                });
+                const btn = document.querySelector('#tab-notify .btn-large');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> HỆ THỐNG ĐANG XỬ LÝ...';
+                btn.disabled = true;
 
-                const result = await response.json();
-                if(result.status === "success") {
-                    // CÓ MÃ RỒI MỚI LƯU VÀO FIREBASE
-                    await addDoc(collection(db, "mail_campaigns"), {
-                        subject: sub,
-                        sender: senderName,
-                        status: mailStatus,
-                        targetCount: emailList.length,
-                        scheduledTime: scheduledTime || Date.now(),
-                        timestamp: Date.now(),
-                        gasId: result.gasId || null
+                try {
+                    const response = await fetch(MAILER_URL, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            action: "send",
+                            subject: sub,
+                            body: body.replace(/\n/g, "<br>") + signatures[sigType],
+                            emails: finalEmails,
+                            senderName: senderName,
+                            scheduledTime: scheduledTime
+                        })
                     });
 
-                    showToast("Thành công", result.message, "success");
-                    document.getElementById('mail-subject').value = '';
-                    document.getElementById('mail-body').value = '';
-                    document.getElementById('mail-schedule-time').value = '';
-                    if (typeof selectedMails !== 'undefined') { selectedMails = []; renderMailTags(); }
-                    
-                    loadMailHistory(); 
+                    const result = await response.json();
+                    if(result.status === "success") {
+                        await addDoc(collection(db, "mail_campaigns"), {
+                            subject: sub,
+                            sender: senderName,
+                            status: mailStatus,
+                            targetCount: finalEmails.length,
+                            scheduledTime: scheduledTime || Date.now(),
+                            timestamp: Date.now(),
+                            gasId: result.gasId || null
+                        });
+
+                        showToast("Thành công", result.message, "success");
+                        // Reset form
+                        document.getElementById('mail-subject').value = '';
+                        document.getElementById('mail-body').value = '';
+                        document.getElementById('mail-schedule-time').value = '';
+                        if (typeof selectedMails !== 'undefined') { selectedMails = []; renderMailTags(); }
+                        loadMailHistory(); 
+                    }
+                } catch (error) {
+                    showToast("Lỗi", "Trạm bưu điện từ chối nhận thư!", "error");
+                } finally {
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ / LÊN LỊCH';
+                    btn.disabled = false;
                 }
-            } catch (error) {
-                showToast("Lỗi", "Trạm bưu điện từ chối nhận thư!", "error");
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ / LÊN LỊCH';
-                btn.disabled = false;
+            };
+
+            // 3. Kiểm tra: Gửi lẻ hay Gửi Toàn Server
+            if (emailList.length > 0) {
+                // Gửi lẻ cho những người đã chọn -> Chạy luôn
+                executeSend(emailList);
+            } else {
+                // Nếu không chọn ai -> Hiện Popup xác nhận gửi Toàn Server
+                showConfirmPopup(
+                    "Phát Thanh Toàn Vũ Trụ?", 
+                    "Cậu đang không chọn cư dân cụ thể nào. Hệ thống sẽ gửi thư này cho TOÀN BỘ mọi người trong server. Cậu chắc chắn chứ?", 
+                    () => {
+                        // Lấy toàn bộ email từ danh sách cư dân
+                        const allEmails = globalUsers.map(u => u.email).filter(e => e && e.includes('@'));
+                        if(allEmails.length === 0) return showToast("Lỗi", "Không tìm thấy cư dân nào có email!", "error");
+                        executeSend(allEmails, true);
+                    }
+                );
             }
-        }
+        };
 
         async function loadMailHistory() {
             const tbody = document.getElementById('mail-history-body');
