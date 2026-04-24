@@ -55,8 +55,8 @@
 
         .panic { animation: panic-shake 0.2s infinite; color: #ef4444 !important; filter: drop-shadow(0 0 50px rgba(239, 68, 68, 0.8)); }
         @keyframes panic-shake { 0% { transform: translate(0, 0) scale(1.1); } 50% { transform: translate(5px, 5px) scale(1.1); } 100% { transform: translate(0, 0) scale(1.1); } }
-        .bomb-container.exploded { animation: explode-screen 0.7s ease-out; }
-        @keyframes explode-screen { 0% { background-color: transparent; } 30% { background-color: rgba(254, 226, 226, 0.4); } 100% { background-color: transparent; } }
+        body.exploded { animation: explode-screen 1s ease-out; transition: none !important; }
+        @keyframes explode-screen { 0% { background-color: #ffffff; } 10% { background-color: #ef4444; } 100% { background-color: var(--bg-dark); } }
         
         /* ĐÃ THU NHỎ SIZE CỦA 2 CÁI ICON KHỔNG LỒ NÀY */
         .explosion-icon { font-size: clamp(140px, 25vh, 250px); color: #f59e0b; display: none; filter: drop-shadow(0 0 100px #ef4444); animation: pop-out 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -365,7 +365,7 @@
             btnNext.style.display = 'none';
             safeIcon.style.display = 'none';
             explosionIcon.style.display = 'none';
-            bombContainer.classList.remove('exploded');
+            document.body.classList.remove('exploded');
             qBox.style.opacity = '1';
 
             bombIcon.style.display = 'inline-block';
@@ -427,7 +427,7 @@
             bombIcon.style.display = 'none';
             timerDisplay.style.display = 'none';
             explosionIcon.style.display = 'block';
-            bombContainer.classList.add('exploded');
+            document.body.classList.add('exploded');
             
             statusBadge.style.background = '#ef4444';
             statusBadge.style.color = 'white';
@@ -475,7 +475,6 @@
         }
 
         function resetGame() {
-            bombContainer.classList.remove('exploded');
             setupPanel.style.display = 'flex';
             btnReset.style.display = 'none';
             btnNext.style.display = 'none';
@@ -489,7 +488,7 @@
             qBox.style.borderColor = '#3b82f6';
             qBox.style.background = 'rgba(30, 41, 59, 0.95)';
             qCounter.style.color = '#f59e0b';
-            bombContainer.classList.remove('exploded');
+            document.body.classList.remove('exploded');
 
             bombIcon.classList.remove('active', 'panic');
             timerDisplay.style.color = '#ef4444';
