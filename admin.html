@@ -1150,41 +1150,52 @@
             }
         };
 
-        async function loadMailHistory() {
-            const tbody = document.getElementById('mail-history-body');
-            if(!tbody) return;
+        // HÀM TẢI LỊCH SỬ MAIL (ĐÃ ĐƯỢC ĐỘ THÊM LOGIC CẬP NHẬT TRẠNG THÁI)
+        window.loadMailHistory = async function() {
+            const list = document.getElementById('mail-history-list');
+            list.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang lấy nhật ký...</div>';
+
             try {
                 const q = query(collection(db, "mail_campaigns"), orderBy("timestamp", "desc"), limit(10));
                 const snap = await getDocs(q);
-                let html = '';
                 
-                snap.forEach(docSnap => {
-                    let d = docSnap.data();
-                    let id = docSnap.id;
-                    let gasId = d.gasId || '';
-                    let timeStr = new Date(d.scheduledTime).toLocaleString('vi-VN');
-                    let isPending = d.status.includes('chờ');
-                    let badgeColor = isPending ? '#f59e0b' : '#10b981';
-                    
+                let html = '';
+                const now = Date.now();
+
+                snap.forEach(async (docSnap) => {
+                    const data = docSnap.data();
+                    let currentStatus = data.status;
+                    const docId = docSnap.id;
+
+                    // ✨ LOGIC "HACK" THÔNG MINH NÈ SẾP:
+                    // Nếu trạng thái là "Chờ gửi" mà thời gian hiện tại đã QUÁ giờ hẹn rồi
+                    if (currentStatus === "Đang chờ gửi ⏳" && now > data.scheduledTime) {
+                        currentStatus = "Đã gửi ✅";
+                        // Cập nhật ngược lại vào Firebase cho "real" luôn
+                        await updateDoc(doc(db, "mail_campaigns", docId), { status: "Đã gửi ✅" });
+                    }
+
                     html += `
-                        <tr>
-                            <td style="font-size: 13px; color: #64748b;"><i class="fa-regular fa-clock"></i> ${timeStr}</td>
-                            <td><strong style="color: #1e293b;">${d.subject}</strong><br><small style="color:#94a3b8;">Tới ${d.targetCount} người | ${d.sender}</small></td>
-                            <td>
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">${d.status}</span>
-                                    ${isPending ? `
-                                        <button onclick="sendMailNowDirectly('${id}', '${gasId}', this)" title="Gửi ngay lập tức" style="background:none; border:none; color:#6366f1; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
-                                        <button onclick="deleteMailCampaign('${id}', '${gasId}')" title="Hủy lịch gửi" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
-                                    ` : `
-                                        <button onclick="deleteMailCampaign('${id}', '${gasId}')" title="Xóa lịch sử" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
-                                    `}
-                                </div>
-                            </td>
-                        </tr>`;
+                        <div class="history-item">
+                            <div class="history-info">
+                                <strong>${data.subject}</strong>
+                                <p>Gửi đến: ${data.targetCount} cư dân | Từ: ${data.sender}</p>
+                                <small>${new Date(data.scheduledTime).toLocaleString('vi-VN')}</small>
+                            </div>
+                            <div class="history-actions">
+                                <span class="status-badge ${currentStatus.includes('✅') ? 'status-sent' : 'status-pending'}">${currentStatus}</span>
+                                <button class="btn-icon" onclick="deleteMailHistory('${docId}')" title="Xóa nhật ký"><i class="fa-solid fa-trash"></i></button>
+                                ${currentStatus === "Đang chờ gửi ⏳" ? 
+                                    `<button class="btn-icon" onclick="sendMailNowDirectly('${docId}', '${data.gasId}', this)" title="Phóng ngay lập tức"><i class="fa-solid fa-bolt"></i></button>` : ''}
+                            </div>
+                        </div>
+                    `;
                 });
-                tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có chiến dịch nào.</td></tr>';
-            } catch(e) { console.error(e); }
+                list.innerHTML = html || '<p style="text-align:center; color:#888;">Chưa có chiến dịch nào.</p>';
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = '<p style="color:red; text-align:center;">Lỗi tải nhật ký!</p>';
+            }
         }
 
         window.deleteMailCampaign = async function(id, gasId) {
