@@ -496,7 +496,19 @@
             clearInterval(timerInterval);
         }
 
-        document.addEventListener('keydown', (e) => { if (e.code === 'Space' && isPlaying) { e.preventDefault(); handleAction(); } });
+        document.addEventListener('keydown', (e) => {
+            if (e.code !== 'Space') return;
+            e.preventDefault();
+
+            if (isPlaying) {
+                handleAction();
+                return;
+            }
+
+            if (btnNext.style.display !== 'none') {
+                nextRound();
+            }
+        });
 
         // Ensure the initial UI starts clean on page load
         resetGame();
