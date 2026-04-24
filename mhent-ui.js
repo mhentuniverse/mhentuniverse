@@ -101,3 +101,35 @@ window.showToast = function(title, message, type = 'success') {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 };
+
+function initializeBackToTopButton() {
+    if (document.getElementById('btn-back-to-top')) return;
+
+    const button = document.createElement('button');
+    button.id = 'btn-back-to-top';
+    button.type = 'button';
+    button.title = 'Lên đầu trang';
+    button.innerHTML = `
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+        </svg>`;
+
+    button.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    const toggleVisibility = () => {
+        if (window.scrollY > 300) {
+            button.classList.add('visible');
+        } else {
+            button.classList.remove('visible');
+        }
+    };
+
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
+    toggleVisibility();
+    document.body.appendChild(button);
+}
+
+document.addEventListener('DOMContentLoaded', initializeBackToTopButton);
