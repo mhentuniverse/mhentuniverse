@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chủ - MHEnt. Forms</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css"> <link rel="stylesheet" href="/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
+        
+        /* Giữ nguyên style Container nhập mã của Arena */
+        .join-container {
+            max-width: 600px;
+            margin: -60px auto 40px;
+            padding: 35px;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            border-bottom: 5px solid var(--hub-color);
+        }
+        .code-input {
+            width: 90%;
+            padding: 18px;
+            font-size: 24px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            font-weight: 900;
+            color: var(--hub-color);
+            transition: 0.3s;
+        }
+        .code-input:focus { border-color: var(--hub-color); box-shadow: 0 0 15px var(--hub-bg); outline: none; }
+
+        /* Style Card Form giống Quiz Card */
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            transition: 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .form-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+            border-color: var(--hub-color);
+        }
+        .form-icon {
+            width: 50px; height: 50px;
+            background: var(--hub-bg);
+            color: var(--hub-color);
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body class="mhent-theme">
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo-container" onclick="window.location.href='/'">
+                <img src="/assets/icon-logo.png" alt="Logo" class="logo-img">
+                <span class="logo-name">MHEnt. Forms</span>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <div class="app-switcher-container">
+                <div class="app-switcher-btn" onclick="toggleAppSwitcher()">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </div>
+                <div class="app-switcher-menu" id="app-switcher-menu">
+                    <a onclick="window.location.href='/cinema'" class="app-item"><span>Cinema</span></a>
+                    <a onclick="window.location.href='/arena'" class="app-item"><span>Arena</span></a>
+                    <a onclick="window.location.href='/teach'" class="app-item"><span>Edu</span></a>
+                    <a onclick="window.location.href='/tools'" class="app-item active"><span>Tools</span></a>
+                </div>
+            </div>
+
+            <div id="user-section" class="user-section">
+                <button class="btn-login" onclick="window.location.href='/login.html'">ĐĂNG NHẬP</button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero" style="padding-bottom: 140px;">
+        <div class="hero-content">
+            <h1 style="font-weight: 900; font-size: 3.5rem;">MHEnt. Forms</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">Hệ thống biểu mẫu và khảo sát chính thức của Vũ trụ.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="join-container">
+            <h2 style="margin-bottom: 20px; font-weight: 800; color: #1e293b;">Tham gia biểu mẫu</h2>
+            <input type="text" id="form-code" class="code-input" placeholder="Mã Form (VD: MH001)">
+            <button class="btn-primary" onclick="joinForm()" style="width: 90%; padding: 18px; border-radius: 30px; font-size: 18px; font-weight: 800;">
+                <i class="fa-solid fa-right-to-bracket"></i> TIẾP TỤC
+            </button>
+            <p style="margin-top: 15px; font-size: 14px; color: #64748b;">
+                Hoặc cậu có thể xem các <a href="#public-forms" style="color: var(--hub-color); font-weight: 700;">Form công khai</a> bên dưới.
+            </p>
+        </div>
+
+        <div id="public-forms" class="section-title" style="margin-top: 60px;">
+            <h2 style="font-weight: 900; color: #1e293b;">Biểu mẫu đang mở</h2>
+            <p>Khám phá các hoạt động và khảo sát mới nhất.</p>
+        </div>
+
+        <div id="forms-container" class="feature-grid" style="margin-top: 30px;">
+            <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+                <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--hub-color);"></i>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth } from "/firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { collection, getDocs, getDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // 1. XỬ LÝ ĐĂNG NHẬP (Copy logic Arena)
+        onAuthStateChanged(auth, (user) => {
+            const userSection = document.getElementById('user-section');
+            if (user) {
+                userSection.innerHTML = `
+                    <div class="profile-trigger" onclick="window.location.href='/profile.html'">
+                        <img src="${user.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--hub-color);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 10px; color: #1e293b;">${user.displayName || 'Cư dân'}</span>
+                    </div>
+                `;
+            }
+        });
+
+        // 2. NHẬP MÃ ĐỂ VÀO (Như Arena)
+        window.joinForm = async function() {
+            const code = document.getElementById('form-code').value.trim().toUpperCase();
+            if(!code) return showToast("Lỗi", "Cậu quên nhập mã kìa!", "error");
+
+            const docRef = doc(db, "mhent_forms", code);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists() && docSnap.data().isActive) {
+                window.location.href = `description.html?id=${code}`;
+            } else {
+                showToast("Lỗi", "Mã Form này không tồn tại hoặc đã đóng nha!", "error");
+            }
+        }
+
+        // 3. LOAD CÁC FORM CÔNG KHAI
+        async function loadPublicForms() {
+            const container = document.getElementById('forms-container');
+            try {
+                const q = query(collection(db, "mhent_forms"), where("isActive", "==", true), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                
+                let html = '';
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    html += `
+                        <a href="description.html?id=${docSnap.id}" class="form-card">
+                            <div class="form-icon"><i class="fa-brands fa-wpforms"></i></div>
+                            <h3 style="margin: 0 0 10px 0; font-weight: 800; font-size: 20px;">${data.title}</h3>
+                            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px; line-height: 1.5;">${data.description}</p>
+                            <div style="font-size: 12px; color: #94a3b8; font-weight: 700;">
+                                <span><i class="fa-solid fa-fingerprint"></i> ${docSnap.id}</span>
+                                <span style="margin-left: 15px;"><i class="fa-solid fa-list-check"></i> ${data.fields ? data.fields.length : 0} câu hỏi</span>
+                            </div>
+                        </a>
+                    `;
+                });
+                container.innerHTML = html || '<div style="grid-column:1/-1; text-align:center; color:#888;">Chưa có form công khai nào.</div>';
+            } catch (e) {
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ef4444;">Lỗi kết nối trạm dữ liệu!</div>';
+            }
+        }
+
+        loadPublicForms();
+    </script>
+    <script src="/mhent-ui.js"></script>
+    <script src="/check-token.js"></script>
+</body>
+</html>

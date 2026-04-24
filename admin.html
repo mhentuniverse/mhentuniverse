@@ -1098,6 +1098,7 @@
                     });
 
                     const result = await response.json();
+                    
                     if(result.status === "success") {
                         await addDoc(collection(db, "mail_campaigns"), {
                             subject: sub,
@@ -1116,9 +1117,14 @@
                         document.getElementById('mail-schedule-time').value = '';
                         if (typeof selectedMails !== 'undefined') { selectedMails = []; renderMailTags(); }
                         loadMailHistory(); 
+                    } else {
+                        // 👇 VỊ CỨU TINH Ở ĐÂY RỒI: ÉP NÓ PHẢI NHỔ CÁI LỖI RA MÀN HÌNH! 👇
+                        showToast("Lỗi từ Trạm Bưu Điện", result.message, "error");
+                        console.error("Chi tiết lỗi:", result.message);
                     }
                 } catch (error) {
-                    showToast("Lỗi", "Trạm bưu điện từ chối nhận thư!", "error");
+                    showToast("Lỗi", "Trạm bưu điện mất kết nối hoặc quá tải (Có thể do chèn ảnh Base64)!", "error");
+                    console.error("Lỗi Fetch:", error);
                 } finally {
                     btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ / LÊN LỊCH';
                     btn.disabled = false;

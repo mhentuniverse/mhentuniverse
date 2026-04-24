@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin Biểu mẫu - MHEnt. Forms</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="apple-touch-icon" href="/assets/icon-web.png">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    
+    <link rel="stylesheet" href="/tools/tools-theme.css"> 
+    <link rel="stylesheet" href="/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, h1, h2, h3, h4, h5, p, span, button, input { font-family: 'Nunito', sans-serif !important; }
+        
+        .desc-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        .main-panel, .side-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--hub-color);
+        }
+        .meta-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .meta-tag { background: #f1f5f9; color: #475569; padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+        .rule-list { margin-top: 20px; padding-left: 20px; color: #475569; }
+        .rule-list li { margin-bottom: 10px; line-height: 1.6; }
+        
+        @media (max-width: 768px) {
+            .desc-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="mhent-theme">
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo-container" onclick="window.location.href='/tools/form/'">
+                <img src="/assets/icon-logo.png" alt="Logo" class="logo-img">
+                <span class="logo-name">MHEnt. Forms</span>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div id="user-section" class="user-section">
+                <button class="btn-login" onclick="window.location.href='/login.html'">ĐĂNG NHẬP</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="desc-container">
+        <div class="main-panel">
+            <div id="loading-spinner" style="text-align: center; padding: 40px; color: var(--hub-color);">
+                <i class="fa-solid fa-spinner fa-spin fa-3x"></i>
+                <p>Đang giải mã thông tin biểu mẫu...</p>
+            </div>
+
+            <div id="form-content" style="display: none;">
+                <div class="meta-tags" id="form-meta">
+                    </div>
+                <h1 id="form-title" style="margin-bottom: 15px; color: #1e293b; font-size: 32px; font-weight: 900;">Tên Form</h1>
+                <p id="form-desc" style="color: #64748b; line-height: 1.7; font-size: 16px; margin-bottom: 30px;">Mô tả form...</p>
+
+                <div style="background: #f8fafc; padding: 25px; border-radius: 15px; border-left: 4px solid #f59e0b;">
+                    <h3 style="margin-top: 0; color: #d97706;"><i class="fa-solid fa-circle-exclamation"></i> Lưu ý trước khi điền:</h3>
+                    <ul class="rule-list">
+                        <li>Cậu cần đăng nhập bằng tài khoản MHEnt để hệ thống ghi nhận.</li>
+                        <li>Hãy trả lời trung thực và đầy đủ các câu hỏi có dấu (*).</li>
+                        <li>Cậu có thể xem lại hoặc tải bản sao nộp ở mục <b>Thư viện cá nhân</b>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-panel" style="text-align: center; align-self: start;">
+            <div style="width: 80px; height: 80px; background: var(--hub-bg); color: var(--hub-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; margin: 0 auto 20px;">
+                <i class="fa-brands fa-wpforms"></i>
+            </div>
+            
+            <h3 style="margin-bottom: 5px;">Sẵn sàng chưa?</h3>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Chỉ mất vài phút thôi nà!</p>
+
+            <button id="btn-start" class="btn-primary" onclick="startForm()" style="width: 100%; padding: 15px; border-radius: 30px; font-size: 16px; box-shadow: 0 10px 20px var(--hub-bg); display: none;">
+                <i class="fa-solid fa-pen-to-square"></i> BẮT ĐẦU ĐIỀN
+            </button>
+            <p id="login-warning" style="color: #ef4444; font-size: 14px; margin-top: 15px; font-weight: bold; display: none;">
+                Cậu cần đăng nhập để điền form nha!
+            </p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth } from "/firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const formId = urlParams.get('id');
+        let isUserLoggedIn = false;
+
+        // XỬ LÝ ĐĂNG NHẬP (Arena style)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isUserLoggedIn = true;
+                document.getElementById('user-section').innerHTML = `
+                    <div class="profile-trigger" onclick="window.location.href='/profile.html'">
+                        <img src="${user.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 35px; border-radius: 50%; border: 2px solid var(--hub-color);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Cư dân'}</span>
+                    </div>
+                `;
+                document.getElementById('login-warning').style.display = 'none';
+                if(document.getElementById('btn-start').style.display !== 'none') {
+                    document.getElementById('btn-start').disabled = false;
+                }
+            } else {
+                isUserLoggedIn = false;
+                document.getElementById('login-warning').style.display = 'block';
+                document.getElementById('btn-start').disabled = true;
+                document.getElementById('btn-start').style.opacity = '0.5';
+            }
+        });
+
+        // TẢI THÔNG TIN FORM TỪ FIREBASE
+        async function loadFormDetails() {
+            if(!formId) return showToast("Lỗi", "Không tìm thấy mã Form!", "error");
+
+            try {
+                const docRef = doc(db, "mhent_forms", formId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists() && docSnap.data().isActive) {
+                    const data = docSnap.data();
+                    const qCount = data.fields ? data.fields.length : 0;
+                    
+                    document.getElementById('form-title').innerText = data.title;
+                    document.getElementById('form-desc').innerText = data.description;
+                    
+                    // Render Thẻ Meta
+                    let metaHtml = `
+                        <span class="meta-tag"><i class="fa-solid fa-fingerprint"></i> Mã: ${formId}</span>
+                        <span class="meta-tag"><i class="fa-solid fa-list-check"></i> ${qCount} câu hỏi</span>
+                        <span class="meta-tag"><i class="fa-solid fa-user-pen"></i> ${data.createdBy || 'MHEnt. Admin'}</span>
+                    `;
+                    document.getElementById('form-meta').innerHTML = metaHtml;
+
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    document.getElementById('form-content').style.display = 'block';
+                    document.getElementById('btn-start').style.display = 'block';
+                } else {
+                    document.getElementById('loading-spinner').innerHTML = '<i class="fa-solid fa-ghost fa-3x" style="color: #cbd5e1;"></i><p>Form này không tồn tại hoặc đã đóng cửa!</p>';
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+                document.getElementById('loading-spinner').innerHTML = '<p style="color: red;">Lỗi đường truyền tín hiệu!</p>';
+            }
+        }
+
+        window.startForm = function() {
+            if(!isUserLoggedIn) return showToast("Lỗi", "Cậu chưa đăng nhập kìa!", "error");
+            // Nhảy sang trang Điền (tương tự như nhảy vào Quiz)
+            window.location.href = `fill.html?id=${formId}`;
+        }
+
+        loadFormDetails();
+    </script>
+
+    <script src="/mhent-ui.js"></script>
+</body>
+</html>
