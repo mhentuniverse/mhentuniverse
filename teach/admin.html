@@ -529,35 +529,23 @@
         import { logAdminAction } from '/logger.js';
 
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
+            if (!user) window.location.href = '/login';
+            else {
                 try {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        // Bảo vệ code không bị sập nếu data.role bị undefined
-                        const roles = data.role || []; 
-                        
-                        // ✅ KIỂM TRA ĐÚNG CHUẨN: Có là admin HOẶC teacher thì cho qua
-                        if (roles.includes('admin') || roles.includes('teacher')) {
-                            // Ngồi im uống trà, load dữ liệu Admin Panel
-                            console.log("Welcome Creator!");
+                    const role = docSnap.exists() ? docSnap.data().role : 'user';
 
-                            // ☁️ LOAD TẤT CẢ GAME TỪ ĐÁM MÂY KHI VỪA VÀO
-                            ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram'].forEach(t => loadCloudGames(t));
-                        } else {
-                            // Cư dân bình thường -> Đuổi về sảnh Edu
-                            window.location.replace('index.html');
-                        }
-                    } else {
-                        window.location.replace('index.html');
+                    window.currentUserRole = role;
+
+                    if (role !== 'admin' && role !== 'teacher') { showPopup("Khu vực cấm!", true); setTimeout(()=>window.location.href = '/', 2000); } 
+                    else { 
+                        document.getElementById('security-shield').style.opacity = '0'; 
+                        setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); 
+                        
+                        // ☁️ LOAD TẤT CẢ GAME TỪ ĐÁM MÂY KHI VỪA VÀO
+                        ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram'].forEach(t => loadCloudGames(t));
                     }
-                } catch (error) {
-                    console.error("Lỗi lấy quyền:", error);
-                    window.location.replace('index.html');
-                }
-            } else {
-                // Chưa đăng nhập -> Đá ra trang login
-                window.location.replace('/login.html');
+                } catch (error) { window.location.href = '/teach'; }
             }
         });
     </script>
