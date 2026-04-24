@@ -380,13 +380,31 @@
                 <h1 class="page-title" style="color: #ef4444;">Bảo Trì Hệ Thống</h1>
                 <p class="page-subtitle">Khu vực nguy hiểm. Hãy cẩn thận với cái nút đỏ!</p>
 
-                <div class="admin-card" style="border: 2px solid #fee2e2; background: rgba(239, 68, 68, 0.05); text-align: center; padding: 50px;">
-                    <i class="fa-solid fa-triangle-exclamation fa-4x" style="color: #ef4444; margin-bottom: 20px;"></i>
-                    <h2 style="color: #ef4444; margin-top: 0;">Chế Độ Khẩn Cấp</h2>
-                    <p style="color: #475569; max-width: 500px; margin: 0 auto 30px auto; font-weight: 600;">Khi kích hoạt, toàn bộ hệ sinh thái (Cinema, Arena, Edu...) sẽ bị khóa tạm thời đối với User. Chỉ có Admin mới có thể truy cập.</p>
+                <div class="admin-card" style="margin-top: 20px; border-left: 5px solid #f59e0b;">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Lên Lịch Đóng/Mở Server</h3>
+                    <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">Hệ thống sẽ tự động chuyển sang trang bảo trì trong khoảng thời gian này.</p>
                     
-                    <button class="btn-large" id="btn-maintenance" style="background: #ef4444; font-size: 20px; padding: 20px 40px; box-shadow: 0 10px 0 #b91c1c;" onclick="toggleMaintenance()">
-                        <i class="fa-solid fa-power-off"></i> ĐÓNG CỬA SERVER
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label>Giờ ĐÓNG cửa:</label>
+                            <input type="datetime-local" id="m-start-time" class="mhent-input">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Giờ MỞ lại:</label>
+                            <input type="datetime-local" id="m-end-time" class="mhent-input">
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="m-schedule-enable">
+                            <span class="slider"></span>
+                        </label>
+                        <strong>Kích hoạt lịch hẹn</strong>
+                    </div>
+
+                    <button class="btn-primary" onclick="saveMaintenanceSchedule()" style="margin-top: 15px; background: #f59e0b;">
+                        <i class="fa-solid fa-floppy-disk"></i> LƯU LỊCH TRÌNH
                     </button>
                 </div>
             </div>
@@ -761,6 +779,26 @@
                 updateMaintenanceUI(); // Reset lại UI nếu lỗi
             } finally {
                 btn.disabled = false;
+            }
+        }
+
+        window.saveMaintenanceSchedule = async function() {
+            const start = document.getElementById('m-start-time').value;
+            const end = document.getElementById('m-end-time').value;
+            const isEnabled = document.getElementById('m-schedule-enable').checked;
+
+            if (isEnabled && (!start || !end)) return showToast("Lỗi", "Vui lòng chọn đủ giờ đóng và mở!", "error");
+            
+            try {
+                // Lưu thẳng vào rương "status" để Radar quét được
+                await updateDoc(doc(db, "system", "status"), {
+                    scheduleEnabled: isEnabled,
+                    startTime: start ? new Date(start).getTime() : null,
+                    endTime: end ? new Date(end).getTime() : null
+                });
+                showToast("Thành công", "Đã cập nhật lịch bảo trì tự động!", "success");
+            } catch(e) {
+                showToast("Lỗi", "Không lưu được lịch!", "error");
             }
         }
 
@@ -1150,10 +1188,11 @@
             }
         };
 
-        // HÀM TẢI LỊCH SỬ MAIL (ĐÃ ĐƯỢC ĐỘ THÊM LOGIC CẬP NHẬT TRẠNG THÁI)
         window.loadMailHistory = async function() {
-            const list = document.getElementById('mail-history-list');
-            list.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang lấy nhật ký...</div>';
+            const tbody = document.getElementById('mail-history-body');
+            if(!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang lấy nhật ký...</td></tr>';
 
             try {
                 const q = query(collection(db, "mail_campaigns"), orderBy("timestamp", "desc"), limit(10));
@@ -1162,39 +1201,44 @@
                 let html = '';
                 const now = Date.now();
 
-                snap.forEach(async (docSnap) => {
+                snap.forEach((docSnap) => {
                     const data = docSnap.data();
-                    let currentStatus = data.status;
                     const docId = docSnap.id;
-
+                    let currentStatus = data.status;
+                    let gasId = data.gasId || '';
+                    
                     // ✨ LOGIC "HACK" THÔNG MINH NÈ SẾP:
-                    // Nếu trạng thái là "Chờ gửi" mà thời gian hiện tại đã QUÁ giờ hẹn rồi
                     if (currentStatus === "Đang chờ gửi ⏳" && now > data.scheduledTime) {
                         currentStatus = "Đã gửi ✅";
-                        // Cập nhật ngược lại vào Firebase cho "real" luôn
-                        await updateDoc(doc(db, "mail_campaigns", docId), { status: "Đã gửi ✅" });
+                        // Cập nhật ngược lại vào Firebase âm thầm
+                        updateDoc(doc(db, "mail_campaigns", docId), { status: "Đã gửi ✅" });
                     }
 
+                    let timeStr = new Date(data.scheduledTime).toLocaleString('vi-VN');
+                    let isPending = currentStatus.includes('chờ');
+                    let badgeColor = isPending ? '#f59e0b' : '#10b981';
+
                     html += `
-                        <div class="history-item">
-                            <div class="history-info">
-                                <strong>${data.subject}</strong>
-                                <p>Gửi đến: ${data.targetCount} cư dân | Từ: ${data.sender}</p>
-                                <small>${new Date(data.scheduledTime).toLocaleString('vi-VN')}</small>
-                            </div>
-                            <div class="history-actions">
-                                <span class="status-badge ${currentStatus.includes('✅') ? 'status-sent' : 'status-pending'}">${currentStatus}</span>
-                                <button class="btn-icon" onclick="deleteMailHistory('${docId}')" title="Xóa nhật ký"><i class="fa-solid fa-trash"></i></button>
-                                ${currentStatus === "Đang chờ gửi ⏳" ? 
-                                    `<button class="btn-icon" onclick="sendMailNowDirectly('${docId}', '${data.gasId}', this)" title="Phóng ngay lập tức"><i class="fa-solid fa-bolt"></i></button>` : ''}
-                            </div>
-                        </div>
-                    `;
+                        <tr>
+                            <td style="font-size: 13px; color: #64748b;"><i class="fa-regular fa-clock"></i> ${timeStr}</td>
+                            <td><strong style="color: #1e293b;">${data.subject}</strong><br><small style="color:#94a3b8;">Tới ${data.targetCount} người | ${data.sender}</small></td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">${currentStatus}</span>
+                                    ${isPending ? `
+                                        <button onclick="sendMailNowDirectly('${docId}', '${gasId}', this)" title="Gửi ngay lập tức" style="background:none; border:none; color:#6366f1; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
+                                        <button onclick="deleteMailCampaign('${docId}', '${gasId}')" title="Hủy lịch gửi" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
+                                    ` : `
+                                        <button onclick="deleteMailCampaign('${docId}', '${gasId}')" title="Xóa lịch sử" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                    `}
+                                </div>
+                            </td>
+                        </tr>`;
                 });
-                list.innerHTML = html || '<p style="text-align:center; color:#888;">Chưa có chiến dịch nào.</p>';
+                tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có chiến dịch nào.</td></tr>';
             } catch (e) {
                 console.error(e);
-                list.innerHTML = '<p style="color:red; text-align:center;">Lỗi tải nhật ký!</p>';
+                tbody.innerHTML = '<tr><td colspan="3" style="color:red; text-align:center;">Lỗi tải nhật ký!</td></tr>';
             }
         }
 
