@@ -380,31 +380,13 @@
                 <h1 class="page-title" style="color: #ef4444;">Bảo Trì Hệ Thống</h1>
                 <p class="page-subtitle">Khu vực nguy hiểm. Hãy cẩn thận với cái nút đỏ!</p>
 
-                <div class="admin-card" style="margin-top: 20px; border-left: 5px solid #f59e0b;">
-                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Lên Lịch Đóng/Mở Server</h3>
-                    <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">Hệ thống sẽ tự động chuyển sang trang bảo trì trong khoảng thời gian này.</p>
+                <div class="admin-card" style="border: 2px solid #fee2e2; background: rgba(239, 68, 68, 0.05); text-align: center; padding: 50px;">
+                    <i class="fa-solid fa-triangle-exclamation fa-4x" style="color: #ef4444; margin-bottom: 20px;"></i>
+                    <h2 style="color: #ef4444; margin-top: 0;">Chế Độ Khẩn Cấp</h2>
+                    <p style="color: #475569; max-width: 500px; margin: 0 auto 30px auto; font-weight: 600;">Khi kích hoạt, toàn bộ hệ sinh thái (Cinema, Arena, Edu...) sẽ bị khóa tạm thời đối với User. Chỉ có Admin mới có thể truy cập.</p>
                     
-                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <label>Giờ ĐÓNG cửa:</label>
-                            <input type="datetime-local" id="m-start-time" class="mhent-input">
-                        </div>
-                        <div style="flex: 1;">
-                            <label>Giờ MỞ lại:</label>
-                            <input type="datetime-local" id="m-end-time" class="mhent-input">
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="m-schedule-enable">
-                            <span class="slider"></span>
-                        </label>
-                        <strong>Kích hoạt lịch hẹn</strong>
-                    </div>
-
-                    <button class="btn-primary" onclick="saveMaintenanceSchedule()" style="margin-top: 15px; background: #f59e0b;">
-                        <i class="fa-solid fa-floppy-disk"></i> LƯU LỊCH TRÌNH
+                    <button class="btn-large" id="btn-maintenance" style="background: #ef4444; font-size: 20px; padding: 20px 40px; box-shadow: 0 10px 0 #b91c1c;" onclick="toggleMaintenance()">
+                        <i class="fa-solid fa-power-off"></i> ĐÓNG CỬA SERVER
                     </button>
                 </div>
             </div>
@@ -779,26 +761,6 @@
                 updateMaintenanceUI(); // Reset lại UI nếu lỗi
             } finally {
                 btn.disabled = false;
-            }
-        }
-
-        window.saveMaintenanceSchedule = async function() {
-            const start = document.getElementById('m-start-time').value;
-            const end = document.getElementById('m-end-time').value;
-            const isEnabled = document.getElementById('m-schedule-enable').checked;
-
-            if (isEnabled && (!start || !end)) return showToast("Lỗi", "Vui lòng chọn đủ giờ đóng và mở!", "error");
-            
-            try {
-                // Lưu thẳng vào rương "status" để Radar quét được
-                await updateDoc(doc(db, "system", "status"), {
-                    scheduleEnabled: isEnabled,
-                    startTime: start ? new Date(start).getTime() : null,
-                    endTime: end ? new Date(end).getTime() : null
-                });
-                showToast("Thành công", "Đã cập nhật lịch bảo trì tự động!", "success");
-            } catch(e) {
-                showToast("Lỗi", "Không lưu được lịch!", "error");
             }
         }
 

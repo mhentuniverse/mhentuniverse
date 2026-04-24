@@ -12,11 +12,12 @@ const firebaseConfig = {
     appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
 };
 
+// Kiểm tra xem web đã có app Firebase nào chạy chưa. Nếu có rồi thì "xài ké", nếu chưa thì mới tạo mới.
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp(); 
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 1. TẠO GIAO DIỆN CÓ CHỨA LINK FONT NUNITO (Giữ nguyên của sếp)
+// 1. TẠO GIAO DIỆN CÓ CHỨA LINK FONT NUNITO
 const lockScreen = document.createElement('div');
 lockScreen.id = 'maintenance-lock';
 lockScreen.style.cssText = "display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999999; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; font-family: 'Nunito', sans-serif;";
@@ -41,12 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(lockScreen);
 });
 
-// 2. LOGIC KIỂM TRA KÉP (Bảo trì + Quyền Admin + Đồng hồ)
+// 2. LOGIC KIỂM TRA KÉP (Bảo trì + Quyền Admin)
 let isSystemDown = false;
 let isAdmin = false;
-let systemData = null; // Biến lưu cấu hình từ Firebase
 
 function updateLockScreen() {
+    // Chỉ hiện rèm bảo trì khi: Server đang đóng VÀ người dùng không phải là Admin
     if (isSystemDown && !isAdmin) {
         lockScreen.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -56,59 +57,35 @@ function updateLockScreen() {
     }
 }
 
-// ✨ HÀM MỚI: TỰ NGÓ ĐỒNG HỒ XEM CÓ ĐẾN GIỜ ĐÓNG/MỞ CỬA CHƯA
-function checkTimeSchedule() {
-    if (!systemData) return;
-    const now = Date.now();
-    let shouldLock = false;
-
-    // Ưu tiên 1: Nút đóng thủ công của sếp
-    if (systemData.isMaintenance === true) {
-        shouldLock = true;
-    } 
-    // Ưu tiên 2: Chạy theo lịch hẹn
-    else if (systemData.scheduleEnabled && systemData.startTime && systemData.endTime) {
-        if (now >= systemData.startTime && now <= systemData.endTime) {
-            shouldLock = true; // Đang trong giờ giới nghiêm
-        }
-    }
-
-    // Nếu trạng thái thay đổi thì mới cập nhật màn hình
-    if (isSystemDown !== shouldLock) {
-        isSystemDown = shouldLock;
-        updateLockScreen();
-    }
-}
-
-// Cứ mỗi 10 giây, bảo vệ lại ngó đồng hồ 1 lần để tự động thả/khóa người dùng
-setInterval(checkTimeSchedule, 10000);
-
-// Radar 1: Theo dõi Database (Cập nhật Radar 1.0 của sếp lên 2.0)
+// Radar 1: Theo dõi nút bấm của sếp
 onSnapshot(doc(db, "system", "status"), (docSnap) => {
-    if (docSnap.exists()) {
-        systemData = docSnap.data();
-        checkTimeSchedule(); // Chạy ngay lập tức khi sếp vừa bấm lưu
+    if (docSnap.exists() && docSnap.data().isMaintenance === true) {
+        isSystemDown = true;
     } else {
-        systemData = null;
         isSystemDown = false;
-        updateLockScreen();
     }
+    updateLockScreen();
 });
 
-// Radar 2: Quét xem người dùng hiện tại có thẻ Admin không (Giữ nguyên của sếp)
+// Radar 2: Quét xem người dùng hiện tại có thẻ Admin không
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists() && userDoc.data().role && userDoc.data().role.includes('admin')) {
                 isAdmin = true;
+                // Nếu đang bảo trì mà là Admin thì chớp dòng thông báo cho ngầu rồi tắt màn hình khóa
                 if(isSystemDown) {
                     document.getElementById('admin-bypass-notice').style.display = 'block';
                 }
             } else {
                 isAdmin = false;
             }
-        } catch (error) { isAdmin = false; }
-    } else { isAdmin = false; }
+        } catch (error) {
+            isAdmin = false;
+        }
+    } else {
+        isAdmin = false;
+    }
     updateLockScreen();
 });
