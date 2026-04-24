@@ -365,7 +365,11 @@
             btnNext.style.display = 'none';
             safeIcon.style.display = 'none';
             explosionIcon.style.display = 'none';
-            document.body.style.transition = 'none';
+            
+            // Disable all transitions before removing exploded class
+            document.body.style.transition = 'none !important';
+            document.documentElement.style.transition = 'none !important';
+            
             document.body.classList.remove('exploded');
             qBox.style.opacity = '1';
 
@@ -389,7 +393,13 @@
 
             updateTeamUI();
             isPlaying = true;
-            document.body.style.transition = '';  // Restore transition
+            
+            // Restore transitions after a tick to avoid transition artifacts
+            setTimeout(() => {
+                document.body.style.transition = '';
+                document.documentElement.style.transition = '';
+            }, 10);
+            
             startTimer();
         }
 
