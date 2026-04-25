@@ -207,8 +207,8 @@
                         </div>
                         <div class="dropdown-divider" id="admin-divider" style="display: none;"></div>
                         
-                        <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #10b981 !important;" onclick="window.location.href = '/teach/admin.html'">
-                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Trạm Chỉ Huy (GV)
+                        <div id="admin-panel-btn" class="dropdown-item" style="display: none; color: #28a745 !important;" onclick="window.location.href = '/tools/forms/admin'">
+                            <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Admin Panel
                         </div>
                         
                         <div class="dropdown-divider"></div>
@@ -277,48 +277,105 @@
     </footer>
 
     <script type="module">
-        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+            import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+            import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+            import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        // 1. KHỞI TẠO FIREBASE
-        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
-        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp(); const auth = getAuth(app); const db = getFirestore(app);
+            const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+            const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+            const auth = getAuth(app);
+            const db = getFirestore(app);
 
-        // 2. UI & AUTH CƠ BẢN
-        const btnLogin = document.getElementById('btn-login'); const btnLogout = document.getElementById('btn-logout');
-        if (btnLogin) { btnLogin.addEventListener('click', () => { window.location.href = '/login'; }); }
-        if (btnLogout) { btnLogout.addEventListener('click', async () => { await signOut(auth); localStorage.removeItem('mhent_user_role'); window.location.reload(); }); }
-        
-        window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); };
-        window.toggleAppSwitcher = function() { document.getElementById('dropdown-app-switcher')?.classList.toggle('show'); document.getElementById('dropdown-account')?.classList.remove('show'); };
-        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
-        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
-        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
-        window.onclick = function(e) { if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); } if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active'); };
-        
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
-                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+            // ==========================================
+            // UI TOGGLES
+            // ==========================================
+            const btnLogin = document.getElementById('btn-login');
+            const btnLogout = document.getElementById('btn-logout');
 
-                try {
-                    const userSnap = await getDoc(doc(db, "users", user.uid));
-                    let userRole = userSnap.exists() ? (userSnap.data().role || 'user') : 'user';
-                    localStorage.setItem('mhent_user_role', userRole);
-
-                    if (userRole.includes('admin') || userRole.includes('form')) {
-                        document.getElementById('admin-panel-btn').style.display = 'block';
+            if (btnLogin) {
+                btnLogin.addEventListener('click', () => {
+                    if (navigator.userAgent.includes('Electron')) {
+                        window.openChrome('https://mhentuniverse.vercel.app/login.html?source=app');
+                    } else {
+                        window.location.href = '/login';
                     }
-                } catch(e) { localStorage.setItem('mhent_user_role', 'user'); }
-            } else {
-                localStorage.setItem('mhent_user_role', 'guest');
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+                });
             }
-        });
+            if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = '/teach'; }); 
+
+            window.toggleAccount = function() {
+                const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher'); 
+                if(switcher) switcher.classList.remove('show'); if(acc) acc.classList.toggle('show');
+            };
+
+            window.toggleAppSwitcher = function() {
+                const switcher = document.getElementById('dropdown-app-switcher'); const acc = document.getElementById('dropdown-account');
+                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.toggle('show');
+            };
+
+            window.onclick = function(event) {
+                if (!event.target.closest('.user-section') && !event.target.closest('.modal')) {
+                    const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
+                    if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show');
+                }
+                if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                    const navLinks = document.getElementById('nav-links'); if(navLinks) navLinks.classList.remove('active');
+                }
+            };
+
+            window.toggleMobileMenu = function() {
+                const navLinks = document.getElementById('nav-links'); const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show'); if(navLinks) navLinks.classList.toggle('active');
+            };
+
+            window.toggleDarkMode = function() {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+            };
+            if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+
+            // ==========================================
+            // XỬ LÝ AUTH & HIỂN THỊ NÚT ADMIN
+            // ==========================================
+            onAuthStateChanged(auth, async (user) => {
+                const btnTheme = document.getElementById('btn-theme-toggle'); 
+                if (user) {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                    if(btnTheme) btnTheme.style.display = 'none'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+
+                    let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                    if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+
+                    const avtElement = document.getElementById('user-avatar');
+                    if (avtElement) {
+                        avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                        avtElement.style.display = 'block'; 
+                    }        
+                } else {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                    if(btnTheme) btnTheme.style.display = 'flex'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+                }
+
+                // KIỂM TRA QUYỀN ĐỂ HIỆN NÚT VÀO ADMIN PANEL CỦA FORM
+                const userRef = doc(db, "users", user?.uid || 'guest');
+                if(user) {
+                    getDoc(userRef).then((docSnap) => {
+                        const adminBtn = document.getElementById('admin-panel-btn');
+                        if (adminBtn) adminBtn.style.display = 'none';
+                        document.getElementById('admin-divider').style.display = 'none';
+
+                        if (docSnap.exists() && docSnap.data().role) {
+                            const userRole = docSnap.data().role; 
+                            if (userRole.includes('admin')) {
+                                if (adminBtn) adminBtn.style.display = 'flex';
+                                document.getElementById('admin-divider').style.display = 'block';
+                            } 
+                        }
+                    }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+                }
+            });
 
         // 3. LOGIC LOAD DANH SÁCH FORM TỪ FIREBASE
         document.getElementById('btn-join-code').addEventListener('click', () => {
