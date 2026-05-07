@@ -175,6 +175,16 @@
         .suggestion-item .sugg-name { font-weight: 800; color: #1e293b; font-size: 14px; }
         .suggestion-item .sugg-email { color: #64748b; font-size: 12px; }
         body.dark-mode .suggestion-item .sugg-name { color: #fff; }
+
+        /* CSS cho Nút gạt (Switch) */
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px;}
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+        input:checked + .slider { background-color: #ef4444; }
+        #toggle-global:checked + .slider { background-color: #b91c1c; } /* Đỏ đậm cho cầu dao tổng */
+        input:checked + .slider:before { transform: translateX(24px); }
+        body.dark-mode .slider { background-color: #334155; }
     </style>
 </head>
 <body>
@@ -378,16 +388,55 @@
 
             <div id="tab-settings" class="admin-tab">
                 <h1 class="page-title" style="color: #ef4444;">Bảo Trì Hệ Thống</h1>
-                <p class="page-subtitle">Khu vực nguy hiểm. Hãy cẩn thận với cái nút đỏ!</p>
+                <p class="page-subtitle">Quản lý đóng/mở cửa các phân khu trong Vũ trụ MHEnt.</p>
 
-                <div class="admin-card" style="border: 2px solid #fee2e2; background: rgba(239, 68, 68, 0.05); text-align: center; padding: 50px;">
-                    <i class="fa-solid fa-triangle-exclamation fa-4x" style="color: #ef4444; margin-bottom: 20px;"></i>
-                    <h2 style="color: #ef4444; margin-top: 0;">Chế Độ Khẩn Cấp</h2>
-                    <p style="color: #475569; max-width: 500px; margin: 0 auto 30px auto; font-weight: 600;">Khi kích hoạt, toàn bộ hệ sinh thái (Cinema, Arena, Edu...) sẽ bị khóa tạm thời đối với User. Chỉ có Admin mới có thể truy cập.</p>
+                <div class="admin-card" style="border: 2px solid #fee2e2; background: rgba(239, 68, 68, 0.05); padding: 30px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="color: #ef4444; margin: 0 0 10px 0;"><i class="fa-solid fa-triangle-exclamation"></i> CẦU DAO TỔNG (KHÓA TOÀN VŨ TRỤ)</h2>
+                            <p style="margin: 0; color: #475569; font-weight: 600;">Khóa tất cả mọi ngóc ngách (Cinema, Arena, Edu, Tools). Chỉ Admin mới vào được.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-global">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="admin-card" style="padding: 30px;">
+                    <h3 style="margin-top: 0; margin-bottom: 25px;"><i class="fa-solid fa-server"></i> Quản lý từng phân khu</h3>
                     
-                    <button class="btn-large" id="btn-maintenance" style="background: #ef4444; font-size: 20px; padding: 20px 40px; box-shadow: 0 10px 0 #b91c1c;" onclick="toggleMaintenance()">
-                        <i class="fa-solid fa-power-off"></i> ĐÓNG CỬA SERVER
-                    </button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 16px; color: #e94560;"><i class="fa-solid fa-film"></i> MHEnt. Cinema</div>
+                            <small style="color: #64748b;">Khóa rạp chiếu phim (Thường dùng khi dính bản quyền).</small>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="toggle-cinema"><span class="slider round"></span></label>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 16px; color: #f97316;"><i class="fa-solid fa-wand-magic-sparkles"></i> MHEnt. Arena</div>
+                            <small style="color: #64748b;">Khóa Đấu trường Trắc nghiệm.</small>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="toggle-arena"><span class="slider round"></span></label>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 16px; color: #0ea5e9;"><i class="fa-solid fa-chalkboard-user"></i> MHEnt. Edu</div>
+                            <small style="color: #64748b;">Khóa các Minigame Giáo dục.</small>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="toggle-edu"><span class="slider round"></span></label>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 16px; color: #6366f1;"><i class="fa-solid fa-toolbox"></i> MHEnt. Tools</div>
+                            <small style="color: #64748b;">Khóa khu vực Biểu mẫu (Forms) và Công cụ.</small>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="toggle-tools"><span class="slider round"></span></label>
+                    </div>
                 </div>
             </div>
 
@@ -710,20 +759,61 @@
 
 
         // ==========================================
-        // TÍNH NĂNG BẢO TRÌ SERVER (REAL)
+        // HỆ THỐNG BẢO TRÌ CỤC BỘ (5 CÔNG TẮC)
         // ==========================================
-        let isMaintenance = false;
-
-        // Hàm này tự chạy khi sếp vào trang để check xem server đang mở hay đóng
+        
         async function loadSystemStatus() {
             try {
-                const docSnap = await getDoc(doc(db, "system", "status"));
-                if (docSnap.exists()) {
-                    isMaintenance = docSnap.data().isMaintenance || false;
-                    updateMaintenanceUI();
+                // Lắng nghe trực tiếp từ Firebase (onSnapshot) để nút gạt nhảy realtime nếu có Admin khác gạt
+                import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js").then(module => {
+                    const { onSnapshot } = module;
+                    onSnapshot(doc(db, "system", "status"), (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            
+                            // Gán trạng thái cho các nút gạt
+                            document.getElementById('toggle-global').checked = data.isMaintenance || false;
+                            document.getElementById('toggle-cinema').checked = data.cinemaMaintenance || false;
+                            document.getElementById('toggle-arena').checked = data.arenaMaintenance || false;
+                            document.getElementById('toggle-edu').checked = data.eduMaintenance || false;
+                            document.getElementById('toggle-tools').checked = data.toolsMaintenance || false;
+                        }
+                    });
+                });
+            } catch (error) {
+                console.log("Chưa có data system!");
+            }
+        }
+
+        // Lắng nghe sự kiện click từ giao diện
+        document.getElementById('toggle-global').addEventListener('change', async (e) => { toggleZone('isMaintenance', e.target.checked, 'Toàn Vũ Trụ'); });
+        document.getElementById('toggle-cinema').addEventListener('change', async (e) => { toggleZone('cinemaMaintenance', e.target.checked, 'Cinema'); });
+        document.getElementById('toggle-arena').addEventListener('change', async (e) => { toggleZone('arenaMaintenance', e.target.checked, 'Arena'); });
+        document.getElementById('toggle-edu').addEventListener('change', async (e) => { toggleZone('eduMaintenance', e.target.checked, 'Edu'); });
+        document.getElementById('toggle-tools').addEventListener('change', async (e) => { toggleZone('toolsMaintenance', e.target.checked, 'Tools'); });
+
+        // Hàm xử lý chung khi gạt công tắc
+        window.toggleZone = async function(fieldToUpdate, newState, zoneName) {
+            try {
+                const updateData = {};
+                updateData[fieldToUpdate] = newState;
+
+                await updateDoc(doc(db, "system", "status"), updateData);
+
+                // Ghi Log và hiển thị thông báo
+                const actionText = newState ? `Đã KHÓA (Bảo trì) khu vực ${zoneName}` : `Đã MỞ CỬA lại khu vực ${zoneName}`;
+                logAdminAction(actionText, "Root Admin");
+                
+                if (newState) {
+                    showToast("Cảnh báo", `Đã sập cầu dao khu vực ${zoneName}!`, "info");
+                } else {
+                    showToast("Thành công", `Đã mở điện lại cho ${zoneName}!`, "success");
                 }
             } catch (error) {
-                console.log("Chưa có data system, không sao cả!");
+                console.error(error);
+                showToast("Lỗi", "Không thể liên lạc với máy chủ!", "error");
+                // Đảo lại nút nếu lỗi
+                document.getElementById(event.target.id).checked = !newState;
             }
         }
 
