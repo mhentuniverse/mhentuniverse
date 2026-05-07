@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Trang Chủ - MHEnt. Game</title>
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#10b981">
+        <link rel="apple-touch-icon" href="/assets/icon-web.png">
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="/game/game-theme.css"> 
+        <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+        <link rel="stylesheet" href="/mhent-ui.css">
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        
+        <style>
+            :root { --hub-color: #10b981; --hub-bg: rgba(16, 185, 129, 0.1); }
+
+            /* Nền Hero mang phong cách Esport Green */
+            .hero { background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%); padding: 70px 5%; text-align: center; }
+            body.dark-mode .hero { background: linear-gradient(135deg, #064e3b 0%, #047857 100%);}
+            .hero h1 { font-size: 38px; color: #1e293b; margin: 0 0 10px 0; font-weight: 900;}
+            body.dark-mode .hero h1 { color: white; }
+            .hero h1 span { color: var(--hub-color); }
+            body.dark-mode .hero h1 span { color: #34d399; }
+            .small-description { font-size: 15px; color: #64748b; margin: 0 0 35px 0; font-weight: 700; display: block; }
+            body.dark-mode .small-description { color: #cbd5e1; }
+
+            .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
+            .app-item:hover .app-icon svg { transform: scale(1.1); }
+            body.dark-mode .app-icon svg { color: #e2e8f0; }
+
+            .btn-primary { background: var(--hub-color); border-color: var(--hub-color); color: white; padding: 12px 25px; border-radius: 8px; font-weight: 700; transition: background 0.3s, border-color 0.3s; transition: all 0.3s ease; }
+            .btn-primary:hover { background: var(--hub-hover); border-color: var(--hub-hover); }
+
+            @media (max-width: 768px) {
+                .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
+                .app-switcher-container { margin-right: 8px !important; }
+            }
+
+            /* GIAO DIỆN GAME CARDS */
+            .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px; }
+            .tool-card { background: #fff; border-radius: 20px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); text-align: center; cursor: pointer; transition: 0.4s; border: 2px solid #f1f5f9; display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;}
+            .tool-card:hover { transform: translateY(-10px); border-color: var(--hub-color); box-shadow: 0 20px 40px var(--hub-bg); }
+            .tool-icon-wrapper { width: 80px; height: 80px; border-radius: 20px; background: var(--hub-bg); color: var(--hub-color); display: flex; align-items: center; justify-content: center; font-size: 35px; margin-bottom: 25px; transition: 0.4s; transform: rotate(-5deg);}
+            .tool-card:hover .tool-icon-wrapper { background: var(--hub-color); color: white; transform: rotate(5deg) scale(1.1); border-radius: 50%; }
+            .tool-title { font-size: 24px; font-weight: 900; color: #1e293b; margin: 0 0 15px 0; }
+            .tool-desc { color: #64748b; font-size: 15px; font-weight: 700; margin: 0; line-height: 1.6; }
+            
+            /* Tag New/Hot cho Game */
+            .game-badge { position: absolute; top: 15px; right: -30px; background: #ef4444; color: white; padding: 5px 30px; font-size: 12px; font-weight: 900; transform: rotate(45deg); box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4); text-transform: uppercase; letter-spacing: 1px;}
+            
+            body.dark-mode .tool-card { background: #1e293b; border-color: #334155; }
+            body.dark-mode .tool-title { color: #f8fafc; }
+            body.dark-mode .tool-desc { color: #94a3b8; }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a onclick="window.location.href='/game'" style="cursor: pointer;">
+                    <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--hub-color);">
+                    <span class="logo-name" style="color: var(--hub-color);">MHEnt. Game</span>
+                </a>
+            </div>
+
+            <ul class="nav-links" id="nav-links">
+                <li><a onclick="window.location.href='/game'" style="cursor: pointer;">Trang Chủ</a></li>
+                <li><a onclick="window.location.href='/game#tools-section'" style="cursor: pointer;">Danh sách Game</a></li>
+                <li><a onclick="showToast('Sắp ra mắt', 'Bảng xếp hạng đang được xây dựng nha!', 'info')" style="cursor: pointer;">Bảng Xếp Hạng</a></li>
+            </ul>
+
+            <div class="nav-right">
+                <div class="user-section">
+                    <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
+                        <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='var(--hub-color)'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                                <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                                <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                            </svg>
+                        </div>
+                        
+                        <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                            <a onclick="window.location.href='/'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
+                                <span class="app-name">Đại Sảnh</span>
+                            </a>
+                            <a onclick="window.location.href='/cinema'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                                <span class="app-name">Cinema</span>
+                            </a>
+                            <a onclick="window.location.href='/arena'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg></span>
+                                <span class="app-name">Arena</span>
+                            </a>
+                            <a onclick="window.location.href='/teach'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
+                                <span class="app-name">Edu</span>
+                            </a>
+                            <a onclick="window.location.href='/game'" class="app-item active">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><path d="M6 12h4"></path><path d="M8 10v4"></path><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg></span>
+                                <span class="app-name">Game</span>
+                            </a>
+                            <a onclick="window.location.href='/tools'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span>
+                                <span class="app-name">Tools</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    
+                    <button id="btn-login" class="btn-login btn-with-icon" style="background: var(--hub-color);">
+                        <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg> Đăng nhập
+                    </button>
+
+                    <div id="user-profile" class="user-profile" style="position: relative; display: none;">
+                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <img id="user-avatar" src="" alt="User" class="user-avatar" style="border-color: var(--hub-color);">
+                            <span id="user-name" class="user-name">Tên User</span>
+                        </div>
+                        
+                        <div id="dropdown-account" class="dropdown-menu account-dropdown">
+                            <div class="dropdown-item" onclick="window.location.href='/profile#info'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
+                            </div>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="btn-logout" class="dropdown-item" style="color: #ef4444 !important;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-toggle" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: var(--hub-color);"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </div>
+            </div>
+        </nav>
+
+        <header class="hero">
+            <h1>Miyazaki Haruto Entertainment <span>Gaming</span> 🎮🔥</h1>
+            <p class="small-description">Hệ sinh thái e-Sport và minigame giải trí đa người chơi thời gian thực độc quyền của MHEnt.</p>
+            <a onclick="window.location.href='/game#tools-section'" class="btn-primary" style="cursor: pointer; background: var(--hub-color); border-color: var(--hub-color);">Tham gia ngay 🚀</a>
+        </header>
+
+        <main id="tools-section" class="movie-section" style="padding-top: 40px;">
+            <h2 class="section-title" style="border-bottom-color: var(--hub-color); display: inline-flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-gamepad" style="color: var(--hub-color);"></i> Kho Game Giải Trí
+            </h2>
+            
+            <div class="tools-grid">
+                
+                <div class="tool-card" onclick="window.location.href='/game/xiangqi'">
+                    <div class="game-badge">HOT</div>
+                    <div class="tool-icon-wrapper" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i class="fa-solid fa-chess-knight"></i></div>
+                    <h3 class="tool-title">Cờ Tướng .io</h3>
+                    <p class="tool-desc">Đấu trí thời gian thực, leo rank thần tốc, tạo phòng solo 1v1 hoặc xem giải đấu cực căng.</p>
+                </div>
+
+                <div class="tool-card" style="--hub-color: #0ea5e9; --hub-bg: rgba(14, 165, 233, 0.1);" onclick="showToast('Sắp ra mắt', 'Đang mài bút lông vẽ bàn Caro...', 'info')">
+                    <div class="tool-icon-wrapper"><i class="fa-solid fa-hashtag"></i></div>
+                    <h3 class="tool-title">Caro Đại Chiến</h3>
+                    <p class="tool-desc">Nối 5 nước là win! Hệ thống tìm trận tự động và cấm chat voice chống toxic.</p>
+                </div>
+
+                <div class="tool-card" style="--hub-color: #f59e0b; --hub-bg: rgba(245, 158, 11, 0.1);" onclick="showToast('Sắp ra mắt', 'Đang in bài Uno, chờ tí sếp ơi!', 'info')">
+                    <div class="tool-icon-wrapper"><i class="fa-solid fa-layer-group"></i></div>
+                    <h3 class="tool-title">Uno Hủy Diệt</h3>
+                    <p class="tool-desc">Nơi tình bạn rạn nứt với những lá +4 bất chấp luật lệ. Hỗ trợ phòng 4-8 người chơi.</p>
+                </div>
+
+            </div>
+        </main>
+        
+        <footer>
+        <div class="footer-bottom">
+            <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
+                <a onclick="window.location.href='/terms'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='var(--hub-color)'" onmouseout="this.style.color='inherit'">Điều khoản dịch vụ</a>
+                <span style="opacity: 0.3;">|</span>
+                <a onclick="window.location.href='/terms#community-guidelines'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='var(--hub-color)'" onmouseout="this.style.color='inherit'">Nguyên tắc cộng đồng</a>
+            </div>
+        </div>
+        </footer>
+
+        <script type="module">
+            import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+            import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+            import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+            const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+            const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+
+            const btnLogin = document.getElementById('btn-login');
+            const btnLogout = document.getElementById('btn-logout');
+
+            if (btnLogin) {
+                btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
+            }
+            if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = '/game'; }); 
+
+            window.toggleAccount = function() {
+                const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher'); 
+                if(switcher) switcher.classList.remove('show'); if(acc) acc.classList.toggle('show');
+            };
+
+            window.toggleAppSwitcher = function() {
+                const switcher = document.getElementById('dropdown-app-switcher'); const acc = document.getElementById('dropdown-account');
+                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.toggle('show');
+            };
+
+            window.onclick = function(event) {
+                if (!event.target.closest('.user-section') && !event.target.closest('.modal')) {
+                    const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
+                    if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show');
+                }
+                if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                    const navLinks = document.getElementById('nav-links'); if(navLinks) navLinks.classList.remove('active');
+                }
+            };
+
+            window.toggleMobileMenu = function() {
+                const navLinks = document.getElementById('nav-links'); const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show'); if(navLinks) navLinks.classList.toggle('active');
+            };
+
+            window.toggleDarkMode = function() {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+            };
+            if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+
+            onAuthStateChanged(auth, async (user) => {
+                const btnTheme = document.getElementById('btn-theme-toggle'); 
+                if (user) {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                    if(btnTheme) btnTheme.style.display = 'none'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+
+                    let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                    if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+
+                    const avtElement = document.getElementById('user-avatar');
+                    if (avtElement) {
+                        avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                        avtElement.style.display = 'block'; 
+                    }        
+                } else {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                    if(btnTheme) btnTheme.style.display = 'flex'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+                }
+            });
+            
+            if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+            window.scrollTo(0, 0);
+        </script>
+        <script src="/mhent-ui.js"></script>
+        <script src="/check-token.js"></script>
+        <script type="module" src="/maintenance.js"></script>
+    </body>
+</html>
