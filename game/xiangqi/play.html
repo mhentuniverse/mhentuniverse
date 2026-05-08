@@ -593,11 +593,12 @@
                 } else {
                     clearInterval(timer);
                     if(myRole === 'host') {
-                        supabase.from('xiangqi_rooms').update({ 
+                        // 👉 LỖI LÀ THIẾU CHỮ 'await' Ở ĐÂY NÈ SẾP!
+                        await supabase.from('xiangqi_rooms').update({ 
                             status: 'playing',
                             timer_host: roomData.settings.timeLimit * 60,
                             timer_guest: roomData.settings.timeLimit * 60,
-                            last_time_update: new Date().toISOString() // Mốc thời gian bắt đầu
+                            last_time_update: new Date().toISOString()
                         }).eq('id', roomId);
                     }
                 }
@@ -642,9 +643,12 @@
 
         function renderBoard() {
             const boardEl = document.getElementById('xiangqi-board');
-            // Xóa sạch các quân cờ cũ (trừ dòng sông)
+            
+            // 👉 CẬP NHẬT: Không xóa Sông (.river-line) và Cung Tướng (.palace)
             Array.from(boardEl.children).forEach(child => {
-                if(!child.classList.contains('river-line')) child.remove();
+                if(!child.classList.contains('river-line') && !child.classList.contains('palace')) {
+                    child.remove();
+                }
             });
 
             // Lưới 9x10 -> X từ 0 đến 8, Y từ 0 đến 9
@@ -657,12 +661,9 @@
                         pieceEl.className = `xq-piece ${isRed ? 'red' : 'black'}`;
                         pieceEl.innerText = pieceLabels[piece];
                         
-                        // Tính tọa độ phần trăm để đặt quân cờ vào ĐÚNG GIAO ĐIỂM
-                        // X có 8 khoảng, Y có 9 khoảng
                         const leftPct = (x / 8) * 100;
                         const topPct = (y / 9) * 100;
                         
-                        // Nếu mình là ĐEN, mình phải lật ngược bàn cờ lại để mình luôn ở dưới
                         if (myRole === 'guest') {
                             pieceEl.style.left = `${100 - leftPct}%`;
                             pieceEl.style.top = `${100 - topPct}%`;
