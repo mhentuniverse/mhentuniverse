@@ -15,11 +15,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Ghi đè màu chủ đạo riêng cho Cờ Tướng (Đỏ đậm chất Trung Hoa) */
+        /* Ghi đè màu chủ đạo riêng cho Cờ Tướng (Đỏ Mận / Đỏ Bã Trầu) */
         :root { 
-            --xiangqi-color: #ef4444; 
-            --xiangqi-bg: rgba(239, 68, 68, 0.1); 
-            --xiangqi-dark: #b91c1c;
+            --xiangqi-color: #dc2626; 
+            --xiangqi-bg: rgba(220, 38, 38, 0.1); 
+            --xiangqi-dark: #991b1b;
         }
 
         body { background: #f8fafc; }
@@ -40,18 +40,20 @@
             border-radius: 20px;
             padding: 40px 30px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
             border: 2px solid transparent;
-            transition: 0.3s;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         body.dark-mode .action-card { background: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .action-card:hover { border-color: var(--xiangqi-color); transform: translateY(-5px); }
+        .action-card:hover { border-color: var(--xiangqi-color); transform: translateY(-5px); box-shadow: 0 15px 35px var(--xiangqi-bg); }
 
         .action-icon {
-            font-size: 50px;
+            font-size: 55px;
             color: var(--xiangqi-color);
             margin-bottom: 20px;
+            transition: 0.3s;
         }
+        .action-card:hover .action-icon { transform: scale(1.1); }
 
         .action-title { font-size: 24px; font-weight: 900; margin-bottom: 15px; color: #1e293b; }
         body.dark-mode .action-title { color: #f8fafc; }
@@ -62,32 +64,36 @@
             font-size: 24px;
             font-weight: 900;
             text-align: center;
-            letter-spacing: 5px;
+            letter-spacing: 8px; /* Giãn cách lúc gõ số */
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             margin-bottom: 20px;
             outline: none;
-            text-transform: uppercase;
-            box-sizing: border-box;
+            background: #f8fafc;
             color: var(--xiangqi-color);
+            transition: 0.3s;
         }
-        .room-input:focus { border-color: var(--xiangqi-color); box-shadow: 0 0 0 4px var(--xiangqi-bg); }
+        /* MẸO FIX LỖI PLACEHOLDER: Trả placeholder về bình thường, không bị giãn */
+        .room-input::placeholder { letter-spacing: 1px; font-weight: 600; color: #94a3b8; font-size: 16px; }
+        .room-input:focus { border-color: var(--xiangqi-color); background: #fff; box-shadow: 0 4px 15px var(--xiangqi-bg); }
         body.dark-mode .room-input { background: #0f172a; border-color: #334155; }
+        body.dark-mode .room-input:focus { background: #1e293b; }
 
         .btn-xiangqi {
             background: var(--xiangqi-color);
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
+            padding: 16px 30px;
+            font-size: 16px;
             font-weight: 900;
             border-radius: 12px;
             cursor: pointer;
             width: 100%;
             transition: 0.3s;
             box-shadow: 0 4px 15px var(--xiangqi-bg);
+            text-transform: uppercase;
         }
-        .btn-xiangqi:hover { background: var(--xiangqi-dark); transform: scale(1.02); }
+        .btn-xiangqi:hover { background: var(--xiangqi-dark); transform: translateY(-2px); box-shadow: 0 8px 20px var(--xiangqi-bg); }
         .btn-xiangqi:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
 
         /* DANH SÁCH BÀN ĐANG CHỜ */
@@ -96,9 +102,10 @@
             background: #fff;
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid #f1f5f9;
         }
-        body.dark-mode .room-list-container { background: #1e293b; }
+        body.dark-mode .room-list-container { background: #1e293b; border-color: #334155; }
         
         .room-grid {
             display: grid;
@@ -108,23 +115,31 @@
         }
 
         .room-item {
-            border: 2px dashed #cbd5e1;
+            border: 2px solid #e2e8f0;
             border-radius: 15px;
             padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: 0.3s;
+            background: #f8fafc;
         }
-        body.dark-mode .room-item { border-color: #475569; }
-        .room-item:hover { border-style: solid; border-color: var(--xiangqi-color); background: var(--xiangqi-bg); }
+        body.dark-mode .room-item { border-color: #334155; background: #0f172a; }
+        .room-item:hover { border-color: var(--xiangqi-color); background: #fff; box-shadow: 0 10px 25px var(--xiangqi-bg); transform: translateY(-3px); }
+        body.dark-mode .room-item:hover { background: #1e293b; }
         
-        .host-info { display: flex; align-items: center; gap: 10px; }
-        .host-avt { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--xiangqi-color); object-fit: cover; }
-        .host-name { font-weight: 800; font-size: 16px; color: #1e293b; margin:0;}
+        .host-info { display: flex; align-items: center; gap: 12px; }
+        .host-avt { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #e2e8f0; object-fit: cover; }
+        .room-item:hover .host-avt { border-color: var(--xiangqi-color); }
+        .host-name { font-weight: 800; font-size: 16px; color: #1e293b; margin: 0 0 4px 0;}
         body.dark-mode .host-name { color: #f8fafc; }
-        .room-id-badge { background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 6px; letter-spacing: 1px;}
-        body.dark-mode .room-id-badge { background: #0f172a; color: #94a3b8; }
+        .room-id-badge { background: #e2e8f0; color: #475569; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 8px; letter-spacing: 1px;}
+        body.dark-mode .room-id-badge { background: #334155; color: #cbd5e1; }
+        .room-item:hover .room-id-badge { background: var(--xiangqi-bg); color: var(--xiangqi-color); }
+
+        /* Tinh chỉnh Navbar cho đỡ phèn */
+        .btn-back:hover { background: var(--xiangqi-bg) !important; color: var(--xiangqi-color) !important; border-color: var(--xiangqi-color) !important;}
+        .btn-theme:hover { background: var(--xiangqi-bg) !important; color: var(--xiangqi-color) !important; border-color: var(--xiangqi-color) !important;}
 
         @media (max-width: 768px) {
             .lobby-container { grid-template-columns: 1fr; }
@@ -133,16 +148,16 @@
 </head>
 <body>
     
-    <nav class="navbar" style="border-bottom-color: var(--xiangqi-color);">
+    <nav class="navbar" style="border-bottom-color: rgba(220, 38, 38, 0.2);">
         <div class="nav-left">
-            <button class="btn-back" onclick="window.location.href='/game'" style="border-color: var(--xiangqi-color) !important; color: var(--xiangqi-color) !important;">
+            <button class="btn-back" onclick="window.location.href='/game'">
                 <i class="fa-solid fa-arrow-left"></i> Rời sảnh
             </button>
             <span class="logo-name" style="margin-left: 15px; color: var(--xiangqi-color) !important;">Cờ Tướng .io</span>
         </div>
         
         <div class="nav-right">
-            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" style="border-color: var(--xiangqi-color) !important; color: var(--xiangqi-color) !important;">
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()">
                 <i class="fa-solid fa-moon"></i>
             </button>
             <div id="user-profile" class="user-profile" style="display: flex; align-items: center; gap: 8px;">
@@ -242,7 +257,7 @@
                 });
 
                 // Nhảy thẳng vào bàn cờ (file play.html tụi mình sẽ code sau)
-                window.location.href = `play.html?id=${roomId}`;
+                window.location.href = `/game/xiangqi/play?id=${roomId}`;
             } catch (error) {
                 console.error(error);
                 showToast("Lỗi", "Không thể tạo phòng lúc này!", "error");
@@ -274,7 +289,7 @@
                     if (data.status === 'waiting') {
                         // Nếu mình chính là chủ phòng (vô tình rớt mạng thoát ra vào lại)
                         if(data.hostId === currentUser.uid) {
-                            window.location.href = `play.html?id=${roomId}`;
+                            window.location.href = `/game/xiangqi/play?id=${roomId}`;
                             return;
                         }
                         
@@ -285,11 +300,11 @@
                             guestAvatar: currentUser.photoURL || '/assets/avt-web.jpg',
                             status: 'playing'
                         });
-                        window.location.href = `play.html?id=${roomId}`;
+                        window.location.href = `/game/xiangqi/play?id=${roomId}`;
                     } 
                     // Nếu phòng đang chơi nhưng mình là 1 trong 2 người đang chơi (Re-join)
                     else if (data.status === 'playing' && (data.hostId === currentUser.uid || data.guestId === currentUser.uid)) {
-                        window.location.href = `play.html?id=${roomId}`;
+                        window.location.href = `/game/xiangqi/play?id=${roomId}`;
                     } 
                     else {
                         showToast("Thất bại", "Phòng này đã đầy hoặc ván đấu đang diễn ra rồi!", "error");
