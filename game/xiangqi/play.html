@@ -199,24 +199,37 @@
             background-position: center;
         }
 
-        /* Vạch kẻ chia sông (Sở hà Hán giới) */
+        /* Vạch kẻ chia sông (Sở hà Hán giới) + WATERMARK MHEnt */
         .river-line {
             position: absolute;
             top: 44.44%; /* Nằm ở giữa hàng 4 và 5 */
             left: 0;
             width: 100%;
             height: 11.11%;
-            background: var(--board-wood); /* Lấp đi cái lưới ở giữa để tạo sông */
+            background: var(--board-wood); 
             border-top: 2px solid #8b5a2b;
             border-bottom: 2px solid #8b5a2b;
             display: flex;
-            justify-content: space-around;
+            justify-content: center; /* Đẩy hết vào giữa */
             align-items: center;
-            font-family: 'Times New Roman', serif;
-            font-size: 24px;
+            gap: 40px; /* Khoảng cách giữa chữ Hán và Logo */
+        }
+        
+        .river-text {
+            font-family: 'KaiTi', 'Times New Roman', serif;
+            font-size: 28px;
             font-weight: bold;
             color: #5c3a21;
-            letter-spacing: 15px;
+            letter-spacing: 5px;
+        }
+
+        .river-logo {
+            height: 50px; /* Chiều cao logo vừa vặn với dòng sông */
+            opacity: 0.25; /* Làm mờ đi để tạo hiệu ứng in chìm dưới mặt gỗ */
+            user-select: none;
+            pointer-events: none; /* Khóa click để không cản trở lúc bấm cờ */
+            filter: grayscale(20%) contrast(120%); /* Chỉnh nhẹ màu cho tiệp với vân gỗ */
+            transition: opacity 0.3s;
         }
 
         .xq-piece {
@@ -301,8 +314,12 @@
                 </div>
                 
                 <div id="xiangqi-board">
-                    <div class="river-line"><span>楚河</span><span>漢界</span></div>
+                    <div class="river-line">
+                        <span class="river-text">楚河</span>
+                        <img src="https://mhentuniverse.vercel.app/assets/icon-web.png" class="river-logo" alt="MHEnt Logo">
+                        <span class="river-text">漢界</span>
                     </div>
+                </div>
 
             </div>
         </div>
