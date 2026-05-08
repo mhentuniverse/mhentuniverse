@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bàn Đấu - Cờ Tướng .io | MHEnt. Game</title>
+    <meta name="theme-color" content="#dc2626">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --xiangqi-color: #dc2626; 
+            --xiangqi-bg: rgba(220, 38, 38, 0.15); 
+            --xiangqi-dark: #991b1b;
+            --board-wood: #d4a373; /* Màu gỗ của bàn cờ */
+        }
+
+        body { 
+            background: #0f172a; /* Auto Dark Mode */
+            color: #f8fafc;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* Cấm cuộn màn hình khi đang đánh cờ */
+        }
+
+        /* THANH ĐIỀU KHIỂN TRẬN ĐẤU */
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #1e293b;
+            border-bottom: 2px solid #334155;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .room-info { display: flex; align-items: center; gap: 15px; }
+        .room-id { background: #334155; color: #cbd5e1; padding: 5px 12px; border-radius: 8px; font-weight: 900; font-size: 14px; letter-spacing: 2px; }
+        .match-status { font-weight: 800; color: #10b981; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .match-status.waiting { color: #f59e0b; }
+
+        .btn-leave {
+            background: transparent;
+            color: #ef4444;
+            border: 2px solid #ef4444;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-leave:hover { background: #ef4444; color: white; }
+
+        /* KHU VỰC ĐÁNH CỜ */
+        .battle-arena {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* HỒ SƠ NGƯỜI CHƠI */
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #1e293b;
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid #334155;
+            min-width: 250px;
+            transition: 0.3s;
+        }
+        .player-card.active-turn {
+            border-color: var(--xiangqi-color);
+            box-shadow: 0 0 15px var(--xiangqi-bg);
+            transform: scale(1.05);
+        }
+
+        .player-avt { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #cbd5e1; object-fit: cover; }
+        .player-card.red .player-avt { border-color: var(--xiangqi-color); }
+        .player-card.black .player-avt { border-color: #475569; }
+
+        .player-info h3 { margin: 0; font-size: 16px; font-weight: 800; }
+        .player-info p { margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .player-card.red .player-info p { color: var(--xiangqi-color); }
+        .player-card.black .player-info p { color: #94a3b8; }
+
+        /* BÀN CỜ (Tạm thời là khung gỗ để sau này nhét JS vào vẽ quân cờ) */
+        .xiangqi-board-container {
+            width: 100%;
+            max-width: 500px; /* Bàn cờ thường có tỷ lệ dọc */
+            aspect-ratio: 9 / 10; 
+            background: var(--board-wood);
+            border: 5px solid #8b5a2b;
+            border-radius: 10px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .board-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            border-radius: 5px;
+        }
+
+        /* RESPONSIVE CHO ĐIỆN THOẠI */
+        @media (max-width: 768px) {
+            .match-header { padding: 10px; }
+            .player-card { min-width: 200px; padding: 8px 15px; }
+            .player-avt { width: 40px; height: 40px; }
+            .xiangqi-board-container { max-width: 95vw; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="match-header">
+        <div class="room-info">
+            <span class="room-id">ID: <span id="display-room-id">-----</span></span>
+            <span class="match-status waiting" id="match-status">
+                <i class="fa-solid fa-satellite-dish fa-beat"></i> Đang tải...
+            </span>
+        </div>
+        <button class="btn-leave" onclick="confirmLeave()">
+            <i class="fa-solid fa-flag-checkered"></i> Rời Bàn
+        </button>
+    </header>
+
+    <main class="battle-arena">
+        
+        <div class="player-card black" id="opponent-card" style="opacity: 0.5;">
+            <img src="/assets/avt-web.jpg" class="player-avt" id="opponent-avt">
+            <div class="player-info">
+                <h3 id="opponent-name">Đang chờ đối thủ...</h3>
+                <p><i class="fa-solid fa-chess-pawn"></i> Phe Đen</p>
+            </div>
+        </div>
+
+        <div class="xiangqi-board-container" id="board-container">
+            <div class="board-overlay" id="board-overlay">
+                <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i>
+                <h2 style="margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Đang kết nối vệ tinh...</h2>
+            </div>
+            </div>
+
+        <div class="player-card red active-turn" id="my-card">
+            <img src="/assets/avt-web.jpg" class="player-avt" id="my-avt">
+            <div class="player-info">
+                <h3 id="my-name">Đang tải...</h3>
+                <p><i class="fa-solid fa-chess-pawn"></i> Phe Đỏ</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Lấy Room ID từ đường dẫn
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('id');
+        let currentUser = null;
+        let myRole = null; // 'host' (Đỏ) hoặc 'guest' (Đen)
+
+        // KIỂM TRA MÃ PHÒNG BẰNG TOAST
+        if (!roomId) {
+            showToast("Lỗi", "Không tìm thấy mã phòng!", "error");
+            setTimeout(() => { window.location.href = '/game/xiangqi'; }, 1500);
+        } else {
+            document.getElementById('display-room-id').innerText = roomId;
+        }
+
+        // KIỂM TRA ĐĂNG NHẬP BẰNG POPUP
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                if(roomId) connectToRoom();
+            } else {
+                showToast("Cảnh báo", "Sếp phải đăng nhập mới được vào bàn cờ!", "info");
+                setTimeout(() => { window.location.href = '/login'; }, 2000);
+            }
+        });
+
+        function connectToRoom() {
+            const roomRef = doc(db, "xiangqi_rooms", roomId);
+
+            // Bật Radar theo dõi mọi thay đổi trong phòng này
+            onSnapshot(roomRef, (docSnap) => {
+                if (!docSnap.exists()) {
+                    showPopup("Phòng đấu này đã bị hủy hoặc không tồn tại!", true);
+                    setTimeout(() => { window.location.href = '/game/xiangqi'; }, 2000);
+                    return;
+                }
+
+                const data = docSnap.data();
+
+                // Xác định phe của mình
+                if (data.hostId === currentUser.uid) {
+                    myRole = 'host';
+                    updateMyInfo(data.hostName, data.hostAvatar, 'red');
+                    
+                    if (data.guestId) {
+                        updateOpponentInfo(data.guestName, data.guestAvatar, 'black');
+                    } else {
+                        setWaitingState();
+                    }
+                } else if (data.guestId === currentUser.uid) {
+                    myRole = 'guest';
+                    updateMyInfo(data.guestName, data.guestAvatar, 'black');
+                    updateOpponentInfo(data.hostName, data.hostAvatar, 'red');
+                } else {
+                    showPopup("Phòng này đã đầy, tính năng Khán giả đang xây dựng!", true);
+                    setTimeout(() => { window.location.href = '/game/xiangqi'; }, 3000);
+                    return;
+                }
+
+                // Xử lý Trạng thái trận đấu
+                const statusEl = document.getElementById('match-status');
+                const overlay = document.getElementById('board-overlay');
+
+                if (data.status === 'waiting') {
+                    statusEl.className = 'match-status waiting';
+                    statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đợi đối thủ...';
+                    overlay.style.display = 'flex';
+                    overlay.innerHTML = '<i class="fa-solid fa-user-clock fa-3x" style="color: #cbd5e1; margin-bottom: 20px;"></i><h2>Chờ người có duyên...</h2><p style="color:#94a3b8;">Hãy gửi mã phòng <b>' + roomId + '</b> cho bạn bè</p>';
+                } else if (data.status === 'playing') {
+                    statusEl.className = 'match-status';
+                    statusEl.innerHTML = '<i class="fa-solid fa-swords"></i> Trận đấu đang diễn ra';
+                    overlay.style.display = 'none'; // Tháo bạt, hiện bàn cờ
+                    
+                    // Logic chỉ báo Lượt đi
+                    if (data.turn === 'red') {
+                        document.getElementById(myRole === 'host' ? 'my-card' : 'opponent-card').classList.add('active-turn');
+                        document.getElementById(myRole === 'host' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
+                    } else {
+                        document.getElementById(myRole === 'guest' ? 'my-card' : 'opponent-card').classList.add('active-turn');
+                        document.getElementById(myRole === 'guest' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
+                    }
+                }
+            });
+        }
+
+        // --- CÁC HÀM CẬP NHẬT GIAO DIỆN ---
+        function updateMyInfo(name, avt, color) {
+            document.getElementById('my-name').innerText = name;
+            document.getElementById('my-avt').src = avt;
+            const card = document.getElementById('my-card');
+            card.className = `player-card ${color}`;
+            card.querySelector('p').innerHTML = `<i class="fa-solid fa-chess-pawn"></i> Phe ${color === 'red' ? 'Đỏ' : 'Đen'}`;
+        }
+
+        function updateOpponentInfo(name, avt, color) {
+            document.getElementById('opponent-name').innerText = name;
+            document.getElementById('opponent-avt').src = avt;
+            const card = document.getElementById('opponent-card');
+            card.className = `player-card ${color}`;
+            card.style.opacity = '1';
+            card.querySelector('p').innerHTML = `<i class="fa-solid fa-chess-pawn"></i> Phe ${color === 'red' ? 'Đỏ' : 'Đen'}`;
+        }
+
+        function setWaitingState() {
+            document.getElementById('opponent-name').innerText = "Đang tìm kỳ phùng địch thủ...";
+            document.getElementById('opponent-avt').src = "/assets/avt-web.jpg";
+            const card = document.getElementById('opponent-card');
+            card.className = `player-card black`;
+            card.style.opacity = '0.5';
+        }
+
+        // DÙNG BỘ MÁY XÁC NHẬN CỦA MHEnt-UI
+        window.confirmLeave = function() {
+            showConfirmPopup(
+                "Xác Nhận Rời Bàn", 
+                "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", 
+                () => {
+                    // Ấn Xác nhận thì nó bay vào đây
+                    window.location.href = '/game/xiangqi';
+                }
+            );
+        }
+    </script>
+    <script src="/mhent-ui.js"></script>
+</body>
+</html>
