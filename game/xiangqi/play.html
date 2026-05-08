@@ -538,6 +538,16 @@
             }, 1000);
         }
         window.confirmLeave = function() { showConfirmPopup("Đầu Hàng / Rời Bàn", "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", () => { window.location.href = '/game/xiangqi'; }); }
+        // --- HÀM HỦY TIME BREAK SỚM ---
+        window.endTimeBreakEarly = async function() {
+            if(!myRole) return;
+            try {
+                // Bắn lệnh đổi status về playing ngay lập tức
+                await supabase.from('xiangqi_rooms').update({ status: 'playing' }).eq('id', roomId);
+            } catch(e) {
+                showToast("Lỗi", "Không thể tiếp tục trận đấu", "error");
+            }
+        }
     </script>
     <script src="/mhent-ui.js"></script>
 </body>
