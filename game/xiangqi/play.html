@@ -188,80 +188,58 @@
         /* BÀN CỜ & QUÂN CỜ                           */
         /* ========================================== */
         #xiangqi-board {
-            width: 90%;
-            height: 90%;
+            width: calc(100% - 40px); /* Bóp nhỏ lại 1 chút để quân cờ ở rìa không bị lòi ra ngoài */
+            height: calc(100% - 40px);
             position: relative;
-            /* Lưới nền bàn cờ (Tạm thời dùng viền và màu nền mộc) */
             background-image: 
-                linear-gradient(#8b5a2b 1px, transparent 1px),
-                linear-gradient(90deg, #8b5a2b 1px, transparent 1px);
-            background-size: 12.5% 11.11%; /* Tỷ lệ chia 8 ô ngang, 9 ô dọc */
-            background-position: center;
+                linear-gradient(#8b5a2b 2px, transparent 2px),
+                linear-gradient(90deg, #8b5a2b 2px, transparent 2px);
+            background-size: 12.5% 11.111%;
+            background-position: 0 0;
         }
 
-        /* Vạch kẻ chia sông (Sở hà Hán giới) + WATERMARK MHEnt */
+        /* Vẽ Cung Tướng (Palace) Hình chữ X */
+        .palace {
+            position: absolute;
+            width: 25%; /* Rộng 2 ô */
+            height: 22.222%; /* Cao 2 ô */
+            left: 37.5%; /* Canh giữa */
+            border: 2px solid #8b5a2b;
+            box-sizing: border-box;
+            z-index: 0;
+        }
+        /* Dùng ảnh nhúng SVG siêu nhẹ để vẽ 2 đường chéo chữ X siêu nét */
+        .palace::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cline x1='0' y1='0' x2='100' y2='100' stroke='%238b5a2b' stroke-width='2'/%3E%3Cline x1='100' y1='0' x2='0' y2='100' stroke='%238b5a2b' stroke-width='2'/%3E%3C/svg%3E");
+        }
+        .palace.top { top: 0; }
+        .palace.bottom { bottom: 0; }
+
+        /* Vạch kẻ chia sông (Sở hà Hán giới) */
         .river-line {
             position: absolute;
-            top: 44.44%; /* Nằm ở giữa hàng 4 và 5 */
-            left: 0;
-            width: 100%;
-            height: 11.11%;
+            top: 44.444%; 
+            left: 0; width: 100%; height: 11.111%;
             background: var(--board-wood); 
-            border-top: 2px solid #8b5a2b;
-            border-bottom: 2px solid #8b5a2b;
-            display: flex;
-            justify-content: center; /* Đẩy hết vào giữa */
-            align-items: center;
-            gap: 40px; /* Khoảng cách giữa chữ Hán và Logo */
+            border-top: 2px solid #8b5a2b; border-bottom: 2px solid #8b5a2b;
+            display: flex; justify-content: center; align-items: center; gap: 40px; 
+            z-index: 1;
         }
+        .river-text { font-family: 'KaiTi', 'Times New Roman', serif; font-size: 28px; font-weight: bold; color: #5c3a21; letter-spacing: 5px; }
+        .river-logo { height: 50px; opacity: 0.25; user-select: none; pointer-events: none; filter: grayscale(20%) contrast(120%); transition: opacity 0.3s; }
         
-        .river-text {
-            font-family: 'KaiTi', 'Times New Roman', serif;
-            font-size: 28px;
-            font-weight: bold;
-            color: #5c3a21;
-            letter-spacing: 5px;
+        .xq-piece { /* Giữ nguyên không đổi */
+            position: absolute; width: 40px; height: 40px; margin-top: -20px; margin-left: -20px;
+            border-radius: 50%; background: #fdf5e6; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(0,0,0,0.2);
+            border: 2px solid #8b5a2b; display: flex; justify-content: center; align-items: center;
+            font-family: 'KaiTi', 'Times New Roman', serif; font-size: 22px; font-weight: 900;
+            cursor: pointer; transition: all 0.2s ease-out; z-index: 10; user-select: none;
         }
-
-        .river-logo {
-            height: 50px; /* Chiều cao logo vừa vặn với dòng sông */
-            opacity: 0.25; /* Làm mờ đi để tạo hiệu ứng in chìm dưới mặt gỗ */
-            user-select: none;
-            pointer-events: none; /* Khóa click để không cản trở lúc bấm cờ */
-            filter: grayscale(20%) contrast(120%); /* Chỉnh nhẹ màu cho tiệp với vân gỗ */
-            transition: opacity 0.3s;
-        }
-
-        .xq-piece {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            margin-top: -20px; /* Đẩy tâm quân cờ vào đúng điểm giao cắt */
-            margin-left: -20px;
-            border-radius: 50%;
-            background: #fdf5e6;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(0,0,0,0.2);
-            border: 2px solid #8b5a2b;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'KaiTi', 'Times New Roman', serif; /* Font chữ Hán mộc mạc */
-            font-size: 22px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: all 0.2s ease-out;
-            z-index: 10;
-            user-select: none;
-        }
-
-        .xq-piece:hover {
-            transform: scale(1.15) translateY(-3px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.5);
-            z-index: 20;
-        }
-
+        .xq-piece:hover { transform: scale(1.15) translateY(-3px); box-shadow: 0 8px 12px rgba(0,0,0,0.5); z-index: 20; }
         .xq-piece.red { color: #dc2626; border-color: #dc2626; text-shadow: 0 1px 1px rgba(220, 38, 38, 0.3);}
         .xq-piece.black { color: #1e293b; border-color: #1e293b; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);}
+
     </style>
 </head>
 <body class="dark-mode">
@@ -314,6 +292,8 @@
                 </div>
                 
                 <div id="xiangqi-board">
+                    <div class="palace top"></div>
+                    <div class="palace bottom"></div>
                     <div class="river-line">
                         <span class="river-text">楚河</span>
                         <img src="https://mhentuniverse.vercel.app/assets/icon-web.png" class="river-logo" alt="MHEnt Logo">
@@ -462,26 +442,32 @@
                 }
             } 
             else if (data.status === 'playing') {
-                // VÔ TRẬN ĐẤU - KÍCH HOẠT ĐỒNG HỒ
                 statusEl.className = 'match-status';
                 statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra';
                 overlay.style.display = 'none'; 
-                btnBreak.style.display = 'flex'; // Hiện nút xin dừng
+                btnBreak.style.display = 'flex'; 
 
                 renderBoard();
                 
-                // Khởi tạo thời gian nếu chưa có (Lần đầu chạy)
-                if(data.timer_host === undefined) {
-                    myTimeLeft = data.settings.timeLimit * 60;
-                    oppTimeLeft = data.settings.timeLimit * 60;
-                } else {
-                    // Đọc từ Database
-                    myTimeLeft = myRole === 'host' ? data.timer_host : data.timer_guest;
-                    oppTimeLeft = myRole === 'host' ? data.timer_guest : data.timer_host;
+                // TÍNH TOÁN BÙ TRỪ THỜI GIAN (FIX LỖI F5)
+                let baseHostTime = data.timer_host !== undefined ? data.timer_host : data.settings.timeLimit * 60;
+                let baseGuestTime = data.timer_guest !== undefined ? data.timer_guest : data.settings.timeLimit * 60;
+
+                let elapsed = 0;
+                if (data.last_time_update) {
+                    let lastTime = new Date(data.last_time_update).getTime();
+                    let now = new Date().getTime();
+                    elapsed = Math.max(0, Math.floor((now - lastTime) / 1000));
                 }
 
+                if (data.turn === 'red') baseHostTime -= elapsed;
+                else baseGuestTime -= elapsed;
+
+                myTimeLeft = myRole === 'host' ? baseHostTime : baseGuestTime;
+                oppTimeLeft = myRole === 'host' ? baseGuestTime : baseHostTime;
+
                 updateTimerUI();
-                startLocalTimer(data.turn); // Chạy đồng hồ
+                startLocalTimer(data.turn);
 
                 // Phân định lượt
                 if (data.turn === 'red') {
@@ -570,24 +556,15 @@
         // --- HÀM XIN TIME BREAK ---
         window.requestTimeBreak = async function() {
             if(roomData.status !== 'playing') return;
-            
-            // Tính toán thời gian kết thúc Break
-            let endsAt = new Date();
-            endsAt.setSeconds(endsAt.getSeconds() + roomData.settings.breakTime);
-
-            // Gửi lệnh Break lên Supabase
+            let endsAt = new Date(); endsAt.setSeconds(endsAt.getSeconds() + roomData.settings.breakTime);
             try {
                 await supabase.from('xiangqi_rooms').update({
-                    status: 'break',
-                    break_by: myRole,
-                    break_ends_at: endsAt.toISOString(),
-                    // Tạm lưu thời gian hiện tại của 2 bên lên mây để lúc Resume nó đếm tiếp
+                    status: 'break', break_by: myRole, break_ends_at: endsAt.toISOString(),
                     timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft,
-                    timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft
+                    timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft,
+                    last_time_update: null // Xóa mốc cũ để Resume không bị trừ lố
                 }).eq('id', roomId);
-            } catch(e) {
-                showToast("Lỗi", "Không thể gửi yêu cầu Break", "error");
-            }
+            } catch(e) {}
         }
 
         // ... Các hàm toggleReady, triggerCountdown, updateMyInfo (Giữ nguyên như lúc nãy) ...
@@ -616,11 +593,11 @@
                 } else {
                     clearInterval(timer);
                     if(myRole === 'host') {
-                        // Khởi tạo thời gian lúc bắt đầu
-                        await supabase.from('xiangqi_rooms').update({ 
+                        supabase.from('xiangqi_rooms').update({ 
                             status: 'playing',
                             timer_host: roomData.settings.timeLimit * 60,
-                            timer_guest: roomData.settings.timeLimit * 60
+                            timer_guest: roomData.settings.timeLimit * 60,
+                            last_time_update: new Date().toISOString() // Mốc thời gian bắt đầu
                         }).eq('id', roomId);
                     }
                 }
@@ -628,14 +605,13 @@
         }
         window.confirmLeave = function() { showConfirmPopup("Đầu Hàng / Rời Bàn", "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", () => { window.location.href = '/game/xiangqi'; }); }
         // --- HÀM HỦY TIME BREAK SỚM ---
+        // Hủy Break sớm
         window.endTimeBreakEarly = async function() {
             if(!myRole) return;
-            try {
-                // Bắn lệnh đổi status về playing ngay lập tức
-                await supabase.from('xiangqi_rooms').update({ status: 'playing' }).eq('id', roomId);
-            } catch(e) {
-                showToast("Lỗi", "Không thể tiếp tục trận đấu", "error");
-            }
+            await supabase.from('xiangqi_rooms').update({ 
+                status: 'playing', 
+                last_time_update: new Date().toISOString() // Tạo mốc đếm mới
+            }).eq('id', roomId);
         }
 
         // ==========================================
