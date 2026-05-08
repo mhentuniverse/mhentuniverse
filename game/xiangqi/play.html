@@ -158,13 +158,19 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex: 1;
+            min-height: 0; /* Quan trọng: Cho phép cột ở giữa tự do co giãn */
         }
         .xiangqi-board-container {
-            width: 100%;
-            height: 100%;
-            max-width: 550px; /* CHỐNG BÀNH: Giới hạn chiều ngang tối đa */
-            max-height: 80vh;
+            /* KHÓA CHẾT TỶ LỆ 9:10 (Tuyệt đối không cho méo) */
             aspect-ratio: 9 / 10; 
+            
+            /* THUẬT TOÁN AUTO-SIZE: Phình to nhất có thể, nhưng hễ đụng viền là dừng! */
+            width: min(100%, calc(80vh * 0.9)); 
+            max-width: 550px; 
+            
+            flex-shrink: 0; /* CẤM flexbox bóp méo bàn cờ */
+            
             background: var(--board-wood);
             border: 5px solid #8b5a2b;
             border-radius: 8px;
@@ -173,13 +179,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0 auto; /* Ép nó luôn nằm giữa */
+            margin: 0 auto;
         }
         .board-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column; 
             justify-content: center; align-items: center; z-index: 20; text-align: center;
-            transition: background 0.3s ease; /* Thêm hiệu ứng chuyển mờ cho mượt */
         }
         /* RESPONSIVE CHO ĐIỆN THOẠI (XẾP DỌC LẠI) */
         @media (max-width: 1024px) {
@@ -194,7 +199,7 @@
         /* BÀN CỜ & QUÂN CỜ                           */
         /* ========================================== */
         #xiangqi-board {
-            width: calc(100% - 40px); /* Bóp nhỏ lại 1 chút để quân cờ ở rìa không bị lòi ra ngoài */
+            width: calc(100% - 40px); 
             height: calc(100% - 40px);
             position: relative;
             background-image: 
@@ -202,6 +207,7 @@
                 linear-gradient(90deg, #8b5a2b 2px, transparent 2px);
             background-size: 12.5% 11.111%;
             background-position: 0 0;
+            background-repeat: repeat; /* Ép nó lặp lại đều đặn không đứt quãng */
         }
 
         /* Vẽ Cung Tướng (Palace) Hình chữ X */
