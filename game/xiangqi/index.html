@@ -143,6 +143,42 @@
         @media (max-width: 768px) {
             .lobby-container { grid-template-columns: 1fr; }
         }
+
+        /* ========================================== */
+        /* MODAL SETTINGS (POPUP CÀI ĐẶT PHÒNG)       */
+        /* ========================================== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
+            z-index: 9999; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-box {
+            background: #1e293b; border: 2px solid #334155; border-radius: 20px;
+            width: 90%; max-width: 500px; padding: 30px;
+            transform: translateY(20px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative;
+        }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+        
+        .modal-close {
+            position: absolute; top: 20px; right: 20px; font-size: 24px;
+            color: #64748b; cursor: pointer; transition: 0.2s; background: none; border: none;
+        }
+        .modal-close:hover { color: #ef4444; }
+
+        .setting-group { margin-bottom: 20px; text-align: left; }
+        .setting-group label { display: block; font-weight: 800; color: #cbd5e1; margin-bottom: 10px; font-size: 14px; }
+        
+        .setting-select {
+            width: 100%; padding: 12px 15px; border-radius: 12px;
+            background: #0f172a; border: 2px solid #334155; color: white;
+            font-size: 15px; font-weight: 700; outline: none; transition: 0.3s;
+            font-family: 'Nunito', sans-serif; cursor: pointer;
+        }
+        .setting-select:focus { border-color: var(--xiangqi-color); box-shadow: 0 0 0 4px var(--xiangqi-bg); }
     </style>
 </head>
 <body class = "dark-mode">
@@ -246,7 +282,7 @@
             <div class="action-icon"><i class="fa-solid fa-chess-board"></i></div>
             <h2 class="action-title">Tạo Bàn Cờ Mới</h2>
             <p style="color: #64748b; margin-bottom: 30px;">Tạo phòng riêng, nhận mã PIN và gửi cho đối thủ để bắt đầu trận đấu tâm trí.</p>
-            <button class="btn-xiangqi" id="btn-create-room" onclick="createRoom()">
+            <button class="btn-xiangqi" id="btn-create-room" onclick="openSettingsModal()">
                 <i class="fa-solid fa-plus"></i> TẠO PHÒNG NGAY
             </button>
         </div>
@@ -272,6 +308,57 @@
             </div>
         </div>
 
+    </div>
+
+    <div class="modal-overlay" id="room-settings-modal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-top: 0; color: var(--xiangqi-color); display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-gear"></i> Cấu Hình Trận Đấu
+            </h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">Sếp thiết lập luật chơi cho phòng đấu này nhé.</p>
+
+            <div class="setting-group">
+                <label><i class="fa-solid fa-stopwatch"></i> Thời gian mỗi bên (Phút)</label>
+                <select id="set-time" class="setting-select">
+                    <option value="5">Cờ chớp (5 Phút)</option>
+                    <option value="10" selected>Cờ nhanh (10 Phút)</option>
+                    <option value="15">Cờ tiêu chuẩn (15 Phút)</option>
+                    <option value="30">Đánh giải (30 Phút)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label><i class="fa-solid fa-plus"></i> Bước bù giờ (Giây / Nước đi)</label>
+                <select id="set-increment" class="setting-select">
+                    <option value="0">Không bù giờ (0s)</option>
+                    <option value="3" selected>Bù 3 Giây (+3s)</option>
+                    <option value="5">Bù 5 Giây (+5s)</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="setting-group">
+                    <label><i class="fa-solid fa-pause"></i> Số lần Time Break</label>
+                    <select id="set-break-count" class="setting-select">
+                        <option value="0">Không có</option>
+                        <option value="1" selected>1 Lần</option>
+                        <option value="2">2 Lần</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label><i class="fa-solid fa-hourglass-half"></i> Thời lượng Break</label>
+                    <select id="set-break-time" class="setting-select">
+                        <option value="30" selected>30 Giây</option>
+                        <option value="60">60 Giây</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-xiangqi" style="margin-top: 10px;" id="btn-confirm-create" onclick="confirmCreateRoom()">
+                <i class="fa-solid fa-check"></i> XÁC NHẬN & TẠO PHÒNG
+            </button>
+        </div>
     </div>
 
     <footer>
@@ -395,15 +482,32 @@
         // LOGIC LOBBY CỜ TƯỚNG
         // ==========================================
 
-        // TẠO PHÒNG MỚI
-        window.createRoom = async function() {
-            if(!currentUser) {
-                showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
-                return;
-            }
-            const btn = document.getElementById('btn-create-room');
+        // ==========================================
+        // LOGIC LOBBY CỜ TƯỚNG (NÂNG CẤP POPUP)
+        // ==========================================
+
+        // 1. Thay vì tạo phòng liền, mở Popup lên trước
+        window.openSettingsModal = function() {
+            if(!currentUser) return showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
+            document.getElementById('room-settings-modal').classList.add('active');
+        }
+
+        // 2. Tắt Popup
+        window.closeSettingsModal = function() {
+            document.getElementById('room-settings-modal').classList.remove('active');
+        }
+
+        // 3. Nút Xác nhận trong Popup mới thực sự gọi lên Firebase
+        window.confirmCreateRoom = async function() {
+            const btn = document.getElementById('btn-confirm-create');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG TẠO...';
             btn.disabled = true;
+
+            // Lấy thông số Setting sếp vừa chọn
+            const timeLimit = parseInt(document.getElementById('set-time').value);
+            const increment = parseInt(document.getElementById('set-increment').value);
+            const breakCount = parseInt(document.getElementById('set-break-count').value);
+            const breakTime = parseInt(document.getElementById('set-break-time').value);
 
             // Generate mã 5 số ngẫu nhiên
             const roomId = Math.floor(10000 + Math.random() * 90000).toString();
@@ -417,17 +521,28 @@
                     guestName: null,
                     status: 'waiting',
                     createdAt: serverTimestamp(),
-                    turn: 'red' // Đỏ đi trước
+                    turn: 'red',
+                    // Nhồi Setting vào Firebase
+                    settings: {
+                        timeLimit: timeLimit,
+                        increment: increment,
+                        breakCount: breakCount,
+                        breakTime: breakTime
+                    },
+                    // Biến cho tính năng Sẵn sàng (Ready)
+                    hostReady: false,
+                    guestReady: false
                 });
 
-                window.location.href = `/game/xiangqi/play?id=${roomId}`; // Sửa lại path nếu cậu dùng thư mục hoặc file play.html
+                window.location.href = `/game/xiangqi/play?id=${roomId}`;
             } catch (error) {
                 console.error(error);
                 showToast("Lỗi", "Không thể tạo phòng lúc này!", "error");
-                btn.innerHTML = '<i class="fa-solid fa-plus"></i> TẠO PHÒNG NGAY';
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> XÁC NHẬN & TẠO PHÒNG';
                 btn.disabled = false;
             }
         };
+
 
         // NHẬP MÃ VÀO PHÒNG
         window.joinRoomByInput = function() {
