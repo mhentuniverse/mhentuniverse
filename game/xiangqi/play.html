@@ -27,15 +27,15 @@
             flex-direction: column;
             height: 100vh;
             box-sizing: border-box;
-            overflow: hidden; /* Cấm cuộn dọc tổng thể, nhìn cho giống App */
+            overflow: hidden; 
         }
 
-        /* THANH ĐIỀU KHIỂN TRẬN ĐẤU */
+        /* THANH HEADER ĐƠN GIẢN (Chỉ để ID phòng và Trạng thái) */
         .match-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
+            padding: 10px 20px;
             background: #1e293b;
             border-bottom: 2px solid #334155;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -47,63 +47,123 @@
         .match-status { font-weight: 800; color: #10b981; font-size: 14px; display: flex; align-items: center; gap: 5px; }
         .match-status.waiting { color: #f59e0b; }
 
-        .btn-leave { background: transparent; color: #ef4444; border: 2px solid #ef4444; padding: 8px 15px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; }
-        .btn-leave:hover { background: #ef4444; color: white; }
-
-        /* KHU VỰC CHƠI CHÍNH (CHIA CỘT ESPORT) */
+        /* KHU VỰC CHƠI CHÍNH (LAYOUT 3 CỘT THEO BẢN VẼ) */
         .battle-arena {
             flex: 1;
-            display: flex;
-            flex-direction: row; /* Chia 2 cột Trái - Phải */
+            display: grid;
+            grid-template-columns: 300px minmax(350px, 600px) 300px; /* Cột trái 300px - Giữa co giãn - Cột phải 300px */
             justify-content: center;
             align-items: stretch;
             padding: 20px;
             gap: 30px;
             overflow: hidden; 
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        /* === CỘT TRÁI: BÀN CỜ VÀ 2 NGƯỜI CHƠI === */
-        .board-section {
-            flex: 1;
+        /* CỘT CHUNG (TRÁI / PHẢI) */
+        .side-panel {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            max-width: 650px; /* Cho bàn cờ được quyền phình to ra */
+            justify-content: space-between; /* Đẩy 1 cái lên nóc, 1 cái xuống đáy */
+            gap: 20px;
         }
 
+        /* THẺ NGƯỜI CHƠI & ĐỒNG HỒ */
         .player-card {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             background: rgba(30, 41, 59, 0.6);
-            padding: 10px 20px;
-            border-radius: 15px; /* Đổi thành khối vuông vức cho xịn */
+            padding: 15px;
+            border-radius: 15px;
             border: 2px solid #334155;
-            width: 100%; /* Dài bằng đúng cái bàn cờ */
             box-sizing: border-box;
             transition: 0.3s;
         }
         .player-card.active-turn {
             border-color: var(--xiangqi-color);
-            background: var(--xiangqi-bg);
+            background: rgba(220, 38, 38, 0.05);
             box-shadow: 0 0 15px var(--xiangqi-bg);
         }
 
-        .player-avt { width: 45px; height: 45px; border-radius: 10px; border: 2px solid #cbd5e1; object-fit: cover; }
+        .player-avt { width: 50px; height: 50px; border-radius: 12px; border: 2px solid #cbd5e1; object-fit: cover; }
         .player-card.red .player-avt { border-color: var(--xiangqi-color); }
         .player-card.black .player-avt { border-color: #475569; }
-        .player-info h3 { margin: 0; font-size: 16px; font-weight: 800; }
-        .player-info p { margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        
+        .player-info { flex: 1; overflow: hidden; }
+        .player-info h3 { margin: 0; font-size: 15px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .player-info p { margin: 2px 0 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
         .player-card.red .player-info p { color: var(--xiangqi-color); }
         .player-card.black .player-info p { color: #94a3b8; }
 
+        /* ĐỒNG HỒ ĐẾM NGƯỢC */
+        .player-timer {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 22px;
+            font-weight: 900;
+            border: 2px solid #475569;
+            text-align: center;
+        }
+        .player-card.active-turn .player-timer {
+            background: var(--xiangqi-color);
+            border-color: var(--xiangqi-color);
+            box-shadow: 0 0 10px var(--xiangqi-bg);
+        }
+
+        /* KHUNG CHỨC NĂNG (GÓC DƯỚI TRÁI) */
+        .function-tools {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .tool-header { background: rgba(0,0,0,0.2); padding: 12px; font-weight: 900; border-bottom: 2px solid #334155; text-align: center; color: #10b981; text-transform: uppercase; font-size: 14px; }
+        .tool-body { padding: 15px; }
+        
+        .rule-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 12px; color: #cbd5e1; }
+        .rule-item strong { color: white; }
+        
+        .btn-action { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 800; cursor: pointer; margin-bottom: 10px; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: 'Nunito', sans-serif;}
+        .btn-action.draw { background: #334155; color: white; }
+        .btn-action.draw:hover { background: #475569; }
+        .btn-action.resign { background: transparent; border: 2px solid #ef4444; color: #ef4444; margin-bottom: 0;}
+        .btn-action.resign:hover { background: #ef4444; color: white; }
+
+        /* NHẬT KÝ (GÓC TRÊN PHẢI) */
+        .side-section {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex: 1; /* Cho phép nó giãn hết phần khoảng trống còn lại */
+        }
+        .side-header { background: rgba(0,0,0,0.2); padding: 12px; font-weight: 900; border-bottom: 2px solid #334155; text-align: center; color: var(--xiangqi-color); text-transform: uppercase; font-size: 14px;}
+        .move-log-box { flex: 1; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 15px; }
+
+        .log-row { display: flex; padding: 6px 8px; border-bottom: 1px dashed #334155; align-items: center;}
+        .log-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .log-num { width: 30px; color: #64748b; font-weight: 800; }
+        .log-red { flex: 1; color: #ef4444; font-weight: 700; text-align: center;}
+        .log-black { flex: 1; color: #cbd5e1; font-weight: 700; text-align: center;}
+
+        /* BÀN CỜ (CỘT GIỮA) */
+        .center-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         .xiangqi-board-container {
             width: 100%;
-            flex: 1; /* Tự động co giãn theo chiều dọc màn hình */
-            min-height: 0; /* Quan trọng để flex không bị tràn */
-            aspect-ratio: 9 / 10; /* Bám đúng tỷ lệ bàn cờ Tướng */
+            height: 100%; /* Giãn full chiều cao cho phép */
+            max-height: 80vh;
+            aspect-ratio: 9 / 10; 
             background: var(--board-wood);
             border: 5px solid #8b5a2b;
             border-radius: 8px;
@@ -113,55 +173,15 @@
             justify-content: center;
             align-items: center;
         }
+        .board-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center;}
 
-        .board-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20;
-        }
-
-        /* === CỘT PHẢI: NHẬT KÝ & CHAT === */
-        .side-section {
-            width: 320px;
-            background: #1e293b;
-            border: 2px solid #334155;
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .side-header {
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            font-weight: 900;
-            border-bottom: 2px solid #334155;
-            text-align: center;
-            color: var(--xiangqi-color);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .move-log-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            font-family: monospace; /* Font kiểu gõ code nhìn xịn */
-            font-size: 15px;
-        }
-
-        /* Bảng hiển thị Ký Phổ */
-        .log-row { display: flex; padding: 8px; border-bottom: 1px dashed #334155; align-items: center;}
-        .log-row:nth-child(even) { background: rgba(255,255,255,0.02); }
-        .log-num { width: 40px; color: #64748b; font-weight: 800; }
-        .log-red { flex: 1; color: #ef4444; font-weight: 700; }
-        .log-black { flex: 1; color: #cbd5e1; font-weight: 700; }
-
-        /* RESPONSIVE CHO ĐIỆN THOẠI LÀ XẾP DỌC */
-        @media (max-width: 900px) {
-            body { overflow: auto; } /* Mở khóa cuộn dọc cho mobile */
-            .battle-arena { flex-direction: column; align-items: center; gap: 20px; padding: 15px;}
-            .board-section { width: 100%; max-width: 100%; }
-            .side-section { width: 100%; height: 350px; flex: none; }
+        /* RESPONSIVE CHO ĐIỆN THOẠI (XẾP DỌC LẠI) */
+        @media (max-width: 1024px) {
+            body { overflow: auto; } 
+            .battle-arena { display: flex; flex-direction: column; gap: 20px; padding: 15px;}
+            .center-panel { order: -1; } /* Bàn cờ đẩy lên đầu tiên */
+            .xiangqi-board-container { aspect-ratio: 9/10; height: auto; max-width: 95vw; }
+            .side-section { min-height: 250px; }
         }
     </style>
 </head>
@@ -174,28 +194,69 @@
                 <i class="fa-solid fa-satellite-dish fa-beat"></i> Đang tải...
             </span>
         </div>
-        <button class="btn-leave" onclick="confirmLeave()">
-            <i class="fa-solid fa-flag-checkered"></i> Đầu Hàng / Rời Bàn
-        </button>
-    </header>
+        </header>
 
     <main class="battle-arena">
         
-        <div class="board-section">
+        <div class="side-panel left-panel">
             <div class="player-card black" id="opponent-card" style="opacity: 0.5;">
                 <img src="/assets/avt-web.jpg" class="player-avt" id="opponent-avt">
                 <div class="player-info">
-                    <h3 id="opponent-name">Đang chờ đối thủ...</h3>
+                    <h3 id="opponent-name">Chờ đối thủ...</h3>
                     <p><i class="fa-solid fa-chess-pawn"></i> Phe Đen</p>
                 </div>
+                <div class="player-timer">10:00</div>
             </div>
 
+            <div class="function-tools">
+                <div class="tool-header"><i class="fa-solid fa-gear"></i> Luật Trận Đấu</div>
+                <div class="tool-body">
+                    <div class="rule-item"><span>Thể thức:</span> <strong>BO1 (1 Ván)</strong></div>
+                    <div class="rule-item"><span>Thời gian:</span> <strong>10 phút / Cờ chớp</strong></div>
+                    <div class="rule-item"><span>Bước bù:</span> <strong>+3 Giây</strong></div>
+                    
+                    <hr style="border-color: #334155; margin: 15px 0;">
+                    
+                    <button class="btn-action draw"><i class="fa-solid fa-handshake"></i> Xin Cầu Hòa</button>
+                    <button class="btn-action resign" onclick="confirmLeave()"><i class="fa-solid fa-flag-checkered"></i> Đầu Hàng / Rời Bàn</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="center-panel">
             <div class="xiangqi-board-container" id="board-container">
                 <div class="board-overlay" id="board-overlay">
                     <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i>
-                    <h2 style="margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Đang kết nối vệ tinh...</h2>
+                    <h2 style="margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Đang kết nối vệ tinh...</h2>
+                    <p style="color:#94a3b8; font-size: 14px;">(Code bàn cờ chuẩn bị cập bến)</p>
                 </div>
                 </div>
+        </div>
+
+        <div class="side-panel right-panel">
+            <div class="side-section">
+                <div class="side-header"><i class="fa-solid fa-scroll"></i> Ký Phổ Trận Đấu</div>
+                <div class="move-log-box" id="move-log-container">
+                    
+                    <div style="text-align: center; color: #64748b; font-family: 'Nunito', sans-serif; margin-bottom: 10px; font-size: 13px;">-- Ván đấu bắt đầu --</div>
+                    <div class="log-row">
+                        <div class="log-num">1.</div>
+                        <div class="log-red">Pháo 2 bình 5</div>
+                        <div class="log-black">Mã 8 tiến 7</div>
+                    </div>
+                    <div class="log-row">
+                        <div class="log-num">2.</div>
+                        <div class="log-red">Mã 2 tiến 3</div>
+                        <div class="log-black">Xe 9 bình 8</div>
+                    </div>
+                    <div class="log-row" style="background: rgba(16, 185, 129, 0.1);">
+                        <div class="log-num" style="color: #10b981;">3.</div>
+                        <div class="log-red" style="color: #10b981;">Xe 1 bình 2</div>
+                        <div class="log-black"></div>
+                    </div>
+
+                </div>
+            </div>
 
             <div class="player-card red active-turn" id="my-card">
                 <img src="/assets/avt-web.jpg" class="player-avt" id="my-avt">
@@ -203,35 +264,7 @@
                     <h3 id="my-name">Đang tải...</h3>
                     <p><i class="fa-solid fa-chess-pawn"></i> Phe Đỏ</p>
                 </div>
-            </div>
-        </div>
-
-        <div class="side-section">
-            <div class="side-header"><i class="fa-solid fa-scroll"></i> Ký Phổ Trận Đấu</div>
-            <div class="move-log-box" id="move-log-container">
-                
-                <div style="text-align: center; color: #64748b; font-family: 'Nunito', sans-serif; margin-bottom: 15px; font-size: 13px;">-- Ván đấu bắt đầu --</div>
-                <div class="log-row">
-                    <div class="log-num">1.</div>
-                    <div class="log-red">Pháo 2 bình 5</div>
-                    <div class="log-black">Mã 8 tiến 7</div>
-                </div>
-                <div class="log-row">
-                    <div class="log-num">2.</div>
-                    <div class="log-red">Mã 2 tiến 3</div>
-                    <div class="log-black">Xe 9 bình 8</div>
-                </div>
-                <div class="log-row">
-                    <div class="log-num">3.</div>
-                    <div class="log-red">Xe 1 bình 2</div>
-                    <div class="log-black">Chốt 3 tiến 1</div>
-                </div>
-                <div class="log-row" style="background: rgba(16, 185, 129, 0.1);">
-                    <div class="log-num" style="color: #10b981;">...</div>
-                    <div class="log-red" style="color: #10b981;"><i>Đợi sếp đánh</i></div>
-                    <div class="log-black"></div>
-                </div>
-
+                <div class="player-timer">10:00</div>
             </div>
         </div>
 
