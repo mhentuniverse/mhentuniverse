@@ -183,6 +183,72 @@
             .xiangqi-board-container { aspect-ratio: 9/10; height: auto; max-width: 95vw; }
             .side-section { min-height: 250px; }
         }
+
+        /* ========================================== */
+        /* BÀN CỜ & QUÂN CỜ                           */
+        /* ========================================== */
+        #xiangqi-board {
+            width: 90%;
+            height: 90%;
+            position: relative;
+            /* Lưới nền bàn cờ (Tạm thời dùng viền và màu nền mộc) */
+            background-image: 
+                linear-gradient(#8b5a2b 1px, transparent 1px),
+                linear-gradient(90deg, #8b5a2b 1px, transparent 1px);
+            background-size: 12.5% 11.11%; /* Tỷ lệ chia 8 ô ngang, 9 ô dọc */
+            background-position: center;
+        }
+
+        /* Vạch kẻ chia sông (Sở hà Hán giới) */
+        .river-line {
+            position: absolute;
+            top: 44.44%; /* Nằm ở giữa hàng 4 và 5 */
+            left: 0;
+            width: 100%;
+            height: 11.11%;
+            background: var(--board-wood); /* Lấp đi cái lưới ở giữa để tạo sông */
+            border-top: 2px solid #8b5a2b;
+            border-bottom: 2px solid #8b5a2b;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-family: 'Times New Roman', serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: #5c3a21;
+            letter-spacing: 15px;
+        }
+
+        .xq-piece {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            margin-top: -20px; /* Đẩy tâm quân cờ vào đúng điểm giao cắt */
+            margin-left: -20px;
+            border-radius: 50%;
+            background: #fdf5e6;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(0,0,0,0.2);
+            border: 2px solid #8b5a2b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'KaiTi', 'Times New Roman', serif; /* Font chữ Hán mộc mạc */
+            font-size: 22px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            z-index: 10;
+            user-select: none;
+        }
+
+        .xq-piece:hover {
+            transform: scale(1.15) translateY(-3px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.5);
+            z-index: 20;
+        }
+
+        .xq-piece.red { color: #dc2626; border-color: #dc2626; text-shadow: 0 1px 1px rgba(220, 38, 38, 0.3);}
+        .xq-piece.black { color: #1e293b; border-color: #1e293b; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);}
     </style>
 </head>
 <body class="dark-mode">
@@ -232,9 +298,13 @@
                 <div class="board-overlay" id="board-overlay">
                     <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i>
                     <h2 style="margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Đang kết nối vệ tinh...</h2>
-                    <p style="color:#94a3b8; font-size: 14px;">(Code bàn cờ chuẩn bị cập bến)</p>
                 </div>
-                </div>
+                
+                <div id="xiangqi-board">
+                    <div class="river-line"><span>楚河</span><span>漢界</span></div>
+                    </div>
+
+            </div>
         </div>
 
         <div class="side-panel right-panel">
@@ -380,6 +450,8 @@
                 statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra';
                 overlay.style.display = 'none'; 
                 btnBreak.style.display = 'flex'; // Hiện nút xin dừng
+
+                renderBoard();
                 
                 // Khởi tạo thời gian nếu chưa có (Lần đầu chạy)
                 if(data.timer_host === undefined) {
@@ -546,6 +618,69 @@
                 await supabase.from('xiangqi_rooms').update({ status: 'playing' }).eq('id', roomId);
             } catch(e) {
                 showToast("Lỗi", "Không thể tiếp tục trận đấu", "error");
+            }
+        }
+
+        // ==========================================
+        // LÕI LOGIC CỜ TƯỚNG (BÀY BINH BỐ TRẬN)
+        // ==========================================
+        
+        // R: Đỏ (Red), B: Đen (Black)
+        // K: Tướng/Soái (King), A: Sĩ (Advisor), E: Tượng (Elephant), H: Mã (Horse)
+        // R: Xe (Rook), C: Pháo (Cannon), P: Tốt/Binh (Pawn)
+        
+        let boardState = [
+            ['B_R', 'B_H', 'B_E', 'B_A', 'B_K', 'B_A', 'B_E', 'B_H', 'B_R'], // Hàng 0 (Đen)
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 1
+            [null,  'B_C', null,  null,  null,  null,  null,  'B_C', null ], // Hàng 2
+            ['B_P', null,  'B_P', null,  'B_P', null,  'B_P', null,  'B_P'], // Hàng 3
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 4 (Sông)
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 5 (Sông)
+            ['R_P', null,  'R_P', null,  'R_P', null,  'R_P', null,  'R_P'], // Hàng 6
+            [null,  'R_C', null,  null,  null,  null,  null,  'R_C', null ], // Hàng 7
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 8
+            ['R_R', 'R_H', 'R_E', 'R_A', 'R_K', 'R_A', 'R_E', 'R_H', 'R_R']  // Hàng 9 (Đỏ)
+        ];
+
+        const pieceLabels = {
+            'B_K': '將', 'B_A': '士', 'B_E': '象', 'B_H': '馬', 'B_R': '車', 'B_C': '砲', 'B_P': '卒',
+            'R_K': '帥', 'R_A': '仕', 'R_E': '相', 'R_H': '傌', 'R_R': '俥', 'R_C': '炮', 'R_P': '兵'
+        };
+
+        function renderBoard() {
+            const boardEl = document.getElementById('xiangqi-board');
+            // Xóa sạch các quân cờ cũ (trừ dòng sông)
+            Array.from(boardEl.children).forEach(child => {
+                if(!child.classList.contains('river-line')) child.remove();
+            });
+
+            // Lưới 9x10 -> X từ 0 đến 8, Y từ 0 đến 9
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 9; x++) {
+                    const piece = boardState[y][x];
+                    if (piece) {
+                        const isRed = piece.startsWith('R_');
+                        const pieceEl = document.createElement('div');
+                        pieceEl.className = `xq-piece ${isRed ? 'red' : 'black'}`;
+                        pieceEl.innerText = pieceLabels[piece];
+                        
+                        // Tính tọa độ phần trăm để đặt quân cờ vào ĐÚNG GIAO ĐIỂM
+                        // X có 8 khoảng, Y có 9 khoảng
+                        const leftPct = (x / 8) * 100;
+                        const topPct = (y / 9) * 100;
+                        
+                        // Nếu mình là ĐEN, mình phải lật ngược bàn cờ lại để mình luôn ở dưới
+                        if (myRole === 'guest') {
+                            pieceEl.style.left = `${100 - leftPct}%`;
+                            pieceEl.style.top = `${100 - topPct}%`;
+                        } else {
+                            pieceEl.style.left = `${leftPct}%`;
+                            pieceEl.style.top = `${topPct}%`;
+                        }
+
+                        boardEl.appendChild(pieceEl);
+                    }
+                }
             }
         }
     </script>
