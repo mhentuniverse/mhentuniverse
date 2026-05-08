@@ -161,7 +161,8 @@
         }
         .xiangqi-board-container {
             width: 100%;
-            height: 100%; /* Giãn full chiều cao cho phép */
+            height: 100%;
+            max-width: 550px; /* CHỐNG BÀNH: Giới hạn chiều ngang tối đa */
             max-height: 80vh;
             aspect-ratio: 9 / 10; 
             background: var(--board-wood);
@@ -172,9 +173,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            margin: 0 auto; /* Ép nó luôn nằm giữa */
         }
-        .board-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center;}
-
+        .board-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; z-index: 20; text-align: center;
+            transition: background 0.3s ease; /* Thêm hiệu ứng chuyển mờ cho mượt */
+        }
         /* RESPONSIVE CHO ĐIỆN THOẠI (XẾP DỌC LẠI) */
         @media (max-width: 1024px) {
             body { overflow: auto; } 
@@ -368,6 +374,7 @@
         let oppTimeLeft = 0;
         let localTimer = null;
         let breakTimer = null;
+        let myBreaksLeft = null;
 
         if (!roomId) { window.location.href = '/game/xiangqi'; } 
         else { document.getElementById('display-room-id').innerText = roomId; }
@@ -445,9 +452,19 @@
                 statusEl.className = 'match-status';
                 statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra';
                 overlay.style.display = 'none'; 
-                btnBreak.style.display = 'flex'; 
-
+                
                 renderBoard();
+
+                // Lấy số lần Break từ Setting (Chỉ lấy lần đầu tiên)
+                if (myBreaksLeft === null) myBreaksLeft = data.settings.breakCount;
+
+                // CHỐNG SPAM BREAK: Hết quyền thì giấu nút đi
+                if (myBreaksLeft > 0) {
+                    btnBreak.innerHTML = `<i class="fa-solid fa-pause"></i> Dừng Trận (${myBreaksLeft})`;
+                    btnBreak.style.display = 'flex';
+                } else {
+                    btnBreak.style.display = 'none';
+                }
                 
                 // TÍNH TOÁN BÙ TRỪ THỜI GIAN (FIX LỖI F5)
                 let baseHostTime = data.timer_host !== undefined ? data.timer_host : data.settings.timeLimit * 60;
@@ -469,7 +486,6 @@
                 updateTimerUI();
                 startLocalTimer(data.turn);
 
-                // Phân định lượt
                 if (data.turn === 'red') {
                     document.getElementById(myRole === 'host' ? 'my-card' : 'opponent-card').classList.add('active-turn');
                     document.getElementById(myRole === 'host' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
@@ -479,16 +495,15 @@
                 }
             }
             else if (data.status === 'break') {
-                // TRẠNG THÁI TIME BREAK
-                clearInterval(localTimer); // Tạm dừng đếm thời gian cờ
-                btnBreak.style.display = 'none'; // Ẩn nút tránh bấm 2 lần
+                clearInterval(localTimer); 
+                btnBreak.style.display = 'none'; 
                 overlay.style.display = 'flex';
                 
-                // Bắt đầu đếm ngược Break
                 let breakEnd = new Date(data.break_ends_at).getTime();
-                
                 clearInterval(breakTimer);
-                breakTimer = setInterval(async () => {
+
+                // CHỐNG KHỰNG: Viết riêng 1 hàm và gọi nó CHẠY NGAY LẬP TỨC
+                const updateBreakUI = async () => {
                     let now = new Date().getTime();
                     let distance = Math.floor((breakEnd - now) / 1000);
                     
@@ -498,19 +513,20 @@
                             <h2 style="margin: 0; color: white;">TIME BREAK</h2>
                             <p style="color:#94a3b8;">${data.break_by === 'host' ? 'Phe Đỏ' : 'Phe Đen'} đã xin dừng trận đấu.</p>
                             <h1 style="font-size: 80px; color: #f59e0b; margin: 10px 0;">${distance}s</h1>
-                            
                             <button class="btn-action draw" style="width: auto; padding: 10px 30px; font-size: 16px; background: #10b981; color: white; margin-top: 15px;" onclick="endTimeBreakEarly()">
                                 <i class="fa-solid fa-play"></i> Tiếp tục ngay
                             </button>
                         `;
                     } else {
                         clearInterval(breakTimer);
-                        // Hết Break, Host tự động Resume trận đấu
                         if (myRole === 'host') {
-                            await supabase.from('xiangqi_rooms').update({ status: 'playing' }).eq('id', roomId);
+                            await supabase.from('xiangqi_rooms').update({ status: 'playing', last_time_update: new Date().toISOString() }).eq('id', roomId);
                         }
                     }
-                }, 1000);
+                };
+                
+                updateBreakUI(); // Gọi lần 1 ngay lập tức để không bị đen màn hình 1s
+                breakTimer = setInterval(updateBreakUI, 1000); // Lặp lại mỗi giây
             }
         }
 
@@ -555,14 +571,18 @@
 
         // --- HÀM XIN TIME BREAK ---
         window.requestTimeBreak = async function() {
-            if(roomData.status !== 'playing') return;
+            // Chặn nếu hết số lần Break
+            if(roomData.status !== 'playing' || myBreaksLeft <= 0) return; 
+            
+            myBreaksLeft--; // Trừ số lần đi
+
             let endsAt = new Date(); endsAt.setSeconds(endsAt.getSeconds() + roomData.settings.breakTime);
             try {
                 await supabase.from('xiangqi_rooms').update({
                     status: 'break', break_by: myRole, break_ends_at: endsAt.toISOString(),
                     timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft,
                     timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft,
-                    last_time_update: null // Xóa mốc cũ để Resume không bị trừ lố
+                    last_time_update: null 
                 }).eq('id', roomId);
             } catch(e) {}
         }
