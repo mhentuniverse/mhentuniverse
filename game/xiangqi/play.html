@@ -19,14 +19,28 @@
         }
 
         body { 
-            background: #0f172a; /* Auto Dark Mode */
+            background: #0f172a; 
             color: #f8fafc;
             margin: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden; /* Cấm cuộn màn hình khi đang đánh cờ */
+            /* Đã xóa overflow: hidden để màn hình lùn vẫn cuộn được */
         }
+
+        /* KHU VỰC ĐÁNH CỜ */
+        .battle-arena {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+            overflow-y: auto; /* Lỡ màn hình hẹp quá thì cho phép cuộn */
+        }
+
+        
 
         /* THANH ĐIỀU KHIỂN TRẬN ĐẤU */
         .match-header {
@@ -78,13 +92,17 @@
             border-radius: 50px;
             border: 2px solid #334155;
             min-width: 250px;
+            max-width: 90vw;
             transition: 0.3s;
+            flex-shrink: 0; /* Khóa cứng không cho thẻ bị bóp méo */
         }
         .player-card.active-turn {
             border-color: var(--xiangqi-color);
             box-shadow: 0 0 15px var(--xiangqi-bg);
             transform: scale(1.05);
         }
+
+        
 
         .player-avt { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #cbd5e1; object-fit: cover; }
         .player-card.red .player-avt { border-color: var(--xiangqi-color); }
@@ -95,11 +113,12 @@
         .player-card.red .player-info p { color: var(--xiangqi-color); }
         .player-card.black .player-info p { color: #94a3b8; }
 
-        /* BÀN CỜ (Tạm thời là khung gỗ để sau này nhét JS vào vẽ quân cờ) */
+        /* BÀN CỜ */
         .xiangqi-board-container {
-            width: 100%;
-            max-width: 500px; /* Bàn cờ thường có tỷ lệ dọc */
-            aspect-ratio: 9 / 10; 
+            height: 55vh; /* Ép bàn cờ co giãn theo chiều CAO của màn hình thay vì chiều ngang */
+            min-height: 350px;
+            max-height: 600px;
+            aspect-ratio: 9 / 10; /* Tự động tính ra chiều ngang cho chuẩn tỷ lệ */
             background: var(--board-wood);
             border: 5px solid #8b5a2b;
             border-radius: 10px;
