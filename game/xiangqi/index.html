@@ -305,35 +305,77 @@
 
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+            import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+            import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
-        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+            const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+            const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+            const auth = getAuth(app);
+            const db = getFirestore(app);
 
-        let currentUser = null;
+            const btnLogin = document.getElementById('btn-login');
+            const btnLogout = document.getElementById('btn-logout');
 
-        // Dark mode logic
-        window.toggleDarkMode = function() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
-        };
-        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
-
-        // Check Auth
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
-                document.getElementById('user-avatar').src = user.photoURL || '/assets/avt-web.jpg';
-                listenForRooms(); // Chỉ load phòng khi đã đăng nhập
-            } else {
-                showToast("Cảnh báo", "Sếp phải đăng nhập mới được đánh cờ nha!", "warning");
-                setTimeout(() => { window.location.href = '/login'; }, 2000);
+            if (btnLogin) {
+                btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
             }
-        });
+            if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = '/game'; }); 
+
+            window.toggleAccount = function() {
+                const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher'); 
+                if(switcher) switcher.classList.remove('show'); if(acc) acc.classList.toggle('show');
+            };
+
+            window.toggleAppSwitcher = function() {
+                const switcher = document.getElementById('dropdown-app-switcher'); const acc = document.getElementById('dropdown-account');
+                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.toggle('show');
+            };
+
+            window.onclick = function(event) {
+                if (!event.target.closest('.user-section') && !event.target.closest('.modal')) {
+                    const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
+                    if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show');
+                }
+                if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                    const navLinks = document.getElementById('nav-links'); if(navLinks) navLinks.classList.remove('active');
+                }
+            };
+
+            window.toggleMobileMenu = function() {
+                const navLinks = document.getElementById('nav-links'); const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
+                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show'); if(navLinks) navLinks.classList.toggle('active');
+            };
+
+            window.toggleDarkMode = function() {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+            };
+            if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+
+            onAuthStateChanged(auth, async (user) => {
+                const btnTheme = document.getElementById('btn-theme-toggle'); 
+                if (user) {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                    if(btnTheme) btnTheme.style.display = 'none'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+
+                    let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                    if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+
+                    const avtElement = document.getElementById('user-avatar');
+                    if (avtElement) {
+                        avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                        avtElement.style.display = 'block'; 
+                    }        
+                } else {
+                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                    if(btnTheme) btnTheme.style.display = 'flex'; 
+                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+                }
+            });
+            
+            if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+            window.scrollTo(0, 0);
 
         // TẠO PHÒNG MỚI
         window.createRoom = async function() {
