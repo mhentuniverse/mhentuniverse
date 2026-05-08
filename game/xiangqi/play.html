@@ -272,19 +272,24 @@
 
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        // --- ĐIỀN CHÌA KHÓA CỦA SẾP VÀO ĐÂY NHA ---
+        const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        // -----------------------------------------
 
         const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('id');
         let currentUser = null;
         let myRole = null; 
-        let isCountingDown = false; // Biến chặn đếm ngược 2 lần
+        let isCountingDown = false; 
 
         if (!roomId) {
             showToast("Lỗi", "Không tìm thấy mã phòng!", "error");
@@ -303,87 +308,90 @@
             }
         });
 
-        function connectToRoom() {
-            const roomRef = doc(db, "xiangqi_rooms", roomId);
+        // KẾT NỐI VÀ LẮNG NGHE SUPABASE
+        async function connectToRoom() {
+            // Lấy data khởi tạo
+            const { data: room, error } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
+            if (error || !room) {
+                showPopup("Phòng đấu này đã bị hủy hoặc không tồn tại!", true);
+                setTimeout(() => { window.location.href = '/game/xiangqi'; }, 2000);
+                return;
+            }
+            handleRoomData(room);
 
-            onSnapshot(roomRef, (docSnap) => {
-                if (!docSnap.exists()) {
-                    showPopup("Phòng đấu này đã bị hủy hoặc không tồn tại!", true);
-                    setTimeout(() => { window.location.href = '/game/xiangqi'; }, 2000);
-                    return;
-                }
-
-                const data = docSnap.data();
-
-                // Xác định phe
-                if (data.hostId === currentUser.uid) {
-                    myRole = 'host';
-                    updateMyInfo(data.hostName, data.hostAvatar, 'red');
-                    if (data.guestId) updateOpponentInfo(data.guestName, data.guestAvatar, 'black', data.guestReady);
-                    else setWaitingState();
-                } else if (data.guestId === currentUser.uid) {
-                    myRole = 'guest';
-                    updateMyInfo(data.guestName, data.guestAvatar, 'black');
-                    updateOpponentInfo(data.hostName, data.hostAvatar, 'red', data.hostReady);
-                }
-
-                // Xử lý UI theo trạng thái
-                const statusEl = document.getElementById('match-status');
-                const overlay = document.getElementById('board-overlay');
-                
-                // Trạng thái của mình để hiển thị nút Sẵn sàng
-                const myReadyStatus = myRole === 'host' ? data.hostReady : data.guestReady;
-
-                if (data.status === 'waiting') {
-                    statusEl.className = 'match-status waiting';
-                    statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang chờ...';
-                    overlay.style.display = 'flex';
-
-                    if (!data.guestId) {
-                        // CẢNH 1: Chờ Guest vào
-                        overlay.innerHTML = `
-                            <i class="fa-solid fa-user-clock fa-3x" style="color: #cbd5e1; margin-bottom: 20px;"></i>
-                            <h2 style="margin: 0; color: white;">Chờ người có duyên...</h2>
-                            <p style="color:#94a3b8; font-size: 14px;">Hãy gửi mã phòng <b>${roomId}</b> cho đối thủ</p>
-                        `;
-                    } else if (data.hostReady && data.guestReady) {
-                        // CẢNH 3: Cả 2 đã sẵn sàng -> Gọi hàm đếm ngược (nếu chưa đếm)
-                        if(!isCountingDown) triggerCountdown(roomRef);
-                    } else {
-                        // CẢNH 2: Cả 2 đã vào phòng, hiện nút Sẵn sàng
-                        if (!myReadyStatus) {
-                            overlay.innerHTML = `
-                                <i class="fa-solid fa-swords fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i>
-                                <h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2>
-                                <button class="btn-xiangqi" style="width: auto; padding: 10px 40px; font-size: 20px;" onclick="toggleReady(true)">SẴN SÀNG</button>
-                            `;
-                        } else {
-                            overlay.innerHTML = `
-                                <i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i>
-                                <h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2>
-                                <p style="color:#10b981; font-weight: bold;">Đang chờ đối thủ...</p>
-                                <button class="btn-leave" style="margin-top: 15px;" onclick="toggleReady(false)">Hủy sẵn sàng</button>
-                            `;
-                        }
-                    }
-                } else if (data.status === 'playing') {
-                    // CẢNH 4: Vô trận
-                    statusEl.className = 'match-status';
-                    statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra';
-                    overlay.style.display = 'none'; 
-                    
-                    if (data.turn === 'red') {
-                        document.getElementById(myRole === 'host' ? 'my-card' : 'opponent-card').classList.add('active-turn');
-                        document.getElementById(myRole === 'host' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
-                    } else {
-                        document.getElementById(myRole === 'guest' ? 'my-card' : 'opponent-card').classList.add('active-turn');
-                        document.getElementById(myRole === 'guest' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
-                    }
-                }
-            });
+            // Bật kênh Realtime lắng nghe duy nhất phòng này
+            supabase.channel('room_' + roomId)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'xiangqi_rooms', filter: `id=eq.${roomId}` }, payload => {
+                    handleRoomData(payload.new);
+                }).subscribe();
         }
 
-        // --- CÁC HÀM CẬP NHẬT GIAO DIỆN ---
+        // XỬ LÝ GIAO DIỆN KHI CÓ DATA MỚI
+        function handleRoomData(data) {
+            const hName = data.host_info?.name || 'Kỳ thủ';
+            const hAvt = data.host_info?.avatar || '/assets/avt-web.jpg';
+            const gName = data.guest_info?.name || 'Kỳ thủ';
+            const gAvt = data.guest_info?.avatar || '/assets/avt-web.jpg';
+
+            if (data.host_id === currentUser.uid) {
+                myRole = 'host';
+                updateMyInfo(hName, hAvt, 'red');
+                if (data.guest_id) updateOpponentInfo(gName, gAvt, 'black', data.guest_ready);
+                else setWaitingState();
+            } else if (data.guest_id === currentUser.uid) {
+                myRole = 'guest';
+                updateMyInfo(gName, gAvt, 'black');
+                updateOpponentInfo(hName, hAvt, 'red', data.host_ready);
+            }
+
+            const statusEl = document.getElementById('match-status');
+            const overlay = document.getElementById('board-overlay');
+            const myReadyStatus = myRole === 'host' ? data.host_ready : data.guest_ready;
+
+            if (data.status === 'waiting') {
+                statusEl.className = 'match-status waiting';
+                statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang chờ...';
+                overlay.style.display = 'flex';
+
+                if (!data.guest_id) {
+                    overlay.innerHTML = `
+                        <i class="fa-solid fa-user-clock fa-3x" style="color: #cbd5e1; margin-bottom: 20px;"></i>
+                        <h2 style="margin: 0; color: white;">Chờ người có duyên...</h2>
+                        <p style="color:#94a3b8; font-size: 14px;">Hãy gửi mã phòng <b>${roomId}</b> cho đối thủ</p>
+                    `;
+                } else if (data.host_ready && data.guest_ready) {
+                    if(!isCountingDown) triggerCountdown();
+                } else {
+                    if (!myReadyStatus) {
+                        overlay.innerHTML = `
+                            <i class="fa-solid fa-swords fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i>
+                            <h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2>
+                            <button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 20px; background: #10b981;" onclick="toggleReady(true)">SẴN SÀNG</button>
+                        `;
+                    } else {
+                        overlay.innerHTML = `
+                            <i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i>
+                            <h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2>
+                            <p style="color:#10b981; font-weight: bold;">Đang chờ đối thủ...</p>
+                            <button class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>
+                        `;
+                    }
+                }
+            } else if (data.status === 'playing') {
+                statusEl.className = 'match-status';
+                statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra';
+                overlay.style.display = 'none'; 
+                
+                if (data.turn === 'red') {
+                    document.getElementById(myRole === 'host' ? 'my-card' : 'opponent-card').classList.add('active-turn');
+                    document.getElementById(myRole === 'host' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
+                } else {
+                    document.getElementById(myRole === 'guest' ? 'my-card' : 'opponent-card').classList.add('active-turn');
+                    document.getElementById(myRole === 'guest' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
+                }
+            }
+        }
+
         function updateMyInfo(name, avt, color) {
             document.getElementById('my-name').innerText = name;
             document.getElementById('my-avt').src = avt;
@@ -393,7 +401,7 @@
         }
 
         function updateOpponentInfo(name, avt, color, isReady) {
-            document.getElementById('opponent-name').innerText = name + (isReady ? " (SẴN SÀNG)" : "");
+            document.getElementById('opponent-name').innerText = name + (isReady ? " (ĐÃ SẴN SÀNG)" : "");
             document.getElementById('opponent-name').style.color = isReady ? "#10b981" : "";
             document.getElementById('opponent-avt').src = avt;
             const card = document.getElementById('opponent-card');
@@ -411,46 +419,39 @@
             card.style.opacity = '0.5';
         }
 
-        // --- CHỨC NĂNG SẴN SÀNG ---
         window.toggleReady = async function(readyStatus) {
             if(!myRole) return;
-            const roomRef = doc(db, "xiangqi_rooms", roomId);
             const updateData = {};
-            if(myRole === 'host') updateData.hostReady = readyStatus;
-            else updateData.guestReady = readyStatus;
+            if(myRole === 'host') updateData.host_ready = readyStatus;
+            else updateData.guest_ready = readyStatus;
             
-            await updateDoc(roomRef, updateData);
+            await supabase.from('xiangqi_rooms').update(updateData).eq('id', roomId);
         }
 
-        // --- HIỆU ỨNG ĐẾM NGƯỢC 3..2..1 ---
-        function triggerCountdown(roomRef) {
+        function triggerCountdown() {
             isCountingDown = true;
             const overlay = document.getElementById('board-overlay');
-            overlay.style.background = 'rgba(15, 23, 42, 0.95)'; // Tối đen lại để tập trung đếm
-            
+            overlay.style.background = 'rgba(15, 23, 42, 0.98)'; 
             let count = 3;
             
             const timer = setInterval(async () => {
                 if(count > 0) {
-                    overlay.innerHTML = `<h1 style="font-size: 100px; color: var(--xiangqi-color); margin: 0; text-shadow: 0 5px 20px var(--xiangqi-bg);">${count}</h1>`;
+                    overlay.innerHTML = `<h1 style="font-size: 120px; color: var(--xiangqi-color); margin: 0; text-shadow: 0 5px 30px var(--xiangqi-color);">${count}</h1>`;
                     count--;
                 } else if(count === 0) {
-                    overlay.innerHTML = `<h1 style="font-size: 80px; color: #10b981; margin: 0; text-shadow: 0 5px 20px rgba(16,185,129,0.3);">CHIẾN!</h1>`;
+                    overlay.innerHTML = `<h1 style="font-size: 100px; color: #10b981; margin: 0; text-shadow: 0 5px 30px #10b981;">CHIẾN!</h1>`;
                     count--;
                 } else {
                     clearInterval(timer);
-                    // Đếm xong thì Host đại diện Update Firebase sang trạng thái Playing
                     if(myRole === 'host') {
-                        await updateDoc(roomRef, { status: 'playing' });
+                        await supabase.from('xiangqi_rooms').update({ status: 'playing' }).eq('id', roomId);
                     }
                 }
             }, 1000);
         }
 
         window.confirmLeave = function() {
-            showConfirmPopup(
-                "Xác Nhận Rời Bàn", 
-                "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", 
+            showConfirmPopup("Đầu Hàng / Rời Bàn", "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", 
                 () => { window.location.href = '/game/xiangqi'; }
             );
         }

@@ -390,70 +390,46 @@
     </footer>
 
     <script type="module">
+        // 1. IMPORT FIREBASE (Dùng để lấy thông tin Đăng nhập)
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        
+        // 2. IMPORT SUPABASE (Động cơ tên lửa lưu trận đấu)
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        // --- ĐIỀN CHÌA KHÓA CỦA SẾP VÀO ĐÂY NHA ---
+        const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        // -----------------------------------------
 
         const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        let currentUser = null; // Biến lưu người chơi hiện tại
+        let currentUser = null; 
 
+        // Các nút UI cơ bản
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
-
-        if (btnLogin) {
-            btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
-        }
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
         if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = '/game'; }); 
 
-        window.toggleAccount = function() {
-            const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher'); 
-            if(switcher) switcher.classList.remove('show'); if(acc) acc.classList.toggle('show');
-        };
-
-        window.toggleAppSwitcher = function() {
-            const switcher = document.getElementById('dropdown-app-switcher'); const acc = document.getElementById('dropdown-account');
-            if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.toggle('show');
-        };
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.user-section') && !event.target.closest('.modal')) {
-                const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
-                if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show');
-            }
-            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
-                const navLinks = document.getElementById('nav-links'); if(navLinks) navLinks.classList.remove('active');
-            }
-        };
-
-        window.toggleMobileMenu = function() {
-            const navLinks = document.getElementById('nav-links'); const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher');
-            if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.remove('show'); if(navLinks) navLinks.classList.toggle('active');
-        };
+        window.toggleAccount = function() { const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher'); if(switcher) switcher.classList.remove('show'); if(acc) acc.classList.toggle('show'); };
+        window.toggleAppSwitcher = function() { const switcher = document.getElementById('dropdown-app-switcher'); const acc = document.getElementById('dropdown-account'); if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.toggle('show'); };
+        window.onclick = function(event) { if (!event.target.closest('.user-section') && !event.target.closest('.modal')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); } if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) { document.getElementById('nav-links')?.classList.remove('active'); } };
+        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); };
 
         // AUTO DARK MODE
-        window.toggleDarkMode = function() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
-        };
-        
-        document.body.classList.add('dark-mode');
-        localStorage.setItem('mhent_dark_mode', 'on');
-        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
+        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
+        document.body.classList.add('dark-mode'); localStorage.setItem('mhent_dark_mode', 'on');
 
-        // ==========================================
-        // QUẢN LÝ ĐĂNG NHẬP & KÍCH HOẠT GAME
-        // ==========================================
+        // QUẢN LÝ ĐĂNG NHẬP
         onAuthStateChanged(auth, async (user) => {
             const btnTheme = document.getElementById('btn-theme-toggle'); 
             if (user) {
-                // 👇 [SỬA LỖI Ở ĐÂY]: Lưu user hiện tại và Bật radar
                 currentUser = user; 
-                listenForRooms(); 
-                // 👆 =====================================
+                listenForRooms(); // Gọi Radar Supabase
 
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(btnTheme) btnTheme.style.display = 'none'; 
@@ -461,126 +437,98 @@
 
                 let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
                 if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
-
-                const avtElement = document.getElementById('user-avatar');
-                if (avtElement) {
-                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
-                    avtElement.style.display = 'block'; 
+                if (document.getElementById('user-avatar')) {
+                    document.getElementById('user-avatar').src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    document.getElementById('user-avatar').style.display = 'block'; 
                 }        
             } else {
-                currentUser = null; // Reset nếu đăng xuất
+                currentUser = null; 
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(btnTheme) btnTheme.style.display = 'flex'; 
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
-                
-                // Đá ra ngoài nếu chưa đăng nhập
-                showToast("Cảnh báo", "Cậu phải đăng nhập mới tạo phòng được nha!", "info");
             }
         });
 
-        // ==========================================
-        // LOGIC LOBBY CỜ TƯỚNG
-        // ==========================================
-
-        // ==========================================
-        // LOGIC LOBBY CỜ TƯỚNG (NÂNG CẤP POPUP)
-        // ==========================================
-
-        // 1. Thay vì tạo phòng liền, mở Popup lên trước
+        // POPUP CÀI ĐẶT
         window.openSettingsModal = function() {
             if(!currentUser) return showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
             document.getElementById('room-settings-modal').classList.add('active');
         }
+        window.closeSettingsModal = function() { document.getElementById('room-settings-modal').classList.remove('active'); }
 
-        // 2. Tắt Popup
-        window.closeSettingsModal = function() {
-            document.getElementById('room-settings-modal').classList.remove('active');
-        }
-
-        // 3. Nút Xác nhận trong Popup mới thực sự gọi lên Firebase
+        // TẠO PHÒNG BẰNG SUPABASE
         window.confirmCreateRoom = async function() {
             const btn = document.getElementById('btn-confirm-create');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG TẠO...';
             btn.disabled = true;
 
-            // Lấy thông số Setting sếp vừa chọn
             const timeLimit = parseInt(document.getElementById('set-time').value);
             const increment = parseInt(document.getElementById('set-increment').value);
             const breakCount = parseInt(document.getElementById('set-break-count').value);
             const breakTime = parseInt(document.getElementById('set-break-time').value);
-
-            // Generate mã 5 số ngẫu nhiên
             const roomId = Math.floor(10000 + Math.random() * 90000).toString();
 
-            try {
-                await setDoc(doc(db, "xiangqi_rooms", roomId), {
-                    hostId: currentUser.uid,
-                    hostName: currentUser.displayName || currentUser.email.split('@')[0],
-                    hostAvatar: currentUser.photoURL || '/assets/avt-web.jpg',
-                    guestId: null,
-                    guestName: null,
-                    status: 'waiting',
-                    createdAt: serverTimestamp(),
-                    turn: 'red',
-                    // Nhồi Setting vào Firebase
-                    settings: {
-                        timeLimit: timeLimit,
-                        increment: increment,
-                        breakCount: breakCount,
-                        breakTime: breakTime
-                    },
-                    // Biến cho tính năng Sẵn sàng (Ready)
-                    hostReady: false,
-                    guestReady: false
-                });
+            const myInfo = {
+                name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"),
+                avatar: currentUser.photoURL || '/assets/avt-web.jpg'
+            };
 
+            try {
+                const { error } = await supabase.from('xiangqi_rooms').insert([{
+                    id: roomId,
+                    host_id: currentUser.uid,
+                    host_info: myInfo,
+                    status: 'waiting',
+                    settings: { timeLimit, increment, breakCount, breakTime },
+                    host_ready: false,
+                    guest_ready: false,
+                    turn: 'red'
+                }]);
+
+                if(error) throw error;
                 window.location.href = `/game/xiangqi/play?id=${roomId}`;
             } catch (error) {
                 console.error(error);
-                showToast("Lỗi", "Không thể tạo phòng lúc này!", "error");
+                showToast("Lỗi", "Không thể tạo phòng, sếp kiểm tra lại Supabase nha!", "error");
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> XÁC NHẬN & TẠO PHÒNG';
                 btn.disabled = false;
             }
         };
 
-
-        // NHẬP MÃ VÀO PHÒNG
         window.joinRoomByInput = function() {
             const roomId = document.getElementById('join-room-id').value.trim();
-            if(roomId.length !== 5) {
-                return showToast("Lỗi", "Mã phòng phải có đúng 5 chữ số!", "error");
-            }
+            if(roomId.length !== 5) return showToast("Lỗi", "Mã phòng phải có đúng 5 chữ số!", "error");
             joinRoomDirectly(roomId);
         };
 
-        // HÀM VÀO PHÒNG CHUNG
+        // VÀO PHÒNG BẰNG SUPABASE
         window.joinRoomDirectly = async function(roomId) {
-            if(!currentUser) {
-                showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
-                return;
-            }
+            if(!currentUser) return showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
+            
             try {
-                const roomRef = doc(db, "xiangqi_rooms", roomId);
-                const roomSnap = await getDoc(roomRef);
+                const { data: room, error } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
 
-                if (roomSnap.exists()) {
-                    const data = roomSnap.data();
-                    
-                    if (data.status === 'waiting') {
-                        if(data.hostId === currentUser.uid) {
+                if (room) {
+                    if (room.status === 'waiting') {
+                        if(room.host_id === currentUser.uid) {
                             window.location.href = `/game/xiangqi/play?id=${roomId}`;
                             return;
                         }
                         
-                        await updateDoc(roomRef, {
-                            guestId: currentUser.uid,
-                            guestName: currentUser.displayName || currentUser.email.split('@')[0],
-                            guestAvatar: currentUser.photoURL || '/assets/avt-web.jpg',
-                            status: 'playing'
-                        });
+                        const myInfo = {
+                            name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"),
+                            avatar: currentUser.photoURL || '/assets/avt-web.jpg'
+                        };
+
+                        await supabase.from('xiangqi_rooms').update({
+                            guest_id: currentUser.uid,
+                            guest_info: myInfo,
+                            status: 'waiting' // Giữ nguyên waiting chờ sẵn sàng
+                        }).eq('id', roomId);
+
                         window.location.href = `/game/xiangqi/play?id=${roomId}`;
                     } 
-                    else if (data.status === 'playing' && (data.hostId === currentUser.uid || data.guestId === currentUser.uid)) {
+                    else if (room.status === 'playing' && (room.host_id === currentUser.uid || room.guest_id === currentUser.uid)) {
                         window.location.href = `/game/xiangqi/play?id=${roomId}`;
                     } 
                     else {
@@ -595,45 +543,43 @@
             }
         };
 
-        // RADAR QUÉT PHÒNG
-        function listenForRooms() {
-            if(!currentUser) return; // Bảo vệ hàm, lỡ gọi lúc chưa đăng nhập
+        // RADAR TÌM PHÒNG SUPABASE REALTIME
+        async function fetchRooms() {
+            if(!currentUser) return;
+            const { data, error } = await supabase.from('xiangqi_rooms').select('*').eq('status', 'waiting');
+            if(error) return console.error(error);
 
             const grid = document.getElementById('public-rooms-grid');
-            const q = query(collection(db, "xiangqi_rooms"), where("status", "==", "waiting"));
+            grid.innerHTML = '';
+            let count = 0;
             
-            onSnapshot(q, (querySnapshot) => {
-                grid.innerHTML = '';
-                let count = 0;
-                
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const roomId = docSnap.id;
-                    
-                    // Lọc không hiện phòng của chính mình lên Radar
-                    if (data.hostId !== currentUser.uid) {
-                        count++;
-                        grid.innerHTML += `
-                            <div class="room-item">
-                                <div class="host-info">
-                                    <img src="${data.hostAvatar}" class="host-avt">
-                                    <div>
-                                        <p class="host-name">${data.hostName}</p>
-                                        <span class="room-id-badge">ID: ${roomId}</span>
-                                    </div>
-                                </div>
-                                <button class="btn-xiangqi" style="width: auto; padding: 10px 20px; font-size: 14px;" onclick="joinRoomDirectly('${roomId}')">
-                                    CHIẾN <i class="fa-solid fa-swords"></i>
-                                </button>
+            data.forEach((room) => {
+                if (room.host_id !== currentUser.uid && !room.guest_id) { // Chỉ hiện phòng chưa có guest
+                    count++;
+                    const hName = room.host_info?.name || 'Kỳ thủ';
+                    const hAvt = room.host_info?.avatar || '/assets/avt-web.jpg';
+                    grid.innerHTML += `
+                        <div class="room-item">
+                            <div class="host-info">
+                                <img src="${hAvt}" class="host-avt">
+                                <div><p class="host-name">${hName}</p><span class="room-id-badge">ID: ${room.id}</span></div>
                             </div>
-                        `;
-                    }
-                });
-
-                if (count === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 20px;">Hiện không có kỳ thủ nào đang đợi. Cậu hãy tự Tạo phòng nhé!</div>';
+                            <button class="btn-xiangqi" style="width: auto; padding: 10px 20px; font-size: 14px;" onclick="joinRoomDirectly('${room.id}')">CHIẾN <i class="fa-solid fa-swords"></i></button>
+                        </div>
+                    `;
                 }
             });
+
+            if (count === 0) grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 20px;">Hiện không có kỳ thủ nào đang đợi. Cậu hãy tự Tạo phòng nhé!</div>';
+        }
+
+        function listenForRooms() {
+            fetchRooms(); // Tải lần đầu
+            // Subscribe kênh Realtime
+            supabase.channel('public:xiangqi_rooms')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'xiangqi_rooms' }, payload => {
+                    fetchRooms(); // Có người tạo/xóa phòng là tải lại grid
+                }).subscribe();
         }
     </script>
     <script src="/mhent-ui.js"></script>
