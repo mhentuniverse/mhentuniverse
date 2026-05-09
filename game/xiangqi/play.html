@@ -393,7 +393,14 @@
 
         // 2. XỬ LÝ LÕI TRẬN ĐẤU
         function handleRoomData(data) {
-            roomData = data; // Lưu lại để dùng
+            // Kiểm tra xem có nước đi mới không thì phát tiếng "Cạch"
+            if (roomData && data.move_log && roomData.move_log) {
+                if (data.move_log.length > roomData.move_log.length) moveSound.play();
+            }
+            roomData = data; 
+            
+            // Vẽ lại danh sách Ký phổ
+            renderMoveLog(data.move_log);
             const hName = data.host_info?.name || 'Kỳ thủ';
             const hAvt = data.host_info?.avatar || '/assets/avt-web.jpg';
             const gName = data.guest_info?.name || 'Kỳ thủ';
@@ -709,6 +716,63 @@
 
         let selectedSquare = null; // Biến nhớ tọa độ quân cờ đang được sếp nhấc lên
 
+        // 1. TẢI SẴN ÂM THANH ĐẶT CỜ (Lấy nguồn free từ Google)
+        const moveSound = new Audio('https://actions.google.com/sounds/v1/foley/wood_block_drop.ogg');
+
+        // 2. BỘ DỊCH KÝ PHỔ (Dịch tọa độ thành "Pháo 2 bình 5")
+        function getNotation(piece, fromX, fromY, toX, toY) {
+            const isRed = piece.startsWith('R_');
+            const name = pieceLabels[piece];
+            
+            // Cột Đỏ đếm từ phải qua trái (9->1), Đen cũng đếm từ phải qua (1->9)
+            const oldCol = isRed ? 9 - fromX : fromX + 1;
+            const newCol = isRed ? 9 - toX : toX + 1;
+
+            let action = '';
+            let step = newCol;
+
+            if (fromY === toY) {
+                action = 'bình';
+            } else {
+                const isForward = isRed ? (toY < fromY) : (toY > fromY);
+                action = isForward ? 'tiến' : 'thoái';
+
+                // Xe, Pháo, Tốt, Tướng đi dọc thì đếm số ô. Còn lại lấy tên cột mới.
+                const type = piece.split('_')[1];
+                if (['H', 'E', 'A'].includes(type)) step = newCol;
+                else step = Math.abs(toY - fromY);
+            }
+            return `${name} ${oldCol} ${action} ${step}`;
+        }
+
+        // 3. HÀM VẼ KÝ PHỔ RA MÀN HÌNH
+        function renderMoveLog(logs) {
+            if (!logs) return;
+            const container = document.getElementById('move-log-container');
+            container.innerHTML = `<div style="text-align: center; color: #64748b; font-family: 'Nunito', sans-serif; margin-bottom: 10px; font-size: 13px;">-- Ván đấu bắt đầu --</div>`;
+            
+            let html = '';
+            for (let i = 0; i < logs.length; i += 2) {
+                const turnNum = Math.floor(i / 2) + 1;
+                const redMove = logs[i] ? logs[i].notation : '';
+                const blackMove = logs[i+1] ? logs[i+1].notation : '';
+                
+                // Highlight nước đi mới nhất
+                const isLastRed = (i === logs.length - 1);
+                const isLastBlack = (i + 1 === logs.length - 1);
+                const bg = (isLastRed || isLastBlack) ? 'background: rgba(16, 185, 129, 0.1);' : '';
+                
+                html += `
+                    <div class="log-row" style="${bg}">
+                        <div class="log-num" style="${(isLastRed||isLastBlack) ? 'color: #10b981;' : ''}">${turnNum}.</div>
+                        <div class="log-red" style="${isLastRed ? 'color: #10b981;' : ''}">${redMove}</div>
+                        <div class="log-black" style="${isLastBlack ? 'color: #10b981;' : ''}">${blackMove}</div>
+                    </div>`;
+            }
+            container.innerHTML += html;
+            container.scrollTop = container.scrollHeight; // Tự động cuộn xuống đáy
+        }
+
         function renderBoard() {
             const boardEl = document.getElementById('xiangqi-board');
             Array.from(boardEl.children).forEach(child => {
@@ -849,6 +913,7 @@
         window.handleSquareClick = async function(x, y) {
             if (!roomData || roomData.status !== 'playing') return;
             
+            // Chống đi ké: Đen không được đánh trong lượt Đỏ và ngược lại
             if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
                 return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt của cậu!", "warning");
             }
@@ -865,12 +930,14 @@
                 }
 
                 if (isMyPiece) {
+                    // Cầm quân khác của mình
                     selectedSquare = {x, y};
                     renderBoard();
                 } else {
                     const fromX = selectedSquare.x; 
                     const fromY = selectedSquare.y;
                     const movingPiece = boardState[fromY][fromX];
+                    const targetPiece = boardState[y][x]; 
 
                     // Kiểm tra luật
                     if (!isValidMove(movingPiece, fromX, fromY, x, y, boardState)) {
@@ -881,26 +948,49 @@
                     boardState[y][x] = movingPiece; 
                     boardState[fromY][fromX] = null; 
                     selectedSquare = null; 
-                    
+
+                    // LÀM KÝ PHỔ
+                    const notationText = getNotation(movingPiece, fromX, fromY, x, y);
+                    const newLogEntry = { turn: roomData.turn, notation: notationText };
+                    const updatedMoveLog = [...(roomData.move_log || []), newLogEntry];
+
+                    // KIỂM TRA XEM CÓ ĂN TRÚNG TƯỚNG KHÔNG?
+                    let isGameOver = false;
+                    let winnerColor = null;
+                    if (targetPiece === 'B_K') { isGameOver = true; winnerColor = 'red'; }
+                    else if (targetPiece === 'R_K') { isGameOver = true; winnerColor = 'black'; }
+
                     const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
-                    
-                    // 👉 FIX LỖI TIMER: Cộng thời gian bước bù và gửi số giây còn lại lên mây
-                    const inc = roomData.settings.increment || 0; // Số giây bù thêm
-                    const newMyTime = myTimeLeft + inc; // Cộng thêm giờ cho mình sau khi đi xong
-                    
-                    try {
-                        await supabase.from('xiangqi_rooms').update({
-                            board_state: boardState,
-                            turn: nextTurn,
-                            last_time_update: new Date().toISOString(),
-                            // Dặn Supabase lưu số giây của 2 người lại:
-                            timer_host: myRole === 'host' ? newMyTime : oppTimeLeft,
-                            timer_guest: myRole === 'guest' ? newMyTime : oppTimeLeft
-                        }).eq('id', roomId);
-                    } catch(e) { console.error(e); showToast("Lỗi", "Chưa gửi được nước đi!", "error"); }
+                    const inc = roomData.settings.increment || 0; 
+                    const newMyTime = myTimeLeft + inc; 
+
+                    moveSound.play(); // Đánh xong phát tiếng luôn
+
+                    if (isGameOver) {
+                        try {
+                            await supabase.from('xiangqi_rooms').update({
+                                board_state: boardState, 
+                                status: 'finished', 
+                                winner: winnerColor, 
+                                move_log: updatedMoveLog
+                            }).eq('id', roomId);
+                        } catch(e) {}
+                    } else {
+                        try {
+                            await supabase.from('xiangqi_rooms').update({
+                                board_state: boardState, 
+                                turn: nextTurn, 
+                                last_time_update: new Date().toISOString(),
+                                move_log: updatedMoveLog, // Gửi Ký phổ lên mây
+                                timer_host: myRole === 'host' ? newMyTime : oppTimeLeft,
+                                timer_guest: myRole === 'guest' ? newMyTime : oppTimeLeft
+                            }).eq('id', roomId);
+                        } catch(e) { showToast("Lỗi", "Chưa gửi được nước đi!", "error"); }
+                    }
                 }
             } else {
                 if (isMyPiece) {
+                    // Tay không, bốc cờ lên
                     selectedSquare = {x, y};
                     renderBoard();
                 }
