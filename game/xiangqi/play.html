@@ -680,11 +680,110 @@
             }
         }
 
+        // ==========================================
+        // BỘ NÃO LUẬT LỆ CỜ TƯỚNG 
+        // ==========================================
+        function isValidMove(piece, fromX, fromY, toX, toY, board) {
+            const isRed = piece.startsWith('R_');
+            const type = piece.split('_')[1];
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+
+            // 1. TƯỚNG (K - King): Đi thẳng 1 ô, không ra khỏi Cung
+            if (type === 'K') {
+                if (absDx + absDy !== 1) return false; 
+                if (toX < 3 || toX > 5) return false; 
+                if (isRed && (toY < 7 || toY > 9)) return false; 
+                if (!isRed && (toY < 0 || toY > 2)) return false; 
+                return true;
+            }
+
+            // 2. SĨ (A - Advisor): Đi chéo 1 ô, không ra khỏi Cung
+            if (type === 'A') {
+                if (absDx !== 1 || absDy !== 1) return false; 
+                if (toX < 3 || toX > 5) return false; 
+                if (isRed && (toY < 7 || toY > 9)) return false; 
+                if (!isRed && (toY < 0 || toY > 2)) return false; 
+                return true;
+            }
+
+            // 3. TƯỢNG (E - Elephant): Đi chéo 2 ô, không qua sông, có cản Tượng
+            if (type === 'E') {
+                if (absDx !== 2 || absDy !== 2) return false; 
+                if (board[fromY + dy/2][fromX + dx/2] !== null) return false; // Cản tượng
+                if (isRed && toY < 5) return false; // Không qua sông
+                if (!isRed && toY > 4) return false; 
+                return true;
+            }
+
+            // 4. MÃ (H - Horse): Đi chữ L (1 thẳng, 1 chéo), có cản Mã
+            if (type === 'H') {
+                if (!((absDx === 1 && absDy === 2) || (absDx === 2 && absDy === 1))) return false;
+                if (absDx === 2 && board[fromY][fromX + dx/2] !== null) return false; // Cản ngang
+                if (absDy === 2 && board[fromY + dy/2][fromX] !== null) return false; // Cản dọc
+                return true;
+            }
+
+            // 5. XE (R - Rook): Đi thẳng, không bị cản
+            if (type === 'R') {
+                if (fromX !== toX && fromY !== toY) return false; 
+                if (fromY === toY) { // Đi ngang
+                    const step = dx > 0 ? 1 : -1;
+                    for (let x = fromX + step; x !== toX; x += step) {
+                        if (board[fromY][x] !== null) return false;
+                    }
+                } else { // Đi dọc
+                    const step = dy > 0 ? 1 : -1;
+                    for (let y = fromY + step; y !== toY; y += step) {
+                        if (board[y][fromX] !== null) return false;
+                    }
+                }
+                return true;
+            }
+
+            // 6. PHÁO (C - Cannon): Đi như Xe, nhưng Ăn thì phải qua 1 Ngòi
+            if (type === 'C') {
+                if (fromX !== toX && fromY !== toY) return false;
+                let count = 0; // Đếm số vật cản (Ngòi)
+                if (fromY === toY) {
+                    const step = dx > 0 ? 1 : -1;
+                    for (let x = fromX + step; x !== toX; x += step) {
+                        if (board[fromY][x] !== null) count++;
+                    }
+                } else {
+                    const step = dy > 0 ? 1 : -1;
+                    for (let y = fromY + step; y !== toY; y += step) {
+                        if (board[y][fromX] !== null) count++;
+                    }
+                }
+
+                const targetPiece = board[toY][toX];
+                if (targetPiece) return count === 1; // Ăn quân: Phải có đúng 1 ngòi
+                else return count === 0; // Đi không: Phải không có ngòi nào
+            }
+
+            // 7. TỐT (P - Pawn): Đi thẳng 1 ô, qua sông được đi ngang, không lùi
+            if (type === 'P') {
+                if (isRed) {
+                    if (fromY > 4) return dx === 0 && dy === -1; // Chưa qua sông: Chỉ tiến
+                    else return (dx === 0 && dy === -1) || (absDx === 1 && dy === 0); // Qua sông: Tiến hoặc ngang
+                } else {
+                    if (fromY < 5) return dx === 0 && dy === 1; 
+                    else return (dx === 0 && dy === 1) || (absDx === 1 && dy === 0); 
+                }
+            }
+
+            return false;
+        }
+
+        // ==========================================
         // LÕI LOGIC: CẦM & ĐẶT CỜ
+        // ==========================================
         window.handleSquareClick = async function(x, y) {
             if (!roomData || roomData.status !== 'playing') return;
             
-            // Chống đi ké: Đen không được đánh trong lượt Đỏ và ngược lại
             if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
                 return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt của cậu!", "warning");
             }
@@ -693,21 +792,32 @@
             const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
 
             if (selectedSquare) {
+                // TÍNH NĂNG MỚI: BẤM LẠI ĐỂ HUỶ CHỌN (DESELECT)
+                if (selectedSquare.x === x && selectedSquare.y === y) {
+                    selectedSquare = null;
+                    renderBoard();
+                    return;
+                }
+
                 if (isMyPiece) {
-                    // Sếp đang cầm quân này, nhưng lại bấm sang quân khác của mình -> Đổi cầm quân mới
                     selectedSquare = {x, y};
                     renderBoard();
                 } else {
-                    // Sếp đang cầm quân, và bấm vào ô trống hoặc quân địch -> DI CHUYỂN & ĂN CỜ!
-                    const fromX = selectedSquare.x; const fromY = selectedSquare.y;
+                    const fromX = selectedSquare.x; 
+                    const fromY = selectedSquare.y;
                     const movingPiece = boardState[fromY][fromX];
 
-                    // TẠM THỜI CHƯA XÉT LUẬT LỆ RƯỜM RÀ, CHO ĐI TỰ DO ĐỂ TEST TRƯỚC
-                    boardState[y][x] = movingPiece; // Đặt quân vào ô mới
-                    boardState[fromY][fromX] = null; // Xóa quân ở ô cũ
-                    selectedSquare = null; // Bỏ tay ra
+                    // BỘ NÃO KIỂM TRA LUẬT ĐI CỜ
+                    if (!isValidMove(movingPiece, fromX, fromY, x, y, boardState)) {
+                        // Nước đi sai luật -> Lắc nhẹ hoặc báo lỗi (Tạm thời là không cho đi)
+                        return; 
+                    }
+
+                    // Nếu qua được ải kiểm tra luật -> ĂN CỜ / DI CHUYỂN
+                    boardState[y][x] = movingPiece; 
+                    boardState[fromY][fromX] = null; 
+                    selectedSquare = null; 
                     
-                    // Gửi bản đồ mới lên Supabase và nhường lượt cho đối thủ
                     const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
                     try {
                         await supabase.from('xiangqi_rooms').update({
@@ -719,7 +829,6 @@
                 }
             } else {
                 if (isMyPiece) {
-                    // Tay đang không cầm gì, bấm vào quân mình -> Cầm lên (Sáng viền xanh)
                     selectedSquare = {x, y};
                     renderBoard();
                 }
