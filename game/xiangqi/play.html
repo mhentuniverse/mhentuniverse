@@ -393,14 +393,19 @@
 
         // 2. XỬ LÝ LÕI TRẬN ĐẤU
         function handleRoomData(data) {
-            // Kiểm tra xem có nước đi mới không thì phát tiếng "Cạch"
-            if (roomData && data.move_log && roomData.move_log) {
-                if (data.move_log.length > roomData.move_log.length) moveSound.play();
+            // 👉 XỬ LÝ ÂM THANH: Kiểm tra nếu lượt vừa cập nhật dài hơn lượt cũ (tức là có người vừa đi cờ) -> Phát tiếng cộc!
+            let currentLogs = Array.isArray(data.move_log) ? data.move_log : [];
+            let oldLogs = (roomData && Array.isArray(roomData.move_log)) ? roomData.move_log : [];
+            if (currentLogs.length > oldLogs.length) {
+                // Thêm try-catch để ngăn trình duyệt chặn âm thanh làm lỗi trang
+                moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); 
             }
+            
             roomData = data; 
             
             // Vẽ lại danh sách Ký phổ
-            renderMoveLog(data.move_log);
+            renderMoveLog(currentLogs);
+            
             const hName = data.host_info?.name || 'Kỳ thủ';
             const hAvt = data.host_info?.avatar || '/assets/avt-web.jpg';
             const gName = data.guest_info?.name || 'Kỳ thủ';
@@ -572,7 +577,7 @@
                         `;
                     }
                 }
-            }
+        }
 
         // ==========================================
         // CÁC HÀM XỬ LÝ GIAO DIỆN & ĐỒNG HỒ
@@ -745,11 +750,13 @@
             return `${name} ${oldCol} ${action} ${step}`;
         }
 
-        // 3. HÀM VẼ KÝ PHỔ RA MÀN HÌNH
+        // 3. HÀM VẼ KÝ PHỔ RA MÀN HÌNH (Đã thêm cơ chế bắt lỗi an toàn)
         function renderMoveLog(logs) {
-            if (!logs) return;
             const container = document.getElementById('move-log-container');
             container.innerHTML = `<div style="text-align: center; color: #64748b; font-family: 'Nunito', sans-serif; margin-bottom: 10px; font-size: 13px;">-- Ván đấu bắt đầu --</div>`;
+            
+            // 👉 KIỂM TRA AN TOÀN: Nếu không có logs, hoặc logs không phải mảng thì dừng luôn, không làm sập giao diện
+            if (!logs || !Array.isArray(logs)) return; 
             
             let html = '';
             for (let i = 0; i < logs.length; i += 2) {
