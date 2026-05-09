@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bàn Đấu - Cờ Tướng .io | MHEnt. Game</title>
-    <meta name="theme-color" content="#dc2626">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ef4444">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/game/game-theme.css"> 
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -539,6 +542,29 @@
                         <button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 18px; margin-top: 20px;" onclick="window.location.href='/game/xiangqi'">Rời Bàn</button>
                     `;
                 }
+                else if (data.status === 'draw_request') {
+                    clearInterval(localTimer); // Dừng đồng hồ 2 bên lại để suy nghĩ
+                    btnBreak.style.display = 'none'; 
+                    overlay.style.display = 'flex';
+                    
+                    if (data.break_by === myRole) {
+                        overlay.innerHTML = `
+                            <i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i>
+                            <h2 style="margin: 0; color: white;">ĐANG XIN HÒA</h2>
+                            <p style="color:#94a3b8;">Chờ đối thủ suy nghĩ...</p>
+                        `;
+                    } else {
+                        overlay.innerHTML = `
+                            <i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i>
+                            <h2 style="margin: 0; color: white;">ĐỐI THỦ XIN HÒA</h2>
+                            <p style="color:#94a3b8;">Cậu có đồng ý kết thúc ván đấu trong hòa bình không?</p>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn-action draw" style="width: auto; padding: 10px 30px; background: #10b981; margin: 0;" onclick="respondDraw(true)">Đồng Ý</button>
+                                <button class="btn-action resign" style="width: auto; padding: 10px 30px; margin: 0;" onclick="respondDraw(false)">Từ Chối</button>
+                            </div>
+                        `;
+                    }
+                }
             }
 
         // ==========================================
@@ -575,9 +601,18 @@
         }
 
         function handleTimeOut(who) {
-            // Xử lý hết giờ (bị xử thua)
-            showToast("Kết Thúc", who === 'me' ? "Cậu đã cạn thời gian!" : "Đối thủ đã hết giờ!", "warning");
-            // Tạm thời dừng, sau này sẽ có logic báo lên Database
+            clearInterval(localTimer); 
+            // Lỗi cũ là tớ chỉ hiện Toast chứ quên "khóa" bàn cờ. 
+            // Giờ ai bị hết giờ thì máy người đó tự động bắn lệnh nhận thua lên mây!
+            if (who === 'me') {
+                showToast("Hết Giờ", "Cậu đã cạn thời gian!", "error");
+                const winnerColor = myRole === 'host' ? 'black' : 'red';
+                supabase.from('xiangqi_rooms').update({ 
+                    status: 'finished', winner: winnerColor 
+                }).eq('id', roomId);
+            } else {
+                showToast("Hết Giờ", "Đối thủ đã cạn thời gian!", "success");
+            }
         }
 
         // --- HÀM XIN TIME BREAK ---
@@ -948,12 +983,31 @@
             });
         }
 
-        // --- Nút Cầu Hòa (Tạm thời là tự động hòa nếu bấm đồng ý) ---
-        window.requestDraw = function() {
+        // --- Gửi Yêu cầu Cầu Hòa ---
+        window.requestDraw = async function() {
             if(roomData.status !== 'playing') return;
-            showConfirmPopup("Cầu Hòa", "Nhân nhượng nhau một bước, hai bên cùng hòa nhé?", async () => {
+            // Đổi trạng thái thành draw_request và lưu lại thời gian hiện tại hệt như lúc Time Break
+            await supabase.from('xiangqi_rooms').update({ 
+                status: 'draw_request', 
+                break_by: myRole, // Mượn tạm cột này để nhớ ai là người xin hòa
+                timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft,
+                timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft,
+                last_time_update: null 
+            }).eq('id', roomId);
+        }
+
+        // --- Xử lý Phản hồi Cầu Hòa (Dành cho người bị hỏi) ---
+        window.respondDraw = async function(isAccepted) {
+            if (isAccepted) {
+                // Đồng ý -> Đóng hòm, kết quả Hòa
                 await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: 'draw' }).eq('id', roomId);
-            });
+            } else {
+                // Từ chối -> Bỏ qua, tiếp tục trận đấu và đếm tiếp giờ
+                await supabase.from('xiangqi_rooms').update({ 
+                    status: 'playing', 
+                    last_time_update: new Date().toISOString() 
+                }).eq('id', roomId);
+            }
         }
     </script>
     <script src="/mhent-ui.js"></script>
