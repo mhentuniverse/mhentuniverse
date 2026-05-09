@@ -915,12 +915,12 @@
         }
 
         // ==========================================
-        // LÕI LOGIC: CẦM & ĐẶT CỜ
+        // BỘ NÃO LÕI: DI CHUYỂN, KÝ PHỔ, ÂM THANH & BẮT TƯỚNG
         // ==========================================
         window.handleSquareClick = async function(x, y) {
             if (!roomData || roomData.status !== 'playing') return;
             
-            // Chống đi ké: Đen không được đánh trong lượt Đỏ và ngược lại
+            // Chống đi ké
             if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
                 return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt của cậu!", "warning");
             }
@@ -929,136 +929,60 @@
             const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
 
             if (selectedSquare) {
-                // Bấm lại để Hủy chọn (Deselect)
+                // Bấm lại để Hủy chọn
                 if (selectedSquare.x === x && selectedSquare.y === y) {
-                    selectedSquare = null;
-                    renderBoard();
-                    return;
+                    selectedSquare = null; renderBoard(); return;
                 }
 
                 if (isMyPiece) {
-                    // Cầm quân khác của mình
-                    selectedSquare = {x, y};
-                    renderBoard();
+                    // Đổi cầm quân khác
+                    selectedSquare = {x, y}; renderBoard();
                 } else {
-                    const fromX = selectedSquare.x; 
-                    const fromY = selectedSquare.y;
+                    const fromX = selectedSquare.x; const fromY = selectedSquare.y;
                     const movingPiece = boardState[fromY][fromX];
-                    const targetPiece = boardState[y][x]; 
+                    const targetPiece = boardState[y][x];
 
                     // Kiểm tra luật
-                    if (!isValidMove(movingPiece, fromX, fromY, x, y, boardState)) {
-                        return; // Không hợp lệ thì bỏ qua không cho đi
-                    }
+                    if (!isValidMove(movingPiece, fromX, fromY, x, y, boardState)) return; 
 
-                    // Đi cờ & Ăn cờ
+                    // 1. DI CHUYỂN CỜ
                     boardState[y][x] = movingPiece; 
                     boardState[fromY][fromX] = null; 
                     selectedSquare = null; 
 
-                    // LÀM KÝ PHỔ
+                    // 2. PHÁT ÂM THANH & TẠO KÝ PHỔ
+                    moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); // Kêu CỘC ngay lập tức!
                     const notationText = getNotation(movingPiece, fromX, fromY, x, y);
-                    const newLogEntry = { turn: roomData.turn, notation: notationText };
-                    const updatedMoveLog = [...(roomData.move_log || []), newLogEntry];
+                    let currentLogs = Array.isArray(roomData.move_log) ? roomData.move_log : [];
+                    const updatedMoveLog = [...currentLogs, { turn: roomData.turn, notation: notationText }];
 
-                    // KIỂM TRA XEM CÓ ĂN TRÚNG TƯỚNG KHÔNG?
+                    // 3. KIỂM TRA BẮT TƯỚNG
                     let isGameOver = false;
                     let winnerColor = null;
                     if (targetPiece === 'B_K') { isGameOver = true; winnerColor = 'red'; }
                     else if (targetPiece === 'R_K') { isGameOver = true; winnerColor = 'black'; }
 
-                    const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
-                    const inc = roomData.settings.increment || 0; 
-                    const newMyTime = myTimeLeft + inc; 
-
-                    moveSound.play(); // Đánh xong phát tiếng luôn
-
+                    // 4. GỬI TOÀN BỘ LÊN SUPABASE
                     if (isGameOver) {
                         try {
                             await supabase.from('xiangqi_rooms').update({
                                 board_state: boardState, 
                                 status: 'finished', 
                                 winner: winnerColor, 
-                                move_log: updatedMoveLog
+                                move_log: updatedMoveLog // Đã gửi Ký phổ
                             }).eq('id', roomId);
                         } catch(e) {}
                     } else {
-                        try {
-                            await supabase.from('xiangqi_rooms').update({
-                                board_state: boardState, 
-                                turn: nextTurn, 
-                                last_time_update: new Date().toISOString(),
-                                move_log: updatedMoveLog, // Gửi Ký phổ lên mây
-                                timer_host: myRole === 'host' ? newMyTime : oppTimeLeft,
-                                timer_guest: myRole === 'guest' ? newMyTime : oppTimeLeft
-                            }).eq('id', roomId);
-                        } catch(e) { showToast("Lỗi", "Chưa gửi được nước đi!", "error"); }
-                    }
-                }
-            } else {
-                if (isMyPiece) {
-                    // Tay không, bốc cờ lên
-                    selectedSquare = {x, y};
-                    renderBoard();
-                }
-            }
-        }
-
-        // ==========================================
-        // LOGIC KẾT THÚC GAME & NÚT CHỨC NĂNG
-        // ==========================================
-        
-        // Ghi đè lại hàm handleSquareClick để thêm logic Bắt Tướng
-        window.handleSquareClick = async function(x, y) {
-            if (!roomData || roomData.status !== 'playing') return;
-            
-            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
-                return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt của cậu!", "warning");
-            }
-
-            const piece = boardState[y][x];
-            const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
-
-            if (selectedSquare) {
-                if (selectedSquare.x === x && selectedSquare.y === y) {
-                    selectedSquare = null; renderBoard(); return;
-                }
-
-                if (isMyPiece) {
-                    selectedSquare = {x, y}; renderBoard();
-                } else {
-                    const fromX = selectedSquare.x; const fromY = selectedSquare.y;
-                    const movingPiece = boardState[fromY][fromX];
-                    const targetPiece = boardState[y][x]; // Quân cờ mục tiêu sắp bị ăn
-
-                    if (!isValidMove(movingPiece, fromX, fromY, x, y, boardState)) return; 
-
-                    // Di chuyển cờ
-                    boardState[y][x] = movingPiece; 
-                    boardState[fromY][fromX] = null; 
-                    selectedSquare = null; 
-                    
-                    // KIỂM TRA XEM CÓ ĂN TRÚNG TƯỚNG KHÔNG?
-                    let isGameOver = false;
-                    let winnerColor = null;
-                    if (targetPiece === 'B_K') { isGameOver = true; winnerColor = 'red'; }
-                    else if (targetPiece === 'R_K') { isGameOver = true; winnerColor = 'black'; }
-
-                    if (isGameOver) {
-                        try {
-                            await supabase.from('xiangqi_rooms').update({
-                                board_state: boardState, status: 'finished', winner: winnerColor
-                            }).eq('id', roomId);
-                        } catch(e) {}
-                    } else {
-                        // Nếu chưa hết game thì đi bình thường
                         const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
                         const inc = roomData.settings.increment || 0; 
                         const newMyTime = myTimeLeft + inc; 
                         
                         try {
                             await supabase.from('xiangqi_rooms').update({
-                                board_state: boardState, turn: nextTurn, last_time_update: new Date().toISOString(),
+                                board_state: boardState, 
+                                turn: nextTurn, 
+                                last_time_update: new Date().toISOString(),
+                                move_log: updatedMoveLog, // Đã gửi Ký phổ
                                 timer_host: myRole === 'host' ? newMyTime : oppTimeLeft,
                                 timer_guest: myRole === 'guest' ? newMyTime : oppTimeLeft
                             }).eq('id', roomId);
