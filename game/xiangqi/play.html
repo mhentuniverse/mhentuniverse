@@ -230,6 +230,27 @@
         .xq-piece.red { color: #dc2626; border-color: #dc2626; text-shadow: 0 1px 1px rgba(220, 38, 38, 0.3);}
         .xq-piece.black { color: #1e293b; border-color: #1e293b; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);}
 
+        /* Hiệu ứng chấm xanh cho các ô có thể đi */
+        .xq-spot.valid-move::after {
+            content: ''; position: absolute; width: 16px; height: 16px;
+            background: rgba(16, 185, 129, 0.7); border-radius: 50%;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); pointer-events: none;
+        }
+        /* Nếu ô có thể đi mà có quân địch, hiện cái viền đỏ dọa nạt xíu */
+        .xq-spot.valid-move.has-enemy::after {
+            width: 38px; height: 38px; background: transparent;
+            border: 3px dashed #ef4444; border-radius: 50%;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        /* Hiệu ứng Tướng bị chiếu: Hiện viền đỏ chớp nháy dọa nạt xíu */
+        .xq-spot.in-check::after {
+            content: ''; position: absolute; width: 38px; height: 38px;
+            background: transparent; border: 4px dashed #ef4444; border-radius: 50%;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 1); pointer-events: none;
+            animation: pulse-red 1s infinite alternate;
+        }
+        @keyframes pulse-red { 0% { opacity: 0.5; } 100% { opacity: 1; transform: scale(1.1); } }
     </style>
 </head>
 <body class="dark-mode">
@@ -793,30 +814,57 @@
                 if(!child.classList.contains('river-line') && !child.classList.contains('palace')) child.remove();
             });
 
-            // Nếu trên mây có board_state thì lấy xài, chưa có thì lấy mảng mặc định
             if (roomData && roomData.board_state) boardState = roomData.board_state;
 
+            // 1. CHUẨN BỊ TRƯỚC KHI VẼ: Quét bàn cờ xem Tướng nào đang bị chiếu?
+            let redCheckSpot = null; let blackCheckSpot = null;
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 9; x++) {
+                    const p = boardState[y][x];
+                    if (p === 'R_K') { if (isCheck('red', boardState)) redCheckSpot = {x, y}; } 
+                    else if (p === 'B_K') { if (isCheck('black', boardState)) blackCheckSpot = {x, y}; }
+                }
+            }
+
+            // Nhận diện quân cờ đang cầm trên tay
+            let selPiece = null;
+            if (selectedSquare) selPiece = boardState[selectedSquare.y][selectedSquare.x];
+
+            // 2. VẼ LẠI TOÀN BỘ BÀN CỜ
             for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 9; x++) {
                     const leftPct = myRole === 'guest' ? (100 - (x/8)*100) : (x/8)*100;
                     const topPct = myRole === 'guest' ? (100 - (y/9)*100) : (y/9)*100;
 
-                    // Tạo ô click vô hình
                     const spotEl = document.createElement('div');
                     spotEl.className = 'xq-spot';
                     spotEl.style.left = `${leftPct}%`; spotEl.style.top = `${topPct}%`;
                     spotEl.onclick = () => handleSquareClick(x, y);
 
-                    // Đánh dấu quân cờ đang chọn
+                    // Đánh dấu ô đang chọn
                     if (selectedSquare && selectedSquare.x === x && selectedSquare.y === y) spotEl.classList.add('selected');
 
-                    const piece = boardState[y][x];
-                    if (piece) {
-                        const isRed = piece.startsWith('R_');
+                    // HIỆN CẢNH BÁO CHIẾU TƯỚNG (Nếu có)
+                    if (redCheckSpot && redCheckSpot.x === x && redCheckSpot.y === y) spotEl.classList.add('in-check');
+                    else if (blackCheckSpot && blackCheckSpot.x === x && blackCheckSpot.y === y) spotEl.classList.add('in-check');
+
+                    // GỢI Ý NƯỚC ĐI KHẢ DỤNG (Hệ thống Chấm xanh)
+                    if (selectedSquare && selPiece) {
+                        const targetPiece = boardState[y][x];
+                        // 👉 Kiểm tra xem đi vào ô (x,y) có bị phạm luật (tự sát) không?
+                        if (isMoveLegal(selPiece, selectedSquare.x, selectedSquare.y, x, y, boardState)) {
+                            spotEl.classList.add('valid-move');
+                            if (targetPiece) spotEl.classList.add('has-enemy'); 
+                        }
+                    }
+
+                    const currentPiece = boardState[y][x];
+                    if (currentPiece) {
+                        const isRed = currentPiece.startsWith('R_');
                         const pieceEl = document.createElement('div');
                         pieceEl.className = `xq-piece ${isRed ? 'red' : 'black'}`;
-                        pieceEl.innerText = pieceLabels[piece];
-                        spotEl.appendChild(pieceEl); // Nhét cờ vào trong ô click
+                        pieceEl.innerText = pieceLabels[currentPiece];
+                        spotEl.appendChild(pieceEl); 
                     }
                     boardEl.appendChild(spotEl);
                 }
@@ -924,81 +972,35 @@
         // ==========================================
         // BỘ NÃO LÕI: DI CHUYỂN, KÝ PHỔ, ÂM THANH & BẮT TƯỚNG
         // ==========================================
+        // Sếp tìm hàm handleSquareClick cũ, xóa đi và thay bằng cục này:
         window.handleSquareClick = async function(x, y) {
             if (!roomData || roomData.status !== 'playing') return;
+            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt!", "warning");
+            const piece = boardState[y][x]; const isMine = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
             
-            // Chống đi ké
-            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
-                return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt của cậu!", "warning");
-            }
-
-            const piece = boardState[y][x];
-            const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
-
             if (selectedSquare) {
-                // Bấm lại để Hủy chọn
-                if (selectedSquare.x === x && selectedSquare.y === y) {
-                    selectedSquare = null; renderBoard(); return;
-                }
+                if (selectedSquare.x === x && selectedSquare.y === y) { selectedSquare = null; renderBoard(); return; }
+                if (isMine) { selectedSquare = {x, y}; renderBoard(); } 
+                else {
+                    const fX = selectedSquare.x; const fY = selectedSquare.y; const mp = boardState[fY][fX]; const tp = boardState[y][x];
+                    
+                    // 👉 DÙNG BỘ NÃO MỚI: Kiểm tra xem đi vào ô (x,y) có hợp luật (không tự sát) không?
+                    if (!isMoveLegal(mp, fX, fY, x, y, boardState)) {
+                        selectedSquare = null; renderBoard(); // Hủy chọn, hiện lại chấm gợi ý
+                        return; 
+                    }
+                    
+                    playSound(); boardState[y][x] = mp; boardState[fY][fX] = null; selectedSquare = null; 
+                    const logTxt = getNotation(mp, fX, fY, x, y); let curLog = roomData.move_log || []; const newLog = [...curLog, { turn: roomData.turn, notation: logTxt }];
 
-                if (isMyPiece) {
-                    // Đổi cầm quân khác
-                    selectedSquare = {x, y}; renderBoard();
-                } else {
-                    const fromX = selectedSquare.x; const fromY = selectedSquare.y;
-                    const movingPiece = boardState[fromY][fromX];
-                    const targetPiece = boardState[y][x];
-
-                    // Kiểm tra luật
-                    if (!isValidMove(movingPiece, fromX, fromY, x, y, boardState)) return; 
-
-                    // 1. DI CHUYỂN CỜ
-                    boardState[y][x] = movingPiece; 
-                    boardState[fromY][fromX] = null; 
-                    selectedSquare = null; 
-
-                    // 2. PHÁT ÂM THANH & TẠO KÝ PHỔ
-                    moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); // Kêu CỘC ngay lập tức!
-                    const notationText = getNotation(movingPiece, fromX, fromY, x, y);
-                    let currentLogs = Array.isArray(roomData.move_log) ? roomData.move_log : [];
-                    const updatedMoveLog = [...currentLogs, { turn: roomData.turn, notation: notationText }];
-
-                    // 3. KIỂM TRA BẮT TƯỚNG
-                    let isGameOver = false;
-                    let winnerColor = null;
-                    if (targetPiece === 'B_K') { isGameOver = true; winnerColor = 'red'; }
-                    else if (targetPiece === 'R_K') { isGameOver = true; winnerColor = 'black'; }
-
-                    // 4. GỬI TOÀN BỘ LÊN SUPABASE
-                    if (isGameOver) {
-                        try {
-                            await supabase.from('xiangqi_rooms').update({
-                                board_state: boardState, 
-                                status: 'finished', 
-                                winner: winnerColor, 
-                                move_log: updatedMoveLog // Đã gửi Ký phổ
-                            }).eq('id', roomId);
-                        } catch(e) {}
+                    if (tp === 'B_K' || tp === 'R_K') {
+                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, status: 'finished', winner: tp === 'B_K' ? 'red' : 'black', move_log: newLog }).eq('id', roomId);
                     } else {
-                        const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
-                        const inc = roomData.settings.increment || 0; 
-                        const newMyTime = myTimeLeft + inc; 
-                        
-                        try {
-                            await supabase.from('xiangqi_rooms').update({
-                                board_state: boardState, 
-                                turn: nextTurn, 
-                                last_time_update: new Date().toISOString(),
-                                move_log: updatedMoveLog, // Đã gửi Ký phổ
-                                timer_host: myRole === 'host' ? newMyTime : oppTimeLeft,
-                                timer_guest: myRole === 'guest' ? newMyTime : oppTimeLeft
-                            }).eq('id', roomId);
-                        } catch(e) { showToast("Lỗi", "Chưa gửi được nước đi!", "error"); }
+                        const inc = roomData.settings.increment || 0; const nTime = myTimeLeft + inc; 
+                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, turn: roomData.turn === 'red' ? 'black' : 'red', last_time_update: new Date().toISOString(), move_log: newLog, timer_host: myRole === 'host' ? nTime : oppTimeLeft, timer_guest: myRole === 'guest' ? nTime : oppTimeLeft }).eq('id', roomId);
                     }
                 }
-            } else {
-                if (isMyPiece) { selectedSquare = {x, y}; renderBoard(); }
-            }
+            } else { if (isMine) { selectedSquare = {x, y}; renderBoard(); } }
         }
 
         // --- Nút Đầu Hàng ---
@@ -1036,6 +1038,67 @@
                     last_time_update: new Date().toISOString() 
                 }).eq('id', roomId);
             }
+
+            // ==========================================
+        // THUẬT TOÁN ĐỈNH CAO: CHECK & PROHIBITED MOVES
+        // ==========================================
+
+        // Hàm 1: Kiểm tra xem Tướng của phe 'color' có đang bị chiếu không?
+        function isCheck(color, board) {
+            // 1. Tìm vị trí của Tướng màu 'color'
+            let kingX = -1; let kingY = -1;
+            const kingPiece = color === 'red' ? 'R_K' : 'B_K';
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 9; x++) {
+                    if (board[y][x] === kingPiece) { kingX = x; kingY = y; break; }
+                }
+                if (kingX !== -1) break;
+            }
+            if (kingX === -1) return false; // Không tìm thấy Tướng? (Lỗi!)
+
+            // 2. Quét toàn bộ quân của đối thủ xem có con nào đang chiếu Tướng không?
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 9; x++) {
+                    const enemyPiece = board[y][x];
+                    if (enemyPiece && !enemyPiece.startsWith(color === 'red' ? 'R_' : 'B_')) {
+                        // Nếu là quân địch, kiểm tra xem nó có thể đi vào ô Tướng của mình không?
+                        if (isValidMove(enemyPiece, x, y, kingX, kingY, board)) {
+                            return true; // Có một quân địch đang chiếu tướng!
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Hàm 2: Kiểm tra xem nước đi có phạm luật (Làm Tướng bị chiếu) không?
+        function isMoveLegal(piece, fromX, fromY, toX, toY, board) {
+            // 1. Cấm ăn quân mình
+            const targetPiece = board[toY][toX];
+            const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
+            const isMyTarget = targetPiece && ((myRole === 'host' && targetPiece.startsWith('R_')) || (myRole === 'guest' && targetPiece.startsWith('B_')));
+            if (isMine && isMyTarget) return false;
+
+            // 2. Kiểm tra luật đi cờ cơ bản
+            if (!isValidMove(piece, fromX, fromY, toX, toY, board)) return false;
+
+            // 3. THUẬT TOÁN "BÓI TOÁN": Giả sử nước đi này được thực hiện...
+            // Tạo một bản sao tạm thời của bàn cờ
+            const tempBoard = JSON.parse(JSON.stringify(board));
+            tempBoard[toY][toX] = piece;
+            tempBoard[fromY][fromX] = null;
+
+            // ... rồi kiểm tra xem sau nước đi đó, Tướng của mình có bị chiếu không?
+            const myColor = piece.startsWith('R_') ? 'red' : 'black';
+            if (isCheck(myColor, tempBoard)) {
+                return false; // Nước đi phạm luật, tự sát, cấm!
+            }
+            
+            return true; // Nước đi hợp lệ, Tướng an toàn
+        }
+
+        // --- Cập nhật lại Hàm handleSquareClick để dùng Bộ Não mới ---
+        
         }
     </script>
     <script src="/mhent-ui.js"></script>
