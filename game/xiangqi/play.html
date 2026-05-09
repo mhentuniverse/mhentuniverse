@@ -54,7 +54,7 @@
         .battle-arena {
             flex: 1;
             display: grid;
-            grid-template-columns: 300px minmax(350px, 600px) 300px; /* Cột trái 300px - Giữa co giãn - Cột phải 300px */
+            grid-template-columns: 300px minmax(350px, 600px) 300px;
             justify-content: center;
             align-items: stretch;
             padding: 20px;
@@ -62,6 +62,7 @@
             overflow: hidden; 
             width: 100%;
             box-sizing: border-box;
+            min-height: 0; /* 👉 Chốt chặn chống phình to */
         }
 
         /* CỘT CHUNG (TRÁI / PHẢI) */
@@ -145,7 +146,8 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            flex: 1; /* Cho phép nó giãn hết phần khoảng trống còn lại */
+            flex: 1; 
+            min-height: 0; /* 👉 Ép Ký phổ phải cuộn */
         }
         .side-header { background: rgba(0,0,0,0.2); padding: 12px; font-weight: 900; border-bottom: 2px solid #334155; text-align: center; color: var(--xiangqi-color); text-transform: uppercase; font-size: 14px;}
         .move-log-box { flex: 1; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 15px; }
@@ -372,9 +374,8 @@
         let currentUser = null;
         let myRole = null; 
         let isCountingDown = false; 
-        let roomData = null; // Lưu data phòng để dùng cục bộ
+        let roomData = null; 
 
-        // --- CÁC BIẾN QUẢN LÝ ĐỒNG HỒ ---
         let myTimeLeft = 0;
         let oppTimeLeft = 0;
         let localTimer = null;
@@ -389,7 +390,9 @@
             else { window.location.href = '/login'; }
         });
 
-        // 1. KẾT NỐI SUPABASE
+        // ==========================================
+        // 1. KẾT NỐI & NHỊP TIM ĐỒNG BỘ
+        // ==========================================
         async function connectToRoom() {
             const { data: room, error } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
             if (error || !room) {
@@ -398,33 +401,45 @@
                 return;
             }
             
-            // Hiện Setting Luật chơi
             document.getElementById('info-time').innerText = `${room.settings.timeLimit} phút`;
             document.getElementById('info-inc').innerText = `+${room.settings.increment}s`;
             document.getElementById('info-break').innerText = `${room.settings.breakCount} lần (${room.settings.breakTime}s)`;
 
             handleRoomData(room);
 
-            // Bật kênh Realtime
             supabase.channel('room_' + roomId)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'xiangqi_rooms', filter: `id=eq.${roomId}` }, payload => {
                     handleRoomData(payload.new);
                 }).subscribe();
+
+            // NHỊP TIM 4 GIÂY: CHỐNG LAG MẠNG
+            setInterval(async () => {
+                if (!roomData || roomData.status !== 'playing') return; // Rảnh thì đi ngủ
+                
+                try {
+                    const { data: checkData } = await supabase.from('xiangqi_rooms').select('last_time_update').eq('id', roomId).single();
+                    if (checkData && checkData.last_time_update !== roomData.last_time_update) {
+                        console.log("Phát hiện lệch mạng! Đang kéo lại...");
+                        const { data: fullData } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
+                        if (fullData) handleRoomData(fullData);
+                    }
+                } catch (e) {}
+            }, 4000);
         }
 
-        // 2. XỬ LÝ LÕI TRẬN ĐẤU
+        // ==========================================
+        // 2. XỬ LÝ LÕI DỮ LIỆU & GIAO DIỆN
+        // ==========================================
+        const moveSound = new Audio('https://actions.google.com/sounds/v1/foley/wood_block_drop.ogg');
+
         function handleRoomData(data) {
-            // 👉 XỬ LÝ ÂM THANH: Kiểm tra nếu lượt vừa cập nhật dài hơn lượt cũ (tức là có người vừa đi cờ) -> Phát tiếng cộc!
             let currentLogs = Array.isArray(data.move_log) ? data.move_log : [];
             let oldLogs = (roomData && Array.isArray(roomData.move_log)) ? roomData.move_log : [];
             if (currentLogs.length > oldLogs.length) {
-                // Thêm try-catch để ngăn trình duyệt chặn âm thanh làm lỗi trang
                 moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); 
             }
             
             roomData = data; 
-            
-            // Vẽ lại danh sách Ký phổ
             renderMoveLog(currentLogs);
             
             const hName = data.host_info?.name || 'Kỳ thủ';
@@ -447,7 +462,6 @@
             const btnBreak = document.getElementById('btn-time-break');
 
             if (data.status === 'waiting') {
-                // ... (Giữ nguyên logic Sẵn Sàng 3..2..1 như cũ)
                 statusEl.className = 'match-status waiting';
                 statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang chờ...';
                 overlay.style.display = 'flex';
@@ -472,10 +486,7 @@
                 
                 renderBoard();
 
-                // Lấy số lần Break từ Setting (Chỉ lấy lần đầu tiên)
                 if (myBreaksLeft === null) myBreaksLeft = data.settings.breakCount;
-
-                // CHỐNG SPAM BREAK: Hết quyền thì giấu nút đi
                 if (myBreaksLeft > 0) {
                     btnBreak.innerHTML = `<i class="fa-solid fa-pause"></i> Dừng Trận (${myBreaksLeft})`;
                     btnBreak.style.display = 'flex';
@@ -483,9 +494,10 @@
                     btnBreak.style.display = 'none';
                 }
                 
-                // TÍNH TOÁN BÙ TRỪ THỜI GIAN (FIX LỖI F5)
-                let baseHostTime = data.timer_host !== undefined ? data.timer_host : data.settings.timeLimit * 60;
-                let baseGuestTime = data.timer_guest !== undefined ? data.timer_guest : data.settings.timeLimit * 60;
+                // 👉 FIX CHỐNG LỖI ĐỒNG HỒ (NaN)
+                let safeTimeLimit = (data.settings && data.settings.timeLimit) ? data.settings.timeLimit : 10;
+                let bH = (data.timer_host !== undefined && data.timer_host !== null) ? data.timer_host : safeTimeLimit * 60;
+                let bG = (data.timer_guest !== undefined && data.timer_guest !== null) ? data.timer_guest : safeTimeLimit * 60;
 
                 let elapsed = 0;
                 if (data.last_time_update) {
@@ -494,11 +506,12 @@
                     elapsed = Math.max(0, Math.floor((now - lastTime) / 1000));
                 }
 
-                if (data.turn === 'red') baseHostTime -= elapsed;
-                else baseGuestTime -= elapsed;
+                if (data.turn === 'red') bH -= elapsed;
+                else bG -= elapsed;
 
-                myTimeLeft = myRole === 'host' ? baseHostTime : baseGuestTime;
-                oppTimeLeft = myRole === 'host' ? baseGuestTime : baseHostTime;
+                myTimeLeft = myRole === 'host' ? bH : bG;
+                oppTimeLeft = myRole === 'host' ? baseGuestTime : baseHostTime; // Sửa lỗi tham chiếu
+                oppTimeLeft = myRole === 'host' ? bG : bH;
 
                 updateTimerUI();
                 startLocalTimer(data.turn);
@@ -519,7 +532,6 @@
                 let breakEnd = new Date(data.break_ends_at).getTime();
                 clearInterval(breakTimer);
 
-                // CHỐNG KHỰNG: Viết riêng 1 hàm và gọi nó CHẠY NGAY LẬP TỨC
                 const updateBreakUI = async () => {
                     let now = new Date().getTime();
                     let distance = Math.floor((breakEnd - now) / 1000);
@@ -542,71 +554,69 @@
                     }
                 };
                 
-                updateBreakUI(); // Gọi lần 1 ngay lập tức để không bị đen màn hình 1s
-                breakTimer = setInterval(updateBreakUI, 1000); // Lặp lại mỗi giây
+                updateBreakUI(); 
+                breakTimer = setInterval(updateBreakUI, 1000); 
             }
             else if (data.status === 'finished') {
-                    clearInterval(localTimer); 
-                    clearInterval(breakTimer);
-                    btnBreak.style.display = 'none'; 
-                    overlay.style.display = 'flex';
-                    
-                    let message = "";
-                    let color = "#10b981"; // Màu xanh lá
-                    
-                    if (data.winner === 'draw') {
-                        message = "HÒA NHAU!";
-                        color = "#f59e0b"; // Màu cam
+                clearInterval(localTimer); 
+                clearInterval(breakTimer);
+                btnBreak.style.display = 'none'; 
+                overlay.style.display = 'flex';
+                
+                let message = "";
+                let color = "#10b981"; 
+                
+                if (data.winner === 'draw') {
+                    message = "HÒA NHAU!";
+                    color = "#f59e0b"; 
+                } else {
+                    const myColor = myRole === 'host' ? 'red' : 'black';
+                    if (data.winner === myColor) {
+                        message = "CẬU ĐÃ THẮNG! 🎉";
+                        color = "#10b981";
                     } else {
-                        const myColor = myRole === 'host' ? 'red' : 'black';
-                        if (data.winner === myColor) {
-                            message = "CẬU ĐÃ THẮNG! 🎉";
-                            color = "#10b981";
-                        } else {
-                            message = "CẬU ĐÃ THUA! 💀";
-                            color = "#ef4444"; // Màu đỏ
-                        }
+                        message = "CẬU ĐÃ THUA! 💀";
+                        color = "#ef4444"; 
                     }
+                }
 
+                overlay.innerHTML = `
+                    <i class="fa-solid fa-trophy fa-4x" style="color: ${color}; margin-bottom: 20px;"></i>
+                    <h1 style="font-size: 50px; color: ${color}; margin: 0; text-shadow: 0 5px 20px ${color};">${message}</h1>
+                    <p style="color:#94a3b8; margin-top: 10px;">Ván đấu đã kết thúc.</p>
+                    <button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 18px; margin-top: 20px;" onclick="window.location.href='/game/xiangqi'">Rời Bàn</button>
+                `;
+            }
+            else if (data.status === 'draw_request') {
+                clearInterval(localTimer); 
+                btnBreak.style.display = 'none'; 
+                overlay.style.display = 'flex';
+                
+                if (data.break_by === myRole) {
                     overlay.innerHTML = `
-                        <i class="fa-solid fa-trophy fa-4x" style="color: ${color}; margin-bottom: 20px;"></i>
-                        <h1 style="font-size: 50px; color: ${color}; margin: 0; text-shadow: 0 5px 20px ${color};">${message}</h1>
-                        <p style="color:#94a3b8; margin-top: 10px;">Ván đấu đã kết thúc.</p>
-                        <button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 18px; margin-top: 20px;" onclick="window.location.href='/game/xiangqi'">Rời Bàn</button>
+                        <i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i>
+                        <h2 style="margin: 0; color: white;">ĐANG XIN HÒA</h2>
+                        <p style="color:#94a3b8;">Chờ đối thủ suy nghĩ...</p>
+                    `;
+                } else {
+                    overlay.innerHTML = `
+                        <i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i>
+                        <h2 style="margin: 0; color: white;">ĐỐI THỦ XIN HÒA</h2>
+                        <p style="color:#94a3b8;">Cậu có đồng ý kết thúc ván đấu trong hòa bình không?</p>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn-action draw" style="width: auto; padding: 10px 30px; background: #10b981; margin: 0;" onclick="respondDraw(true)">Đồng Ý</button>
+                            <button class="btn-action resign" style="width: auto; padding: 10px 30px; margin: 0;" onclick="respondDraw(false)">Từ Chối</button>
+                        </div>
                     `;
                 }
-                else if (data.status === 'draw_request') {
-                    clearInterval(localTimer); // Dừng đồng hồ 2 bên lại để suy nghĩ
-                    btnBreak.style.display = 'none'; 
-                    overlay.style.display = 'flex';
-                    
-                    if (data.break_by === myRole) {
-                        overlay.innerHTML = `
-                            <i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i>
-                            <h2 style="margin: 0; color: white;">ĐANG XIN HÒA</h2>
-                            <p style="color:#94a3b8;">Chờ đối thủ suy nghĩ...</p>
-                        `;
-                    } else {
-                        overlay.innerHTML = `
-                            <i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i>
-                            <h2 style="margin: 0; color: white;">ĐỐI THỦ XIN HÒA</h2>
-                            <p style="color:#94a3b8;">Cậu có đồng ý kết thúc ván đấu trong hòa bình không?</p>
-                            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button class="btn-action draw" style="width: auto; padding: 10px 30px; background: #10b981; margin: 0;" onclick="respondDraw(true)">Đồng Ý</button>
-                                <button class="btn-action resign" style="width: auto; padding: 10px 30px; margin: 0;" onclick="respondDraw(false)">Từ Chối</button>
-                            </div>
-                        `;
-                    }
-                }
+            }
         }
 
         // ==========================================
-        // CÁC HÀM XỬ LÝ GIAO DIỆN & ĐỒNG HỒ
+        // 3. ĐỒNG HỒ & GIAO DIỆN
         // ==========================================
         function startLocalTimer(turn) {
-            clearInterval(localTimer); // Xóa bộ đếm cũ chống lặp
-            
-            // Kiểm tra xem lượt này có phải của mình không
+            clearInterval(localTimer); 
             const isMyTurn = (myRole === 'host' && turn === 'red') || (myRole === 'guest' && turn === 'black');
 
             localTimer = setInterval(() => {
@@ -628,39 +638,31 @@
                 return `${m}:${s}`;
             };
             
-            // Tìm cái div .player-timer trong my-card và opponent-card để cập nhật
             document.querySelector('#my-card .player-timer').innerText = formatTime(myTimeLeft);
             document.querySelector('#opponent-card .player-timer').innerText = formatTime(oppTimeLeft);
         }
 
         function handleTimeOut(who) {
             clearInterval(localTimer); 
-            
             let winnerColor = '';
             
             if (who === 'me') {
-                // Mình cạn giờ -> Đối thủ thắng
                 winnerColor = myRole === 'host' ? 'black' : 'red';
                 showToast("Hết Giờ", "Cậu đã cạn thời gian!", "error");
             } else {
-                // Đếm thấy đối thủ cạn giờ -> Mình thắng
                 winnerColor = myRole === 'host' ? 'red' : 'black';
                 showToast("Hết Giờ", "Đối thủ đã cạn thời gian!", "success");
             }
 
-            // Máy nào phát hiện hết giờ trước, máy đó chốt hạ kết quả lên Supabase ngay lập tức!
             supabase.from('xiangqi_rooms').update({ 
                 status: 'finished', 
                 winner: winnerColor 
             }).eq('id', roomId);
         }
 
-        // --- HÀM XIN TIME BREAK ---
         window.requestTimeBreak = async function() {
-            // Chặn nếu hết số lần Break
             if(roomData.status !== 'playing' || myBreaksLeft <= 0) return; 
-            
-            myBreaksLeft--; // Trừ số lần đi
+            myBreaksLeft--; 
 
             let endsAt = new Date(); endsAt.setSeconds(endsAt.getSeconds() + roomData.settings.breakTime);
             try {
@@ -673,7 +675,6 @@
             } catch(e) {}
         }
 
-        // ... Các hàm toggleReady, triggerCountdown, updateMyInfo (Giữ nguyên như lúc nãy) ...
         function updateMyInfo(name, avt, color) { document.getElementById('my-name').innerText = name; document.getElementById('my-avt').src = avt; const card = document.getElementById('my-card'); card.className = `player-card ${color}`; card.querySelector('p').innerHTML = `<i class="fa-solid fa-chess-pawn"></i> Phe ${color === 'red' ? 'Đỏ' : 'Đen'}`; }
         function updateOpponentInfo(name, avt, color, isReady) { document.getElementById('opponent-name').innerText = name + (isReady ? " (ĐÃ SẴN SÀNG)" : ""); document.getElementById('opponent-name').style.color = isReady ? "#10b981" : ""; document.getElementById('opponent-avt').src = avt; const card = document.getElementById('opponent-card'); card.className = `player-card ${color}`; card.style.opacity = '1'; card.querySelector('p').innerHTML = `<i class="fa-solid fa-chess-pawn"></i> Phe ${color === 'red' ? 'Đỏ' : 'Đen'}`; }
         function setWaitingState() { document.getElementById('opponent-name').innerText = "Chờ đối thủ..."; document.getElementById('opponent-name').style.color = ""; document.getElementById('opponent-avt').src = "/assets/avt-web.jpg"; const card = document.getElementById('opponent-card'); card.className = `player-card black`; card.style.opacity = '0.5'; }
@@ -699,7 +700,6 @@
                 } else {
                     clearInterval(timer);
                     if(myRole === 'host') {
-                        // 👉 LỖI LÀ THIẾU CHỮ 'await' Ở ĐÂY NÈ SẾP!
                         await supabase.from('xiangqi_rooms').update({ 
                             status: 'playing',
                             timer_host: roomData.settings.timeLimit * 60,
@@ -710,36 +710,61 @@
                 }
             }, 1000);
         }
+
         window.confirmLeave = function() { showConfirmPopup("Đầu Hàng / Rời Bàn", "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", () => { window.location.href = '/game/xiangqi'; }); }
-        // --- HÀM HỦY TIME BREAK SỚM ---
-        // Hủy Break sớm
         window.endTimeBreakEarly = async function() {
             if(!myRole) return;
             await supabase.from('xiangqi_rooms').update({ 
                 status: 'playing', 
-                last_time_update: new Date().toISOString() // Tạo mốc đếm mới
+                last_time_update: new Date().toISOString() 
             }).eq('id', roomId);
         }
 
+        window.resignGame = function() {
+            if(roomData.status !== 'playing') return;
+            showConfirmPopup("Đầu Hàng", "Cậu có chắc chắn muốn nhận thua ván này không?", async () => {
+                const loserColor = myRole === 'host' ? 'red' : 'black';
+                const winnerColor = loserColor === 'red' ? 'black' : 'red';
+                await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: winnerColor }).eq('id', roomId);
+            });
+        }
+
+        window.requestDraw = async function() {
+            if(roomData.status !== 'playing') return;
+            await supabase.from('xiangqi_rooms').update({ 
+                status: 'draw_request', 
+                break_by: myRole, 
+                timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft,
+                timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft,
+                last_time_update: null 
+            }).eq('id', roomId);
+        }
+
+        window.respondDraw = async function(isAccepted) {
+            if (isAccepted) {
+                await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: 'draw' }).eq('id', roomId);
+            } else {
+                await supabase.from('xiangqi_rooms').update({ 
+                    status: 'playing', 
+                    last_time_update: new Date().toISOString() 
+                }).eq('id', roomId);
+            }
+        }
+
         // ==========================================
-        // LÕI LOGIC CỜ TƯỚNG (BÀY BINH BỐ TRẬN)
+        // 4. LUẬT CỜ & BẢNG KÝ PHỔ
         // ==========================================
-        
-        // R: Đỏ (Red), B: Đen (Black)
-        // K: Tướng/Soái (King), A: Sĩ (Advisor), E: Tượng (Elephant), H: Mã (Horse)
-        // R: Xe (Rook), C: Pháo (Cannon), P: Tốt/Binh (Pawn)
-        
         let boardState = [
-            ['B_R', 'B_H', 'B_E', 'B_A', 'B_K', 'B_A', 'B_E', 'B_H', 'B_R'], // Hàng 0 (Đen)
-            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 1
-            [null,  'B_C', null,  null,  null,  null,  null,  'B_C', null ], // Hàng 2
-            ['B_P', null,  'B_P', null,  'B_P', null,  'B_P', null,  'B_P'], // Hàng 3
-            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 4 (Sông)
-            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 5 (Sông)
-            ['R_P', null,  'R_P', null,  'R_P', null,  'R_P', null,  'R_P'], // Hàng 6
-            [null,  'R_C', null,  null,  null,  null,  null,  'R_C', null ], // Hàng 7
-            [null,  null,  null,  null,  null,  null,  null,  null,  null ], // Hàng 8
-            ['R_R', 'R_H', 'R_E', 'R_A', 'R_K', 'R_A', 'R_E', 'R_H', 'R_R']  // Hàng 9 (Đỏ)
+            ['B_R', 'B_H', 'B_E', 'B_A', 'B_K', 'B_A', 'B_E', 'B_H', 'B_R'],
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ],
+            [null,  'B_C', null,  null,  null,  null,  null,  'B_C', null ],
+            ['B_P', null,  'B_P', null,  'B_P', null,  'B_P', null,  'B_P'],
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ],
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ],
+            ['R_P', null,  'R_P', null,  'R_P', null,  'R_P', null,  'R_P'],
+            [null,  'R_C', null,  null,  null,  null,  null,  'R_C', null ],
+            [null,  null,  null,  null,  null,  null,  null,  null,  null ],
+            ['R_R', 'R_H', 'R_E', 'R_A', 'R_K', 'R_A', 'R_E', 'R_H', 'R_R'] 
         ];
 
         const pieceLabels = {
@@ -747,17 +772,12 @@
             'R_K': '帥', 'R_A': '仕', 'R_E': '相', 'R_H': '傌', 'R_R': '俥', 'R_C': '炮', 'R_P': '兵'
         };
 
-        let selectedSquare = null; // Biến nhớ tọa độ quân cờ đang được sếp nhấc lên
+        let selectedSquare = null; 
 
-        // 1. TẢI SẴN ÂM THANH ĐẶT CỜ (Lấy nguồn free từ Google)
-        const moveSound = new Audio('https://actions.google.com/sounds/v1/foley/wood_block_drop.ogg');
-
-        // 2. BỘ DỊCH KÝ PHỔ (Dịch tọa độ thành "Pháo 2 bình 5")
         function getNotation(piece, fromX, fromY, toX, toY) {
             const isRed = piece.startsWith('R_');
             const name = pieceLabels[piece];
             
-            // Cột Đỏ đếm từ phải qua trái (9->1), Đen cũng đếm từ phải qua (1->9)
             const oldCol = isRed ? 9 - fromX : fromX + 1;
             const newCol = isRed ? 9 - toX : toX + 1;
 
@@ -770,7 +790,6 @@
                 const isForward = isRed ? (toY < fromY) : (toY > fromY);
                 action = isForward ? 'tiến' : 'thoái';
 
-                // Xe, Pháo, Tốt, Tướng đi dọc thì đếm số ô. Còn lại lấy tên cột mới.
                 const type = piece.split('_')[1];
                 if (['H', 'E', 'A'].includes(type)) step = newCol;
                 else step = Math.abs(toY - fromY);
@@ -778,12 +797,10 @@
             return `${name} ${oldCol} ${action} ${step}`;
         }
 
-        // 3. HÀM VẼ KÝ PHỔ RA MÀN HÌNH (Đã thêm cơ chế bắt lỗi an toàn)
         function renderMoveLog(logs) {
             const container = document.getElementById('move-log-container');
             container.innerHTML = `<div style="text-align: center; color: #64748b; font-family: 'Nunito', sans-serif; margin-bottom: 10px; font-size: 13px;">-- Ván đấu bắt đầu --</div>`;
             
-            // 👉 KIỂM TRA AN TOÀN: Nếu không có logs, hoặc logs không phải mảng thì dừng luôn, không làm sập giao diện
             if (!logs || !Array.isArray(logs)) return; 
             
             let html = '';
@@ -792,7 +809,6 @@
                 const redMove = logs[i] ? logs[i].notation : '';
                 const blackMove = logs[i+1] ? logs[i+1].notation : '';
                 
-                // Highlight nước đi mới nhất
                 const isLastRed = (i === logs.length - 1);
                 const isLastBlack = (i + 1 === logs.length - 1);
                 const bg = (isLastRed || isLastBlack) ? 'background: rgba(16, 185, 129, 0.1);' : '';
@@ -805,7 +821,7 @@
                     </div>`;
             }
             container.innerHTML += html;
-            container.scrollTop = container.scrollHeight; // Tự động cuộn xuống đáy
+            container.scrollTop = container.scrollHeight; 
         }
 
         function renderBoard() {
@@ -816,7 +832,6 @@
 
             if (roomData && roomData.board_state) boardState = roomData.board_state;
 
-            // 1. CHUẨN BỊ TRƯỚC KHI VẼ: Quét bàn cờ xem Tướng nào đang bị chiếu?
             let redCheckSpot = null; let blackCheckSpot = null;
             for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 9; x++) {
@@ -826,11 +841,9 @@
                 }
             }
 
-            // Nhận diện quân cờ đang cầm trên tay
             let selPiece = null;
             if (selectedSquare) selPiece = boardState[selectedSquare.y][selectedSquare.x];
 
-            // 2. VẼ LẠI TOÀN BỘ BÀN CỜ
             for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 9; x++) {
                     const leftPct = myRole === 'guest' ? (100 - (x/8)*100) : (x/8)*100;
@@ -841,17 +854,13 @@
                     spotEl.style.left = `${leftPct}%`; spotEl.style.top = `${topPct}%`;
                     spotEl.onclick = () => handleSquareClick(x, y);
 
-                    // Đánh dấu ô đang chọn
                     if (selectedSquare && selectedSquare.x === x && selectedSquare.y === y) spotEl.classList.add('selected');
 
-                    // HIỆN CẢNH BÁO CHIẾU TƯỚNG (Nếu có)
                     if (redCheckSpot && redCheckSpot.x === x && redCheckSpot.y === y) spotEl.classList.add('in-check');
                     else if (blackCheckSpot && blackCheckSpot.x === x && blackCheckSpot.y === y) spotEl.classList.add('in-check');
 
-                    // GỢI Ý NƯỚC ĐI KHẢ DỤNG (Hệ thống Chấm xanh)
                     if (selectedSquare && selPiece) {
                         const targetPiece = boardState[y][x];
-                        // 👉 Kiểm tra xem đi vào ô (x,y) có bị phạm luật (tự sát) không?
                         if (isMoveLegal(selPiece, selectedSquare.x, selectedSquare.y, x, y, boardState)) {
                             spotEl.classList.add('valid-move');
                             if (targetPiece) spotEl.classList.add('has-enemy'); 
@@ -872,7 +881,7 @@
         }
 
         // ==========================================
-        // BỘ NÃO LUẬT LỆ CỜ TƯỚNG 
+        // 5. THUẬT TOÁN ĐỈNH CAO: CHECK & ĐI CỜ
         // ==========================================
         function isValidMove(piece, fromX, fromY, toX, toY, board) {
             const isRed = piece.startsWith('R_');
@@ -882,7 +891,6 @@
             const absDx = Math.abs(dx);
             const absDy = Math.abs(dy);
 
-            // 1. TƯỚNG (K - King): Đi thẳng 1 ô, không ra khỏi Cung
             if (type === 'K') {
                 if (absDx + absDy !== 1) return false; 
                 if (toX < 3 || toX > 5) return false; 
@@ -891,7 +899,6 @@
                 return true;
             }
 
-            // 2. SĨ (A - Advisor): Đi chéo 1 ô, không ra khỏi Cung
             if (type === 'A') {
                 if (absDx !== 1 || absDy !== 1) return false; 
                 if (toX < 3 || toX > 5) return false; 
@@ -900,32 +907,29 @@
                 return true;
             }
 
-            // 3. TƯỢNG (E - Elephant): Đi chéo 2 ô, không qua sông, có cản Tượng
             if (type === 'E') {
                 if (absDx !== 2 || absDy !== 2) return false; 
-                if (board[fromY + dy/2][fromX + dx/2] !== null) return false; // Cản tượng
-                if (isRed && toY < 5) return false; // Không qua sông
+                if (board[fromY + dy/2][fromX + dx/2] !== null) return false; 
+                if (isRed && toY < 5) return false; 
                 if (!isRed && toY > 4) return false; 
                 return true;
             }
 
-            // 4. MÃ (H - Horse): Đi chữ L (1 thẳng, 1 chéo), có cản Mã
             if (type === 'H') {
                 if (!((absDx === 1 && absDy === 2) || (absDx === 2 && absDy === 1))) return false;
-                if (absDx === 2 && board[fromY][fromX + dx/2] !== null) return false; // Cản ngang
-                if (absDy === 2 && board[fromY + dy/2][fromX] !== null) return false; // Cản dọc
+                if (absDx === 2 && board[fromY][fromX + dx/2] !== null) return false; 
+                if (absDy === 2 && board[fromY + dy/2][fromX] !== null) return false; 
                 return true;
             }
 
-            // 5. XE (R - Rook): Đi thẳng, không bị cản
             if (type === 'R') {
                 if (fromX !== toX && fromY !== toY) return false; 
-                if (fromY === toY) { // Đi ngang
+                if (fromY === toY) { 
                     const step = dx > 0 ? 1 : -1;
                     for (let x = fromX + step; x !== toX; x += step) {
                         if (board[fromY][x] !== null) return false;
                     }
-                } else { // Đi dọc
+                } else { 
                     const step = dy > 0 ? 1 : -1;
                     for (let y = fromY + step; y !== toY; y += step) {
                         if (board[y][fromX] !== null) return false;
@@ -934,10 +938,9 @@
                 return true;
             }
 
-            // 6. PHÁO (C - Cannon): Đi như Xe, nhưng Ăn thì phải qua 1 Ngòi
             if (type === 'C') {
                 if (fromX !== toX && fromY !== toY) return false;
-                let count = 0; // Đếm số vật cản (Ngòi)
+                let count = 0; 
                 if (fromY === toY) {
                     const step = dx > 0 ? 1 : -1;
                     for (let x = fromX + step; x !== toX; x += step) {
@@ -951,15 +954,14 @@
                 }
 
                 const targetPiece = board[toY][toX];
-                if (targetPiece) return count === 1; // Ăn quân: Phải có đúng 1 ngòi
-                else return count === 0; // Đi không: Phải không có ngòi nào
+                if (targetPiece) return count === 1; 
+                else return count === 0; 
             }
 
-            // 7. TỐT (P - Pawn): Đi thẳng 1 ô, qua sông được đi ngang, không lùi
             if (type === 'P') {
                 if (isRed) {
-                    if (fromY > 4) return dx === 0 && dy === -1; // Chưa qua sông: Chỉ tiến
-                    else return (dx === 0 && dy === -1) || (absDx === 1 && dy === 0); // Qua sông: Tiến hoặc ngang
+                    if (fromY > 4) return dx === 0 && dy === -1; 
+                    else return (dx === 0 && dy === -1) || (absDx === 1 && dy === 0); 
                 } else {
                     if (fromY < 5) return dx === 0 && dy === 1; 
                     else return (dx === 0 && dy === 1) || (absDx === 1 && dy === 0); 
@@ -968,81 +970,6 @@
 
             return false;
         }
-
-        // ==========================================
-        // BỘ NÃO LÕI: DI CHUYỂN, KÝ PHỔ, ÂM THANH & BẮT TƯỚNG
-        // ==========================================
-        // Sếp tìm hàm handleSquareClick cũ, xóa đi và thay bằng cục này:
-        window.handleSquareClick = async function(x, y) {
-            if (!roomData || roomData.status !== 'playing') return;
-            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt!", "warning");
-            const piece = boardState[y][x]; const isMine = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
-            
-            if (selectedSquare) {
-                if (selectedSquare.x === x && selectedSquare.y === y) { selectedSquare = null; renderBoard(); return; }
-                if (isMine) { selectedSquare = {x, y}; renderBoard(); } 
-                else {
-                    const fX = selectedSquare.x; const fY = selectedSquare.y; const mp = boardState[fY][fX]; const tp = boardState[y][x];
-                    
-                    // 👉 DÙNG BỘ NÃO MỚI: Kiểm tra xem đi vào ô (x,y) có hợp luật (không tự sát) không?
-                    if (!isMoveLegal(mp, fX, fY, x, y, boardState)) {
-                        selectedSquare = null; renderBoard(); // Hủy chọn, hiện lại chấm gợi ý
-                        return; 
-                    }
-                    
-                    playSound(); boardState[y][x] = mp; boardState[fY][fX] = null; selectedSquare = null; 
-                    const logTxt = getNotation(mp, fX, fY, x, y); let curLog = roomData.move_log || []; const newLog = [...curLog, { turn: roomData.turn, notation: logTxt }];
-
-                    if (tp === 'B_K' || tp === 'R_K') {
-                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, status: 'finished', winner: tp === 'B_K' ? 'red' : 'black', move_log: newLog }).eq('id', roomId);
-                    } else {
-                        const inc = roomData.settings.increment || 0; const nTime = myTimeLeft + inc; 
-                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, turn: roomData.turn === 'red' ? 'black' : 'red', last_time_update: new Date().toISOString(), move_log: newLog, timer_host: myRole === 'host' ? nTime : oppTimeLeft, timer_guest: myRole === 'guest' ? nTime : oppTimeLeft }).eq('id', roomId);
-                    }
-                }
-            } else { if (isMine) { selectedSquare = {x, y}; renderBoard(); } }
-        }
-
-        // --- Nút Đầu Hàng ---
-        window.resignGame = function() {
-            if(roomData.status !== 'playing') return;
-            showConfirmPopup("Đầu Hàng", "Cậu có chắc chắn muốn nhận thua ván này không?", async () => {
-                const loserColor = myRole === 'host' ? 'red' : 'black';
-                const winnerColor = loserColor === 'red' ? 'black' : 'red';
-                await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: winnerColor }).eq('id', roomId);
-            });
-        }
-
-        // --- Gửi Yêu cầu Cầu Hòa ---
-        window.requestDraw = async function() {
-            if(roomData.status !== 'playing') return;
-            // Đổi trạng thái thành draw_request và lưu lại thời gian hiện tại hệt như lúc Time Break
-            await supabase.from('xiangqi_rooms').update({ 
-                status: 'draw_request', 
-                break_by: myRole, // Mượn tạm cột này để nhớ ai là người xin hòa
-                timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft,
-                timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft,
-                last_time_update: null 
-            }).eq('id', roomId);
-        }
-
-        // --- Xử lý Phản hồi Cầu Hòa (Dành cho người bị hỏi) ---
-        window.respondDraw = async function(isAccepted) {
-            if (isAccepted) {
-                // Đồng ý -> Đóng hòm, kết quả Hòa
-                await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: 'draw' }).eq('id', roomId);
-            } else {
-                // Từ chối -> Bỏ qua, tiếp tục trận đấu và đếm tiếp giờ
-                await supabase.from('xiangqi_rooms').update({ 
-                    status: 'playing', 
-                    last_time_update: new Date().toISOString() 
-                }).eq('id', roomId);
-            }
-        } // ĐÓNG NGOẶC HÀM CẦU HÒA Ở ĐÂY! KHÔNG ĐƯỢC NUỐT CÁC HÀM KHÁC VÀO TRONG!
-
-        // ==========================================
-        // THUẬT TOÁN ĐỈNH CAO: CHECK & PROHIBITED MOVES
-        // ==========================================
 
         function isCheck(color, board) {
             let kingX = -1; let kingY = -1;
@@ -1059,7 +986,9 @@
                 for (let x = 0; x < 9; x++) {
                     const enemyPiece = board[y][x];
                     if (enemyPiece && !enemyPiece.startsWith(color === 'red' ? 'R_' : 'B_')) {
-                        if (isValidMove(enemyPiece, x, y, kingX, kingY, board)) return true; 
+                        if (isValidMove(enemyPiece, x, y, kingX, kingY, board)) {
+                            return true; 
+                        }
                     }
                 }
             }
@@ -1068,11 +997,9 @@
 
         function isMoveLegal(piece, fromX, fromY, toX, toY, board) {
             const targetPiece = board[toY][toX];
-            
-            // 👉 Đã fix lỗi chính tả isMine thành isMyPiece ở đây:
             const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
             const isMyTarget = targetPiece && ((myRole === 'host' && targetPiece.startsWith('R_')) || (myRole === 'guest' && targetPiece.startsWith('B_')));
-            if (isMyPiece && isMyTarget) return false; // Cấm ăn quân mình
+            if (isMyPiece && isMyTarget) return false; 
 
             if (!isValidMove(piece, fromX, fromY, toX, toY, board)) return false;
 
@@ -1081,48 +1008,111 @@
             tempBoard[fromY][fromX] = null;
 
             const myColor = piece.startsWith('R_') ? 'red' : 'black';
-            if (isCheck(myColor, tempBoard)) return false; 
+            if (isCheck(myColor, tempBoard)) {
+                return false; 
+            }
             
             return true; 
         }
 
         // ==========================================
-        // BỘ NÃO LÕI: DI CHUYỂN, KÝ PHỔ, ÂM THANH & BẮT TƯỚNG
+        // 6. TRÁI TIM CỦA GAME (CẦM CỜ & GỬI NGẦM)
         // ==========================================
         window.handleSquareClick = async function(x, y) {
             if (!roomData || roomData.status !== 'playing') return;
-            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt!", "warning");
             
-            const piece = boardState[y][x]; 
+            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
+                return showToast("Từ từ", "Chưa tới lượt!", "warning");
+            }
+
+            const piece = boardState[y][x];
             const isMine = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
-            
+
             if (selectedSquare) {
-                if (selectedSquare.x === x && selectedSquare.y === y) { selectedSquare = null; renderBoard(); return; }
-                if (isMine) { selectedSquare = {x, y}; renderBoard(); } 
-                else {
-                    const fX = selectedSquare.x; const fY = selectedSquare.y; 
-                    const mp = boardState[fY][fX]; const tp = boardState[y][x];
-                    
-                    if (!isMoveLegal(mp, fX, fY, x, y, boardState)) {
-                        selectedSquare = null; renderBoard(); 
+                if (selectedSquare.x === x && selectedSquare.y === y) {
+                    selectedSquare = null;
+                    renderBoard();
+                    return;
+                }
+
+                if (isMine) {
+                    selectedSquare = {x, y};
+                    renderBoard();
+                } else {
+                    const fromX = selectedSquare.x; 
+                    const fromY = selectedSquare.y;
+                    const movingPiece = boardState[fromY][fromX];
+                    const targetPiece = boardState[y][x]; 
+
+                    // 👉 KIỂM TRA LUẬT & TỰ SÁT
+                    if (!isMoveLegal(movingPiece, fromX, fromY, x, y, boardState)) {
+                        showToast("Không được", "Đi sai luật hoặc tự sát!", "warning");
+                        selectedSquare = null; 
+                        renderBoard(); 
                         return; 
                     }
-                    
-                    moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); 
-                    boardState[y][x] = mp; boardState[fY][fX] = null; selectedSquare = null; 
-                    
-                    const logTxt = getNotation(mp, fX, fY, x, y); 
-                    let curLog = Array.isArray(roomData.move_log) ? roomData.move_log : []; 
-                    const newLog = [...curLog, { turn: roomData.turn, notation: logTxt }];
 
-                    if (tp === 'B_K' || tp === 'R_K') {
-                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, status: 'finished', winner: tp === 'B_K' ? 'red' : 'black', move_log: newLog }).eq('id', roomId);
-                    } else {
-                        const inc = roomData.settings.increment || 0; const nTime = myTimeLeft + inc; 
-                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, turn: roomData.turn === 'red' ? 'black' : 'red', last_time_update: new Date().toISOString(), move_log: newLog, timer_host: myRole === 'host' ? nTime : oppTimeLeft, timer_guest: myRole === 'guest' ? nTime : oppTimeLeft }).eq('id', roomId);
+                    // 👉 ĐI CỜ TRÊN MÁY NGƯỜI CHƠI TRƯỚC CHO MƯỢT
+                    moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); 
+                    boardState[y][x] = movingPiece; 
+                    boardState[fromY][fromX] = null; 
+                    selectedSquare = null; 
+                    
+                    // 👉 KHÓA LƯỢT CỤC BỘ NGAY LẬP TỨC!
+                    const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
+                    roomData.turn = nextTurn; 
+                    renderBoard(); 
+
+                    // 👉 CHUẨN BỊ LOG & THỜI GIAN
+                    const logTxt = getNotation(movingPiece, fromX, fromY, x, y);
+                    let currentLogs = Array.isArray(roomData.move_log) ? roomData.move_log : [];
+                    // Chú ý: Ký phổ vẫn phải lưu là của "turn cũ"
+                    const updatedMoveLog = [...currentLogs, { turn: (nextTurn === 'red' ? 'black' : 'red'), notation: logTxt }];
+                    
+                    let safeInc = (roomData.settings && roomData.settings.increment) ? roomData.settings.increment : 0;
+
+                    // 👉 BẮT ĐẦU VÒNG LẶP GỬI NGẦM VÔ TẬN
+                    let sendSuccess = false;
+                    while (!sendSuccess) {
+                        try {
+                            if (targetPiece === 'B_K' || targetPiece === 'R_K') {
+                                const winnerColor = targetPiece === 'B_K' ? 'red' : 'black';
+                                const {error} = await supabase.from('xiangqi_rooms').update({
+                                    board_state: boardState, 
+                                    status: 'finished', 
+                                    winner: winnerColor, 
+                                    move_log: updatedMoveLog
+                                }).eq('id', roomId);
+                                if (error) throw error;
+                            } else {
+                                const nTime = Math.max(0, Math.floor(myTimeLeft + safeInc)); 
+                                const oTime = Math.max(0, Math.floor(oppTimeLeft));
+                                
+                                const {error} = await supabase.from('xiangqi_rooms').update({
+                                    board_state: boardState, 
+                                    turn: nextTurn, 
+                                    last_time_update: new Date().toISOString(),
+                                    move_log: updatedMoveLog,
+                                    timer_host: myRole === 'host' ? nTime : oTime,
+                                    timer_guest: myRole === 'guest' ? nTime : oTime
+                                }).eq('id', roomId);
+                                if (error) throw error;
+                            }
+                            
+                            sendSuccess = true; // Gửi êm xuôi thì thoát vòng lặp!
+                            
+                        } catch (err) {
+                            console.log("Mạng hơi giật! Đang âm thầm gửi lại...");
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // Đợi 1s thử lại
+                        }
                     }
                 }
-            } else { if (isMine) { selectedSquare = {x, y}; renderBoard(); } }
+            } else {
+                if (isMine) {
+                    selectedSquare = {x, y};
+                    renderBoard();
+                }
+            }
         }
     </script>
     <script src="/mhent-ui.js"></script>
