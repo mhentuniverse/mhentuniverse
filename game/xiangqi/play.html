@@ -265,8 +265,8 @@
                         <i class="fa-solid fa-pause"></i> Dừng Trận (Time Break)
                     </button>
                     
-                    <button class="btn-action draw"><i class="fa-solid fa-handshake"></i> Xin Cầu Hòa</button>
-                    <button class="btn-action resign" onclick="confirmLeave()"><i class="fa-solid fa-flag-checkered"></i> Đầu Hàng / Rời Bàn</button>
+                    <button class="btn-action draw" onclick="requestDraw()"><i class="fa-solid fa-handshake"></i> Xin Cầu Hòa</button>
+                    <button class="btn-action resign" onclick="resignGame()"><i class="fa-solid fa-flag-checkered"></i> Đầu Hàng</button>
                 </div>
             </div>
         </div>
@@ -509,7 +509,37 @@
                 updateBreakUI(); // Gọi lần 1 ngay lập tức để không bị đen màn hình 1s
                 breakTimer = setInterval(updateBreakUI, 1000); // Lặp lại mỗi giây
             }
-        }
+            else if (data.status === 'finished') {
+                    clearInterval(localTimer); 
+                    clearInterval(breakTimer);
+                    btnBreak.style.display = 'none'; 
+                    overlay.style.display = 'flex';
+                    
+                    let message = "";
+                    let color = "#10b981"; // Màu xanh lá
+                    
+                    if (data.winner === 'draw') {
+                        message = "HÒA NHAU!";
+                        color = "#f59e0b"; // Màu cam
+                    } else {
+                        const myColor = myRole === 'host' ? 'red' : 'black';
+                        if (data.winner === myColor) {
+                            message = "CẬU ĐÃ THẮNG! 🎉";
+                            color = "#10b981";
+                        } else {
+                            message = "CẬU ĐÃ THUA! 💀";
+                            color = "#ef4444"; // Màu đỏ
+                        }
+                    }
+
+                    overlay.innerHTML = `
+                        <i class="fa-solid fa-trophy fa-4x" style="color: ${color}; margin-bottom: 20px;"></i>
+                        <h1 style="font-size: 50px; color: ${color}; margin: 0; text-shadow: 0 5px 20px ${color};">${message}</h1>
+                        <p style="color:#94a3b8; margin-top: 10px;">Ván đấu đã kết thúc.</p>
+                        <button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 18px; margin-top: 20px;" onclick="window.location.href='/game/xiangqi'">Rời Bàn</button>
+                    `;
+                }
+            }
 
         // ==========================================
         // CÁC HÀM XỬ LÝ GIAO DIỆN & ĐỒNG HỒ
@@ -840,6 +870,90 @@
                     renderBoard();
                 }
             }
+        }
+
+        // ==========================================
+        // LOGIC KẾT THÚC GAME & NÚT CHỨC NĂNG
+        // ==========================================
+        
+        // Ghi đè lại hàm handleSquareClick để thêm logic Bắt Tướng
+        window.handleSquareClick = async function(x, y) {
+            if (!roomData || roomData.status !== 'playing') return;
+            
+            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
+                return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt của cậu!", "warning");
+            }
+
+            const piece = boardState[y][x];
+            const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
+
+            if (selectedSquare) {
+                if (selectedSquare.x === x && selectedSquare.y === y) {
+                    selectedSquare = null; renderBoard(); return;
+                }
+
+                if (isMyPiece) {
+                    selectedSquare = {x, y}; renderBoard();
+                } else {
+                    const fromX = selectedSquare.x; const fromY = selectedSquare.y;
+                    const movingPiece = boardState[fromY][fromX];
+                    const targetPiece = boardState[y][x]; // Quân cờ mục tiêu sắp bị ăn
+
+                    if (!isValidMove(movingPiece, fromX, fromY, x, y, boardState)) return; 
+
+                    // Di chuyển cờ
+                    boardState[y][x] = movingPiece; 
+                    boardState[fromY][fromX] = null; 
+                    selectedSquare = null; 
+                    
+                    // KIỂM TRA XEM CÓ ĂN TRÚNG TƯỚNG KHÔNG?
+                    let isGameOver = false;
+                    let winnerColor = null;
+                    if (targetPiece === 'B_K') { isGameOver = true; winnerColor = 'red'; }
+                    else if (targetPiece === 'R_K') { isGameOver = true; winnerColor = 'black'; }
+
+                    if (isGameOver) {
+                        try {
+                            await supabase.from('xiangqi_rooms').update({
+                                board_state: boardState, status: 'finished', winner: winnerColor
+                            }).eq('id', roomId);
+                        } catch(e) {}
+                    } else {
+                        // Nếu chưa hết game thì đi bình thường
+                        const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
+                        const inc = roomData.settings.increment || 0; 
+                        const newMyTime = myTimeLeft + inc; 
+                        
+                        try {
+                            await supabase.from('xiangqi_rooms').update({
+                                board_state: boardState, turn: nextTurn, last_time_update: new Date().toISOString(),
+                                timer_host: myRole === 'host' ? newMyTime : oppTimeLeft,
+                                timer_guest: myRole === 'guest' ? newMyTime : oppTimeLeft
+                            }).eq('id', roomId);
+                        } catch(e) { showToast("Lỗi", "Chưa gửi được nước đi!", "error"); }
+                    }
+                }
+            } else {
+                if (isMyPiece) { selectedSquare = {x, y}; renderBoard(); }
+            }
+        }
+
+        // --- Nút Đầu Hàng ---
+        window.resignGame = function() {
+            if(roomData.status !== 'playing') return;
+            showConfirmPopup("Đầu Hàng", "Cậu có chắc chắn muốn nhận thua ván này không?", async () => {
+                const loserColor = myRole === 'host' ? 'red' : 'black';
+                const winnerColor = loserColor === 'red' ? 'black' : 'red';
+                await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: winnerColor }).eq('id', roomId);
+            });
+        }
+
+        // --- Nút Cầu Hòa (Tạm thời là tự động hòa nếu bấm đồng ý) ---
+        window.requestDraw = function() {
+            if(roomData.status !== 'playing') return;
+            showConfirmPopup("Cầu Hòa", "Nhân nhượng nhau một bước, hai bên cùng hòa nhé?", async () => {
+                await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: 'draw' }).eq('id', roomId);
+            });
         }
     </script>
     <script src="/mhent-ui.js"></script>
