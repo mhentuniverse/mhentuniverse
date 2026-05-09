@@ -614,17 +614,24 @@
 
         function handleTimeOut(who) {
             clearInterval(localTimer); 
-            // Lỗi cũ là tớ chỉ hiện Toast chứ quên "khóa" bàn cờ. 
-            // Giờ ai bị hết giờ thì máy người đó tự động bắn lệnh nhận thua lên mây!
+            
+            let winnerColor = '';
+            
             if (who === 'me') {
+                // Mình cạn giờ -> Đối thủ thắng
+                winnerColor = myRole === 'host' ? 'black' : 'red';
                 showToast("Hết Giờ", "Cậu đã cạn thời gian!", "error");
-                const winnerColor = myRole === 'host' ? 'black' : 'red';
-                supabase.from('xiangqi_rooms').update({ 
-                    status: 'finished', winner: winnerColor 
-                }).eq('id', roomId);
             } else {
+                // Đếm thấy đối thủ cạn giờ -> Mình thắng
+                winnerColor = myRole === 'host' ? 'red' : 'black';
                 showToast("Hết Giờ", "Đối thủ đã cạn thời gian!", "success");
             }
+
+            // Máy nào phát hiện hết giờ trước, máy đó chốt hạ kết quả lên Supabase ngay lập tức!
+            supabase.from('xiangqi_rooms').update({ 
+                status: 'finished', 
+                winner: winnerColor 
+            }).eq('id', roomId);
         }
 
         // --- HÀM XIN TIME BREAK ---
