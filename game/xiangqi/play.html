@@ -1038,14 +1038,13 @@
                     last_time_update: new Date().toISOString() 
                 }).eq('id', roomId);
             }
+        } // ĐÓNG NGOẶC HÀM CẦU HÒA Ở ĐÂY! KHÔNG ĐƯỢC NUỐT CÁC HÀM KHÁC VÀO TRONG!
 
-            // ==========================================
+        // ==========================================
         // THUẬT TOÁN ĐỈNH CAO: CHECK & PROHIBITED MOVES
         // ==========================================
 
-        // Hàm 1: Kiểm tra xem Tướng của phe 'color' có đang bị chiếu không?
         function isCheck(color, board) {
-            // 1. Tìm vị trí của Tướng màu 'color'
             let kingX = -1; let kingY = -1;
             const kingPiece = color === 'red' ? 'R_K' : 'B_K';
             for (let y = 0; y < 10; y++) {
@@ -1054,51 +1053,76 @@
                 }
                 if (kingX !== -1) break;
             }
-            if (kingX === -1) return false; // Không tìm thấy Tướng? (Lỗi!)
+            if (kingX === -1) return false; 
 
-            // 2. Quét toàn bộ quân của đối thủ xem có con nào đang chiếu Tướng không?
             for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 9; x++) {
                     const enemyPiece = board[y][x];
                     if (enemyPiece && !enemyPiece.startsWith(color === 'red' ? 'R_' : 'B_')) {
-                        // Nếu là quân địch, kiểm tra xem nó có thể đi vào ô Tướng của mình không?
-                        if (isValidMove(enemyPiece, x, y, kingX, kingY, board)) {
-                            return true; // Có một quân địch đang chiếu tướng!
-                        }
+                        if (isValidMove(enemyPiece, x, y, kingX, kingY, board)) return true; 
                     }
                 }
             }
             return false;
         }
 
-        // Hàm 2: Kiểm tra xem nước đi có phạm luật (Làm Tướng bị chiếu) không?
         function isMoveLegal(piece, fromX, fromY, toX, toY, board) {
-            // 1. Cấm ăn quân mình
             const targetPiece = board[toY][toX];
+            
+            // 👉 Đã fix lỗi chính tả isMine thành isMyPiece ở đây:
             const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
             const isMyTarget = targetPiece && ((myRole === 'host' && targetPiece.startsWith('R_')) || (myRole === 'guest' && targetPiece.startsWith('B_')));
-            if (isMine && isMyTarget) return false;
+            if (isMyPiece && isMyTarget) return false; // Cấm ăn quân mình
 
-            // 2. Kiểm tra luật đi cờ cơ bản
             if (!isValidMove(piece, fromX, fromY, toX, toY, board)) return false;
 
-            // 3. THUẬT TOÁN "BÓI TOÁN": Giả sử nước đi này được thực hiện...
-            // Tạo một bản sao tạm thời của bàn cờ
             const tempBoard = JSON.parse(JSON.stringify(board));
             tempBoard[toY][toX] = piece;
             tempBoard[fromY][fromX] = null;
 
-            // ... rồi kiểm tra xem sau nước đi đó, Tướng của mình có bị chiếu không?
             const myColor = piece.startsWith('R_') ? 'red' : 'black';
-            if (isCheck(myColor, tempBoard)) {
-                return false; // Nước đi phạm luật, tự sát, cấm!
-            }
+            if (isCheck(myColor, tempBoard)) return false; 
             
-            return true; // Nước đi hợp lệ, Tướng an toàn
+            return true; 
         }
 
-        // --- Cập nhật lại Hàm handleSquareClick để dùng Bộ Não mới ---
-        
+        // ==========================================
+        // BỘ NÃO LÕI: DI CHUYỂN, KÝ PHỔ, ÂM THANH & BẮT TƯỚNG
+        // ==========================================
+        window.handleSquareClick = async function(x, y) {
+            if (!roomData || roomData.status !== 'playing') return;
+            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt!", "warning");
+            
+            const piece = boardState[y][x]; 
+            const isMine = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
+            
+            if (selectedSquare) {
+                if (selectedSquare.x === x && selectedSquare.y === y) { selectedSquare = null; renderBoard(); return; }
+                if (isMine) { selectedSquare = {x, y}; renderBoard(); } 
+                else {
+                    const fX = selectedSquare.x; const fY = selectedSquare.y; 
+                    const mp = boardState[fY][fX]; const tp = boardState[y][x];
+                    
+                    if (!isMoveLegal(mp, fX, fY, x, y, boardState)) {
+                        selectedSquare = null; renderBoard(); 
+                        return; 
+                    }
+                    
+                    moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); 
+                    boardState[y][x] = mp; boardState[fY][fX] = null; selectedSquare = null; 
+                    
+                    const logTxt = getNotation(mp, fX, fY, x, y); 
+                    let curLog = Array.isArray(roomData.move_log) ? roomData.move_log : []; 
+                    const newLog = [...curLog, { turn: roomData.turn, notation: logTxt }];
+
+                    if (tp === 'B_K' || tp === 'R_K') {
+                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, status: 'finished', winner: tp === 'B_K' ? 'red' : 'black', move_log: newLog }).eq('id', roomId);
+                    } else {
+                        const inc = roomData.settings.increment || 0; const nTime = myTimeLeft + inc; 
+                        await supabase.from('xiangqi_rooms').update({ board_state: boardState, turn: roomData.turn === 'red' ? 'black' : 'red', last_time_update: new Date().toISOString(), move_log: newLog, timer_host: myRole === 'host' ? nTime : oppTimeLeft, timer_guest: myRole === 'guest' ? nTime : oppTimeLeft }).eq('id', roomId);
+                    }
+                }
+            } else { if (isMine) { selectedSquare = {x, y}; renderBoard(); } }
         }
     </script>
     <script src="/mhent-ui.js"></script>
