@@ -199,15 +199,26 @@
         /* BÀN CỜ & QUÂN CỜ                           */
         /* ========================================== */
         #xiangqi-board {
-            width: calc(100% - 40px); 
-            height: calc(100% - 40px);
-            position: relative;
-            background-image: 
-                linear-gradient(#8b5a2b 2px, transparent 2px),
-                linear-gradient(90deg, #8b5a2b 2px, transparent 2px);
-            background-size: 12.5% 11.111%;
-            background-position: 0 0;
-            background-repeat: repeat; /* Ép nó lặp lại đều đặn không đứt quãng */
+            width: calc(100% - 40px); height: calc(100% - 40px); position: relative;
+            background-image: linear-gradient(#8b5a2b 2px, transparent 2px), linear-gradient(90deg, #8b5a2b 2px, transparent 2px);
+            background-size: 12.5% 11.111%; background-position: 0 0; background-repeat: repeat;
+            /* 👉 FIX LỖI MẤT LINE NÈ SẾP: */
+            border-right: 2px solid #8b5a2b; 
+            border-bottom: 2px solid #8b5a2b; 
+        }
+
+        /* 👉 CLASS MỚI: TẠO CÁC ĐIỂM CHẠM VÔ HÌNH ĐỂ BẤM CHUỘT */
+        .xq-spot {
+            position: absolute; width: 40px; height: 40px; margin-top: -20px; margin-left: -20px;
+            border-radius: 50%; z-index: 10; cursor: pointer; display: flex; justify-content: center; align-items: center;
+        }
+        .xq-spot:hover { background: rgba(255, 255, 255, 0.2); }
+        .xq-spot.selected .xq-piece { border-color: #10b981; box-shadow: 0 0 20px #10b981; transform: scale(1.15) translateY(-3px); }
+        
+        .xq-piece { /* Xóa bớt margin & absolute cũ vì nó đã được bọc trong xq-spot */
+            width: 40px; height: 40px; border-radius: 50%; background: #fdf5e6; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(0,0,0,0.2);
+            border: 2px solid #8b5a2b; display: flex; justify-content: center; align-items: center;
+            font-family: 'KaiTi', 'Times New Roman', serif; font-size: 22px; font-weight: 900; transition: all 0.2s ease-out; user-select: none; pointer-events: none;
         }
 
         /* Vẽ Cung Tướng (Palace) Hình chữ X */
@@ -667,39 +678,86 @@
             'R_K': '帥', 'R_A': '仕', 'R_E': '相', 'R_H': '傌', 'R_R': '俥', 'R_C': '炮', 'R_P': '兵'
         };
 
+        let selectedSquare = null; // Biến nhớ tọa độ quân cờ đang được sếp nhấc lên
+
         function renderBoard() {
             const boardEl = document.getElementById('xiangqi-board');
-            
-            // 👉 CẬP NHẬT: Không xóa Sông (.river-line) và Cung Tướng (.palace)
             Array.from(boardEl.children).forEach(child => {
-                if(!child.classList.contains('river-line') && !child.classList.contains('palace')) {
-                    child.remove();
-                }
+                if(!child.classList.contains('river-line') && !child.classList.contains('palace')) child.remove();
             });
 
-            // Lưới 9x10 -> X từ 0 đến 8, Y từ 0 đến 9
+            // Nếu trên mây có board_state thì lấy xài, chưa có thì lấy mảng mặc định
+            if (roomData && roomData.board_state) boardState = roomData.board_state;
+
             for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 9; x++) {
+                    const leftPct = myRole === 'guest' ? (100 - (x/8)*100) : (x/8)*100;
+                    const topPct = myRole === 'guest' ? (100 - (y/9)*100) : (y/9)*100;
+
+                    // Tạo ô click vô hình
+                    const spotEl = document.createElement('div');
+                    spotEl.className = 'xq-spot';
+                    spotEl.style.left = `${leftPct}%`; spotEl.style.top = `${topPct}%`;
+                    spotEl.onclick = () => handleSquareClick(x, y);
+
+                    // Đánh dấu quân cờ đang chọn
+                    if (selectedSquare && selectedSquare.x === x && selectedSquare.y === y) spotEl.classList.add('selected');
+
                     const piece = boardState[y][x];
                     if (piece) {
                         const isRed = piece.startsWith('R_');
                         const pieceEl = document.createElement('div');
                         pieceEl.className = `xq-piece ${isRed ? 'red' : 'black'}`;
                         pieceEl.innerText = pieceLabels[piece];
-                        
-                        const leftPct = (x / 8) * 100;
-                        const topPct = (y / 9) * 100;
-                        
-                        if (myRole === 'guest') {
-                            pieceEl.style.left = `${100 - leftPct}%`;
-                            pieceEl.style.top = `${100 - topPct}%`;
-                        } else {
-                            pieceEl.style.left = `${leftPct}%`;
-                            pieceEl.style.top = `${topPct}%`;
-                        }
-
-                        boardEl.appendChild(pieceEl);
+                        spotEl.appendChild(pieceEl); // Nhét cờ vào trong ô click
                     }
+                    boardEl.appendChild(spotEl);
+                }
+            }
+        }
+
+        // LÕI LOGIC: CẦM & ĐẶT CỜ
+        window.handleSquareClick = async function(x, y) {
+            if (!roomData || roomData.status !== 'playing') return;
+            
+            // Chống đi ké: Đen không được đánh trong lượt Đỏ và ngược lại
+            if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
+                return showToast("Bình tĩnh sếp ơi", "Chưa tới lượt của cậu!", "warning");
+            }
+
+            const piece = boardState[y][x];
+            const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
+
+            if (selectedSquare) {
+                if (isMyPiece) {
+                    // Sếp đang cầm quân này, nhưng lại bấm sang quân khác của mình -> Đổi cầm quân mới
+                    selectedSquare = {x, y};
+                    renderBoard();
+                } else {
+                    // Sếp đang cầm quân, và bấm vào ô trống hoặc quân địch -> DI CHUYỂN & ĂN CỜ!
+                    const fromX = selectedSquare.x; const fromY = selectedSquare.y;
+                    const movingPiece = boardState[fromY][fromX];
+
+                    // TẠM THỜI CHƯA XÉT LUẬT LỆ RƯỜM RÀ, CHO ĐI TỰ DO ĐỂ TEST TRƯỚC
+                    boardState[y][x] = movingPiece; // Đặt quân vào ô mới
+                    boardState[fromY][fromX] = null; // Xóa quân ở ô cũ
+                    selectedSquare = null; // Bỏ tay ra
+                    
+                    // Gửi bản đồ mới lên Supabase và nhường lượt cho đối thủ
+                    const nextTurn = roomData.turn === 'red' ? 'black' : 'red';
+                    try {
+                        await supabase.from('xiangqi_rooms').update({
+                            board_state: boardState,
+                            turn: nextTurn,
+                            last_time_update: new Date().toISOString()
+                        }).eq('id', roomId);
+                    } catch(e) { console.error(e); showToast("Lỗi", "Chưa gửi được nước đi!", "error"); }
+                }
+            } else {
+                if (isMyPiece) {
+                    // Tay đang không cầm gì, bấm vào quân mình -> Cầm lên (Sáng viền xanh)
+                    selectedSquare = {x, y};
+                    renderBoard();
                 }
             }
         }
