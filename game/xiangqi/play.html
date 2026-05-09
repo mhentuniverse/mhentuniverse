@@ -196,18 +196,21 @@
         }
 
         /* ========================================== */
-        /* BÀN CỜ & QUÂN CỜ                           */
+        /* BÀN CỜ VẼ BẰNG SVG & QUÂN CỜ CHUẨN         */
         /* ========================================== */
         #xiangqi-board {
             width: calc(100% - 40px); height: calc(100% - 40px); position: relative;
-            background-image: linear-gradient(#8b5a2b 2px, transparent 2px), linear-gradient(90deg, #8b5a2b 2px, transparent 2px);
-            background-size: 12.5% 11.111%; background-position: 0 0; background-repeat: repeat;
-            /* 👉 FIX LỖI MẤT LINE NÈ SẾP: */
-            border-right: 2px solid #8b5a2b; 
-            border-bottom: 2px solid #8b5a2b; 
+            background-size: 100% 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 90'%3E%3Cg stroke='%238b5a2b' stroke-width='0.4' fill='none'%3E%3Cpath d='M0,0 H80 M0,10 H80 M0,20 H80 M0,30 H80 M0,40 H80 M0,50 H80 M0,60 H80 M0,70 H80 M0,80 H80 M0,90 H80'/%3E%3Cpath d='M0,0 V90 M80,0 V90'/%3E%3Cpath d='M10,0 V40 M10,50 V90 M20,0 V40 M20,50 V90 M30,0 V40 M30,50 V90 M40,0 V40 M40,50 V90 M50,0 V40 M50,50 V90 M60,0 V40 M60,50 V90 M70,0 V40 M70,50 V90'/%3E%3Cpath d='M30,0 L50,20 M50,0 L30,20 M30,70 L50,90 M50,70 L30,90'/%3E%3C/g%3E%3C/svg%3E");
         }
 
-        /* 👉 CLASS MỚI: TẠO CÁC ĐIỂM CHẠM VÔ HÌNH ĐỂ BẤM CHUỘT */
+        .river-line {
+            position: absolute; top: 44.444%; left: 0; width: 100%; height: 11.111%;
+            display: flex; justify-content: center; align-items: center; gap: 40px; z-index: 1;
+        }
+        .river-text { font-family: 'KaiTi', 'Times New Roman', serif; font-size: 28px; font-weight: bold; color: #5c3a21; letter-spacing: 5px; }
+        .river-logo { height: 50px; opacity: 0.25; user-select: none; pointer-events: none; filter: grayscale(20%) contrast(120%); transition: opacity 0.3s; }
+
         .xq-spot {
             position: absolute; width: 40px; height: 40px; margin-top: -20px; margin-left: -20px;
             border-radius: 50%; z-index: 10; cursor: pointer; display: flex; justify-content: center; align-items: center;
@@ -215,54 +218,11 @@
         .xq-spot:hover { background: rgba(255, 255, 255, 0.2); }
         .xq-spot.selected .xq-piece { border-color: #10b981; box-shadow: 0 0 20px #10b981; transform: scale(1.15) translateY(-3px); }
         
-        .xq-piece { /* Xóa bớt margin & absolute cũ vì nó đã được bọc trong xq-spot */
+        .xq-piece { 
             width: 40px; height: 40px; border-radius: 50%; background: #fdf5e6; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(0,0,0,0.2);
             border: 2px solid #8b5a2b; display: flex; justify-content: center; align-items: center;
             font-family: 'KaiTi', 'Times New Roman', serif; font-size: 22px; font-weight: 900; transition: all 0.2s ease-out; user-select: none; pointer-events: none;
         }
-
-        /* Vẽ Cung Tướng (Palace) Hình chữ X */
-        .palace {
-            position: absolute;
-            width: 25%; /* Rộng 2 ô */
-            height: 22.222%; /* Cao 2 ô */
-            left: 37.5%; /* Canh giữa */
-            border: 2px solid #8b5a2b;
-            box-sizing: border-box;
-            z-index: 0;
-        }
-        /* Dùng ảnh nhúng SVG siêu nhẹ để vẽ 2 đường chéo chữ X siêu nét */
-        .palace::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cline x1='0' y1='0' x2='100' y2='100' stroke='%238b5a2b' stroke-width='2'/%3E%3Cline x1='100' y1='0' x2='0' y2='100' stroke='%238b5a2b' stroke-width='2'/%3E%3C/svg%3E");
-        }
-        .palace.top { top: 0; }
-        .palace.bottom { bottom: 0; }
-
-        /* Vạch kẻ chia sông (Sở hà Hán giới) */
-        .river-line {
-            position: absolute;
-            top: 44.444%; 
-            left: 0; width: 100%; height: 11.111%;
-            background: var(--board-wood); 
-            border-top: 2px solid #8b5a2b; border-bottom: 2px solid #8b5a2b;
-            display: flex; justify-content: center; align-items: center; gap: 40px; 
-            z-index: 1;
-        }
-        .river-text { font-family: 'KaiTi', 'Times New Roman', serif; font-size: 28px; font-weight: bold; color: #5c3a21; letter-spacing: 5px; }
-        .river-logo { height: 50px; opacity: 0.25; user-select: none; pointer-events: none; filter: grayscale(20%) contrast(120%); transition: opacity 0.3s; }
-        
-        .xq-piece { /* Giữ nguyên không đổi */
-            position: absolute; width: 40px; height: 40px; margin-top: -20px; margin-left: -20px;
-            border-radius: 50%; background: #fdf5e6; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(0,0,0,0.2);
-            border: 2px solid #8b5a2b; display: flex; justify-content: center; align-items: center;
-            font-family: 'KaiTi', 'Times New Roman', serif; font-size: 22px; font-weight: 900;
-            cursor: pointer; transition: all 0.2s ease-out; z-index: 10; user-select: none;
-        }
-        .xq-piece:hover { transform: scale(1.15) translateY(-3px); box-shadow: 0 8px 12px rgba(0,0,0,0.5); z-index: 20; }
-        .xq-piece.red { color: #dc2626; border-color: #dc2626; text-shadow: 0 1px 1px rgba(220, 38, 38, 0.3);}
-        .xq-piece.black { color: #1e293b; border-color: #1e293b; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);}
-
     </style>
 </head>
 <body class="dark-mode">
