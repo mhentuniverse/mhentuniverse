@@ -373,13 +373,26 @@
                 // 🌐 NẾU LÀ ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
+
+                const returnPath = new URLSearchParams(window.location.search).get('redirect');
                 
                 if (userSnap.exists() && userSnap.data().isProfileSetup) {
+                    // ✅ TRƯỜNG HỢP ĐÃ CÓ HỒ SƠ: Trả về trang cũ hoặc về Hub
                     showPopup('Đang kết nối cổng không gian...', false);
-                    setTimeout(() => window.location.href = '/', 1500);
+                    setTimeout(() => {
+                        window.location.href = returnPath ? returnPath : '/';
+                    }, 1500);
                 } else {
-                    showPopup('Hãy thiết lập hồ sơ trước nhé!', false);
-                    setTimeout(() => window.location.href = '/profile?setup=true', 1500);
+                    // 🆕 TRƯỜNG HỢP USER MỚI (CHƯA SETUP PROFILE): Đẩy đi làm hồ sơ
+                    showPopup('Chào mừng đặc vụ mới! Đang chuyển hướng thiết lập hồ sơ...', false);
+                    setTimeout(() => {
+                        // 👉 Truyền tiếp cái "vé khứ hồi" sang trang Profile
+                        let profileUrl = '/profile.html';
+                        if (returnPath) {
+                            profileUrl += '?redirect=' + encodeURIComponent(returnPath);
+                        }
+                        window.location.href = profileUrl;
+                    }, 1500);
                 }
             } catch (error) { 
                 console.error(error);

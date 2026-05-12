@@ -386,9 +386,16 @@
                 showToast('Thành công', 'Hồ sơ đã được cập nhật!', 'success');
 
                 const urlParams = new URLSearchParams(window.location.search);
+                // 👉 Bắt lấy "vé khứ hồi" từ URL
+                const returnPath = urlParams.get('redirect'); 
+
                 if (urlParams.get('setup') === 'true') {
-                    setTimeout(() => window.location.href = '/', 1500); 
+                    // Trạng thái Setup User mới: Ưu tiên trả về link xem phim nếu có vé
+                    setTimeout(() => {
+                        window.location.href = returnPath ? returnPath : '/';
+                    }, 1500); 
                 } else {
+                    // Trạng thái User cũ vào sửa thông tin bình thường: Chỉ cần reload
                     setTimeout(() => location.reload(), 1000); 
                 }
             } catch (error) { showToast('Lỗi', 'Không thể cập nhật lúc này.', 'error'); }
