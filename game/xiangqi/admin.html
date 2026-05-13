@@ -35,6 +35,7 @@
             overflow-y: auto; 
             z-index: 10; 
             box-sizing: border-box; 
+            transition: background 0.3s, border-color 0.3s; 
         }
 
         .admin-menu-item { 
@@ -46,19 +47,36 @@
             color: #64748b; 
             font-weight: 800; 
             cursor: pointer; 
-            transition: 0.3s; 
+            transition: background 0.3s, color 0.3s, box-shadow 0.3s; 
             margin-bottom: 5px; 
+            text-decoration: none; 
+            background: transparent; 
         }
 
         .admin-menu-item:hover { 
-            background: #f1f5f9; 
+            background: rgba(239, 68, 68, 0.08); 
             color: var(--hub-color); 
         }
 
         .admin-menu-item.active { 
             background: var(--hub-bg); 
             color: var(--hub-color); 
-            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15); 
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.18); 
+        }
+
+        .admin-menu-item i { 
+            width: 18px; 
+            text-align: center; 
+        }
+
+        .navbar { 
+            border-bottom: 1px solid rgba(239, 68, 68, 0.15); 
+            background: rgba(255,255,255,0.97); 
+            backdrop-filter: blur(12px); 
+        }
+
+        .navbar .nav-left a, .navbar .nav-right button { 
+            color: inherit; 
         }
         
         /* ===== CONTENT AREA ===== */
@@ -422,12 +440,23 @@
 
         /* ===== DARK MODE ===== */
         body.dark-mode .admin-sidebar { 
-            background: #1e293b; 
+            background: #0f172a; 
             border-color: #334155; 
+        }
+
+        body.dark-mode .admin-menu-item { 
+            color: #cbd5e1; 
         }
 
         body.dark-mode .admin-menu-item:hover { 
             background: #334155; 
+            color: #f8fafc; 
+        }
+
+        body.dark-mode .admin-menu-item.active { 
+            background: rgba(239, 68, 68, 0.18); 
+            color: #f8fafc; 
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.22); 
         }
 
         body.dark-mode .admin-content { 
@@ -521,8 +550,9 @@
                 box-sizing: border-box; 
             }
 
-            .admin-sidebar > div:first-child { 
-                display: none; 
+            /* Không ẩn phần tử đầu trong menu ngang vì Xiangqi chỉ dùng các menu item */
+            .admin-sidebar > a:first-child { 
+                display: block; 
             } 
             
             .admin-menu-item { 
@@ -615,11 +645,11 @@
 
     <div class="admin-layout">
         <aside class="admin-sidebar">
-            <div class="admin-menu-item active" onclick="window.switchTab('dash', this)"><i class="fa-solid fa-satellite-dish"></i> Đài Chỉ Huy</div>
-            <div class="admin-menu-item" onclick="window.switchTab('create', this)"><i class="fa-solid fa-plus-circle"></i> Tạo Phòng Đặc Biệt</div>
-            <div class="admin-menu-item" onclick="window.switchTab('manage', this)"><i class="fa-solid fa-users-cog"></i> Quản Lý VĐV</div>
-            <div class="admin-menu-item" onclick="window.switchTab('bulk', this)"><i class="fa-solid fa-lock-open"></i> Mở Khóa Đấu Trường</div>
-            <div class="admin-menu-item" onclick="window.switchTab('history', this)"><i class="fa-solid fa-book"></i> Biên Bản</div>
+            <a class="admin-menu-item active" id="menu-dash" onclick="switchTab('dash')"><i class="fa-solid fa-satellite-dish"></i> Đài Chỉ Huy</a>
+            <a class="admin-menu-item" id="menu-create" onclick="switchTab('create')"><i class="fa-solid fa-plus-circle"></i> Tạo Phòng Đặc Biệt</a>
+            <a class="admin-menu-item" id="menu-manage" onclick="switchTab('manage')"><i class="fa-solid fa-users-cog"></i> Quản Lý VĐV</a>
+            <a class="admin-menu-item" id="menu-bulk" onclick="switchTab('bulk')"><i class="fa-solid fa-lock-open"></i> Mở Khóa Đấu Trường</a>
+            <a class="admin-menu-item" id="menu-history" onclick="switchTab('history')"><i class="fa-solid fa-book"></i> Biên Bản</a>
         </aside>
 
         <main class="admin-content">
@@ -797,12 +827,29 @@
         // --- GÁN HÀM RA WINDOW ĐỂ NÚT BẤM GỌI ĐƯỢC (FIX LỖI NOT DEFINED) ---
         window.toggleDarkMode = () => document.body.classList.toggle('dark-mode');
 
-        window.switchTab = (tabName, el) => {
-            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.admin-menu-item').forEach(m => m.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.add('active');
-            el.classList.add('active');
+        window.switchTab = function(tabName) { 
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active')); 
+            document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active')); 
+            document.getElementById('tab-' + tabName).classList.add('active'); 
+            document.getElementById('menu-' + tabName).classList.add('active'); 
+            
+            // Cập nhật URL Hash mà không làm rác lịch sử trình duyệt
+            history.replaceState(null, null, '#' + tabName);
         };
+
+        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            // Khai báo các tab hợp lệ của Xiangqi Admin
+            const validTabs = ['dash', 'create', 'manage', 'bulk', 'history'];
+            
+            if (validTabs.includes(hash)) {
+                switchTab(hash);
+            } else {
+                // Nếu không có hash hoặc nhập sai hash thì mặc định về trang Dashboard
+                switchTab('dash');
+            }
+        });
 
         window.createSpecialRoom = async () => {
             const roomId = document.getElementById('special-room-id').value.trim().toUpperCase();
