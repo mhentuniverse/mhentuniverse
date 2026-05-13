@@ -628,42 +628,42 @@
                     <button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 18px; margin-top: 20px;" onclick="window.location.href='/game/xiangqi'">Rời Bàn</button>
                 `;
             }
-            // 👉 CHÈN THÊM ĐOẠN NÀY VÀO TRƯỚC data.status === 'finished'
+            // 👉 KỊCH BẢN NGHỈ 30 GIÂY
             else if (data.status === 'set_break') {
                 clearInterval(localTimer); 
-                btnBreak.style.display = 'none'; 
-                overlay.style.display = 'none'; // Tắt overlay chờ
                 
                 const setBreakUI = document.getElementById('set-break-overlay');
-                setBreakUI.style.display = 'flex'; // Bật màn hình 30s
+                if(setBreakUI) setBreakUI.style.display = 'flex'; // Bật màn hình 30s
                 
-                // Hiển thị ai vừa thắng ván này
                 const myColor = myRole === 'host' ? 'red' : 'black';
-                if (data.winner === myColor) {
-                    document.getElementById('set-result-title').innerText = "CẬU ĐÃ THẮNG VÁN NÀY!";
-                    document.getElementById('set-result-title').style.color = "#10b981";
-                } else {
-                    document.getElementById('set-result-title').innerText = "CẬU ĐÃ THUA VÁN NÀY!";
-                    document.getElementById('set-result-title').style.color = "#ef4444";
+                const titleEl = document.getElementById('set-result-title');
+                
+                if (titleEl) {
+                    if (data.winner === myColor) {
+                        titleEl.innerText = "CẬU ĐÃ THẮNG VÁN NÀY!";
+                        titleEl.style.color = "#10b981";
+                    } else {
+                        titleEl.innerText = "CẬU ĐÃ THUA VÁN NÀY!";
+                        titleEl.style.color = "#ef4444";
+                    }
                 }
 
-                // Chạy đếm ngược 30s
                 let breakEnd = new Date(data.set_break_ends_at).getTime();
-                clearInterval(breakTimer);
+                if(window.breakTimer) clearInterval(window.breakTimer);
                 
-                breakTimer = setInterval(async () => {
+                window.breakTimer = setInterval(async () => {
                     let now = new Date().getTime();
                     let distance = Math.floor((breakEnd - now) / 1000);
                     
+                    const countEl = document.getElementById('set-countdown');
                     if (distance > 0) {
-                        document.getElementById('set-countdown').innerText = distance;
+                        if(countEl) countEl.innerText = distance;
                     } else {
-                        clearInterval(breakTimer);
-                        setBreakUI.style.display = 'none';
+                        clearInterval(window.breakTimer);
+                        if(setBreakUI) setBreakUI.style.display = 'none';
                         
-                        // 👉 Hết 30s, Host chịu trách nhiệm lật bàn cờ và reset
+                        // Hết 30s, Host lật bàn cờ
                         if (myRole === 'host') {
-                            // Tạo bàn cờ mới tinh
                             const newBoard = [
                                 ['B_R', 'B_H', 'B_E', 'B_A', 'B_K', 'B_A', 'B_E', 'B_H', 'B_R'],
                                 [null,  null,  null,  null,  null,  null,  null,  null,  null ],
@@ -678,9 +678,9 @@
                             ];
                             await supabase.from('xiangqi_rooms').update({ 
                                 status: 'playing', 
-                                turn: 'red', // Luôn để cờ đỏ đi trước
+                                turn: 'red',
                                 board_state: newBoard,
-                                move_log: [], // Xóa sổ xố ván cũ
+                                move_log: [], 
                                 timer_host: roomData.settings.timeLimit * 60,
                                 timer_guest: roomData.settings.timeLimit * 60,
                                 last_time_update: new Date().toISOString() 
@@ -748,27 +748,26 @@
         // HÀM CHỐT SỔ VÁN ĐẤU (THẮNG/THUA/HẾT GIỜ ĐỀU QUA ĐÂY)
         // ==========================================
         window.endCurrentSet = async function(winnerColor, extraPayload = {}) {
-            let newHostScore = roomData.score_host || 0;
-            let newGuestScore = roomData.score_guest || 0;
-            let target = roomData.target_wins || 1;
-            
-            // Host luôn cầm Đỏ (theo quy tắc phòng)
-            if (winnerColor === 'red') newHostScore++; 
-            else newGuestScore++;
+            try {
+                let newHostScore = roomData.score_host || 0;
+                let newGuestScore = roomData.score_guest || 0;
+                let target = roomData.target_wins || 1;
+                
+                if (winnerColor === 'red') newHostScore++; 
+                else newGuestScore++;
 
-            const basePayload = { ...extraPayload, winner: winnerColor, score_host: newHostScore, score_guest: newGuestScore };
+                const basePayload = { ...extraPayload, winner: winnerColor, score_host: newHostScore, score_guest: newGuestScore };
 
-            if (newHostScore >= target || newGuestScore >= target) {
-                // Đã đủ điểm vô địch -> KẾT THÚC CHUNG CUỘC
-                await supabase.from('xiangqi_rooms').update({ 
-                    ...basePayload, status: 'finished'
-                }).eq('id', roomId);
-            } else {
-                // Chưa đủ điểm -> CHẠY MÀN HÌNH NGHỈ 30s
-                let breakEnds = new Date(); breakEnds.setSeconds(breakEnds.getSeconds() + 30);
-                await supabase.from('xiangqi_rooms').update({ 
-                    ...basePayload, status: 'set_break', set_break_ends_at: breakEnds.toISOString()
-                }).eq('id', roomId);
+                if (newHostScore >= target || newGuestScore >= target) {
+                    await supabase.from('xiangqi_rooms').update({ ...basePayload, status: 'finished' }).eq('id', roomId);
+                } else {
+                    let breakEnds = new Date(); breakEnds.setSeconds(breakEnds.getSeconds() + 30);
+                    await supabase.from('xiangqi_rooms').update({ 
+                        ...basePayload, status: 'set_break', set_break_ends_at: breakEnds.toISOString() 
+                    }).eq('id', roomId);
+                }
+            } catch (err) {
+                console.error("Lỗi khi chốt sổ:", err);
             }
         };
 
@@ -778,13 +777,11 @@
             const myColor = myRole === 'host' ? 'red' : 'black';
             const winnerColor = (who === 'me') ? (myColor === 'red' ? 'black' : 'red') : myColor;
 
-            if (who === 'me') {
-                showToast("Hết Giờ", "Cậu đã cạn thời gian!", "error");
-            } else {
-                showToast("Hết Giờ", "Đối thủ đã cạn thời gian!", "success");
-            }
+            if (who === 'me') showToast("Hết Giờ", "Cậu đã cạn thời gian!", "error");
+            else showToast("Hết Giờ", "Đối thủ đã cạn thời gian!", "success");
             
-            endCurrentSet(winnerColor);
+            // Ép gọi thẳng hàm window để không bị lỗi module
+            window.endCurrentSet(winnerColor); 
         }
 
         window.requestTimeBreak = async function() {
@@ -849,12 +846,11 @@
 
         window.resignGame = function() {
             if(roomData.status !== 'playing') return;
-            showConfirmPopup("Đầu Hàng", "Cậu có chắc chắn muốn nhận thua ván này không?", async () => {
+            showConfirmPopup("Đầu Hàng", "Cậu có chắc chắn muốn nhận thua ván này không?", () => {
                 const loserColor = myRole === 'host' ? 'red' : 'black';
                 const winnerColor = loserColor === 'red' ? 'black' : 'red';
                 
-                // Đẩy qua hàm chốt sổ thay vì chốt chết thành 'finished'
-                endCurrentSet(winnerColor);
+                window.endCurrentSet(winnerColor);
             });
         }
 
