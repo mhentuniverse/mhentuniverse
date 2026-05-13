@@ -517,7 +517,26 @@
                         overlay.innerHTML = `<i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2><button class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>`;
                     }
                 }
-            } 
+                // 👉 MA THUẬT ĐÓNG BĂNG TỪ TRỌNG TÀI
+                const btnReady = document.getElementById('btn-ready'); // Nút sẵn sàng
+                
+                if (btnReady) {
+                    if (data.admin_locked) {
+                        // Khóa nút lại
+                        btnReady.disabled = true;
+                        btnReady.innerHTML = '<i class="fa-solid fa-lock"></i> TRỌNG TÀI ĐANG THIẾT LẬP...';
+                        btnReady.style.background = '#64748b'; // Màu xám xịt
+                        btnReady.style.cursor = 'not-allowed';
+                    } else {
+                        // Trọng tài đã mở khóa -> Nhả nút ra
+                        const isAmIReady = myRole === 'host' ? data.host_ready : data.guest_ready;
+                        btnReady.disabled = isAmIReady;
+                        btnReady.innerHTML = isAmIReady ? '<i class="fa-solid fa-check"></i> ĐÃ SẴN SÀNG' : '<i class="fa-solid fa-bolt"></i> SẴN SÀNG CHIẾN';
+                        btnReady.style.background = isAmIReady ? '#64748b' : '#10b981';
+                        btnReady.style.cursor = isAmIReady ? 'not-allowed' : 'pointer';
+                    }
+                }
+            }
             else if (data.status === 'playing') {
                 statusEl.className = 'match-status';
                 statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra';
