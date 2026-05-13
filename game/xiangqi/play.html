@@ -744,22 +744,47 @@
             document.querySelector('#opponent-card .player-timer').innerText = formatTime(oppTimeLeft);
         }
 
+        // ==========================================
+        // HÀM CHỐT SỔ VÁN ĐẤU (THẮNG/THUA/HẾT GIỜ ĐỀU QUA ĐÂY)
+        // ==========================================
+        window.endCurrentSet = async function(winnerColor, extraPayload = {}) {
+            let newHostScore = roomData.score_host || 0;
+            let newGuestScore = roomData.score_guest || 0;
+            let target = roomData.target_wins || 1;
+            
+            // Host luôn cầm Đỏ (theo quy tắc phòng)
+            if (winnerColor === 'red') newHostScore++; 
+            else newGuestScore++;
+
+            const basePayload = { ...extraPayload, winner: winnerColor, score_host: newHostScore, score_guest: newGuestScore };
+
+            if (newHostScore >= target || newGuestScore >= target) {
+                // Đã đủ điểm vô địch -> KẾT THÚC CHUNG CUỘC
+                await supabase.from('xiangqi_rooms').update({ 
+                    ...basePayload, status: 'finished'
+                }).eq('id', roomId);
+            } else {
+                // Chưa đủ điểm -> CHẠY MÀN HÌNH NGHỈ 30s
+                let breakEnds = new Date(); breakEnds.setSeconds(breakEnds.getSeconds() + 30);
+                await supabase.from('xiangqi_rooms').update({ 
+                    ...basePayload, status: 'set_break', set_break_ends_at: breakEnds.toISOString()
+                }).eq('id', roomId);
+            }
+        };
+
+        // GỌI HÀM CHỐT SỔ KHI HẾT GIỜ
         function handleTimeOut(who) {
             clearInterval(localTimer); 
-            let winnerColor = '';
-            
+            const myColor = myRole === 'host' ? 'red' : 'black';
+            const winnerColor = (who === 'me') ? (myColor === 'red' ? 'black' : 'red') : myColor;
+
             if (who === 'me') {
-                winnerColor = myRole === 'host' ? 'black' : 'red';
                 showToast("Hết Giờ", "Cậu đã cạn thời gian!", "error");
             } else {
-                winnerColor = myRole === 'host' ? 'red' : 'black';
                 showToast("Hết Giờ", "Đối thủ đã cạn thời gian!", "success");
             }
-
-            supabase.from('xiangqi_rooms').update({ 
-                status: 'finished', 
-                winner: winnerColor 
-            }).eq('id', roomId);
+            
+            endCurrentSet(winnerColor);
         }
 
         window.requestTimeBreak = async function() {
@@ -827,7 +852,9 @@
             showConfirmPopup("Đầu Hàng", "Cậu có chắc chắn muốn nhận thua ván này không?", async () => {
                 const loserColor = myRole === 'host' ? 'red' : 'black';
                 const winnerColor = loserColor === 'red' ? 'black' : 'red';
-                await supabase.from('xiangqi_rooms').update({ status: 'finished', winner: winnerColor }).eq('id', roomId);
+                
+                // Đẩy qua hàm chốt sổ thay vì chốt chết thành 'finished'
+                endCurrentSet(winnerColor);
             });
         }
 
@@ -1213,37 +1240,11 @@
                             if (targetPiece === 'B_K' || targetPiece === 'R_K') {
                                 const winnerColor = targetPiece === 'B_K' ? 'red' : 'black';
                                 
-                                // CỘNG ĐIỂM
-                                let newHostScore = roomData.score_host || 0;
-                                let newGuestScore = roomData.score_guest || 0;
-                                let target = roomData.target_wins || 1;
+                                // Gọi hàm chốt sổ và nhét luôn bàn cờ mới nhất vào
+                                await endCurrentSet(winnerColor, {
+                                    board_state: boardState, move_log: updatedMoveLog
+                                });
                                 
-                                if (winnerColor === 'red') {
-                                    if (myRole === 'host') newHostScore++; else newGuestScore++;
-                                } else {
-                                    if (myRole === 'host') newGuestScore++; else newHostScore++;
-                                }
-
-                                // KIỂM TRA ĐÃ VÔ ĐỊCH CHƯA?
-                                if (newHostScore >= target || newGuestScore >= target) {
-                                    // Đủ điểm vô địch -> KẾT THÚC CHUNG CUỘC
-                                    const {error} = await supabase.from('xiangqi_rooms').update({
-                                        board_state: boardState, status: 'finished', winner: winnerColor, 
-                                        score_host: newHostScore, score_guest: newGuestScore, move_log: updatedMoveLog
-                                    }).eq('id', roomId);
-                                    if (error) throw error;
-                                } else {
-                                    // Chưa đủ điểm -> CHẠY MÀN HÌNH NGHỈ 30s
-                                    let breakEnds = new Date();
-                                    breakEnds.setSeconds(breakEnds.getSeconds() + 30);
-                                    
-                                    const {error} = await supabase.from('xiangqi_rooms').update({
-                                        board_state: boardState, status: 'set_break', winner: winnerColor, 
-                                        score_host: newHostScore, score_guest: newGuestScore, move_log: updatedMoveLog,
-                                        set_break_ends_at: breakEnds.toISOString()
-                                    }).eq('id', roomId);
-                                    if (error) throw error;
-                                }
                             } else {
                                 const nTime = Math.max(0, Math.floor(myTimeLeft + safeInc)); 
                                 const oTime = Math.max(0, Math.floor(oppTimeLeft));
