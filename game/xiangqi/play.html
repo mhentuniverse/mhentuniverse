@@ -677,13 +677,22 @@
                                 ['R_R', 'R_H', 'R_E', 'R_A', 'R_K', 'R_A', 'R_E', 'R_H', 'R_R'] 
                             ];
                             await supabase.from('xiangqi_rooms').update({ 
-                                status: 'playing', 
-                                turn: 'red',
+                                status: 'waiting',  // 👉 Đẩy hệ thống về lại sảnh chờ
+                                host_ready: false,  // 👉 Ép Host phải bấm Sẵn sàng lại
+                                guest_ready: false, // 👉 Ép Guest phải bấm Sẵn sàng lại
+                                
+                                turn: 'red', // Luôn để cờ đỏ đi trước
                                 board_state: newBoard,
-                                move_log: [], 
-                                timer_host: roomData.settings.timeLimit * 60,
-                                timer_guest: roomData.settings.timeLimit * 60,
-                                last_time_update: new Date().toISOString() 
+                                move_log: [], // Xóa sổ xố ván cũ
+                                last_time_update: null, // Xóa lịch sử thời gian
+                                
+                                // 👉 MA THUẬT ĐỔI BÊN (Hoán đổi thân phận & Điểm số)
+                                host_id: roomData.guest_id,
+                                guest_id: roomData.host_id,
+                                host_info: roomData.guest_info,
+                                guest_info: roomData.host_info,
+                                score_host: roomData.score_guest,
+                                score_guest: roomData.score_host
                             }).eq('id', roomId);
                         }
                     }
