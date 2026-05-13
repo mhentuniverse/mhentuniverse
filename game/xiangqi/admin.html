@@ -954,11 +954,11 @@
 
         window.startMatch = async () => {
             const roomId = document.getElementById('current-room-id').textContent;
-            
             const { data: room } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
             
-            if (!room.host_id || !room.guest_id) {
-                showPopup('Cần có đủ 2 VĐV để bắt đầu ván đấu!', true);
+            // 👉 Check info thay vì check ID
+            if (!room.host_info || !room.guest_info) {
+                window.showPopup('Lỗi', 'Cần có đủ 2 VĐV ngồi vào ghế mới ép bắt đầu được sếp ơi!', true);
                 return;
             }
             
@@ -968,7 +968,7 @@
                 last_time_update: new Date().toISOString()
             }).eq('id', roomId);
             
-            showToast('Bắt đầu!', 'Ván đấu đã được khởi động', 'success');
+            window.showToast('Bắt đầu!', 'Ván đấu đã được khởi động', 'success');
         };
 
         // Bulk operations functions
@@ -1083,10 +1083,19 @@
 
         window.swapPlayers = async (id) => {
             const r = roomsData.find(x => x.id === id);
+            if (!r) return;
+            
+            // 👉 Đã bọc giáp ADMIN_PENDING và tráo điểm số Bo3/Bo5
             await supabase.from('xiangqi_rooms').update({
-                host_id: r.guest_id, guest_id: r.host_id,
-                host_info: r.guest_info, guest_info: r.host_info
+                host_id: r.guest_id || "ADMIN_PENDING", 
+                guest_id: r.host_id === "ADMIN_PENDING" ? null : r.host_id,
+                host_info: r.guest_info, 
+                guest_info: r.host_info,
+                score_host: r.score_guest || 0, 
+                score_guest: r.score_host || 0
             }).eq('id', id);
+            
+            window.showToast('Đã tráo!', 'Tráo Đỏ/Đen thành công.', 'success');
         };
 
         // --- KHỞI CHẠY & KIỂM TRA QUYỀN ---
