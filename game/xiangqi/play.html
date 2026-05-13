@@ -200,8 +200,27 @@
         }
         .board-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(15, 23, 42, 0.85); display: flex; flex-direction: column; 
+            background: rgba(15, 23, 42, 0.95); 
+            backdrop-filter: blur(8px);
+            display: flex; flex-direction: column; 
             justify-content: center; align-items: center; z-index: 20; text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 8px;
+        }
+
+        .board-overlay h2 {
+            margin: 15px 0;
+            font-size: 24px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .board-overlay p {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #cbd5e1;
+            line-height: 1.5;
         }
         /* RESPONSIVE CHO ĐIỆN THOẠI (XẾP DỌC LẠI) */
         @media (max-width: 1024px) {
@@ -501,6 +520,28 @@
             const btnBreak = document.getElementById('btn-time-break');
 
             if (data.status === 'waiting') {
+                // Check if room is locked by admin
+                if (data.admin_locked) {
+                    statusEl.className = 'match-status waiting';
+                    statusEl.innerHTML = '<i class="fa-solid fa-lock"></i> BTC đang chuẩn bị...';
+                    overlay.style.display = 'flex';
+                    overlay.innerHTML = `
+                        <i class="fa-solid fa-shield-halved fa-3x fa-beat" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i>
+                        <h2 style="margin: 0 0 15px 0; color: white;">Ban Tổ Chức Đang Chuẩn Bị</h2>
+                        <p style="color:#94a3b8; font-size: 14px; text-align: center; line-height: 1.5;">
+                            Ván đấu sẽ bắt đầu khi BTC mở khóa phòng.<br>
+                            Vui lòng chờ trong giây lát...
+                        </p>
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);">
+                            <p style="margin: 0; color: #cbd5e1; font-size: 13px;">
+                                <i class="fa-solid fa-info-circle"></i> 
+                                Mã phòng: <b style="color: var(--xiangqi-color);">${roomId}</b>
+                            </p>
+                        </div>
+                    `;
+                    return; // Exit early, don't process normal waiting logic
+                }
+
                 statusEl.className = 'match-status waiting';
                 statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang chờ...';
                 overlay.style.display = 'flex';
