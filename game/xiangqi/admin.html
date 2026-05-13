@@ -17,101 +17,170 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* ========================================== */
-        /* CSS ĐÀI CHỈ HUY MỚI - CHỐNG MÓP MÉO 100%   */
-        /* ========================================== */
-        body { font-family: 'Nunito', sans-serif !important; background: #0f172a; color: white; margin: 0; }
+        /* ==========================================
+           BỘ CSS CHUẨN FORM ARENA ADMIN
+           ========================================== */
+        body, h1, h2, h3, h4, p, span, button, input, select, textarea, td, th { font-family: 'Nunito', sans-serif !important; }
+        body { background: #f8fafc; overflow-x: hidden; margin: 0; padding: 0; color: #1e293b; }
         
-        /* Đẩy container xuống để né cái Navbar (Thường Navbar MHEnt cao ~60-70px) */
-        .admin-container { max-width: 1200px; margin: 90px auto 40px; padding: 0 20px; }
+        .admin-layout { display: flex; min-height: 100vh; padding-top: 70px; }
         
-        /* Header & Stats */
+        /* SIDEBAR ADMIN ĐIỀU HƯỚNG */
+        .admin-sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto; z-index: 10; box-sizing: border-box; }
+        .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
+        .admin-menu-item:hover { background: #f1f5f9; color: #ef4444; }
+        .admin-menu-item.active { background: rgba(239, 68, 68, 0.1); color: #ef4444; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1); }
+        
+        /* CONTENT AREA & TABS */
+        .admin-content { flex: 1; margin-left: 260px; padding: 40px; max-width: 100%; box-sizing: border-box; overflow-x: hidden; }
+        .admin-title { font-size: 28px; font-weight: 900; color: #1e293b; margin: 0 0 30px 0; }
+        .admin-tab { display: none; animation: fadeIn 0.3s ease; }
+        .admin-tab.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* HEADER & STATS (CỜ TƯỚNG) */
         .admin-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; gap: 15px; flex-wrap: wrap; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; width: 100%; margin-bottom: 30px; }
-        .stat-card { background: rgba(30, 41, 59, 0.7); padding: 15px 20px; border-radius: 12px; border: 1px solid #334155; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat-card { background: #fff; padding: 15px 20px; border-radius: 12px; border: 1px solid #e2e8f0; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #ef4444; }
-        .stat-label { color: #94a3b8; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-value { font-size: 28px; font-weight: 900; margin-top: 5px; color: #f1f5f9; }
+        .stat-label { color: #64748b; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 28px; font-weight: 900; margin-top: 5px; color: #1e293b; }
 
-        /* Room Cards */
+        /* ROOM CARDS */
         .room-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .room-item { background: #1e293b; border-radius: 12px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; transition: 0.3s; gap: 15px; flex-wrap: wrap; }
+        .room-item { background: #fff; border-radius: 12px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; transition: 0.3s; gap: 15px; flex-wrap: wrap; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .room-item:hover { border-color: #ef4444; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.1); }
         
-        /* Fix chữ bị ép khi tên quá dài */
         .player-vs { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .player-slot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 12px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; flex: 1; min-width: 120px; }
-        .player-name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+        .player-slot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 12px; background: #f1f5f9; border-radius: 8px; flex: 1; min-width: 120px; border: 1px solid #e2e8f0; }
+        .player-name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; color: #1e293b; }
         
-        /* Buttons Quyền năng */
+        /* BUTTONS */
         .room-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-admin { border: none; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-family: 'Nunito', sans-serif; white-space: nowrap; }
+        .btn-admin { border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; white-space: nowrap; }
         .btn-primary { background: #3b82f6; color: white; }
         .btn-success { background: #10b981; color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
         .btn-warning { background: #f59e0b; color: white; }
         .btn-danger { background: #ef4444; color: white; }
-        .btn-admin:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-admin:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+        .btn-admin:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
 
-        /* Giao diện Mobile */
-        @media (max-width: 768px) {
+        /* ==========================================
+           DARK MODE XỊN XÒ (MÀU CHUẨN THEO ARENA)
+           ========================================== */
+        body.dark-mode { background: #0f172a; color: #f8fafc; }
+        body.dark-mode .admin-sidebar, body.dark-mode .stat-card, body.dark-mode .room-item { background: #1e293b; border-color: #334155; }
+        body.dark-mode .admin-title, body.dark-mode .stat-value, body.dark-mode .player-name { color: #f8fafc; }
+        body.dark-mode .admin-menu-item:hover { background: #334155; }
+        body.dark-mode .player-slot { background: rgba(15, 23, 42, 0.5); border-color: #334155; }
+
+        /* ==========================================
+           RESPONSIVE MOBILE TỰ ĐỘNG BẺ CỘT
+           ========================================== */
+        @media (max-width: 992px) {
+            .admin-layout { flex-direction: column; padding-top: 70px; }
+            .admin-sidebar { width: 100%; position: relative; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; overflow-x: auto; white-space: nowrap; z-index: 5; -webkit-overflow-scrolling: touch; }
+            .admin-sidebar > div:first-child { display: none; } 
+            .admin-menu-item { margin-bottom: 0; margin-right: 10px; flex-shrink: 0; padding: 10px 15px; }
+            .admin-content { margin-left: 0; padding: 20px; }
+            .admin-title { font-size: 24px; }
             .admin-header { flex-direction: column; align-items: stretch; text-align: center; }
             .admin-header > div:last-child { display: flex; flex-direction: column; }
+        }
+
+        @media (max-width: 768px) {
             .room-item { flex-direction: column; align-items: stretch; }
             .player-vs { flex-direction: column; align-items: stretch; }
             .player-slot { justify-content: space-between; }
             .player-name { max-width: 100%; }
             .room-actions { display: grid; grid-template-columns: 1fr 1fr; }
-            .room-actions .btn-admin:last-child { grid-column: span 2; } /* Nút giám sát tràn 2 ô cho đẹp */
+            .room-actions .btn-admin:last-child { grid-column: span 2; } /* Nút bự tràn ô cho dễ bấm */
         }
     </style>
 </head>
 <body class="gradient-bg">
-    <nav class="navbar">
+
+    <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box;">
         <div class="nav-left">
-            <a href="/" style="display: flex; align-items: center; gap: 10px;">
-                <img src="/assets/avt-web.jpg" class="avt-img">
-                <span class="logo-name">MHEnt. Universe</span>
+            <a onclick="window.location.href='/game/xiangqi'" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
+                <span class="logo-name">MHEnt. Xiangqi</span>
             </a>
         </div>
         <div class="nav-right">
-            <span id="admin-badge" style="background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 900; font-size: 12px;">TRỌNG TÀI</span>
+            <span style="background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 900; font-size: 12px; margin-right: 10px;">TRỌNG TÀI</span>
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <button class="btn-theme" onclick="window.location.href='/game/xiangqi'" style="border:none;"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
     </nav>
 
-    <div class="admin-container">
-        <div class="admin-header">
-            <div>
-                <h1 style="font-weight: 900; color: #f1f5f9; margin-bottom: 5px;">Tournament Control Panel</h1>
-                <p style="color: #94a3b8; font-weight: 600;">Hệ thống điều phối giải đấu "Siêu Trí Tuệ MHEnt"</p>
-            </div>
-            <div style="display: flex; gap: 12px;">
-                <button class="btn-admin btn-primary" onclick="createTournamentRoom()">
-                    <i class="fa-solid fa-hammer"></i> TẠO PHÒNG GIẢI
-                </button>
-                <button id="btn-bulk-unlock" class="btn-admin btn-success" onclick="bulkUnlockRooms()">
-                    <i class="fa-solid fa-unlock-keyhole"></i> MỞ KHÓA TẤT CẢ
-                </button>
-            </div>
-        </div>
+    <div class="admin-layout">
+        
+        <aside class="admin-sidebar">
+            <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Tổ Trọng Tài</div>
+            <a class="admin-menu-item active" id="menu-dash" onclick="switchTab('dash')"><i class="fa-solid fa-satellite-dish"></i> Đài Chỉ Huy</a>
+            <a class="admin-menu-item" id="menu-history" onclick="switchTab('history')"><i class="fa-solid fa-book-journal-whills"></i> Biên Bản Giải Đấu</a>
+            <a class="admin-menu-item" id="menu-settings" onclick="switchTab('settings')"><i class="fa-solid fa-gears"></i> Cài Đặt Chung</a>
+        </aside>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Tổng số phòng</div>
-                <div id="stat-total" class="stat-value">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Đang thi đấu</div>
-                <div id="stat-playing" class="stat-value" style="color: #10b981;">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Đang bị khóa</div>
-                <div id="stat-locked" class="stat-value" style="color: #f59e0b;">0</div>
-            </div>
-        </div>
+        <main class="admin-content">
+            
+            <div id="tab-dash" class="admin-tab active">
+                <div class="admin-header">
+                    <div>
+                        <h1 class="admin-title" style="margin-bottom: 5px;">Tournament Control Panel</h1>
+                        <p style="color: #64748b; font-weight: 600; margin: 0;">Điều phối bàn đấu & Vận động viên MHEnt.</p>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn-admin btn-primary" onclick="createTournamentRoom()">
+                            <i class="fa-solid fa-hammer"></i> TẠO BÀN ĐẤU VIP
+                        </button>
+                        <button class="btn-admin btn-success" onclick="bulkUnlockRooms()">
+                            <i class="fa-solid fa-unlock-keyhole"></i> MỞ KHÓA TẤT CẢ
+                        </button>
+                    </div>
+                </div>
 
-        <div class="room-grid" id="room-list">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Tổng số phòng</div>
+                        <div id="stat-total" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Đang thi đấu</div>
+                        <div id="stat-playing" class="stat-value" style="color: #10b981;">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Đang bị khóa</div>
+                        <div id="stat-locked" class="stat-value" style="color: #f59e0b;">0</div>
+                    </div>
+                </div>
+
+                <div class="room-grid" id="room-list">
+                    <p style="text-align: center; color: #94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu Mây...</p>
+                </div>
             </div>
+
+            <div id="tab-history" class="admin-tab">
+                <h1 class="admin-title">Biên Bản Giải Đấu</h1>
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed #3b82f6; padding: 40px; border-radius: 16px; text-align: center;">
+                    <i class="fa-solid fa-person-digging fa-3x" style="color: #3b82f6; margin-bottom: 15px;"></i>
+                    <h3 style="margin: 0 0 10px 0;">Khu vực đang xây dựng</h3>
+                    <p style="color: #64748b; margin: 0;">Tính năng Bảng Xếp Hạng & Lưu Ký Phổ sẽ sớm ra mắt!</p>
+                </div>
+            </div>
+
+            <div id="tab-settings" class="admin-tab">
+                <h1 class="admin-title">Cài Đặt Chung</h1>
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed #10b981; padding: 40px; border-radius: 16px; text-align: center;">
+                    <i class="fa-solid fa-toolbox fa-3x" style="color: #10b981; margin-bottom: 15px;"></i>
+                    <h3 style="margin: 0 0 10px 0;">Khu vực đang xây dựng</h3>
+                    <p style="color: #64748b; margin: 0;">Cài đặt luật cờ và thông báo giải đấu sẽ sớm có mặt.</p>
+                </div>
+            </div>
+
+        </main>
     </div>
 
     <script type="module">
@@ -123,26 +192,39 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Cấu hình Supabase (Lấy từ data.js của sếp)
-        const supabase = window.supabase.createClient(window.MHEntData.supabaseUrl, window.MHEntData.supabaseKey);
+        // 1. CHUYỂN ĐỔI GIAO DIỆN (TABS & DARK MODE)
+        window.toggleDarkMode = function() { 
+            document.body.classList.toggle('dark-mode'); 
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); 
+        };
+        if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
+        window.switchTab = function(tabName) { 
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active')); 
+            document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active')); 
+            document.getElementById('tab-' + tabName).classList.add('active'); 
+            document.getElementById('menu-' + tabName).classList.add('active'); 
+        };
+
+        // 2. KẾT NỐI SUPABASE & KIỂM TRA QUYỀN TRỌNG TÀI
+        const supabase = window.supabase.createClient(window.MHEntData.supabaseUrl, window.MHEntData.supabaseKey);
         let roomsData = [];
 
-        // 1. KIỂM TRA QUYỀN TRỌNG TÀI (Giống Arena Admin)
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = '/login'; return; }
             const userSnap = await getDoc(doc(db, "users", user.uid));
             if (!userSnap.exists() || !userSnap.data().role || !userSnap.data().role.includes('admin')) {
-                alert("Đây là khu vực của Trọng Tài! Cậu vui lòng quay lại nhé.");
+                alert("Cảnh báo: Đây là khu vực của Trọng Tài! Xin lùi lại!");
                 window.location.href = '/game/xiangqi';
                 return;
             }
+            // Là admin xịn -> Load data
             initLobby();
         });
 
-        // 2. KHỞI TẠO REAL-TIME LOBBY
         function initLobby() {
             fetchRooms();
+            // Lắng nghe thay đổi Real-time để web tự nhảy số không cần F5
             supabase.channel('admin_rooms')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'xiangqi_rooms' }, fetchRooms)
                 .subscribe();
@@ -151,6 +233,7 @@
         async function fetchRooms() {
             const { data, error } = await supabase.from('xiangqi_rooms')
                 .select('*')
+                .in('status', ['waiting', 'playing', 'set_break']) // Lọc mấy phòng đang live
                 .order('created_at', { ascending: false });
             
             if (error) return;
@@ -159,55 +242,58 @@
             renderRooms();
         }
 
+        // 3. VẼ GIAO DIỆN PHÒNG CHƠI
         function renderStats() {
             document.getElementById('stat-total').innerText = roomsData.length;
             document.getElementById('stat-playing').innerText = roomsData.filter(r => r.status === 'playing').length;
-            document.getElementById('stat-locked').innerText = roomsData.filter(r => r.admin_locked).length;
+            document.getElementById('stat-locked').innerText = roomsData.filter(r => r.admin_locked !== false).length; // null hoặc true đều tính là khóa
         }
 
         function renderRooms() {
             const list = document.getElementById('room-list');
             if (roomsData.length === 0) {
-                list.innerHTML = `<p style="text-align: center; color: #64748b; padding: 40px;">Chưa có trận đấu nào được khởi tạo.</p>`;
+                list.innerHTML = `<div style="text-align: center; color: #64748b; padding: 40px; background: rgba(0,0,0,0.02); border-radius: 12px; border: 2px dashed #cbd5e1;">Chưa có trận đấu nào được khởi tạo.</div>`;
                 return;
             }
 
             list.innerHTML = roomsData.map(room => {
-                const host = room.host_info || { name: 'Trống', avatar: '' };
-                const guest = room.guest_info || { name: 'Trống', avatar: '' };
-                const isLocked = room.admin_locked;
+                const host = room.host_info || { name: 'Ghế Trống' };
+                const guest = room.guest_info || { name: 'Ghế Trống' };
+                const isLocked = room.admin_locked !== false; 
 
                 return `
                     <div class="room-item">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-weight: 900; color: #ef4444;">ID: ${room.id}</span>
-                                <span style="font-size: 12px; background: #334155; padding: 2px 8px; border-radius: 6px;">Bo${room.target_wins ? room.target_wins * 2 - 1 : 1}</span>
-                                <span style="font-size: 11px; font-weight: 800; color: ${room.status === 'playing' ? '#10b981' : '#f59e0b'}">
-                                    ● ${room.status.toUpperCase()}
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-weight: 900; color: #ef4444; font-size: 15px;">Phòng: ${room.id}</span>
+                                <span style="font-size: 11px; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 6px; font-weight: 800;">Bo${room.target_wins ? room.target_wins * 2 - 1 : 1}</span>
+                                <span style="font-size: 11px; font-weight: 800; color: ${room.status === 'playing' ? '#10b981' : '#f59e0b'}; border: 1px solid currentColor; padding: 2px 8px; border-radius: 6px;">
+                                    ${room.status === 'playing' ? 'LIVE' : (room.status === 'set_break' ? 'Nghỉ 30s' : 'ĐANG CHỜ')}
                                 </span>
                             </div>
                             <div class="player-vs">
-                                <div class="player-slot" style="border-left: 3px solid #ef4444;">
+                                <div class="player-slot" style="border-left: 4px solid #ef4444;">
                                     <span class="player-name">${host.name}</span>
-                                    <span style="font-size: 10px; background: #ef4444; color: white; padding: 1px 4px; border-radius: 3px;">ĐỎ</span>
+                                    <span style="font-size: 10px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ĐỎ</span>
                                 </div>
-                                <span style="font-weight: 900; color: #475569;">VS</span>
-                                <div class="player-slot" style="border-left: 3px solid #94a3b8;">
+                                <div class="player-slot" style="border-left: 4px solid #475569;">
                                     <span class="player-name">${guest.name}</span>
-                                    <span style="font-size: 10px; background: #94a3b8; color: white; padding: 1px 4px; border-radius: 3px;">ĐEN</span>
+                                    <span style="font-size: 10px; background: #475569; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ĐEN</span>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="room-actions">
-                            <button class="btn-admin btn-warning" onclick="swapPlayers('${room.id}')" title="Tráo đổi bên Đỏ/Đen">
-                                <i class="fa-solid fa-arrows-rotate"></i>
-                            </button>
-                            <button class="btn-admin ${isLocked ? 'btn-danger' : 'btn-success'}" onclick="toggleLock('${room.id}', ${isLocked})">
-                                ${isLocked ? '<i class="fa-solid fa-lock"></i> KHÓA' : '<i class="fa-solid fa-unlock"></i> MỞ'}
-                            </button>
-                            <button class="btn-admin btn-primary" onclick="window.location.href='/game/xiangqi/play?id=${room.id}'">
-                                <i class="fa-solid fa-eye"></i> GIÁM SÁT
+                            ${room.status === 'waiting' ? `
+                                <button class="btn-admin btn-warning" onclick="swapPlayers('${room.id}')" title="Tráo đổi bên Đỏ/Đen">
+                                    <i class="fa-solid fa-arrows-rotate"></i> ĐỔI VỊ TRÍ
+                                </button>
+                                <button class="btn-admin ${isLocked ? 'btn-danger' : 'btn-success'}" onclick="toggleLock('${room.id}', ${isLocked})">
+                                    ${isLocked ? '<i class="fa-solid fa-lock"></i> ĐANG KHÓA' : '<i class="fa-solid fa-unlock"></i> ĐÃ MỞ'}
+                                </button>
+                            ` : ``}
+                            <button class="btn-admin btn-primary" onclick="window.open('/game/xiangqi/play?id=${room.id}', '_blank')">
+                                <i class="fa-solid fa-eye"></i> XEM GIÁM SÁT
                             </button>
                         </div>
                     </div>
@@ -215,10 +301,9 @@
             }).join('');
         }
 
-        // 3. CÁC HÀM XỬ LÝ QUYỀN NĂNG (TRỌNG TÀI)
-
+        // 4. CHỨC NĂNG CỦA TRỌNG TÀI
         window.createTournamentRoom = async function() {
-            const id = prompt("Nhập mã phòng đặc biệt (Ví dụ: CHUNGKET, BAN-A):");
+            const id = prompt("Nhập mã phòng dễ nhớ cho VĐV (Ví dụ: CHUNGKET, BAN-A):");
             if (!id) return;
             const target = prompt("Thể thức (1: Bo1, 2: Bo3, 3: Bo5):", "2");
             
@@ -231,12 +316,16 @@
                 turn: 'red',
                 settings: { timeLimit: 10, increment: 5 }
             }]);
-            if(error) alert("Mã phòng này đã tồn tại rồi sếp!");
+            
+            if(error) alert("Lỗi: Mã phòng này đã có người xài rồi!");
+            else showToast("Thành công", `Phòng ${id.toUpperCase()} đã sẵn sàng!`);
         };
 
         window.swapPlayers = async function(roomId) {
+            if(!confirm("Đổi người cầm Đỏ thành Đen và ngược lại?")) return;
             const room = roomsData.find(r => r.id === roomId);
             if (!room) return;
+            
             await supabase.from('xiangqi_rooms').update({
                 host_id: room.guest_id, guest_id: room.host_id,
                 host_info: room.guest_info, guest_info: room.host_info,
@@ -249,8 +338,9 @@
         };
 
         window.bulkUnlockRooms = async function() {
-            if(!confirm("Cậu có chắc chắn muốn mở khóa TẤT CẢ các phòng đang chờ không?")) return;
+            if(!confirm("⚠️ LỆNH KHAI CUỘC: Mở khóa TẤT CẢ phòng đang chờ để VĐV bấm Sẵn Sàng?")) return;
             await supabase.from('xiangqi_rooms').update({ admin_locked: false }).eq('status', 'waiting');
+            showToast("Đã Mở", "Đã phát lệnh khai cuộc!");
         };
 
     </script>
