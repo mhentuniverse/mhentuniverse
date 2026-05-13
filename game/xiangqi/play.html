@@ -542,11 +542,21 @@
             if (data.host_id === currentUser.uid) {
                 myRole = 'host';
                 updateMyInfo(hName, hAvt, 'red');
-                if (data.guest_id) updateOpponentInfo(gName, gAvt, 'black', data.guest_ready);
+                if (data.guest_id && data.guest_id !== 'ADMIN_PENDING') updateOpponentInfo(gName, gAvt, 'black', data.guest_ready);
+                else setWaitingState();
             } else if (data.guest_id === currentUser.uid) {
                 myRole = 'guest';
                 updateMyInfo(gName, gAvt, 'black');
                 updateOpponentInfo(hName, hAvt, 'red', data.host_ready);
+            } else {
+                // 👉 KHÁN GIẢ (Spectator): Gán Đỏ ở dưới, Đen ở trên
+                updateMyInfo(hName, hAvt, 'red');
+                if (data.guest_id && data.guest_id !== 'ADMIN_PENDING') updateOpponentInfo(gName, gAvt, 'black', data.guest_ready);
+                else setWaitingState();
+                
+                // Giấu ngay mấy cái nút Xin Hòa / Đầu Hàng đi!
+                const tools = document.querySelector('.function-tools');
+                if(tools) tools.style.display = 'none';
             }
 
             const statusEl = document.getElementById('match-status');
@@ -580,16 +590,21 @@
                 statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang chờ...';
                 overlay.style.display = 'flex';
 
-                if (!data.guest_id) {
+                if (!data.guest_id || data.guest_id === 'ADMIN_PENDING') {
                     overlay.innerHTML = `<i class="fa-solid fa-user-clock fa-3x" style="color: #cbd5e1; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Chờ đối thủ...</h2><p style="color:#94a3b8; font-size: 14px;">Mã phòng: <b>${roomId}</b></p>`;
                 } else if (data.host_ready && data.guest_ready) {
                     if(!isCountingDown) triggerCountdown();
                 } else {
-                    const myReadyStatus = myRole === 'host' ? data.host_ready : data.guest_ready;
-                    if (!myReadyStatus) {
-                        overlay.innerHTML = `<i class="fa-solid fa-swords fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i><h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2><button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 20px; background: #10b981;" onclick="toggleReady(true)">SẴN SÀNG</button>`;
+                    // 👉 MÀN HÌNH CHỜ RIÊNG CHO KHÁN GIẢ
+                    if (myRole === 'spectator') {
+                        overlay.innerHTML = `<i class="fa-solid fa-eye fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">KHÁN ĐÀI VIP</h2><p style="color:#94a3b8; font-size: 14px;">Đang chờ 2 Vận Động Viên sẵn sàng...</p>`;
                     } else {
-                        overlay.innerHTML = `<i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2><button class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>`;
+                        const myReadyStatus = myRole === 'host' ? data.host_ready : data.guest_ready;
+                        if (!myReadyStatus) {
+                            overlay.innerHTML = `<i class="fa-solid fa-swords fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i><h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2><button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 20px; background: #10b981;" onclick="toggleReady(true)">SẴN SÀNG</button>`;
+                        } else {
+                            overlay.innerHTML = `<i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2><button class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>`;
+                        }
                     }
                 }
                 // 👉 MA THUẬT ĐÓNG BĂNG TỪ TRỌNG TÀI
@@ -705,13 +720,18 @@
                     message = "HÒA NHAU!";
                     color = "#f59e0b"; 
                 } else {
-                    const myColor = myRole === 'host' ? 'red' : 'black';
-                    if (data.winner === myColor) {
-                        message = "CẬU ĐÃ THẮNG! 🎉";
-                        color = "#10b981";
+                    if (myRole === 'spectator') {
+                        message = data.winner === 'red' ? "PHE ĐỎ THẮNG!" : "PHE ĐEN THẮNG!";
+                        color = data.winner === 'red' ? "#ef4444" : "#cbd5e1";
                     } else {
-                        message = "CẬU ĐÃ THUA! 💀";
-                        color = "#ef4444"; 
+                        const myColor = myRole === 'host' ? 'red' : 'black';
+                        if (data.winner === myColor) {
+                            message = "CẬU ĐÃ THẮNG! 🎉";
+                            color = "#10b981";
+                        } else {
+                            message = "CẬU ĐÃ THUA! 💀";
+                            color = "#ef4444"; 
+                        }
                     }
                 }
 
@@ -733,12 +753,18 @@
                 const titleEl = document.getElementById('set-result-title');
                 
                 if (titleEl) {
-                    if (data.winner === myColor) {
-                        titleEl.innerText = "CẬU ĐÃ THẮNG VÁN NÀY!";
-                        titleEl.style.color = "#10b981";
+                    if (myRole === 'spectator') {
+                        titleEl.innerText = data.winner === 'red' ? "PHE ĐỎ THẮNG VÁN NÀY!" : "PHE ĐEN THẮNG VÁN NÀY!";
+                        titleEl.style.color = data.winner === 'red' ? "#ef4444" : "#cbd5e1";
                     } else {
-                        titleEl.innerText = "CẬU ĐÃ THUA VÁN NÀY!";
-                        titleEl.style.color = "#ef4444";
+                        const myColor = myRole === 'host' ? 'red' : 'black';
+                        if (data.winner === myColor) {
+                            titleEl.innerText = "CẬU ĐÃ THẮNG VÁN NÀY!";
+                            titleEl.style.color = "#10b981";
+                        } else {
+                            titleEl.innerText = "CẬU ĐÃ THUA VÁN NÀY!";
+                            titleEl.style.color = "#ef4444";
+                        }
                     }
                 }
 
@@ -1281,6 +1307,8 @@
         // ==========================================
         window.handleSquareClick = async function(x, y) {
             if (!roomData || roomData.status !== 'playing') return;
+
+            if (myRole === 'spectator') return;
             
             if ((myRole === 'host' && roomData.turn !== 'red') || (myRole === 'guest' && roomData.turn !== 'black')) {
                 return showToast("Từ từ", "Chưa tới lượt!", "warning");

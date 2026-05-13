@@ -690,6 +690,22 @@
                                 <option value="locked">Khóa (BTC Chuẩn Bị)</option>
                             </select>
                         </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-stopwatch"></i> Thời gian mỗi bên (Phút)</label>
+                            <input type="number" id="special-time" class="admin-input" value="10" min="1" max="60">
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-plus-minus"></i> Bước bù giờ (Giây/Bước)</label>
+                            <input type="number" id="special-inc" class="admin-input" value="5" min="0" max="60">
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-pause"></i> Số lần Dừng trận (Break)</label>
+                            <input type="number" id="special-break-count" class="admin-input" value="1" min="0" max="5">
+                        </div>
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-hourglass-half"></i> Thời gian mỗi lần Dừng (s)</label>
+                            <input type="number" id="special-break-time" class="admin-input" value="60" min="10" max="300">
+                        </div>
                         <div class="input-group full">
                             <label>Ghi Chú (Tùy Chọn)</label>
                             <input type="text" id="special-note" class="admin-input" placeholder="Ví dụ: Chung kết, Bán kết A, Vòng loại...">
@@ -856,18 +872,25 @@
             const roomId = document.getElementById('special-room-id').value.trim().toUpperCase();
             const targetWins = parseInt(document.getElementById('special-target-wins').value);
             const status = document.getElementById('special-status').value;
+            const note = document.getElementById('special-note').value.trim();
             
+            // 👉 Hút thông số thời gian
+            const timeLimit = parseInt(document.getElementById('special-time').value) || 10;
+            const increment = parseInt(document.getElementById('special-inc').value) || 5;
+            const breakCount = parseInt(document.getElementById('special-break-count').value) || 1;
+            const breakTime = parseInt(document.getElementById('special-break-time').value) || 60;
+
             if (roomId.length < 3) {
-                window.showPopup('Cảnh báo', 'Mã phòng phải có ít nhất 3 ký tự!', true);
+                if(window.showPopup) showPopup('Mã phòng phải có ít nhất 3 ký tự!', true);
+                else alert("Mã phòng phải có ít nhất 3 ký tự!");
                 return;
             }
 
             const isLocked = status === 'locked';
             
-            // 👉 Bơm Dummy ID "ADMIN_PENDING" để lách luật NOT NULL
             const { error } = await supabase.from('xiangqi_rooms').insert([{ 
                 id: roomId,
-                host_id: "ADMIN_PENDING", // <--- Cứu tinh của sếp đây
+                host_id: "ADMIN_PENDING", 
                 admin_locked: isLocked,
                 status: 'waiting',
                 target_wins: targetWins,
@@ -875,16 +898,34 @@
                 score_guest: 0,
                 host_ready: false,
                 guest_ready: false,
-                turn: 'red'
+                turn: 'red',
+                note: note || null,
+                // 👉 Bơm cấu hình vào DB
+                settings: { timeLimit, increment, breakCount, breakTime }
             }]);
 
             if (error) {
-                window.showPopup('Lỗi tạo phòng', 'Mã phòng này đã tồn tại hoặc có lỗi kết nối mây!', true);
+                if (error.code === '23505') {
+                    if(window.showPopup) showPopup('Mã phòng này đã có người xài! Chọn tên khác nhé.', true);
+                }
                 return;
             }
 
             document.getElementById('special-room-id').value = '';
-            window.showToast('Thành công!', `Phòng ${roomId} đã được đúc xong!`, 'success');
+            document.getElementById('special-note').value = '';
+            if(window.showToast) showToast('Thành công!', `Phòng ${roomId} đã lên nòng!`, 'success');
+        };
+
+        // 👉 HÀM HỦY DIỆT PHÒNG
+        window.deleteRoom = async (id) => {
+            if(window.showConfirmPopup) {
+                showConfirmPopup('XÓA PHÒNG', `Sếp có chắc chắn muốn xóa vĩnh viễn phòng [${id}] không? Bấm xong là bay màu không khôi phục được đâu nhé!`, async () => {
+                    await supabase.from('xiangqi_rooms').delete().eq('id', id);
+                    showToast('Đã xóa', `Phòng ${id} đã bị tiễn về cát bụi!`, 'success');
+                });
+            } else if(confirm(`Xóa vĩnh viễn phòng ${id}?`)) {
+                await supabase.from('xiangqi_rooms').delete().eq('id', id);
+            }
         };
 
         window.loadRoomForManagement = async () => {
@@ -1144,6 +1185,7 @@
                             ${room.admin_locked ? '<i class="fa-solid fa-lock"></i>' : '<i class="fa-solid fa-unlock"></i>'}
                         </button>
                         <button class="btn-admin btn-primary" onclick="window.open('/game/xiangqi/play?id=${room.id}', '_blank')"><i class="fa-solid fa-eye"></i></button>
+                        <button class="btn-admin" style="background: #475569; color: white;" onclick="window.deleteRoom('${room.id}')" title="Xóa Vĩnh Viễn"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             `).join('');
