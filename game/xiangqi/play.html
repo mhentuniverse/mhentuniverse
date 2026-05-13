@@ -458,6 +458,40 @@
                 setTimeout(() => { window.location.href = '/game/xiangqi'; }, 2000);
                 return;
             }
+
+            // 👉 MA THUẬT GIÀNH GHẾ BẮT ĐẦU TỪ ĐÂY
+            const myInfo = {
+                name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"),
+                avatar: currentUser.photoURL || '/assets/avt-web.jpg'
+            };
+
+            // Nếu ghế Đỏ đang là ADMIN_PENDING (Phòng VIP) -> Giành ghế Đỏ!
+            if (room.host_id === "ADMIN_PENDING") {
+                myRole = 'host';
+                await supabase.from('xiangqi_rooms').update({ host_id: currentUser.uid, host_info: myInfo }).eq('id', roomId);
+                room.host_id = currentUser.uid;
+                room.host_info = myInfo;
+            } 
+            // Nếu mình là thằng Đỏ bị rớt mạng vào lại
+            else if (room.host_id === currentUser.uid) {
+                myRole = 'host';
+            } 
+            // Nếu ghế Đỏ có người rồi, nhưng ghế Đen đang trống -> Giành ghế Đen!
+            else if (!room.guest_id || room.guest_id === "ADMIN_PENDING") {
+                myRole = 'guest';
+                await supabase.from('xiangqi_rooms').update({ guest_id: currentUser.uid, guest_info: myInfo }).eq('id', roomId);
+                room.guest_id = currentUser.uid;
+                room.guest_info = myInfo;
+            } 
+            // Nếu mình là thằng Đen bị rớt mạng vào lại
+            else if (room.guest_id === currentUser.uid) {
+                myRole = 'guest';
+            } 
+            // Nếu cả 2 ghế đã có người -> Làm Khán Giả
+            else {
+                myRole = 'spectator';
+            }
+            // 👉 KẾT THÚC MA THUẬT
             
             document.getElementById('info-time').innerText = `${room.settings.timeLimit} phút`;
             document.getElementById('info-inc').innerText = `+${room.settings.increment}s`;
