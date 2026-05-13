@@ -855,50 +855,35 @@
             const roomId = document.getElementById('special-room-id').value.trim().toUpperCase();
             const targetWins = parseInt(document.getElementById('special-target-wins').value);
             const status = document.getElementById('special-status').value;
-            const note = document.getElementById('special-note').value.trim();
-
-            if (!roomId) {
-                showPopup('Vui lòng nhập mã phòng!', true);
-                return;
-            }
-
+            
             if (roomId.length < 3) {
-                showPopup('Mã phòng phải có ít nhất 3 ký tự!', true);
+                window.showPopup('Cảnh báo', 'Mã phòng phải có ít nhất 3 ký tự!', true);
                 return;
             }
 
             const isLocked = status === 'locked';
             
+            // 👉 Bơm Dummy ID "ADMIN_PENDING" để lách luật NOT NULL
             const { error } = await supabase.from('xiangqi_rooms').insert([{ 
                 id: roomId,
+                host_id: "ADMIN_PENDING", // <--- Cứu tinh của sếp đây
                 admin_locked: isLocked,
-                status: isLocked ? 'waiting' : 'waiting',
+                status: 'waiting',
                 target_wins: targetWins,
                 score_host: 0,
                 score_guest: 0,
-                note: note || null
+                host_ready: false,
+                guest_ready: false,
+                turn: 'red'
             }]);
 
             if (error) {
-                if (error.code === '23505') {
-                    showPopup('Mã phòng đã tồn tại! Vui lòng chọn mã khác.', true);
-                } else {
-                    showPopup('Lỗi tạo phòng: ' + error.message, true);
-                }
+                window.showPopup('Lỗi tạo phòng', 'Mã phòng này đã tồn tại hoặc có lỗi kết nối mây!', true);
                 return;
             }
 
-            // Reset form
             document.getElementById('special-room-id').value = '';
-            document.getElementById('special-note').value = '';
-            
-            // Show success message
-            showToast('Thành công!', `Phòng ${roomId} đã được tạo ${isLocked ? '(đã khóa)' : '(sẵn sàng)'}`, 'success');
-            
-            // Copy room ID to clipboard
-            navigator.clipboard.writeText(roomId).then(() => {
-                showToast('Đã sao chép!', 'Mã phòng đã được sao chép vào clipboard', 'info');
-            });
+            window.showToast('Thành công!', `Phòng ${roomId} đã được đúc xong!`, 'success');
         };
 
         window.loadRoomForManagement = async () => {
@@ -929,44 +914,42 @@
         window.clearPlayer = async (position) => {
             const roomId = document.getElementById('current-room-id').textContent;
             
-            if (position === 'host') {
-                await supabase.from('xiangqi_rooms').update({
-                    host_id: null,
-                    host_info: null
-                }).eq('id', roomId);
-                document.getElementById('red-player-name').textContent = 'Chờ VĐV...';
-            } else {
-                await supabase.from('xiangqi_rooms').update({
-                    guest_id: null,
-                    guest_info: null
-                }).eq('id', roomId);
-                document.getElementById('black-player-name').textContent = 'Chờ VĐV...';
-            }
-            
-            showToast('Đã xóa!', 'VĐV đã được xóa khỏi vị trí', 'success');
+            window.showConfirmPopup("Đuổi Vận Động Viên", "Sếp có chắc chắn muốn kick người này khỏi ghế không?", async () => {
+                if (position === 'host') {
+                    // 👉 Lại là cứu tinh ADMIN_PENDING
+                    await supabase.from('xiangqi_rooms').update({ host_id: "ADMIN_PENDING", host_info: null }).eq('id', roomId);
+                    document.getElementById('red-player-name').textContent = 'Chưa có ai';
+                } else {
+                    // 👉 Cứu tinh ADMIN_PENDING
+                    await supabase.from('xiangqi_rooms').update({ guest_id: "ADMIN_PENDING", guest_info: null }).eq('id', roomId);
+                    document.getElementById('black-player-name').textContent = 'Chưa có ai';
+                }
+                window.showToast('Đã đuổi!', 'VĐV đã bị mời ra chuồng gà.', 'warning');
+            });
         };
 
         window.swapPlayersManagement = async () => {
             const roomId = document.getElementById('current-room-id').textContent;
-            
             const { data: room } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
             
             if (!room) return;
             
+            // Tráo ID, Info và Điểm số
             await supabase.from('xiangqi_rooms').update({
-                host_id: room.guest_id,
-                guest_id: room.host_id,
+                host_id: room.guest_id || "ADMIN_PENDING", 
+                guest_id: room.host_id === "ADMIN_PENDING" ? null : room.host_id,
                 host_info: room.guest_info,
-                guest_info: room.host_info
+                guest_info: room.host_info,
+                score_host: room.score_guest || 0,
+                score_guest: room.score_host || 0
             }).eq('id', roomId);
             
-            // Update UI
             const tempRed = document.getElementById('red-player-name').textContent;
             const tempBlack = document.getElementById('black-player-name').textContent;
             document.getElementById('red-player-name').textContent = tempBlack;
             document.getElementById('black-player-name').textContent = tempRed;
             
-            showToast('Đã đổi!', 'Vị trí VĐV đã được hoán đổi', 'success');
+            window.showToast('Đã tráo!', 'Tráo Đỏ/Đen thành công.', 'success');
         };
 
         window.startMatch = async () => {
