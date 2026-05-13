@@ -17,37 +17,52 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        body { font-family: 'Nunito', sans-serif !important; background: #0f172a; color: white; }
-        .admin-container { max-width: 1200px; margin: 40px auto; padding: 20px; }
+/* ========================================== */
+        /* CSS ĐÀI CHỈ HUY MỚI - CHỐNG MÓP MÉO 100%   */
+        /* ========================================== */
+        body { font-family: 'Nunito', sans-serif !important; background: #0f172a; color: white; margin: 0; }
         
-        /* Header & Stats theo motip Arena */
-        .admin-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; gap: 20px; flex-wrap: wrap; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; width: 100%; margin-bottom: 30px; }
-        .stat-card { background: rgba(30, 41, 59, 0.7); padding: 20px; border-radius: 16px; border: 1px solid #334155; position: relative; overflow: hidden; }
+        /* Đẩy container xuống để né cái Navbar (Thường Navbar MHEnt cao ~60-70px) */
+        .admin-container { max-width: 1200px; margin: 90px auto 40px; padding: 0 20px; }
+        
+        /* Header & Stats */
+        .admin-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; gap: 15px; flex-wrap: wrap; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; width: 100%; margin-bottom: 30px; }
+        .stat-card { background: rgba(30, 41, 59, 0.7); padding: 15px 20px; border-radius: 12px; border: 1px solid #334155; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #ef4444; }
-        .stat-label { color: #94a3b8; font-size: 14px; font-weight: 700; text-transform: uppercase; }
-        .stat-value { font-size: 32px; font-weight: 900; margin-top: 5px; color: #f1f5f9; }
+        .stat-label { color: #94a3b8; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 28px; font-weight: 900; margin-top: 5px; color: #f1f5f9; }
 
         /* Room Cards */
         .room-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .room-item { background: #1e293b; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; transition: 0.3s; }
-        .room-item:hover { border-color: #ef4444; transform: translateY(-2px); }
+        .room-item { background: #1e293b; border-radius: 12px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; transition: 0.3s; gap: 15px; flex-wrap: wrap; }
+        .room-item:hover { border-color: #ef4444; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.1); }
         
-        .player-vs { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
-        .player-slot { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; min-width: 150px; }
-        .player-name { font-weight: 800; font-size: 15px; }
+        /* Fix chữ bị ép khi tên quá dài */
+        .player-vs { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .player-slot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 12px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; flex: 1; min-width: 120px; }
+        .player-name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
         
         /* Buttons Quyền năng */
-        .btn-admin { border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; font-family: 'Nunito', sans-serif; }
+        .room-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-admin { border: none; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-family: 'Nunito', sans-serif; white-space: nowrap; }
         .btn-primary { background: #3b82f6; color: white; }
-        .btn-success { background: #10b981; color: white; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
+        .btn-success { background: #10b981; color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
         .btn-warning { background: #f59e0b; color: white; }
         .btn-danger { background: #ef4444; color: white; }
         .btn-admin:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-admin:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
 
+        /* Giao diện Mobile */
         @media (max-width: 768px) {
-            .room-item { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .room-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .admin-header { flex-direction: column; align-items: stretch; text-align: center; }
+            .admin-header > div:last-child { display: flex; flex-direction: column; }
+            .room-item { flex-direction: column; align-items: stretch; }
+            .player-vs { flex-direction: column; align-items: stretch; }
+            .player-slot { justify-content: space-between; }
+            .player-name { max-width: 100%; }
+            .room-actions { display: grid; grid-template-columns: 1fr 1fr; }
+            .room-actions .btn-admin:last-child { grid-column: span 2; } /* Nút giám sát tràn 2 ô cho đẹp */
         }
     </style>
 </head>
