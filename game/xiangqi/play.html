@@ -1326,6 +1326,28 @@
             return true; 
         }
 
+        // 👉 RADAR TÌM ĐƯỜNG SỐNG (DÙNG ĐỂ CHECK CHIẾU BÍ / BẾ TẮC)
+        function hasLegalMoves(color, board) {
+            // Quét toàn bộ 90 ô trên bàn cờ
+            for (let fromY = 0; fromY < 10; fromY++) {
+                for (let fromX = 0; fromX < 9; fromX++) {
+                    const piece = board[fromY][fromX];
+                    // Nếu là quân của phe mình
+                    if (piece && piece.startsWith(color === 'red' ? 'R_' : 'B_')) {
+                        // Thử đi tới tất cả các ô khác xem có nước nào hợp lệ không
+                        for (let toY = 0; toY < 10; toY++) {
+                            for (let toX = 0; toX < 9; toX++) {
+                                if (isMoveLegal(piece, fromX, fromY, toX, toY, board)) {
+                                    return true; // Chỉ cần tìm thấy 1 đường sống là mừng rồi!
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false; // Hết cứu! Chết đứng!
+        }
+
         // ==========================================
         // 6. TRÁI TIM CỦA GAME (CẦM CỜ & GỬI NGẦM)
         // ==========================================
@@ -1384,12 +1406,18 @@
                     
                     let safeInc = (roomData.settings && roomData.settings.increment) ? roomData.settings.increment : 0;
 
+                    // 👉 TÍNH TOÁN CHIẾU BÍ (CHECKMATE / STALEMATE)
+                    // Nếu lượt tiếp theo là của đối thủ mà nó hết nước đi -> Nó tèo!
+                    const isOpponentDead = !hasLegalMoves(nextTurn, boardState);
+
                     // 👉 BẮT ĐẦU VÒNG LẶP GỬI NGẦM VÔ TẬN
                     let sendSuccess = false;
                     while (!sendSuccess) {
                         try {
-                            if (targetPiece === 'B_K' || targetPiece === 'R_K') {
-                                const winnerColor = targetPiece === 'B_K' ? 'red' : 'black';
+                            // Nếu vô tình ăn được Vua, HOẶC Đối thủ bị Chiếu Bí / Bế tắc -> THẮNG!!!
+                            if (targetPiece === 'B_K' || targetPiece === 'R_K' || isOpponentDead) {
+                                // Người vừa đi cờ là người chiến thắng
+                                const winnerColor = nextTurn === 'red' ? 'black' : 'red'; 
                                 
                                 // Gọi hàm chốt sổ và nhét luôn bàn cờ mới nhất vào
                                 await endCurrentSet(winnerColor, {
