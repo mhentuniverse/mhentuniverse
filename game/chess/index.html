@@ -284,9 +284,35 @@
         if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
         if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = '/game'; }); 
 
-        window.toggleAccount = function() { document.getElementById('dropdown-account')?.classList.toggle('show'); };
-        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); };
+        window.toggleAccount = function() {
+            const acc = document.getElementById('dropdown-account');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            if (switcher) switcher.classList.remove('show');
+            if (acc) acc.classList.toggle('show');
+        };
+        window.toggleAppSwitcher = function() {
+            const switcher = document.getElementById('dropdown-app-switcher');
+            const acc = document.getElementById('dropdown-account');
+            if (acc) acc.classList.remove('show');
+            if (switcher) switcher.classList.toggle('show');
+        };
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-section') && !event.target.closest('.modal')) {
+                document.getElementById('dropdown-account')?.classList.remove('show');
+                document.getElementById('dropdown-app-switcher')?.classList.remove('show');
+            }
+            if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) {
+                document.getElementById('nav-links')?.classList.remove('active');
+            }
+        };
+        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); };
+
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+        };
         document.body.classList.add('dark-mode');
+        localStorage.setItem('mhent_dark_mode', 'on');
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
