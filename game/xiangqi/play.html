@@ -601,9 +601,9 @@
                     } else {
                         const myReadyStatus = myRole === 'host' ? data.host_ready : data.guest_ready;
                         if (!myReadyStatus) {
-                            overlay.innerHTML = `<i class="fa-solid fa-swords fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i><h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2><button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 20px; background: #10b981;" onclick="toggleReady(true)">SẴN SÀNG</button>`;
+                            overlay.innerHTML = `<i class="fa-solid fa-swords fa-3x" style="color: var(--xiangqi-color); margin-bottom: 20px;"></i><h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2><button id="btn-ready" class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 20px; background: #10b981;" onclick="toggleReady(true)">SẴN SÀNG</button>`;
                         } else {
-                            overlay.innerHTML = `<i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2><button class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>`;
+                            overlay.innerHTML = `<i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2><button id="btn-ready" class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>`;
                         }
                     }
                 }
@@ -710,6 +710,8 @@
             else if (data.status === 'finished') {
                 clearInterval(localTimer); 
                 clearInterval(breakTimer);
+                isCountingDown = false; // 👉 FIX: Xóa trí nhớ đếm ngược ván cũ
+                myBreaksLeft = null; // 👉 FIX: Reset quyền Time break
                 btnBreak.style.display = 'none'; 
                 overlay.style.display = 'flex';
                 
@@ -745,6 +747,8 @@
             // 👉 KỊCH BẢN NGHỈ 30 GIÂY
             else if (data.status === 'set_break') {
                 clearInterval(localTimer); 
+                isCountingDown = false; // 👉 FIX: Xóa trí nhớ đếm ngược ván cũ
+                myBreaksLeft = null;    // 👉 FIX: Reset quyền Time break
                 
                 const setBreakUI = document.getElementById('set-break-overlay');
                 if(setBreakUI) setBreakUI.style.display = 'flex'; // Bật màn hình 30s
@@ -1402,6 +1406,49 @@
                 }
             }
         }
+
+        // ==========================================
+        // 7. DỌN GHẾ KHI VĐV RỜI ĐI (TẮT TAB / BẤM BACK)
+        // ==========================================
+        window.addEventListener('beforeunload', () => {
+            // 👉 Chỉ trả ghế khi phòng đang ở sảnh chờ. 
+            // Nếu đang đánh (playing) mà rớt mạng thì giữ ghế để họ Reconnect!
+            if (roomData && roomData.status === 'waiting') {
+                if (myRole === 'host') {
+                    // Trả ghế Đỏ về ADMIN_PENDING để chiều lòng Supabase
+                    supabase.from('xiangqi_rooms').update({ 
+                        host_id: "ADMIN_PENDING", host_info: null, host_ready: false 
+                    }).eq('id', roomId).then();
+                } else if (myRole === 'guest') {
+                    // Trả ghế Đen về null
+                    supabase.from('xiangqi_rooms').update({ 
+                        guest_id: null, guest_info: null, guest_ready: false 
+                    }).eq('id', roomId).then();
+                }
+            }
+        });
+
+        // 👉 NÂNG CẤP LUÔN HÀM RỜI BÀN CHỦ ĐỘNG (Nút Thoát)
+        window.confirmLeave = function() { 
+            window.showConfirmPopup("Rời Bàn", "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", async () => { 
+                // Nếu đang đánh mà bỏ chạy -> Xử thua ngay!
+                if (roomData.status === 'playing' && (myRole === 'host' || myRole === 'guest')) {
+                    const loserColor = myRole === 'host' ? 'red' : 'black';
+                    const winnerColor = loserColor === 'red' ? 'black' : 'red';
+                    await endCurrentSet(winnerColor);
+                } 
+                // Nếu đang chờ mà bỏ đi -> Trả lại ghế cho người khác
+                else if (roomData.status === 'waiting') {
+                    if (myRole === 'host') {
+                        await supabase.from('xiangqi_rooms').update({ host_id: "ADMIN_PENDING", host_info: null, host_ready: false }).eq('id', roomId);
+                    } else if (myRole === 'guest') {
+                        await supabase.from('xiangqi_rooms').update({ guest_id: null, guest_info: null, guest_ready: false }).eq('id', roomId);
+                    }
+                }
+                // Dọn dẹp xong thì cho về sảnh ngoài
+                window.location.href = '/game/xiangqi'; 
+            });
+        };
     </script>
     <script src="/mhent-ui.js"></script>
 </body>

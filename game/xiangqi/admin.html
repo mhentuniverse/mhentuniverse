@@ -874,11 +874,16 @@
             const status = document.getElementById('special-status').value;
             const note = document.getElementById('special-note').value.trim();
             
-            // 👉 Hút thông số thời gian
-            const timeLimit = parseInt(document.getElementById('special-time').value) || 10;
-            const increment = parseInt(document.getElementById('special-inc').value) || 5;
-            const breakCount = parseInt(document.getElementById('special-break-count').value) || 1;
-            const breakTime = parseInt(document.getElementById('special-break-time').value) || 60;
+            // 👉 Sửa lỗi số 0 bị hiểu nhầm thành Không có gì
+            const timeRaw = document.getElementById('special-time').value;
+            const incRaw = document.getElementById('special-inc').value;
+            const breakCountRaw = document.getElementById('special-break-count').value;
+            const breakTimeRaw = document.getElementById('special-break-time').value;
+
+            const timeLimit = timeRaw === "" ? 10 : parseInt(timeRaw);
+            const increment = incRaw === "" ? 5 : parseInt(incRaw);
+            const breakCount = breakCountRaw === "" ? 1 : parseInt(breakCountRaw);
+            const breakTime = breakTimeRaw === "" ? 60 : parseInt(breakTimeRaw);
 
             if (roomId.length < 3) {
                 if(window.showPopup) showPopup('Mã phòng phải có ít nhất 3 ký tự!', true);
