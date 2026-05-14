@@ -1306,21 +1306,61 @@
             return false;
         }
 
-        function isMoveLegal(piece, fromX, fromY, toX, toY, board) {
-            const targetPiece = board[toY][toX];
-            const isMyPiece = piece && ((myRole === 'host' && piece.startsWith('R_')) || (myRole === 'guest' && piece.startsWith('B_')));
-            const isMyTarget = targetPiece && ((myRole === 'host' && targetPiece.startsWith('R_')) || (myRole === 'guest' && targetPiece.startsWith('B_')));
-            if (isMyPiece && isMyTarget) return false; 
+        // 👉 LUẬT LỘ MẶT TƯỚNG (PHI TƯỚNG)
+        function isGeneralsFacing(board) {
+            let rX = -1, rY = -1, bX = -1, bY = -1;
+            // Tìm tọa độ 2 con Tướng
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 9; x++) {
+                    if (board[y][x] === 'R_K') { rX = x; rY = y; }
+                    if (board[y][x] === 'B_K') { bX = x; bY = y; }
+                }
+            }
+            // Nếu 2 tướng nằm cùng 1 cột dọc
+            if (rX !== -1 && bX !== -1 && rX === bX) {
+                let minY = Math.min(rY, bY);
+                let maxY = Math.max(rY, bY);
+                let piecesBetween = 0;
+                
+                // Đếm xem có bao nhiêu quân cờ nằm giữa 2 Tướng
+                for (let y = minY + 1; y < maxY; y++) {
+                    if (board[y][rX] !== null) piecesBetween++;
+                }
+                // Nếu KHÔNG có quân nào cản ở giữa -> Lộ mặt tướng -> Trả về true (Báo lỗi)
+                if (piecesBetween === 0) return true; 
+            }
+            return false;
+        }
 
+        function isMoveLegal(piece, fromX, fromY, toX, toY, board) {
+            if (!piece) return false;
+
+            const targetPiece = board[toY][toX];
+            
+            // 👉 FIX LỖI TÀ TÀNG: Phân biệt địch - ta bằng MÀU QUÂN CỜ thay vì myRole
+            const pieceColor = piece.startsWith('R_') ? 'red' : 'black';
+            if (targetPiece) {
+                const targetColor = targetPiece.startsWith('R_') ? 'red' : 'black';
+                // Lệnh thép: Tuyệt đối không được ăn quân cùng phe!
+                if (pieceColor === targetColor) return false; 
+            }
+
+            // Check luật đi (Chữ L, đi thẳng, qua sông...)
             if (!isValidMove(piece, fromX, fromY, toX, toY, board)) return false;
 
+            // Giả lập nước đi lên bàn cờ nháp
             const tempBoard = JSON.parse(JSON.stringify(board));
             tempBoard[toY][toX] = piece;
             tempBoard[fromY][fromX] = null;
 
-            const myColor = piece.startsWith('R_') ? 'red' : 'black';
-            if (isCheck(myColor, tempBoard)) {
+            // Check xem đi xong có tự đưa cổ cho địch chém (Bị chiếu) không
+            if (isCheck(pieceColor, tempBoard)) {
                 return false; 
+            }
+            
+            // Check luật 2 Tướng không được nhìn mặt nhau
+            if (typeof isGeneralsFacing === 'function' && isGeneralsFacing(tempBoard)) {
+                return false;
             }
             
             return true; 
