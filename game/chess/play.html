@@ -100,6 +100,21 @@
         .piece.white { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .piece.black { color: #0f172a; text-shadow: 0 1px 2px rgba(255,255,255,0.3); }
 
+        /* CHẤM BÁO NƯỚC ĐI KHẢ DỤNG */
+        .square.valid-move::after {
+            content: ''; position: absolute; width: 25%; height: 25%;
+            background: rgba(0, 0, 0, 0.25); border-radius: 50%; pointer-events: none; z-index: 3;
+        }
+        /* NẾU LÀ QUÂN ĐỊCH -> HIỆN VÒNG TRÒN DỌA BẮT */
+        .square.valid-move.has-enemy::after {
+            width: 85%; height: 85%; background: transparent;
+            border: 5px solid rgba(0, 0, 0, 0.25);
+        }
+        /* BÁO ĐỘNG ĐỎ KHI VUA BỊ CHIẾU */
+        .square.in-check {
+            background: radial-gradient(circle, rgba(239,68,68,0.8) 0%, transparent 70%) !important;
+        }
+
         .board-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center; padding: 20px; box-sizing: border-box; }
         .board-overlay h2 { margin: 15px 0; font-size: 24px; font-weight: 900; color: white; }
         .board-overlay p { margin: 0 0 15px 0; font-size: 16px; color: #cbd5e1; line-height: 1.5; }
@@ -487,18 +502,57 @@
         }
 
         function renderBoard() {
-            const boardEl = document.getElementById('chess-board'); boardEl.innerHTML = ''; const board = game.board(); 
+            const boardEl = document.getElementById('chess-board'); 
+            boardEl.innerHTML = ''; 
+            const board = game.board(); 
+            
+            // Lấy danh sách các nước đi có thể đi từ ô đang chọn
+            let validMoves = [];
+            if (selectedSquare) {
+                // game.moves() trả về danh sách nước đi hợp lệ
+                validMoves = game.moves({ square: selectedSquare, verbose: true }).map(m => m.to);
+            }
+
+            // Dò tìm vị trí Vua nếu đang bị chiếu
+            let checkSquare = null;
+            if (game.in_check()) {
+                const turnColor = game.turn();
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if (board[r][c] && board[r][c].type === 'k' && board[r][c].color === turnColor) {
+                            checkSquare = String.fromCharCode(97 + c) + (8 - r);
+                        }
+                    }
+                }
+            }
+
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    const displayRow = myRole === 'guest' ? 7 - r : r; const displayCol = myRole === 'guest' ? 7 - c : c;
-                    const squareData = board[displayRow][displayCol]; const squareEl = document.createElement('div');
+                    const displayRow = myRole === 'guest' ? 7 - r : r; 
+                    const displayCol = myRole === 'guest' ? 7 - c : c;
+                    const squareData = board[displayRow][displayCol]; 
+                    const squareEl = document.createElement('div');
+                    
                     squareEl.className = `square ${(displayRow + displayCol) % 2 === 0 ? 'light' : 'dark'}`;
                     const squareCoord = String.fromCharCode(97 + displayCol) + (8 - displayRow);
+                    
                     squareEl.onclick = () => handleSquareClick(squareCoord);
+                    
+                    // 👉 Gắn màu đang chọn
                     if (selectedSquare === squareCoord) squareEl.classList.add('selected');
+                    // 👉 Gắn màu Vua bị chiếu
+                    if (checkSquare === squareCoord) squareEl.classList.add('in-check');
+                    // 👉 Gắn chấm khả dụng
+                    if (validMoves.includes(squareCoord)) {
+                        squareEl.classList.add('valid-move');
+                        if (squareData) squareEl.classList.add('has-enemy');
+                    }
+
                     if (squareData) {
-                        const pieceEl = document.createElement('div'); pieceEl.className = `piece ${squareData.color === 'w' ? 'white' : 'black'}`;
-                        pieceEl.innerHTML = pieceIcons[squareData.type]; squareEl.appendChild(pieceEl);
+                        const pieceEl = document.createElement('div'); 
+                        pieceEl.className = `piece ${squareData.color === 'w' ? 'white' : 'black'}`;
+                        pieceEl.innerHTML = pieceIcons[squareData.type]; 
+                        squareEl.appendChild(pieceEl);
                     }
                     boardEl.appendChild(squareEl);
                 }
