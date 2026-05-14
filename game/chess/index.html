@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sảnh Chờ - Cờ Tướng .io | MHEnt. Game</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ef4444">
+    <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/game/game-theme.css"> 
+    <link rel="stylesheet" href="/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Ghi đè màu chủ đạo riêng cho Cờ Tướng (Đỏ Mận / Đỏ Bã Trầu) */
+        :root { 
+            --chess-color: #dc2626; 
+            --chess-bg: rgba(220, 38, 38, 0.1); 
+            --chess-dark: #991b1b;
+        }
+
+        body { background: #f8fafc; }
+        body.dark-mode { background: #0f172a; }
+
+        .lobby-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        /* CARD TẠO / VÀO PHÒNG */
+        .action-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 2px solid transparent;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        body.dark-mode .action-card { background: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .action-card:hover { border-color: var(--chess-color); transform: translateY(-5px); box-shadow: 0 15px 35px var(--chess-bg); }
+
+        .action-icon {
+            font-size: 55px;
+            color: var(--chess-color);
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .action-card:hover .action-icon { transform: scale(1.1); }
+
+        .action-title { font-size: 24px; font-weight: 900; margin-bottom: 15px; color: #1e293b; }
+        body.dark-mode .action-title { color: #f8fafc; }
+
+        .room-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: 900;
+            text-align: center;
+            letter-spacing: 8px; /* Giãn cách lúc gõ số */
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            outline: none;
+            background: #f8fafc;
+            color: var(--chess-color);
+            transition: 0.3s;
+        }
+        /* MẸO FIX LỖI PLACEHOLDER: Trả placeholder về bình thường, không bị giãn */
+        .room-input::placeholder { letter-spacing: 1px; font-weight: 600; color: #94a3b8; font-size: 16px; }
+        .room-input:focus { border-color: var(--chess-color); background: #fff; box-shadow: 0 4px 15px var(--chess-bg); }
+        body.dark-mode .room-input { background: #0f172a; border-color: #334155; }
+        body.dark-mode .room-input:focus { background: #1e293b; }
+
+        .btn-chess {
+            background: var(--chess-color);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            font-size: 16px;
+            font-weight: 900;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px var(--chess-bg);
+            text-transform: uppercase;
+        }
+        .btn-chess:hover { background: var(--chess-dark); transform: translateY(-2px); box-shadow: 0 8px 20px var(--chess-bg); }
+        .btn-chess:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* DANH SÁCH BÀN ĐANG CHỜ */
+        .room-list-container {
+            grid-column: 1 / -1;
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid #f1f5f9;
+        }
+        body.dark-mode .room-list-container { background: #1e293b; border-color: #334155; }
+        
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .room-item {
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+            background: #f8fafc;
+        }
+        body.dark-mode .room-item { border-color: #334155; background: #0f172a; }
+        .room-item:hover { border-color: var(--chess-color); background: #fff; box-shadow: 0 10px 25px var(--chess-bg); transform: translateY(-3px); }
+        body.dark-mode .room-item:hover { background: #1e293b; }
+        
+        .host-info { display: flex; align-items: center; gap: 12px; }
+        .host-avt { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #e2e8f0; object-fit: cover; }
+        .room-item:hover .host-avt { border-color: var(--chess-color); }
+        .host-name { font-weight: 800; font-size: 16px; color: #1e293b; margin: 0 0 4px 0;}
+        body.dark-mode .host-name { color: #f8fafc; }
+        .room-id-badge { background: #e2e8f0; color: #475569; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 8px; letter-spacing: 1px;}
+        body.dark-mode .room-id-badge { background: #334155; color: #cbd5e1; }
+        .room-item:hover .room-id-badge { background: var(--chess-bg); color: var(--chess-color); }
+
+        /* Tinh chỉnh Navbar cho đỡ phèn */
+        .btn-back:hover { background: var(--chess-bg) !important; color: var(--chess-color) !important; border-color: var(--chess-color) !important;}
+        .btn-theme:hover { background: var(--chess-bg) !important; color: var(--chess-color) !important; border-color: var(--chess-color) !important;}
+
+        @media (max-width: 768px) {
+            .lobby-container { grid-template-columns: 1fr; }
+        }
+
+        /* ========================================== */
+        /* MODAL SETTINGS (POPUP CÀI ĐẶT PHÒNG)       */
+        /* ========================================== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
+            z-index: 9999; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-box {
+            background: #1e293b; border: 2px solid #334155; border-radius: 20px;
+            width: 90%; max-width: 500px; padding: 30px;
+            transform: translateY(20px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative;
+        }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+        
+        .modal-close {
+            position: absolute; top: 20px; right: 20px; font-size: 24px;
+            color: #64748b; cursor: pointer; transition: 0.2s; background: none; border: none;
+        }
+        .modal-close:hover { color: #ef4444; }
+
+        .setting-group { margin-bottom: 20px; text-align: left; }
+        .setting-group label { display: block; font-weight: 800; color: #cbd5e1; margin-bottom: 10px; font-size: 14px; }
+        
+        .setting-select {
+            width: 100%; padding: 12px 15px; border-radius: 12px;
+            background: #0f172a; border: 2px solid #334155; color: white;
+            font-size: 15px; font-weight: 700; outline: none; transition: 0.3s;
+            font-family: 'Nunito', sans-serif; cursor: pointer;
+        }
+        .setting-select:focus { border-color: var(--chess-color); box-shadow: 0 0 0 4px var(--chess-bg); }
+    </style>
+</head>
+<body class = "dark-mode">
+    
+    <nav class="navbar">
+            <div class="nav-left">
+                <a onclick="window.location.href='/game'" style="cursor: pointer;">
+                    <i class="fa-solid fa-chess-knight"></i>
+                    <span class="logo-name" style="color: var(--hub-color);">Cờ Tướng - MHEnt. Game</span>
+                </a>
+            </div>
+
+            <ul class="nav-links" id="nav-links">
+                <li><a onclick="showToast('Sắp ra mắt', 'Bảng xếp hạng đang được xây dựng nha!', 'info')" style="cursor: pointer;">Bảng Xếp Hạng</a></li>
+            </ul>
+
+            <div class="nav-right">
+                <div class="user-section">
+                    <div class="app-switcher-container" style="position: relative; display: flex; align-items: center; margin-right: 15px;">
+                        <div class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Các Ứng Dụng MHEnt" style="cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: inherit;" onmouseover="this.style.transform='scale(1.1)'; this.style.color='var(--hub-color)'" onmouseout="this.style.transform='scale(1)'; this.style.color='inherit'">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                                <circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle>
+                                <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                                <circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle>
+                            </svg>
+                        </div>
+                        
+                        <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                            <a onclick="window.location.href='/'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></span>
+                                <span class="app-name">Đại Sảnh</span>
+                            </a>
+                            <a onclick="window.location.href='/cinema'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                                <span class="app-name">Cinema</span>
+                            </a>
+                            <a onclick="window.location.href='/arena'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg></span>
+                                <span class="app-name">Arena</span>
+                            </a>
+                            <a onclick="window.location.href='/teach'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
+                                <span class="app-name">Edu</span>
+                            </a>
+                            <a onclick="window.location.href='/game'" class="app-item active">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><path d="M6 12h4"></path><path d="M8 10v4"></path><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg></span>
+                                <span class="app-name">Game</span>
+                            </a>
+                            <a onclick="window.location.href='/tools'" class="app-item">
+                                <span class="app-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span>
+                                <span class="app-name">Tools</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    
+                    <button id="btn-login" class="btn-login btn-with-icon" style="background: var(--hub-color);">
+                        <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg> Đăng nhập
+                    </button>
+
+                    <div id="user-profile" class="user-profile" style="position: relative; display: none;">
+                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <img id="user-avatar" src="" alt="User" class="user-avatar" style="border-color: var(--hub-color);">
+                            <span id="user-name" class="user-name">Tên User</span>
+                        </div>
+                        
+                        <div id="dropdown-account" class="dropdown-menu account-dropdown">
+                            <div class="dropdown-item" onclick="window.location.href='/profile#info'">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Hồ sơ
+                            </div>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Dark Mode
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="btn-logout" class="dropdown-item" style="color: #ef4444 !important;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Đăng xuất
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-toggle" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: var(--hub-color);"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </div>
+            </div>
+        </nav>
+
+    <div class="back-btn-wrapper">
+            <a onclick="window.location.href='/game'" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" class="btn-back">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Quay lại Trang Chủ
+            </a>
+    </div>
+
+    <div class="lobby-container">
+        
+        <div class="action-card">
+            <div class="action-icon"><i class="fa-solid fa-chess-board"></i></div>
+            <h2 class="action-title">Tạo Bàn Cờ Mới</h2>
+            <p style="color: #64748b; margin-bottom: 30px;">Tạo phòng riêng, nhận mã PIN và gửi cho đối thủ để bắt đầu trận đấu tâm trí.</p>
+            <button class="btn-chess" id="btn-create-room" onclick="openSettingsModal()">
+                <i class="fa-solid fa-plus"></i> TẠO PHÒNG NGAY
+            </button>
+        </div>
+
+        <div class="action-card">
+            <div class="action-icon"><i class="fa-solid fa-door-open"></i></div>
+            <h2 class="action-title">Tham Gia Bằng Mã</h2>
+            <p style="color: #64748b; margin-bottom: 10px;">Đã có mã phòng từ bạn bè? Nhập dãy 5 số vào đây để tiến vào bàn cờ.</p>
+            <input type="text" id="join-room-id" class="room-input" placeholder="VD: 83921" maxlength="5" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+            <button class="btn-chess" id="btn-join-room" onclick="joinRoomByInput()" style="background: #1e293b;">
+                <i class="fa-solid fa-right-to-bracket"></i> VÀO BÀN
+            </button>
+        </div>
+
+        <div class="room-list-container" style="margin-top: 30px; background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid #334155;">
+            <h3 style="color: #10b981; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fa-solid fa-satellite-dish fa-beat"></i> Trạm Phát Sóng Trực Tiếp</span>
+                <button onclick="loadLiveRooms()" style="background: transparent; border: 1px solid #10b981; color: #10b981; border-radius: 5px; cursor: pointer; padding: 5px 10px;">
+                    <i class="fa-solid fa-rotate-right"></i> Làm mới
+                </button>
+            </h3>
+            
+            <div id="live-rooms-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;">
+                <p style="text-align: center; color: #94a3b8; font-style: italic;">Đang dò sóng các vũ trụ...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="room-settings-modal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-top: 0; color: var(--chess-color); display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-gear"></i> Cấu Hình Trận Đấu
+            </h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 25px;">Sếp thiết lập luật chơi cho phòng đấu này nhé.</p>
+
+            <div class="setting-group">
+                <label><i class="fa-solid fa-stopwatch"></i> Thời gian mỗi bên (Phút)</label>
+                <select id="set-time" class="setting-select">
+                    <option value="5">Cờ chớp (5 Phút)</option>
+                    <option value="10" selected>Cờ nhanh (10 Phút)</option>
+                    <option value="15">Cờ tiêu chuẩn (15 Phút)</option>
+                    <option value="30">Đánh giải (30 Phút)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label><i class="fa-solid fa-trophy"></i> Thể thức vô địch</label>
+                <select id="set-target-wins" class="setting-select">
+                    <option value="1" selected>Bo1 (Thắng 1 ván - Trận Đơn)</option>
+                    <option value="2">Bo3 (Thắng 2 ván - Chuỗi Trận)</option>
+                    <option value="3">Bo5 (Thắng 3 ván - Trận Chung Kết)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label><i class="fa-solid fa-plus"></i> Bước bù giờ (Giây / Nước đi)</label>
+                <select id="set-increment" class="setting-select">
+                    <option value="0">Không bù giờ (0s)</option>
+                    <option value="3" selected>Bù 3 Giây (+3s)</option>
+                    <option value="5">Bù 5 Giây (+5s)</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="setting-group">
+                    <label><i class="fa-solid fa-pause"></i> Số lần Time Break</label>
+                    <select id="set-break-count" class="setting-select">
+                        <option value="0">Không có</option>
+                        <option value="1" selected>1 Lần</option>
+                        <option value="2">2 Lần</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label><i class="fa-solid fa-hourglass-half"></i> Thời lượng Break</label>
+                    <select id="set-break-time" class="setting-select">
+                        <option value="30" selected>30 Giây</option>
+                        <option value="60">60 Giây</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-chess" style="margin-top: 10px;" id="btn-confirm-create" onclick="confirmCreateRoom()">
+                <i class="fa-solid fa-check"></i> XÁC NHẬN & TẠO PHÒNG
+            </button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-bottom">
+            <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
+                    <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer" class="footer-link">
+                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                        Fanpage MHEnt.
+                    </a>
+                    <span style="opacity: 0.4; font-size: 10px;">•</span>
+                    <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer" class="footer-link">
+                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Cộng đồng MHEnt.
+                    </a>
+                </div>
+
+                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
+                    <a onclick="window.location.href='/terms'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='inherit'">Điều khoản dịch vụ</a>
+                    <span style="opacity: 0.3;">|</span>
+                    <a onclick="window.location.href='/terms#community-guidelines'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='inherit'">Nguyên tắc cộng đồng</a>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        // 1. IMPORT FIREBASE (Dùng để lấy thông tin Đăng nhập)
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        
+        // 2. IMPORT SUPABASE (Động cơ tên lửa lưu trận đấu)
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        // --- ĐIỀN CHÌA KHÓA CỦA SẾP VÀO ĐÂY NHA ---
+        const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        // -----------------------------------------
+
+        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+
+        let currentUser = null; 
+
+        // Các nút UI cơ bản
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
+        if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = '/game'; }); 
+
+        window.toggleAccount = function() { const acc = document.getElementById('dropdown-account'); const switcher = document.getElementById('dropdown-app-switcher'); if(switcher) switcher.classList.remove('show'); if(acc) acc.classList.toggle('show'); };
+        window.toggleAppSwitcher = function() { const switcher = document.getElementById('dropdown-app-switcher'); const acc = document.getElementById('dropdown-account'); if(acc) acc.classList.remove('show'); if(switcher) switcher.classList.toggle('show'); };
+        window.onclick = function(event) { if (!event.target.closest('.user-section') && !event.target.closest('.modal')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); } if (!event.target.closest('.menu-toggle') && !event.target.closest('#nav-links')) { document.getElementById('nav-links')?.classList.remove('active'); } };
+        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); };
+
+        // AUTO DARK MODE
+        window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
+        document.body.classList.add('dark-mode'); localStorage.setItem('mhent_dark_mode', 'on');
+
+        // QUẢN LÝ ĐĂNG NHẬP
+        onAuthStateChanged(auth, async (user) => {
+            const btnTheme = document.getElementById('btn-theme-toggle'); 
+            if (user) {
+                currentUser = user; 
+                listenForRooms(); // Gọi Radar Supabase
+
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                if(btnTheme) btnTheme.style.display = 'none'; 
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+
+                let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+                if (document.getElementById('user-avatar')) {
+                    document.getElementById('user-avatar').src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    document.getElementById('user-avatar').style.display = 'block'; 
+                }        
+            } else {
+                currentUser = null; 
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                if(btnTheme) btnTheme.style.display = 'flex'; 
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+            }
+        });
+
+        // POPUP CÀI ĐẶT
+        window.openSettingsModal = function() {
+            if(!currentUser) return showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
+            document.getElementById('room-settings-modal').classList.add('active');
+        }
+        window.closeSettingsModal = function() { document.getElementById('room-settings-modal').classList.remove('active'); }
+
+        // TẠO PHÒNG BẰNG SUPABASE
+        window.confirmCreateRoom = async function() {
+            const btn = document.getElementById('btn-confirm-create');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ĐANG TẠO...';
+            btn.disabled = true;
+
+            const timeLimit = parseInt(document.getElementById('set-time').value);
+            const increment = parseInt(document.getElementById('set-increment').value);
+            const breakCount = parseInt(document.getElementById('set-break-count').value);
+            const breakTime = parseInt(document.getElementById('set-break-time').value);
+            // 👉 Lấy giá trị Bo1, Bo3, Bo5
+            const targetWins = parseInt(document.getElementById('set-target-wins').value); 
+            
+            const roomId = Math.floor(10000 + Math.random() * 90000).toString();
+
+            const myInfo = {
+                name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"),
+                avatar: currentUser.photoURL || '/assets/avt-web.jpg'
+            };
+
+            try {
+                const { error } = await supabase.from('chess_rooms').insert([{
+                    id: roomId,
+                    host_id: currentUser.uid,
+                    host_info: myInfo,
+                    status: 'waiting',
+                    settings: { timeLimit, increment, breakCount, breakTime },
+                    
+                    // 👉 GHI DỮ LIỆU CHUỖI TRẬN LÊN SUPABASE
+                    target_wins: targetWins,
+                    score_host: 0,
+                    score_guest: 0,
+                    
+                    host_ready: false,
+                    guest_ready: false,
+                    turn: 'red'
+                }]);
+
+                if(error) throw error;
+                window.location.href = `/game/chess/play?id=${roomId}`;
+            } catch (error) {
+                console.error(error);
+                showToast("Lỗi", "Không thể tạo phòng, sếp kiểm tra lại Supabase nha!", "error");
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> XÁC NHẬN & TẠO PHÒNG';
+                btn.disabled = false;
+            }
+        };
+
+        window.joinRoomByInput = function() {
+            const roomId = document.getElementById('join-room-id').value.trim();
+            if(roomId.length !== 5) return showToast("Lỗi", "Mã phòng phải có đúng 5 chữ số!", "error");
+            joinRoomDirectly(roomId);
+        };
+
+        // VÀO PHÒNG BẰNG SUPABASE
+        window.joinRoomDirectly = async function(roomId) {
+            if(!currentUser) return showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
+            
+            try {
+                const { data: room, error } = await supabase.from('chess_rooms').select('*').eq('id', roomId).single();
+
+                if (room) {
+                    if (room.status === 'waiting') {
+                        if(room.host_id === currentUser.uid) {
+                            window.location.href = `/game/chess/play?id=${roomId}`;
+                            return;
+                        }
+                        
+                        const myInfo = {
+                            name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"),
+                            avatar: currentUser.photoURL || '/assets/avt-web.jpg'
+                        };
+
+                        await supabase.from('chess_rooms').update({
+                            guest_id: currentUser.uid,
+                            guest_info: myInfo,
+                            status: 'waiting' // Giữ nguyên waiting chờ sẵn sàng
+                        }).eq('id', roomId);
+
+                        window.location.href = `/game/chess/play?id=${roomId}`;
+                    } 
+                    else if (room.status === 'playing' && (room.host_id === currentUser.uid || room.guest_id === currentUser.uid)) {
+                        window.location.href = `/game/chess/play?id=${roomId}`;
+                    } 
+                    else {
+                        showToast("Thất bại", "Phòng này đã đầy hoặc ván đấu đang diễn ra rồi!", "error");
+                    }
+                } else {
+                    showToast("Lỗi", "Mã phòng không tồn tại!", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Lỗi", "Đường truyền gián đoạn!", "error");
+            }
+        };
+
+        // RADAR TÌM PHÒNG SUPABASE REALTIME
+        async function fetchRooms() {
+            if(!currentUser) return;
+            const { data, error } = await supabase.from('chess_rooms').select('*').eq('status', 'waiting');
+            if(error) return console.error(error);
+
+            const grid = document.getElementById('public-rooms-grid');
+            grid.innerHTML = '';
+            let count = 0;
+            
+            data.forEach((room) => {
+                if (room.host_id !== currentUser.uid && !room.guest_id) { // Chỉ hiện phòng chưa có guest
+                    count++;
+                    const hName = room.host_info?.name || 'Kỳ thủ';
+                    const hAvt = room.host_info?.avatar || '/assets/avt-web.jpg';
+                    grid.innerHTML += `
+                        <div class="room-item">
+                            <div class="host-info">
+                                <img src="${hAvt}" class="host-avt">
+                                <div><p class="host-name">${hName}</p><span class="room-id-badge">ID: ${room.id}</span></div>
+                            </div>
+                            <button class="btn-chess" style="width: auto; padding: 10px 20px; font-size: 14px;" onclick="joinRoomDirectly('${room.id}')">CHIẾN <i class="fa-solid fa-swords"></i></button>
+                        </div>
+                    `;
+                }
+            });
+
+            if (count === 0) grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 20px;">Hiện không có kỳ thủ nào đang đợi. Cậu hãy tự Tạo phòng nhé!</div>';
+        }
+
+        function listenForRooms() {
+            fetchRooms(); // Tải lần đầu
+            // Subscribe kênh Realtime
+            supabase.channel('public:chess_rooms')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'chess_rooms' }, payload => {
+                    fetchRooms(); // Có người tạo/xóa phòng là tải lại grid
+                }).subscribe();
+        }
+
+        // BỘ DÒ SÓNG: TẢI DANH SÁCH PHÒNG
+        window.loadLiveRooms = async function() {
+            const listEl = document.getElementById('live-rooms-list');
+            listEl.innerHTML = '<p style="text-align: center; color: #94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+
+            try {
+                // Hút tất cả các phòng đang Chờ hoặc Đang Đánh trên Supabase
+                const { data, error } = await supabase
+                    .from('chess_rooms')
+                    .select('*')
+                    .in('status', ['waiting', 'playing', 'set_break'])
+                    .neq('status', 'finished')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    listEl.innerHTML = '<p style="text-align: center; color: #64748b;">Hiện không có trận đấu nào đang diễn ra.</p>';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(room => {
+                    const hostName = room.host_info ? room.host_info.name : 'Khuyết danh';
+                    const guestName = room.guest_info ? room.guest_info.name : 'Đang chờ...';
+                    
+                    // Xác định trạng thái để tô màu cho ngầu
+                    let statusTag = '';
+                    let actionBtn = '';
+                    
+                    if (room.status === 'waiting') {
+                        statusTag = `<span style="background: #eab308; color: black; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">ĐANG ĐỢI</span>`;
+                        actionBtn = `<button onclick="window.location.href='/game/chess/play?id=${room.id}'" style="background: #10b981; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">VÀO THI ĐẤU</button>`;
+                    } else {
+                        statusTag = `<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">LIVE</span>`;
+                        actionBtn = `<button onclick="window.location.href='/game/chess/play?id=${room.id}'" style="background: #3b82f6; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-eye"></i> THEO DÕI</button>`;
+                    }
+
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 15px; border-radius: 8px; border-left: 4px solid ${room.status === 'waiting' ? '#eab308' : '#ef4444'};">
+                            <div>
+                                <div style="color: #94a3b8; font-size: 12px; margin-bottom: 4px;">Phòng: <b>${room.id}</b> | Thể thức: Bo${room.target_wins ? room.target_wins * 2 - 1 : 1}</div>
+                                <div style="font-weight: bold; font-size: 15px;">
+                                    <span style="color: #ef4444;">${hostName}</span> 
+                                    <span style="color: #64748b; font-size: 12px; margin: 0 5px;">VS</span> 
+                                    <span style="color: #cbd5e1;">${guestName}</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                                ${statusTag}
+                                ${actionBtn}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listEl.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                listEl.innerHTML = '<p style="text-align: center; color: #ef4444;">Lỗi kết nối Mây, không thể tải danh sách!</p>';
+            }
+        };
+
+        // Gọi hàm chạy luôn khi vừa vào Sảnh
+        setTimeout(() => loadLiveRooms(), 1000);
+    </script>
+    <script src="/mhent-ui.js"></script>
+    <script src="/check-token.js"></script>
+</body>
+</html>
