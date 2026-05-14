@@ -657,8 +657,9 @@
                 if (data.turn === 'red') bH -= elapsed;
                 else bG -= elapsed;
 
-                myTimeLeft = myRole === 'host' ? bH : bG;
-                oppTimeLeft = myRole === 'host' ? bG : bH; // Đã vá lỗi tham chiếu!
+                // 👉 BẢN VÁ 1: Khán giả nhìn từ góc của Host (Đỏ ở dưới)
+                myTimeLeft = (myRole === 'host' || myRole === 'spectator') ? bH : bG;
+                oppTimeLeft = (myRole === 'host' || myRole === 'spectator') ? bG : bH; // Đã vá lỗi tham chiếu!
 
                 updateTimerUI();
                 
@@ -666,12 +667,17 @@
                 renderScoreTracker(data.target_wins || 1, data.score_host || 0, data.score_guest || 0);
                 startLocalTimer(data.turn);
 
+                // 👉 BẢN VÁ 2: Chuẩn hóa viền báo Lượt đi cho cả 3 góc nhìn
+                const isRedBottom = (myRole === 'host' || myRole === 'spectator');
+                const redCardId = isRedBottom ? 'my-card' : 'opponent-card';
+                const blackCardId = isRedBottom ? 'opponent-card' : 'my-card';
+
                 if (data.turn === 'red') {
-                    document.getElementById(myRole === 'host' ? 'my-card' : 'opponent-card').classList.add('active-turn');
-                    document.getElementById(myRole === 'host' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
+                    document.getElementById(redCardId).classList.add('active-turn');
+                    document.getElementById(blackCardId).classList.remove('active-turn');
                 } else {
-                    document.getElementById(myRole === 'guest' ? 'my-card' : 'opponent-card').classList.add('active-turn');
-                    document.getElementById(myRole === 'guest' ? 'opponent-card' : 'my-card').classList.remove('active-turn');
+                    document.getElementById(blackCardId).classList.add('active-turn');
+                    document.getElementById(redCardId).classList.remove('active-turn');
                 }
             }
             else if (data.status === 'break') {
@@ -850,17 +856,30 @@
         // ==========================================
         // 3. ĐỒNG HỒ & GIAO DIỆN
         // ==========================================
+        // 👉 BẢN VÁ 4: Tách bạch đồng hồ Khán Giả và VĐV
         function startLocalTimer(turn) {
             clearInterval(localTimer); 
-            const isMyTurn = (myRole === 'host' && turn === 'red') || (myRole === 'guest' && turn === 'black');
-
+            
             localTimer = setInterval(() => {
-                if(isMyTurn) {
-                    myTimeLeft--;
-                    if(myTimeLeft <= 0) { clearInterval(localTimer); handleTimeOut('me'); }
+                if (myRole === 'spectator') {
+                    // Góc Khán giả: Chỉ đếm số cho vui mắt, không gọi hàm Xử Thua
+                    if (turn === 'red') {
+                        myTimeLeft--;
+                        if (myTimeLeft <= 0) clearInterval(localTimer);
+                    } else {
+                        oppTimeLeft--;
+                        if (oppTimeLeft <= 0) clearInterval(localTimer);
+                    }
                 } else {
-                    oppTimeLeft--;
-                    if(oppTimeLeft <= 0) { clearInterval(localTimer); handleTimeOut('opponent'); }
+                    // Góc VĐV: Chạy nghiêm ngặt, hết giờ là Xử Thua liền!
+                    const isMyTurn = (myRole === 'host' && turn === 'red') || (myRole === 'guest' && turn === 'black');
+                    if (isMyTurn) {
+                        myTimeLeft--;
+                        if (myTimeLeft <= 0) { clearInterval(localTimer); handleTimeOut('me'); }
+                    } else {
+                        oppTimeLeft--;
+                        if (oppTimeLeft <= 0) { clearInterval(localTimer); handleTimeOut('opponent'); }
+                    }
                 }
                 updateTimerUI();
             }, 1000);
@@ -1028,8 +1047,9 @@
             myTracker.style.display = 'flex';
             oppTracker.style.display = 'flex';
 
-            let myScore = myRole === 'host' ? scoreHost : scoreGuest;
-            let oppScore = myRole === 'host' ? scoreGuest : scoreHost;
+            // 👉 BẢN VÁ 3: Đảm bảo điểm bám đúng người, không bị nhảy lộn xộn ở góc Khán giả
+            let myScore = (myRole === 'host' || myRole === 'spectator') ? scoreHost : scoreGuest;
+            let oppScore = (myRole === 'host' || myRole === 'spectator') ? scoreGuest : scoreHost;
 
             // Hàm tạo cục HTML chấm tròn
             const buildDots = (score) => {
