@@ -18,118 +18,39 @@
             --chess-color: #dc2626; 
             --chess-bg: rgba(220, 38, 38, 0.15); 
             --chess-dark: #991b1b;
-            --board-wood: #d4a373; /* Màu gỗ của bàn cờ */
         }
 
-        body { 
-            background: #0f172a; 
-            color: #f8fafc;
-            margin: 0 !important;
-            padding: 0 !important;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
-            overflow: hidden; 
-        }
+        body { background: #0f172a; color: #f8fafc; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* THANH HEADER ĐƠN GIẢN (Chỉ để ID phòng và Trạng thái) */
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background: #1e293b;
-            border-bottom: 2px solid #334155;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 10;
-        }
-
+        .match-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #1e293b; border-bottom: 2px solid #334155; z-index: 10; }
         .room-info { display: flex; align-items: center; gap: 15px; }
         .room-id { background: #334155; color: #cbd5e1; padding: 5px 12px; border-radius: 8px; font-weight: 900; font-size: 14px; letter-spacing: 2px; }
         .match-status { font-weight: 800; color: #10b981; font-size: 14px; display: flex; align-items: center; gap: 5px; }
         .match-status.waiting { color: #f59e0b; }
 
-        /* KHU VỰC CHƠI CHÍNH (LAYOUT 3 CỘT THEO BẢN VẼ) */
-        .battle-arena {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 300px minmax(350px, 600px) 300px;
-            justify-content: center;
-            align-items: stretch;
-            padding: 20px;
-            gap: 30px;
-            overflow: hidden; 
-            width: 100%;
-            box-sizing: border-box;
-            min-height: 0; /* 👉 Chốt chặn chống phình to */
-        }
+        .battle-arena { flex: 1; display: grid; grid-template-columns: 300px minmax(350px, 600px) 300px; justify-content: center; align-items: stretch; padding: 20px; gap: 30px; overflow: hidden; width: 100%; box-sizing: border-box; min-height: 0; }
+        .side-panel { display: flex; flex-direction: column; justify-content: space-between; gap: 20px; }
 
-        /* CỘT CHUNG (TRÁI / PHẢI) */
-        .side-panel {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Đẩy 1 cái lên nóc, 1 cái xuống đáy */
-            gap: 20px;
-        }
-
-        /* THẺ NGƯỜI CHƠI & ĐỒNG HỒ */
-        .player-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(30, 41, 59, 0.6);
-            padding: 15px;
-            border-radius: 15px;
-            border: 2px solid #334155;
-            box-sizing: border-box;
-            transition: 0.3s;
-        }
-        .player-card.active-turn {
-            border-color: var(--chess-color);
-            background: rgba(220, 38, 38, 0.05);
-            box-shadow: 0 0 15px var(--chess-bg);
-        }
-
+        .player-card { display: flex; align-items: center; gap: 12px; background: rgba(30, 41, 59, 0.6); padding: 15px; border-radius: 15px; border: 2px solid #334155; box-sizing: border-box; transition: 0.3s; }
+        .player-card.active-turn { border-color: var(--chess-color); background: rgba(220, 38, 38, 0.05); box-shadow: 0 0 15px var(--chess-bg); }
         .player-avt { width: 50px; height: 50px; border-radius: 12px; border: 2px solid #cbd5e1; object-fit: cover; }
+        
+        /* ĐỔI RED -> WHITE */
         .player-card.white .player-avt { border-color: #f8fafc; }
         .player-card.white .player-info p { color: #f8fafc; }
-        .log-white { flex: 1; color: #f8fafc; font-weight: 700; text-align: center;}
+        .player-card.black .player-avt { border-color: #475569; }
+        .player-card.black .player-info p { color: #94a3b8; }
         
         .player-info { flex: 1; overflow: hidden; }
         .player-info h3 { margin: 0; font-size: 15px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
         .player-info p { margin: 2px 0 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-        .player-card.red .player-info p { color: var(--chess-color); }
-        .player-card.black .player-info p { color: #94a3b8; }
 
-        /* ĐỒNG HỒ ĐẾM NGƯỢC */
-        .player-timer {
-            background: #0f172a;
-            color: #f8fafc;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 22px;
-            font-weight: 900;
-            border: 2px solid #475569;
-            text-align: center;
-        }
-        .player-card.active-turn .player-timer {
-            background: var(--chess-color);
-            border-color: var(--chess-color);
-            box-shadow: 0 0 10px var(--chess-bg);
-        }
+        .player-timer { background: #0f172a; color: #f8fafc; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 22px; font-weight: 900; border: 2px solid #475569; text-align: center; }
+        .player-card.active-turn .player-timer { background: var(--chess-color); border-color: var(--chess-color); box-shadow: 0 0 10px var(--chess-bg); }
 
-        /* KHUNG CHỨC NĂNG (GÓC DƯỚI TRÁI) */
-        .function-tools {
-            background: #1e293b;
-            border: 2px solid #334155;
-            border-radius: 15px;
-            overflow: hidden;
-        }
+        .function-tools { background: #1e293b; border: 2px solid #334155; border-radius: 15px; overflow: hidden; }
         .tool-header { background: rgba(0,0,0,0.2); padding: 12px; font-weight: 900; border-bottom: 2px solid #334155; text-align: center; color: #10b981; text-transform: uppercase; font-size: 14px; }
         .tool-body { padding: 15px; }
-        
         .rule-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 12px; color: #cbd5e1; }
         .rule-item strong { color: white; }
         
@@ -139,28 +60,9 @@
         .btn-action.resign { background: transparent; border: 2px solid #ef4444; color: #ef4444; margin-bottom: 0;}
         .btn-action.resign:hover { background: #ef4444; color: white; }
 
-        /* NHẬT KÝ (GÓC TRÊN PHẢI) */
-        .side-section {
-            background: #1e293b;
-            border: 2px solid #334155;
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            flex: 1; 
-            min-height: 0; /* 👉 Ép Ký phổ phải cuộn */
-        }
+        .side-section { background: #1e293b; border: 2px solid #334155; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; flex: 1; min-height: 0; }
         .side-header { background: rgba(0,0,0,0.2); padding: 12px; font-weight: 900; border-bottom: 2px solid #334155; text-align: center; color: var(--chess-color); text-transform: uppercase; font-size: 14px;}
-        .move-log-box { 
-            max-height: 250px; /* Sếp có thể tự chỉnh số này cho vừa với layout (VD: 250px, 300px) */
-            overflow-y: auto;  /* Bật thanh cuộn dọc */
-            padding-right: 5px;
-            /* Làm thanh cuộn tàng hình bớt cho đẹp */
-            scrollbar-width: thin;
-            scrollbar-color: #10b981 transparent;
-        }
-
-        /* Làm đẹp thanh cuộn cho hệ máy Chrome/Edge/Safari */
+        .move-log-box { max-height: 250px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin; scrollbar-color: #10b981 transparent; }
         .move-log-box::-webkit-scrollbar { width: 6px; }
         .move-log-box::-webkit-scrollbar-track { background: transparent; }
         .move-log-box::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
@@ -168,126 +70,56 @@
         .log-row { display: flex; padding: 6px 8px; border-bottom: 1px dashed #334155; align-items: center;}
         .log-row:nth-child(even) { background: rgba(255,255,255,0.02); }
         .log-num { width: 30px; color: #64748b; font-weight: 800; }
+        /* ĐỔI RED -> WHITE */
+        .log-white { flex: 1; color: #f8fafc; font-weight: 700; text-align: center;}
         .log-black { flex: 1; color: #cbd5e1; font-weight: 700; text-align: center;}
 
-        /* BÀN CỜ (CỘT GIỮA) */
-        .center-panel {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex: 1;
-            min-height: 0; /* Quan trọng: Cho phép cột ở giữa tự do co giãn */
-        }
-        .chess-board-container {
-            /* KHÓA CHẾT TỶ LỆ 9:10 (Tuyệt đối không cho méo) */
-            aspect-ratio: 9 / 10; 
-            
-            /* THUẬT TOÁN AUTO-SIZE: Phình to nhất có thể, nhưng hễ đụng viền là dừng! */
-            width: min(100%, calc(80vh * 0.9)); 
-            max-width: 550px; 
-            
-            flex-shrink: 0; /* CẤM flexbox bóp méo bàn cờ */
-            
-            background: var(--board-wood);
-            border: 5px solid #8b5a2b;
-            border-radius: 8px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto;
-        }
-        .board-overlay { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(15, 23, 42, 0.95); 
-            backdrop-filter: blur(8px);
-            display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; z-index: 20; text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-            border-radius: 8px;
-        }
-
-        .board-overlay h2 {
-            margin: 15px 0;
-            font-size: 24px;
-            font-weight: 900;
-            color: white;
-        }
-
-        .board-overlay p {
-            margin: 0 0 15px 0;
-            font-size: 16px;
-            color: #cbd5e1;
-            line-height: 1.5;
-        }
-        /* RESPONSIVE CHO ĐIỆN THOẠI (XẾP DỌC LẠI) */
-        @media (max-width: 1024px) {
-            body { overflow: auto; } 
-            .battle-arena { display: flex; flex-direction: column; gap: 20px; padding: 15px;}
-            .center-panel { order: -1; } /* Bàn cờ đẩy lên đầu tiên */
-            .chess-board-container { aspect-ratio: 9/10; height: auto; max-width: 95vw; }
-            .side-section { min-height: 250px; }
-        }
-
-        /* ========================================== */
-        /* BÀN CỜ VẼ BẰNG SVG & QUÂN CỜ CHUẨN         */
-        /* ========================================== */
+        .center-panel { display: flex; justify-content: center; align-items: center; flex: 1; min-height: 0; position: relative;}
+        
+        /* BÀN CỜ VUA MỚI */
         .chess-board {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr);
-            width: min(100%, calc(80vh * 0.8));
+            width: min(100%, calc(80vh * 0.9)); 
+            max-width: 550px; 
             aspect-ratio: 1 / 1;
             border: 5px solid #334155;
-            background: #769656; /* Màu xanh chuẩn Chess.com */
-        }
-        .square {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: #769656;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+            margin: 0 auto;
             position: relative;
-            cursor: pointer;
         }
+        .square { display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; }
         .square.light { background-color: #eeeed2; }
         .square.dark { background-color: #769656; }
-        .square.selected { background-color: #f6f669 !important; }
-        .square.last-move { background-color: rgba(255, 255, 0, 0.3); }
+        .square.selected { background-color: rgba(246, 246, 105, 0.7) !important; }
         
-        .piece {
-            width: 90%;
-            height: 90%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5rem;
-            z-index: 2;
-            cursor: grab;
-            transition: transform 0.1s;
-        }
-        /* Màu quân cờ */
+        .piece { width: 90%; height: 90%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; z-index: 2; transition: transform 0.1s; }
         .piece.white { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .piece.black { color: #000; }
+        .piece.black { color: #0f172a; text-shadow: 0 1px 2px rgba(255,255,255,0.3); }
 
+        .board-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; text-align: center; padding: 20px; box-sizing: border-box; }
+        .board-overlay h2 { margin: 15px 0; font-size: 24px; font-weight: 900; color: white; }
+        .board-overlay p { margin: 0 0 15px 0; font-size: 16px; color: #cbd5e1; line-height: 1.5; }
 
-        /* ========================================== */
-        /* GIAO DIỆN CHUỖI TRẬN (BEST OF X)           */
-        /* ========================================== */
-        /* Bảng chấm điểm Penalty */
+        @media (max-width: 1024px) {
+            body { overflow: auto; } 
+            .battle-arena { display: flex; flex-direction: column; gap: 20px; padding: 15px;}
+            .center-panel { order: -1; } 
+            .chess-board { aspect-ratio: 1/1; height: auto; max-width: 95vw; }
+            .side-section { min-height: 250px; }
+        }
+
         .score-tracker { display: flex; gap: 5px; margin-top: 6px; }
         .score-dot { width: 12px; height: 12px; border-radius: 50%; background: #334155; border: 1px solid #0f172a; transition: 0.3s; }
         .score-dot.won { background: #10b981; box-shadow: 0 0 8px #10b981; border-color: #10b981; }
         .score-dot.lost { background: #ef4444; box-shadow: 0 0 8px #ef4444; border-color: #ef4444; }
 
-        /* Màn hình nghỉ 30s giữa các ván */
-        #set-break-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
-            z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-        }
+        #set-break-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .set-result-title { font-size: 3.5rem; font-weight: 900; margin: 0; text-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .set-countdown-text { font-size: 8rem; font-weight: 900; color: #10b981; margin: 10px 0; font-family: monospace; text-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
-
     </style>
 </head>
 <body class="dark-mode">
@@ -295,11 +127,9 @@
     <header class="match-header">
         <div class="room-info">
             <span class="room-id">ID: <span id="display-room-id">-----</span></span>
-            <span class="match-status waiting" id="match-status">
-                <i class="fa-solid fa-satellite-dish fa-beat"></i> Đang tải...
-            </span>
+            <span class="match-status waiting" id="match-status"><i class="fa-solid fa-satellite-dish fa-beat"></i> Đang tải...</span>
         </div>
-        </header>
+    </header>
 
     <main class="battle-arena">
         
@@ -320,13 +150,8 @@
                     <div class="rule-item"><span>Thời gian:</span> <strong id="info-time">--</strong></div>
                     <div class="rule-item"><span>Bước bù:</span> <strong id="info-inc">--</strong></div>
                     <div class="rule-item"><span>Time Break:</span> <strong id="info-break">--</strong></div>
-                    
                     <hr style="border-color: #334155; margin: 15px 0;">
-                    
-                    <button class="btn-action" id="btn-time-break" style="background: #f59e0b; color: white; display: none;" onclick="requestTimeBreak()">
-                        <i class="fa-solid fa-pause"></i> Dừng Trận (Time Break)
-                    </button>
-                    
+                    <button class="btn-action" id="btn-time-break" style="background: #f59e0b; color: white; display: none;" onclick="requestTimeBreak()"><i class="fa-solid fa-pause"></i> Dừng Trận</button>
                     <button class="btn-action draw" onclick="requestDraw()"><i class="fa-solid fa-handshake"></i> Xin Cầu Hòa</button>
                     <button class="btn-action resign" onclick="resignGame()"><i class="fa-solid fa-flag-checkered"></i> Đầu Hàng</button>
                 </div>
@@ -334,22 +159,12 @@
         </div>
 
         <div class="center-panel">
-            <div class="chess-board-container" id="board-container">
-                <div class="board-overlay" id="board-overlay">
-                    <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--chess-color); margin-bottom: 20px;"></i>
-                    <h2 style="margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Đang kết nối vệ tinh...</h2>
+            <div class="chess-board" id="chess-board">
                 </div>
-                
-                <div id="chess-board">
-                    <div class="palace top"></div>
-                    <div class="palace bottom"></div>
-                    <div class="river-line">
-                        <span class="river-text">楚河</span>
-                        <img src="https://mhentuniverse.vercel.app/assets/icon-web.png" class="river-logo" alt="MHEnt Logo">
-                        <span class="river-text">漢界</span>
-                    </div>
-                </div>
-
+            
+            <div class="board-overlay" id="board-overlay">
+                <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--chess-color); margin-bottom: 20px;"></i>
+                <h2 style="margin: 0 0 10px 0;">Đang kết nối vệ tinh...</h2>
             </div>
         </div>
 
@@ -357,32 +172,20 @@
             <div class="side-section">
                 <div class="side-header"><i class="fa-solid fa-scroll"></i> Ký Phổ Trận Đấu</div>
                 <div class="move-log-box" id="move-log-container">
-                    
                     <div style="text-align: center; color: #64748b; font-family: 'Nunito', sans-serif; margin-bottom: 10px; font-size: 13px;">-- Ván đấu bắt đầu --</div>
                     <div class="log-row">
                         <div class="log-num">1.</div>
-                        <div class="log-red">Pháo 2 bình 5</div>
-                        <div class="log-black">Mã 8 tiến 7</div>
+                        <div class="log-white">e4</div>
+                        <div class="log-black">e5</div>
                     </div>
-                    <div class="log-row">
-                        <div class="log-num">2.</div>
-                        <div class="log-red">Mã 2 tiến 3</div>
-                        <div class="log-black">Xe 9 bình 8</div>
-                    </div>
-                    <div class="log-row" style="background: rgba(16, 185, 129, 0.1);">
-                        <div class="log-num" style="color: #10b981;">3.</div>
-                        <div class="log-red" style="color: #10b981;">Xe 1 bình 2</div>
-                        <div class="log-black"></div>
-                    </div>
-
                 </div>
             </div>
 
-            <div class="player-card red active-turn" id="my-card">
+            <div class="player-card white active-turn" id="my-card">
                 <img src="/assets/avt-web.jpg" class="player-avt" id="my-avt">
                 <div class="player-info">
                     <h3 id="my-name">Đang tải...</h3>
-                    <p><i class="fa-solid fa-chess-pawn"></i> Phe Đỏ</p>
+                    <p><i class="fa-solid fa-chess-pawn"></i> Phe Trắng</p>
                     <div class="score-tracker" id="my-score-tracker"></div>
                 </div>
                 <div class="player-timer">10:00</div>
@@ -391,7 +194,7 @@
 
         <div id="set-break-overlay">
             <h1 class="set-result-title" id="set-result-title" style="color: #10b981;">CẬU ĐÃ THẮNG VÁN NÀY!</h1>
-            <p style="color: #94a3b8; font-size: 1.2rem; margin-top: 10px;">Hệ thống đang lật bàn cờ và đổi bên...</p>
+            <p style="color: #94a3b8; font-size: 1.2rem; margin-top: 10px;">Hệ thống đang xếp lại bàn cờ và đổi bên...</p>
             <div class="set-countdown-text" id="set-countdown">30</div>
             <p style="color: #cbd5e1; font-weight: bold;">Ván đấu tiếp theo sẽ tự động bắt đầu</p>
         </div>
@@ -399,20 +202,17 @@
     </main>
 
     <script type="module">
-
+        // 👉 ENGINE CỜ VUA QUỐC TẾ
         import { Chess } from 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.js';
-        // Khởi tạo engine cờ vua
         let game = new Chess();
 
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-        // --- ĐIỀN CHÌA KHÓA CỦA SẾP VÀO ĐÂY NHA ---
-        const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        // -----------------------------------------
+        const SB_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const supabase = createClient(SB_URL, SB_KEY);
 
         const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -420,384 +220,182 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('id');
-        let currentUser = null;
-        let myRole = null; 
-        let isCountingDown = false; 
-        let roomData = null; 
+        let currentUser = null; let myRole = null; let isCountingDown = false; let roomData = null; 
+        let myTimeLeft = 0; let oppTimeLeft = 0; let localTimer = null; let breakTimer = null; let myBreaksLeft = null;
+        let selectedSquare = null;
 
-        let myTimeLeft = 0;
-        let oppTimeLeft = 0;
-        let localTimer = null;
-        let breakTimer = null;
-        let myBreaksLeft = null;
+        const pieceIcons = {
+            'p': '<i class="fa-solid fa-chess-pawn"></i>',
+            'n': '<i class="fa-solid fa-chess-knight"></i>',
+            'b': '<i class="fa-solid fa-chess-bishop"></i>',
+            'r': '<i class="fa-solid fa-chess-rook"></i>',
+            'q': '<i class="fa-solid fa-chess-queen"></i>',
+            'k': '<i class="fa-solid fa-chess-king"></i>'
+        };
 
-        if (!roomId) { window.location.href = '/game/chess'; } 
-        else { document.getElementById('display-room-id').innerText = roomId; }
+        if (!roomId) window.location.href = '/game/chess'; 
+        else document.getElementById('display-room-id').innerText = roomId;
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) { currentUser = user; connectToRoom(); } 
-            else { window.location.href = '/login'; }
-        });
+        onAuthStateChanged(auth, (user) => { if (user) { currentUser = user; connectToRoom(); } else window.location.href = '/login'; });
 
-        // ==========================================
-        // 1. KẾT NỐI & NHỊP TIM ĐỒNG BỘ
-        // ==========================================
         async function connectToRoom() {
             const { data: room, error } = await supabase.from('chess_rooms').select('*').eq('id', roomId).single();
-            if (error || !room) {
-                showPopup("Phòng đấu này đã bị hủy hoặc không tồn tại!", true);
-                setTimeout(() => { window.location.href = '/game/chess'; }, 2000);
-                return;
-            }
+            if (error || !room) { showPopup("Phòng đấu này đã bị hủy!", true); setTimeout(() => window.location.href = '/game/chess', 2000); return; }
 
-            // 👉 MA THUẬT GIÀNH GHẾ BẮT ĐẦU TỪ ĐÂY
-            const myInfo = {
-                name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"),
-                avatar: currentUser.photoURL || '/assets/avt-web.jpg'
-            };
+            const myInfo = { name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"), avatar: currentUser.photoURL || '/assets/avt-web.jpg' };
+            if (room.host_id === "ADMIN_PENDING") { myRole = 'host'; await supabase.from('chess_rooms').update({ host_id: currentUser.uid, host_info: myInfo }).eq('id', roomId); room.host_id = currentUser.uid; room.host_info = myInfo; } 
+            else if (room.host_id === currentUser.uid) myRole = 'host';
+            else if (!room.guest_id || room.guest_id === "ADMIN_PENDING") { myRole = 'guest'; await supabase.from('chess_rooms').update({ guest_id: currentUser.uid, guest_info: myInfo }).eq('id', roomId); room.guest_id = currentUser.uid; room.guest_info = myInfo; } 
+            else if (room.guest_id === currentUser.uid) myRole = 'guest';
+            else myRole = 'spectator';
 
-            // Nếu ghế Đỏ đang là ADMIN_PENDING (Phòng VIP) -> Giành ghế Đỏ!
-            if (room.host_id === "ADMIN_PENDING") {
-                myRole = 'host';
-                await supabase.from('chess_rooms').update({ host_id: currentUser.uid, host_info: myInfo }).eq('id', roomId);
-                room.host_id = currentUser.uid;
-                room.host_info = myInfo;
-            } 
-            // Nếu mình là thằng Đỏ bị rớt mạng vào lại
-            else if (room.host_id === currentUser.uid) {
-                myRole = 'host';
-            } 
-            // Nếu ghế Đỏ có người rồi, nhưng ghế Đen đang trống -> Giành ghế Đen!
-            else if (!room.guest_id || room.guest_id === "ADMIN_PENDING") {
-                myRole = 'guest';
-                await supabase.from('chess_rooms').update({ guest_id: currentUser.uid, guest_info: myInfo }).eq('id', roomId);
-                room.guest_id = currentUser.uid;
-                room.guest_info = myInfo;
-            } 
-            // Nếu mình là thằng Đen bị rớt mạng vào lại
-            else if (room.guest_id === currentUser.uid) {
-                myRole = 'guest';
-            } 
-            // Nếu cả 2 ghế đã có người -> Làm Khán Giả
-            else {
-                myRole = 'spectator';
-            }
-            // 👉 KẾT THÚC MA THUẬT
-            
             document.getElementById('info-time').innerText = `${room.settings.timeLimit} phút`;
             document.getElementById('info-inc').innerText = `+${room.settings.increment}s`;
             document.getElementById('info-break').innerText = `${room.settings.breakCount} lần (${room.settings.breakTime}s)`;
 
             handleRoomData(room);
 
-            supabase.channel('room_' + roomId)
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chess_rooms', filter: `id=eq.${roomId}` }, payload => {
-                    handleRoomData(payload.new);
-                }).subscribe();
+            supabase.channel('room_' + roomId).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chess_rooms', filter: `id=eq.${roomId}` }, payload => handleRoomData(payload.new)).subscribe();
 
-            // NHỊP TIM 4 GIÂY: CHỐNG LAG MẠNG
             setInterval(async () => {
-                if (!roomData || roomData.status !== 'playing') return; // Rảnh thì đi ngủ
-                
+                if (!roomData || roomData.status !== 'playing') return; 
                 try {
-                    const { data: checkData } = await supabase.from('chess_rooms').select('last_time_update').eq('id', roomId).single();
-                    if (checkData && checkData.last_time_update !== roomData.last_time_update) {
-                        console.log("Phát hiện lệch mạng! Đang kéo lại...");
-                        const { data: fullData } = await supabase.from('chess_rooms').select('*').eq('id', roomId).single();
-                        if (fullData) handleRoomData(fullData);
+                    const { data: check } = await supabase.from('chess_rooms').select('last_time_update').eq('id', roomId).single();
+                    if (check && check.last_time_update !== roomData.last_time_update) {
+                        const { data: full } = await supabase.from('chess_rooms').select('*').eq('id', roomId).single();
+                        if (full) handleRoomData(full);
                     }
                 } catch (e) {}
             }, 4000);
         }
 
-        // ==========================================
-        // 2. XỬ LÝ LÕI DỮ LIỆU & GIAO DIỆN
-        // ==========================================
         const moveSound = new Audio('https://actions.google.com/sounds/v1/foley/wood_block_drop.ogg');
 
         function handleRoomData(data) {
             let currentLogs = Array.isArray(data.move_log) ? data.move_log : [];
             let oldLogs = (roomData && Array.isArray(roomData.move_log)) ? roomData.move_log : [];
-            if (currentLogs.length > oldLogs.length) {
-                moveSound.play().catch(e => console.log("Trình duyệt chặn tiếng")); 
-            }
-            
-            roomData = data; 
-            renderMoveLog(currentLogs);
+            if (currentLogs.length > oldLogs.length) moveSound.play().catch(e=>{});
+            roomData = data; renderMoveLog(currentLogs);
 
-            // 👉 ĐỒNG BỘ ENGINE CHESS.JS VỚI DATABASE
-            if (data.board_state && data.board_state !== "") {
-                game.load(data.board_state);
-            } else {
-                game.reset(); // Về mặc định nếu phòng trống
-            }
+            if (data.board_state && data.board_state !== "") game.load(data.board_state); else game.reset();
             
-            const hName = data.host_info?.name || 'Kỳ thủ';
-            const hAvt = data.host_info?.avatar || '/assets/avt-web.jpg';
-            const gName = data.guest_info?.name || 'Kỳ thủ';
-            const gAvt = data.guest_info?.avatar || '/assets/avt-web.jpg';
+            const hName = data.host_info?.name || 'Kỳ thủ'; const hAvt = data.host_info?.avatar || '/assets/avt-web.jpg';
+            const gName = data.guest_info?.name || 'Kỳ thủ'; const gAvt = data.guest_info?.avatar || '/assets/avt-web.jpg';
 
             if (data.host_id === currentUser.uid) {
-                myRole = 'host';
-                updateMyInfo(hName, hAvt, 'white');
-                if (data.guest_id && data.guest_id !== 'ADMIN_PENDING') updateOpponentInfo(gName, gAvt, 'black', data.guest_ready);
-                else setWaitingState();
+                myRole = 'host'; updateMyInfo(hName, hAvt, 'white');
+                if (data.guest_id && data.guest_id !== 'ADMIN_PENDING') updateOpponentInfo(gName, gAvt, 'black', data.guest_ready); else setWaitingState();
             } else if (data.guest_id === currentUser.uid) {
-                myRole = 'guest';
-                updateMyInfo(gName, gAvt, 'black');
-                updateOpponentInfo(hName, hAvt, 'white', data.host_ready);
+                myRole = 'guest'; updateMyInfo(gName, gAvt, 'black'); updateOpponentInfo(hName, hAvt, 'white', data.host_ready);
             } else {
-                // Khán giả
-                myRole = 'spectator';
-                updateMyInfo(hName, hAvt, 'white');
-                if (data.guest_id && data.guest_id !== 'ADMIN_PENDING') updateOpponentInfo(gName, gAvt, 'black', data.guest_ready);
-                else setWaitingState();
-                const tools = document.querySelector('.function-tools');
-                if(tools) tools.style.display = 'none';
+                myRole = 'spectator'; updateMyInfo(hName, hAvt, 'white');
+                if (data.guest_id && data.guest_id !== 'ADMIN_PENDING') updateOpponentInfo(gName, gAvt, 'black', data.guest_ready); else setWaitingState();
+                const tools = document.querySelector('.function-tools'); if(tools) tools.style.display = 'none';
             }
 
-            const statusEl = document.getElementById('match-status');
-            const overlay = document.getElementById('board-overlay');
-            const btnBreak = document.getElementById('btn-time-break');
+            const statusEl = document.getElementById('match-status'); const overlay = document.getElementById('board-overlay'); const btnBreak = document.getElementById('btn-time-break');
 
             if (data.status === 'waiting') {
                 if (data.admin_locked) {
-                    statusEl.className = 'match-status waiting';
-                    statusEl.innerHTML = '<i class="fa-solid fa-lock"></i> BTC đang chuẩn bị...';
-                    overlay.style.display = 'flex';
-                    overlay.innerHTML = `
-                        <i class="fa-solid fa-shield-halved fa-3x fa-beat" style="color: var(--chess-color); margin-bottom: 20px;"></i>
-                        <h2 style="margin: 0 0 15px 0; color: white;">Ban Tổ Chức Đang Chuẩn Bị</h2>
-                        <p style="color:#94a3b8; font-size: 14px; text-align: center; line-height: 1.5;">Ván đấu sẽ bắt đầu khi BTC mở khóa phòng.<br>Vui lòng chờ trong giây lát...</p>
-                    `;
+                    statusEl.className = 'match-status waiting'; statusEl.innerHTML = '<i class="fa-solid fa-lock"></i> BTC đang chuẩn bị...';
+                    overlay.style.display = 'flex'; overlay.innerHTML = `<i class="fa-solid fa-shield-halved fa-3x fa-beat" style="color: var(--chess-color); margin-bottom: 20px;"></i><h2 style="margin: 0 0 15px 0; color: white;">Ban Tổ Chức Đang Chuẩn Bị</h2><p style="color:#94a3b8; font-size: 14px; text-align: center; line-height: 1.5;">Ván đấu sẽ bắt đầu khi BTC mở khóa phòng.</p>`;
                     return; 
                 }
-
-                statusEl.className = 'match-status waiting';
-                statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang chờ...';
-                overlay.style.display = 'flex';
-
-                if (!data.guest_id || data.guest_id === 'ADMIN_PENDING') {
-                    overlay.innerHTML = `<i class="fa-solid fa-user-clock fa-3x" style="color: #cbd5e1; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Chờ đối thủ...</h2><p style="color:#94a3b8; font-size: 14px;">Mã phòng: <b>${roomId}</b></p>`;
-                } else if (data.host_ready && data.guest_ready) {
-                    if(!isCountingDown) triggerCountdown();
-                } else {
-                    if (myRole === 'spectator') {
-                        overlay.innerHTML = `<i class="fa-solid fa-eye fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">KHÁN ĐÀI VIP</h2><p style="color:#94a3b8; font-size: 14px;">Đang chờ 2 Vận Động Viên sẵn sàng...</p>`;
-                    } else {
-                        const myReadyStatus = myRole === 'host' ? data.host_ready : data.guest_ready;
-                        if (!myReadyStatus) {
-                            overlay.innerHTML = `<i class="fa-solid fa-swords fa-3x" style="color: var(--chess-color); margin-bottom: 20px;"></i><h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2><button id="btn-ready" class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 20px; background: #10b981;" onclick="toggleReady(true)">SẴN SÀNG</button>`;
-                        } else {
-                            overlay.innerHTML = `<i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2><button id="btn-ready" class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>`;
-                        }
+                statusEl.className = 'match-status waiting'; statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang chờ...'; overlay.style.display = 'flex';
+                if (!data.guest_id || data.guest_id === 'ADMIN_PENDING') overlay.innerHTML = `<i class="fa-solid fa-user-clock fa-3x" style="color: #cbd5e1; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Chờ đối thủ...</h2><p style="color:#94a3b8;">Mã phòng: <b>${roomId}</b></p>`;
+                else if (data.host_ready && data.guest_ready) { if(!isCountingDown) triggerCountdown(); } 
+                else {
+                    if (myRole === 'spectator') overlay.innerHTML = `<i class="fa-solid fa-eye fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">KHÁN ĐÀI VIP</h2><p style="color:#94a3b8;">Đang chờ VĐV sẵn sàng...</p>`;
+                    else {
+                        const ready = myRole === 'host' ? data.host_ready : data.guest_ready;
+                        if (!ready) overlay.innerHTML = `<i class="fa-solid fa-swords fa-3x" style="color: var(--chess-color); margin-bottom: 20px;"></i><h2 style="margin: 0 0 15px 0; color: white;">Đối thủ đã vào bàn!</h2><button id="btn-ready" class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 20px; background: #10b981;" onclick="toggleReady(true)">SẴN SÀNG</button>`;
+                        else overlay.innerHTML = `<i class="fa-solid fa-check-circle fa-3x" style="color: #10b981; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">Cậu đã sẵn sàng!</h2><button id="btn-ready" class="btn-action resign" style="width: auto; margin-top: 15px;" onclick="toggleReady(false)">Hủy Sẵn Sàng</button>`;
                     }
                 }
                 const btnReady = document.getElementById('btn-ready'); 
                 if (btnReady) {
-                    if (data.admin_locked) {
-                        btnReady.disabled = true;
-                        btnReady.innerHTML = '<i class="fa-solid fa-lock"></i> TRỌNG TÀI ĐANG THIẾT LẬP...';
-                        btnReady.style.background = '#64748b'; 
-                        btnReady.style.cursor = 'not-allowed';
-                    } else {
-                        const isAmIReady = myRole === 'host' ? data.host_ready : data.guest_ready;
-                        btnReady.disabled = isAmIReady;
-                        btnReady.innerHTML = isAmIReady ? '<i class="fa-solid fa-check"></i> ĐÃ SẴN SÀNG' : '<i class="fa-solid fa-bolt"></i> SẴN SÀNG CHIẾN';
-                        btnReady.style.background = isAmIReady ? '#64748b' : '#10b981';
-                        btnReady.style.cursor = isAmIReady ? 'not-allowed' : 'pointer';
-                    }
+                    if (data.admin_locked) { btnReady.disabled = true; btnReady.innerHTML = '<i class="fa-solid fa-lock"></i> ĐANG THIẾT LẬP...'; btnReady.style.background = '#64748b'; btnReady.style.cursor = 'not-allowed'; } 
+                    else { const ready = myRole === 'host' ? data.host_ready : data.guest_ready; btnReady.disabled = ready; btnReady.innerHTML = ready ? 'ĐÃ SẴN SÀNG' : 'SẴN SÀNG CHIẾN'; btnReady.style.background = ready ? '#64748b' : '#10b981'; btnReady.style.cursor = ready ? 'not-allowed' : 'pointer'; }
                 }
             }
             else if (data.status === 'playing') {
-                statusEl.className = 'match-status';
-                statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra';
-                overlay.style.display = 'none'; 
-                
-                renderBoard(); // Vẽ cờ vua 8x8
-
+                statusEl.className = 'match-status'; statusEl.innerHTML = '<i class="fa-solid fa-fire"></i> Trận đấu đang diễn ra'; overlay.style.display = 'none'; 
+                renderBoard(); 
                 if (myBreaksLeft === null) myBreaksLeft = data.settings.breakCount;
-                if (myBreaksLeft > 0) {
-                    btnBreak.innerHTML = `<i class="fa-solid fa-pause"></i> Dừng Trận (${myBreaksLeft})`;
-                    btnBreak.style.display = 'flex';
-                } else {
-                    btnBreak.style.display = 'none';
-                }
+                if (myBreaksLeft > 0) { btnBreak.innerHTML = `<i class="fa-solid fa-pause"></i> Dừng (${myBreaksLeft})`; btnBreak.style.display = 'flex'; } else btnBreak.style.display = 'none';
                 
                 let safeTimeLimit = (data.settings && data.settings.timeLimit) ? data.settings.timeLimit : 10;
                 let bH = (data.timer_host !== undefined && data.timer_host !== null) ? data.timer_host : safeTimeLimit * 60;
                 let bG = (data.timer_guest !== undefined && data.timer_guest !== null) ? data.timer_guest : safeTimeLimit * 60;
-
                 let elapsed = 0;
-                if (data.last_time_update) {
-                    let lastTime = new Date(data.last_time_update).getTime();
-                    let now = new Date().getTime();
-                    elapsed = Math.max(0, Math.floor((now - lastTime) / 1000));
-                }
-
-                if (data.turn === 'white') bH -= elapsed;
-                else bG -= elapsed;
+                if (data.last_time_update) elapsed = Math.max(0, Math.floor((new Date().getTime() - new Date(data.last_time_update).getTime()) / 1000));
+                if (data.turn === 'white') bH -= elapsed; else bG -= elapsed;
 
                 myTimeLeft = (myRole === 'host' || myRole === 'spectator') ? bH : bG;
                 oppTimeLeft = (myRole === 'host' || myRole === 'spectator') ? bG : bH; 
 
-                updateTimerUI();
-                renderScoreTracker(data.target_wins || 1, data.score_host || 0, data.score_guest || 0);
-                startLocalTimer(data.turn);
+                updateTimerUI(); renderScoreTracker(data.target_wins || 1, data.score_host || 0, data.score_guest || 0); startLocalTimer(data.turn);
 
-                const isWhiteBottom = (myRole === 'host' || myRole === 'spectator');
-                const whiteCardId = isWhiteBottom ? 'my-card' : 'opponent-card';
-                const blackCardId = isWhiteBottom ? 'opponent-card' : 'my-card';
-
-                if (data.turn === 'white') {
-                    document.getElementById(whiteCardId).classList.add('active-turn');
-                    document.getElementById(blackCardId).classList.remove('active-turn');
-                } else {
-                    document.getElementById(blackCardId).classList.add('active-turn');
-                    document.getElementById(whiteCardId).classList.remove('active-turn');
-                }
+                const wCard = (myRole === 'host' || myRole === 'spectator') ? 'my-card' : 'opponent-card';
+                const bCard = (myRole === 'host' || myRole === 'spectator') ? 'opponent-card' : 'my-card';
+                if (data.turn === 'white') { document.getElementById(wCard).classList.add('active-turn'); document.getElementById(bCard).classList.remove('active-turn'); } 
+                else { document.getElementById(bCard).classList.add('active-turn'); document.getElementById(wCard).classList.remove('active-turn'); }
             }
             else if (data.status === 'break') {
-                clearInterval(localTimer); 
-                btnBreak.style.display = 'none'; 
-                overlay.style.display = 'flex';
-                
-                let breakEnd = new Date(data.break_ends_at).getTime();
-                clearInterval(breakTimer);
-
+                clearInterval(localTimer); btnBreak.style.display = 'none'; overlay.style.display = 'flex';
+                let breakEnd = new Date(data.break_ends_at).getTime(); clearInterval(breakTimer);
                 const updateBreakUI = async () => {
-                    let now = new Date().getTime();
-                    let distance = Math.floor((breakEnd - now) / 1000);
-                    
+                    let distance = Math.floor((breakEnd - new Date().getTime()) / 1000);
                     if (distance > 0) {
-                        overlay.innerHTML = `
-                            <i class="fa-solid fa-pause fa-3x" style="color: #f59e0b; margin-bottom: 20px;"></i>
-                            <h2 style="margin: 0; color: white;">TIME BREAK</h2>
-                            <p style="color:#94a3b8;">${data.break_by === 'host' ? 'Phe Trắng' : 'Phe Đen'} đã xin dừng trận đấu.</p>
-                            <h1 style="font-size: 80px; color: #f59e0b; margin: 10px 0;">${distance}s</h1>
-                            <button class="btn-action draw" style="width: auto; padding: 10px 30px; font-size: 16px; background: #10b981; color: white; margin-top: 15px;" onclick="endTimeBreakEarly()">Tiếp tục ngay</button>
-                        `;
+                        overlay.innerHTML = `<i class="fa-solid fa-pause fa-3x" style="color: #f59e0b; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">TIME BREAK</h2><p style="color:#94a3b8;">${data.break_by === 'host' ? 'Phe Trắng' : 'Phe Đen'} đã xin dừng.</p><h1 style="font-size: 80px; color: #f59e0b; margin: 10px 0;">${distance}s</h1><button class="btn-action draw" style="width: auto; padding: 10px 30px; font-size: 16px; background: #10b981; color: white;" onclick="endTimeBreakEarly()">Tiếp tục ngay</button>`;
                     } else {
-                        clearInterval(breakTimer);
-                        if (myRole === 'host') {
-                            await supabase.from('chess_rooms').update({ status: 'playing', last_time_update: new Date().toISOString() }).eq('id', roomId);
-                        }
+                        clearInterval(breakTimer); if (myRole === 'host') await supabase.from('chess_rooms').update({ status: 'playing', last_time_update: new Date().toISOString() }).eq('id', roomId);
                     }
                 };
-                updateBreakUI(); 
-                breakTimer = setInterval(updateBreakUI, 1000); 
+                updateBreakUI(); breakTimer = setInterval(updateBreakUI, 1000); 
             }
             else if (data.status === 'finished') {
-                clearInterval(localTimer); 
-                clearInterval(breakTimer);
-                isCountingDown = false; 
-                myBreaksLeft = null; 
-                btnBreak.style.display = 'none'; 
-                overlay.style.display = 'flex';
-                
-                let message = ""; let color = "#10b981"; 
-                if (data.winner === 'draw') {
-                    message = "HÒA NHAU!"; color = "#f59e0b"; 
-                } else {
-                    if (myRole === 'spectator') {
-                        message = data.winner === 'white' ? "PHE TRẮNG THẮNG!" : "PHE ĐEN THẮNG!";
-                        color = data.winner === 'white' ? "#f8fafc" : "#cbd5e1";
-                    } else {
-                        const myColor = myRole === 'host' ? 'white' : 'black';
-                        if (data.winner === myColor) {
-                            message = "CẬU ĐÃ THẮNG! 🎉"; color = "#10b981";
-                        } else {
-                            message = "CẬU ĐÃ THUA! 💀"; color = "#ef4444"; 
-                        }
-                    }
+                clearInterval(localTimer); clearInterval(breakTimer); isCountingDown = false; myBreaksLeft = null; btnBreak.style.display = 'none'; overlay.style.display = 'flex';
+                let msg = ""; let color = "#10b981"; 
+                if (data.winner === 'draw') { msg = "HÒA NHAU!"; color = "#f59e0b"; } 
+                else {
+                    if (myRole === 'spectator') { msg = data.winner === 'white' ? "PHE TRẮNG THẮNG!" : "PHE ĐEN THẮNG!"; color = data.winner === 'white' ? "#f8fafc" : "#cbd5e1"; } 
+                    else { const myColor = myRole === 'host' ? 'white' : 'black'; if (data.winner === myColor) { msg = "CẬU ĐÃ THẮNG! 🎉"; color = "#10b981"; } else { msg = "CẬU ĐÃ THUA! 💀"; color = "#ef4444"; } }
                 }
-
-                overlay.innerHTML = `
-                    <i class="fa-solid fa-trophy fa-4x" style="color: ${color}; margin-bottom: 20px;"></i>
-                    <h1 style="font-size: 50px; color: ${color}; margin: 0; text-shadow: 0 5px 20px ${color};">${message}</h1>
-                    <button class="btn-action draw" style="width: auto; padding: 10px 40px; font-size: 18px; margin-top: 20px;" onclick="window.location.href='/game/chess'">Rời Bàn</button>
-                `;
+                overlay.innerHTML = `<i class="fa-solid fa-trophy fa-4x" style="color: ${color}; margin-bottom: 20px;"></i><h1 style="font-size: 50px; color: ${color}; margin: 0; text-shadow: 0 5px 20px ${color};">${msg}</h1><button class="btn-action draw" style="width: auto; padding: 10px 40px; margin-top: 20px;" onclick="window.location.href='/game/chess'">Rời Bàn</button>`;
             }
             else if (data.status === 'set_break') {
-                clearInterval(localTimer); 
-                isCountingDown = false; 
-                myBreaksLeft = null;    
-                
-                const setBreakUI = document.getElementById('set-break-overlay');
-                if(setBreakUI) setBreakUI.style.display = 'flex'; 
-                
+                clearInterval(localTimer); isCountingDown = false; myBreaksLeft = null;    
+                const setBreakUI = document.getElementById('set-break-overlay'); if(setBreakUI) setBreakUI.style.display = 'flex'; 
                 const titleEl = document.getElementById('set-result-title');
                 if (titleEl) {
-                    if (myRole === 'spectator') {
-                        titleEl.innerText = data.winner === 'white' ? "PHE TRẮNG THẮNG VÁN NÀY!" : "PHE ĐEN THẮNG VÁN NÀY!";
-                        titleEl.style.color = data.winner === 'white' ? "#f8fafc" : "#cbd5e1";
-                    } else {
-                        const myColor = myRole === 'host' ? 'white' : 'black';
-                        if (data.winner === myColor) {
-                            titleEl.innerText = "CẬU ĐÃ THẮNG VÁN NÀY!"; titleEl.style.color = "#10b981";
-                        } else {
-                            titleEl.innerText = "CẬU ĐÃ THUA VÁN NÀY!"; titleEl.style.color = "#ef4444";
-                        }
-                    }
+                    if (myRole === 'spectator') { titleEl.innerText = data.winner === 'white' ? "PHE TRẮNG THẮNG!" : "PHE ĐEN THẮNG!"; titleEl.style.color = data.winner === 'white' ? "#f8fafc" : "#cbd5e1"; } 
+                    else { const myColor = myRole === 'host' ? 'white' : 'black'; if (data.winner === myColor) { titleEl.innerText = "THẮNG VÁN NÀY!"; titleEl.style.color = "#10b981"; } else { titleEl.innerText = "THUA VÁN NÀY!"; titleEl.style.color = "#ef4444"; } }
                 }
-
-                let breakEnd = new Date(data.set_break_ends_at).getTime();
-                if(window.breakTimer) clearInterval(window.breakTimer);
-                
+                let breakEnd = new Date(data.set_break_ends_at).getTime(); if(window.breakTimer) clearInterval(window.breakTimer);
                 window.breakTimer = setInterval(async () => {
-                    let now = new Date().getTime();
-                    let distance = Math.floor((breakEnd - now) / 1000);
-                    
+                    let distance = Math.floor((breakEnd - new Date().getTime()) / 1000);
                     const countEl = document.getElementById('set-countdown');
-                    if (distance > 0) {
-                        if(countEl) countEl.innerText = distance;
-                    } else {
-                        clearInterval(window.breakTimer);
-                        if(setBreakUI) setBreakUI.style.display = 'none';
-                        
-                        // 👉 Hết 30s nghỉ giữa set, Host reset bàn cờ Vua và đổi bên
+                    if (distance > 0) { if(countEl) countEl.innerText = distance; } 
+                    else {
+                        clearInterval(window.breakTimer); if(setBreakUI) setBreakUI.style.display = 'none';
                         if (myRole === 'host') {
-                            game.reset(); // Về đội hình gốc
-                            const resetFen = game.fen();
+                            game.reset(); 
                             await supabase.from('chess_rooms').update({ 
-                                status: 'waiting',  
-                                host_ready: false,  
-                                guest_ready: false, 
-                                turn: 'white', 
-                                board_state: resetFen,
-                                move_log: [], 
-                                last_time_update: null, 
-                                host_id: roomData.guest_id,
-                                guest_id: roomData.host_id,
-                                host_info: roomData.guest_info,
-                                guest_info: roomData.host_info,
-                                score_host: roomData.score_guest,
-                                score_guest: roomData.score_host
+                                status: 'waiting', host_ready: false, guest_ready: false, turn: 'white', board_state: game.fen(), move_log: [], last_time_update: null, 
+                                host_id: roomData.guest_id, guest_id: roomData.host_id, host_info: roomData.guest_info, guest_info: roomData.host_info, score_host: roomData.score_guest, score_guest: roomData.score_host
                             }).eq('id', roomId);
                         }
                     }
                 }, 1000);
             }
             else if (data.status === 'draw_request') {
-                clearInterval(localTimer); 
-                btnBreak.style.display = 'none'; 
-                overlay.style.display = 'flex';
-                
-                if (data.break_by === myRole) {
-                    overlay.innerHTML = `<i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">ĐANG XIN HÒA</h2><p style="color:#94a3b8;">Chờ đối thủ suy nghĩ...</p>`;
-                } else {
-                    overlay.innerHTML = `<i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">ĐỐI THỦ XIN HÒA</h2>
-                        <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button class="btn-action draw" style="width: auto; padding: 10px 30px; background: #10b981; margin: 0;" onclick="respondDraw(true)">Đồng Ý</button>
-                            <button class="btn-action resign" style="width: auto; padding: 10px 30px; margin: 0;" onclick="respondDraw(false)">Từ Chối</button>
-                        </div>`;
-                }
+                clearInterval(localTimer); btnBreak.style.display = 'none'; overlay.style.display = 'flex';
+                if (data.break_by === myRole) overlay.innerHTML = `<i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">ĐANG XIN HÒA</h2><p style="color:#94a3b8;">Chờ đối thủ suy nghĩ...</p>`;
+                else overlay.innerHTML = `<i class="fa-solid fa-handshake fa-3x" style="color: #3b82f6; margin-bottom: 20px;"></i><h2 style="margin: 0; color: white;">ĐỐI THỦ XIN HÒA</h2><div style="display: flex; gap: 10px; margin-top: 15px;"><button class="btn-action draw" style="width: auto; padding: 10px 30px; background: #10b981; margin: 0;" onclick="respondDraw(true)">Đồng Ý</button><button class="btn-action resign" style="width: auto; padding: 10px 30px; margin: 0;" onclick="respondDraw(false)">Từ Chối</button></div>`;
             }
         }
 
-        // ==========================================
-        // 3. ĐỒNG HỒ & GIAO DIỆN
-        // ==========================================
         function startLocalTimer(turn) {
             clearInterval(localTimer); 
             localTimer = setInterval(() => {
@@ -814,210 +412,93 @@
         }
 
         function updateTimerUI() {
-            const formatTime = (seconds) => {
-                const m = Math.floor(Math.max(seconds, 0) / 60).toString().padStart(2, '0');
-                const s = Math.floor(Math.max(seconds, 0) % 60).toString().padStart(2, '0');
-                return `${m}:${s}`;
-            };
-            document.querySelector('#my-card .player-timer').innerText = formatTime(myTimeLeft);
-            document.querySelector('#opponent-card .player-timer').innerText = formatTime(oppTimeLeft);
+            const formatTime = (seconds) => { const m = Math.floor(Math.max(seconds, 0) / 60).toString().padStart(2, '0'); const s = Math.floor(Math.max(seconds, 0) % 60).toString().padStart(2, '0'); return `${m}:${s}`; };
+            document.querySelector('#my-card .player-timer').innerText = formatTime(myTimeLeft); document.querySelector('#opponent-card .player-timer').innerText = formatTime(oppTimeLeft);
         }
 
         window.endCurrentSet = async function(winnerColor, extraPayload = {}) {
             try {
-                let newHostScore = roomData.score_host || 0;
-                let newGuestScore = roomData.score_guest || 0;
-                let target = roomData.target_wins || 1;
-                
-                if (winnerColor === 'white') newHostScore++; 
-                else if (winnerColor === 'black') newGuestScore++;
-
+                let newHostScore = roomData.score_host || 0; let newGuestScore = roomData.score_guest || 0; let target = roomData.target_wins || 1;
+                if (winnerColor === 'white') newHostScore++; else if (winnerColor === 'black') newGuestScore++;
                 const basePayload = { ...extraPayload, winner: winnerColor, score_host: newHostScore, score_guest: newGuestScore };
-
-                if (newHostScore >= target || newGuestScore >= target) {
-                    await supabase.from('chess_rooms').update({ ...basePayload, status: 'finished' }).eq('id', roomId);
-                } else {
-                    let breakEnds = new Date(); breakEnds.setSeconds(breakEnds.getSeconds() + 30);
-                    await supabase.from('chess_rooms').update({ ...basePayload, status: 'set_break', set_break_ends_at: breakEnds.toISOString() }).eq('id', roomId);
-                }
-            } catch (err) { console.error("Lỗi:", err); }
+                if (newHostScore >= target || newGuestScore >= target) await supabase.from('chess_rooms').update({ ...basePayload, status: 'finished' }).eq('id', roomId);
+                else { let breakEnds = new Date(); breakEnds.setSeconds(breakEnds.getSeconds() + 30); await supabase.from('chess_rooms').update({ ...basePayload, status: 'set_break', set_break_ends_at: breakEnds.toISOString() }).eq('id', roomId); }
+            } catch (err) {}
         };
 
         function handleTimeOut(who) {
             clearInterval(localTimer); 
             const myColor = myRole === 'host' ? 'white' : 'black';
             const winnerColor = (who === 'me') ? (myColor === 'white' ? 'black' : 'white') : myColor;
-            if (who === 'me') showToast("Hết Giờ", "Cậu đã cạn thời gian!", "error");
-            else showToast("Hết Giờ", "Đối thủ đã cạn thời gian!", "success");
+            showToast("Hết Giờ", who === 'me' ? "Cậu cạn thời gian!" : "Đối thủ cạn thời gian!", who === 'me' ? "error" : "success");
             window.endCurrentSet(winnerColor); 
         }
 
         window.requestTimeBreak = async function() {
-            if(roomData.status !== 'playing' || myBreaksLeft <= 0) return; 
-            myBreaksLeft--; 
+            if(roomData.status !== 'playing' || myBreaksLeft <= 0) return; myBreaksLeft--; 
             let endsAt = new Date(); endsAt.setSeconds(endsAt.getSeconds() + roomData.settings.breakTime);
-            try {
-                await supabase.from('chess_rooms').update({
-                    status: 'break', break_by: myRole, break_ends_at: endsAt.toISOString(),
-                    timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft,
-                    timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft,
-                    last_time_update: null 
-                }).eq('id', roomId);
-            } catch(e) {}
+            try { await supabase.from('chess_rooms').update({ status: 'break', break_by: myRole, break_ends_at: endsAt.toISOString(), timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft, timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft, last_time_update: null }).eq('id', roomId); } catch(e) {}
         }
 
         function updateMyInfo(name, avt, color) { document.getElementById('my-name').innerText = name; document.getElementById('my-avt').src = avt; const card = document.getElementById('my-card'); card.className = `player-card ${color}`; card.querySelector('p').innerHTML = `<i class="fa-solid fa-chess-pawn"></i> Phe ${color === 'white' ? 'Trắng' : 'Đen'}`; }
-        function updateOpponentInfo(name, avt, color, isReady) { document.getElementById('opponent-name').innerText = name + (isReady ? " (ĐÃ SẴN SÀNG)" : ""); document.getElementById('opponent-name').style.color = isReady ? "#10b981" : ""; document.getElementById('opponent-avt').src = avt; const card = document.getElementById('opponent-card'); card.className = `player-card ${color}`; card.style.opacity = '1'; card.querySelector('p').innerHTML = `<i class="fa-solid fa-chess-pawn"></i> Phe ${color === 'white' ? 'Trắng' : 'Đen'}`; }
+        function updateOpponentInfo(name, avt, color, isReady) { document.getElementById('opponent-name').innerText = name + (isReady ? " (SẴN SÀNG)" : ""); document.getElementById('opponent-name').style.color = isReady ? "#10b981" : ""; document.getElementById('opponent-avt').src = avt; const card = document.getElementById('opponent-card'); card.className = `player-card ${color}`; card.style.opacity = '1'; card.querySelector('p').innerHTML = `<i class="fa-solid fa-chess-pawn"></i> Phe ${color === 'white' ? 'Trắng' : 'Đen'}`; }
         function setWaitingState() { document.getElementById('opponent-name').innerText = "Chờ đối thủ..."; document.getElementById('opponent-name').style.color = ""; document.getElementById('opponent-avt').src = "/assets/avt-web.jpg"; const card = document.getElementById('opponent-card'); card.className = `player-card black`; card.style.opacity = '0.5'; }
         
-        window.toggleReady = async function(readyStatus) {
-            if(!myRole) return;
-            const updateData = {};
-            if(myRole === 'host') updateData.host_ready = readyStatus;
-            else updateData.guest_ready = readyStatus;
-            await supabase.from('chess_rooms').update(updateData).eq('id', roomId);
-        }
+        window.toggleReady = async function(readyStatus) { if(!myRole) return; await supabase.from('chess_rooms').update({ [myRole === 'host' ? 'host_ready' : 'guest_ready']: readyStatus }).eq('id', roomId); }
 
         function triggerCountdown() {
-            isCountingDown = true;
-            const overlay = document.getElementById('board-overlay');
-            overlay.style.background = 'rgba(15, 23, 42, 0.98)'; 
+            isCountingDown = true; const overlay = document.getElementById('board-overlay'); overlay.style.background = 'rgba(15, 23, 42, 0.98)'; 
             let count = 3;
             const timer = setInterval(async () => {
-                if(count > 0) {
-                    overlay.innerHTML = `<h1 style="font-size: 120px; color: var(--chess-color); margin: 0; text-shadow: 0 5px 30px var(--chess-color);">${count}</h1>`; count--;
-                } else if(count === 0) {
-                    overlay.innerHTML = `<h1 style="font-size: 100px; color: #10b981; margin: 0; text-shadow: 0 5px 30px #10b981;">CHIẾN!</h1>`; count--;
-                } else {
+                if(count > 0) { overlay.innerHTML = `<h1 style="font-size: 120px; color: var(--chess-color); margin: 0;">${count}</h1>`; count--; } 
+                else if(count === 0) { overlay.innerHTML = `<h1 style="font-size: 100px; color: #10b981; margin: 0;">CHIẾN!</h1>`; count--; } 
+                else {
                     clearInterval(timer);
-                    if(myRole === 'host') {
-                        game.reset(); // Bơm bàn cờ Vua mặc định
-                        const resetFen = game.fen();
-                        await supabase.from('chess_rooms').update({ 
-                            status: 'playing',
-                            board_state: resetFen,
-                            turn: 'white',
-                            move_log: [],
-                            timer_host: roomData.settings.timeLimit * 60,
-                            timer_guest: roomData.settings.timeLimit * 60,
-                            last_time_update: new Date().toISOString()
-                        }).eq('id', roomId);
-                    }
+                    if(myRole === 'host') { game.reset(); await supabase.from('chess_rooms').update({ status: 'playing', board_state: game.fen(), turn: 'white', move_log: [], timer_host: roomData.settings.timeLimit * 60, timer_guest: roomData.settings.timeLimit * 60, last_time_update: new Date().toISOString() }).eq('id', roomId); }
                 }
             }, 1000);
         }
 
-        window.confirmLeave = function() { showConfirmPopup("Đầu Hàng / Rời Bàn", "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", () => { window.location.href = '/game/chess'; }); }
+        window.confirmLeave = function() { showConfirmPopup("Rời Bàn", "Chắc chắn rời bàn? Đang đấu mà ra là xử thua đó!", async () => { if (roomData.status === 'playing' && myRole !== 'spectator') await endCurrentSet(myRole === 'host' ? 'black' : 'white'); else if (roomData.status === 'waiting') await supabase.from('chess_rooms').update({ [myRole === 'host' ? 'host_id' : 'guest_id']: myRole === 'host' ? "ADMIN_PENDING" : null, [myRole === 'host' ? 'host_info' : 'guest_info']: null, [myRole === 'host' ? 'host_ready' : 'guest_ready']: false }).eq('id', roomId); window.location.href = '/game/chess'; }); };
         window.endTimeBreakEarly = async function() { if(!myRole) return; await supabase.from('chess_rooms').update({ status: 'playing', last_time_update: new Date().toISOString() }).eq('id', roomId); }
+        window.resignGame = function() { if(roomData.status !== 'playing') return; showConfirmPopup("Đầu Hàng", "Nhận thua ván này?", () => window.endCurrentSet(myRole === 'host' ? 'black' : 'white')); }
+        window.requestDraw = async function() { if(roomData.status !== 'playing') return; await supabase.from('chess_rooms').update({ status: 'draw_request', break_by: myRole, timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft, timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft, last_time_update: null }).eq('id', roomId); }
+        window.respondDraw = async function(isAccepted) { if (isAccepted) await supabase.from('chess_rooms').update({ status: 'finished', winner: 'draw' }).eq('id', roomId); else await supabase.from('chess_rooms').update({ status: 'playing', last_time_update: new Date().toISOString() }).eq('id', roomId); }
 
-        window.resignGame = function() {
-            if(roomData.status !== 'playing') return;
-            showConfirmPopup("Đầu Hàng", "Cậu có chắc chắn muốn nhận thua ván này không?", () => {
-                const loserColor = myRole === 'host' ? 'white' : 'black';
-                const winnerColor = loserColor === 'white' ? 'black' : 'white';
-                window.endCurrentSet(winnerColor);
-            });
-        }
-
-        window.requestDraw = async function() {
-            if(roomData.status !== 'playing') return;
-            await supabase.from('chess_rooms').update({ 
-                status: 'draw_request', break_by: myRole, 
-                timer_host: myRole === 'host' ? myTimeLeft : oppTimeLeft,
-                timer_guest: myRole === 'guest' ? myTimeLeft : oppTimeLeft,
-                last_time_update: null 
-            }).eq('id', roomId);
-        }
-
-        window.respondDraw = async function(isAccepted) {
-            if (isAccepted) {
-                await supabase.from('chess_rooms').update({ status: 'finished', winner: 'draw' }).eq('id', roomId);
-            } else {
-                await supabase.from('chess_rooms').update({ status: 'playing', last_time_update: new Date().toISOString() }).eq('id', roomId);
-            }
-        }
-
-        // ==========================================
-        // 4. LUẬT CỜ & BẢNG KÝ PHỔ
-        // ==========================================
         function renderScoreTracker(targetWins, scoreHost, scoreGuest) {
-            const myTracker = document.getElementById('my-score-tracker');
-            const oppTracker = document.getElementById('opponent-score-tracker');
-            if (targetWins < 2) { myTracker.style.display = 'none'; oppTracker.style.display = 'none'; return; }
-            myTracker.style.display = 'flex'; oppTracker.style.display = 'flex';
-
-            let myScore = (myRole === 'host' || myRole === 'spectator') ? scoreHost : scoreGuest;
-            let oppScore = (myRole === 'host' || myRole === 'spectator') ? scoreGuest : scoreHost;
-
-            const buildDots = (score) => {
-                let html = '';
-                for(let i = 0; i < targetWins; i++) {
-                    if (i < score) html += `<div class="score-dot won"></div>`; 
-                    else html += `<div class="score-dot empty"></div>`; 
-                }
-                return html;
-            };
-            myTracker.innerHTML = buildDots(myScore);
-            oppTracker.innerHTML = buildDots(oppScore);
+            const myT = document.getElementById('my-score-tracker'); const oppT = document.getElementById('opponent-score-tracker');
+            if (targetWins < 2) { myT.style.display = 'none'; oppT.style.display = 'none'; return; }
+            myT.style.display = 'flex'; oppT.style.display = 'flex';
+            let myScore = (myRole === 'host' || myRole === 'spectator') ? scoreHost : scoreGuest; let oppScore = (myRole === 'host' || myRole === 'spectator') ? scoreGuest : scoreHost;
+            const buildDots = (score) => { let html = ''; for(let i = 0; i < targetWins; i++) html += `<div class="score-dot ${i < score ? 'won' : 'empty'}"></div>`; return html; };
+            myT.innerHTML = buildDots(myScore); oppT.innerHTML = buildDots(oppScore);
         }
 
         function renderMoveLog(logs) {
-            const container = document.getElementById('move-log-container');
-            container.innerHTML = `<div style="text-align: center; color: #64748b; margin-bottom: 10px; font-size: 13px;">-- Ván đấu bắt đầu --</div>`;
+            const container = document.getElementById('move-log-container'); container.innerHTML = `<div style="text-align: center; color: #64748b; margin-bottom: 10px; font-size: 13px;">-- Ván đấu bắt đầu --</div>`;
             if (!logs || !Array.isArray(logs)) return; 
-            
             let html = '';
             for (let i = 0; i < logs.length; i += 2) {
-                const turnNum = Math.floor(i / 2) + 1;
-                const whiteMove = logs[i] ? logs[i].notation : '';
-                const blackMove = logs[i+1] ? logs[i+1].notation : '';
-                
-                const isLastWhite = (i === logs.length - 1);
-                const isLastBlack = (i + 1 === logs.length - 1);
-                const bg = (isLastWhite || isLastBlack) ? 'background: rgba(16, 185, 129, 0.1);' : '';
-                
-                html += `
-                    <div class="log-row" style="${bg}">
-                        <div class="log-num" style="${(isLastWhite||isLastBlack) ? 'color: #10b981;' : ''}">${turnNum}.</div>
-                        <div class="log-white" style="${isLastWhite ? 'color: #10b981;' : ''}">${whiteMove}</div>
-                        <div class="log-black" style="${isLastBlack ? 'color: #10b981;' : ''}">${blackMove}</div>
-                    </div>`;
+                const turnNum = Math.floor(i / 2) + 1; const wMove = logs[i] ? logs[i].notation : ''; const bMove = logs[i+1] ? logs[i+1].notation : '';
+                const isLast = (i === logs.length - 1) || (i + 1 === logs.length - 1);
+                html += `<div class="log-row" style="${isLast ? 'background: rgba(16, 185, 129, 0.1);' : ''}"><div class="log-num" style="${isLast ? 'color: #10b981;' : ''}">${turnNum}.</div><div class="log-white" style="${(i === logs.length - 1) ? 'color: #10b981;' : ''}">${wMove}</div><div class="log-black" style="${(i + 1 === logs.length - 1) ? 'color: #10b981;' : ''}">${bMove}</div></div>`;
             }
-            container.innerHTML += html;
-            container.scrollTop = container.scrollHeight; 
+            container.innerHTML += html; container.scrollTop = container.scrollHeight; 
         }
 
-        // ==========================================
-        // 5. TRÁI TIM CỦA GAME CỜ VUA (CHESS.JS)
-        // ==========================================
         function renderBoard() {
-            const boardEl = document.getElementById('chess-board');
-            boardEl.innerHTML = '';
-            const board = game.board(); 
-            
+            const boardEl = document.getElementById('chess-board'); boardEl.innerHTML = ''; const board = game.board(); 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    const displayRow = myRole === 'guest' ? 7 - r : r;
-                    const displayCol = myRole === 'guest' ? 7 - c : c;
-                    
-                    const squareData = board[displayRow][displayCol];
-                    const squareEl = document.createElement('div');
-                    
-                    const isLight = (displayRow + displayCol) % 2 === 0;
-                    squareEl.className = `square ${isLight ? 'light' : 'dark'}`;
-                    
-                    // chess.js tọa độ a8 tới h1 (a = 97, 8 = row 0)
+                    const displayRow = myRole === 'guest' ? 7 - r : r; const displayCol = myRole === 'guest' ? 7 - c : c;
+                    const squareData = board[displayRow][displayCol]; const squareEl = document.createElement('div');
+                    squareEl.className = `square ${(displayRow + displayCol) % 2 === 0 ? 'light' : 'dark'}`;
                     const squareCoord = String.fromCharCode(97 + displayCol) + (8 - displayRow);
-                    
                     squareEl.onclick = () => handleSquareClick(squareCoord);
-
                     if (selectedSquare === squareCoord) squareEl.classList.add('selected');
-
                     if (squareData) {
-                        const pieceEl = document.createElement('div');
-                        pieceEl.className = `piece ${squareData.color === 'w' ? 'white' : 'black'}`;
-                        pieceEl.innerHTML = pieceIcons[squareData.type];
-                        squareEl.appendChild(pieceEl);
+                        const pieceEl = document.createElement('div'); pieceEl.className = `piece ${squareData.color === 'w' ? 'white' : 'black'}`;
+                        pieceEl.innerHTML = pieceIcons[squareData.type]; squareEl.appendChild(pieceEl);
                     }
                     boardEl.appendChild(squareEl);
                 }
@@ -1025,101 +506,37 @@
         }
 
         window.handleSquareClick = async (coords) => {
-            if (!roomData || roomData.status !== 'playing') return;
-            if (myRole === 'spectator') return;
-
+            if (!roomData || roomData.status !== 'playing' || myRole === 'spectator') return;
             const turnColor = game.turn() === 'w' ? 'white' : 'black';
-            if ((myRole === 'host' && turnColor !== 'white') || (myRole === 'guest' && turnColor !== 'black')) {
-                return showToast("Từ từ", "Chưa tới lượt cậu đi!", "warning");
-            }
+            if ((myRole === 'host' && turnColor !== 'white') || (myRole === 'guest' && turnColor !== 'black')) return showToast("Từ từ", "Chưa tới lượt cậu!", "warning");
 
             if (!selectedSquare) {
-                const piece = game.get(coords);
-                if (piece && piece.color === (myRole === 'host' ? 'w' : 'b')) {
-                    selectedSquare = coords;
-                    renderBoard();
-                }
+                const piece = game.get(coords); if (piece && piece.color === (myRole === 'host' ? 'w' : 'b')) { selectedSquare = coords; renderBoard(); }
             } else {
-                // Nhờ chess.js check xem đi được không
-                const move = game.move({
-                    from: selectedSquare,
-                    to: coords,
-                    promotion: 'q' // Cờ chớp mặc định phong hậu cho nhanh
-                });
-
+                const move = game.move({ from: selectedSquare, to: coords, promotion: 'q' });
                 if (move) {
-                    moveSound.play().catch(e=>{});
-                    const nextTurn = game.turn() === 'w' ? 'white' : 'black';
-                    const newFen = game.fen();
-                    
-                    const currentLogs = Array.isArray(roomData.move_log) ? roomData.move_log : [];
-                    const updatedMoveLog = [...currentLogs, { turn: turnColor, notation: move.san }];
-                    
-                    // Tự động kiểm tra chiếu bí / hòa
+                    moveSound.play().catch(e=>{}); const nextTurn = game.turn() === 'w' ? 'white' : 'black'; const newFen = game.fen();
+                    const updatedMoveLog = [...(Array.isArray(roomData.move_log) ? roomData.move_log : []), { turn: turnColor, notation: move.san }];
                     if (game.game_over()) {
-                        let winnerColor = 'draw';
-                        if (game.in_checkmate()) {
-                            winnerColor = turnColor; // Kẻ vừa đi xong là người chiến thắng
-                        }
+                        let winnerColor = 'draw'; if (game.in_checkmate()) winnerColor = turnColor;
                         await endCurrentSet(winnerColor, { board_state: newFen, move_log: updatedMoveLog });
                     } else {
                         let safeInc = (roomData.settings && roomData.settings.increment) ? roomData.settings.increment : 0;
-                        const nTime = Math.max(0, Math.floor(myTimeLeft + safeInc)); 
-                        const oTime = Math.max(0, Math.floor(oppTimeLeft));
-                        
-                        await supabase.from('chess_rooms').update({
-                            board_state: newFen,
-                            turn: nextTurn,
-                            move_log: updatedMoveLog,
-                            last_time_update: new Date().toISOString(),
-                            timer_host: myRole === 'host' ? nTime : oTime,
-                            timer_guest: myRole === 'guest' ? nTime : oTime
-                        }).eq('id', roomId);
+                        await supabase.from('chess_rooms').update({ board_state: newFen, turn: nextTurn, move_log: updatedMoveLog, last_time_update: new Date().toISOString(), timer_host: myRole === 'host' ? Math.max(0, Math.floor(myTimeLeft + safeInc)) : Math.max(0, Math.floor(oppTimeLeft)), timer_guest: myRole === 'guest' ? Math.max(0, Math.floor(myTimeLeft + safeInc)) : Math.max(0, Math.floor(oppTimeLeft)) }).eq('id', roomId);
                     }
                 } else {
-                    // Nếu bấm sai ô, cho phép chọn lại quân khác cùng phe
-                    const piece = game.get(coords);
-                    if (piece && piece.color === (myRole === 'host' ? 'w' : 'b')) {
-                        selectedSquare = coords;
-                    } else {
-                        selectedSquare = null;
-                    }
+                    const piece = game.get(coords); if (piece && piece.color === (myRole === 'host' ? 'w' : 'b')) selectedSquare = coords; else selectedSquare = null;
                 }
                 renderBoard();
             }
         };
 
-        // ==========================================
-        // 7. DỌN GHẾ KHI VĐV RỜI ĐI 
-        // ==========================================
         window.addEventListener('beforeunload', () => {
             if (roomData && roomData.status === 'waiting') {
                 if (myRole === 'host') supabase.from('chess_rooms').update({ host_id: "ADMIN_PENDING", host_info: null, host_ready: false }).eq('id', roomId).then();
                 else if (myRole === 'guest') supabase.from('chess_rooms').update({ guest_id: null, guest_info: null, guest_ready: false }).eq('id', roomId).then();
             }
         });
-
-        // 👉 NÂNG CẤP LUÔN HÀM RỜI BÀN CHỦ ĐỘNG (Nút Thoát)
-        window.confirmLeave = function() { 
-            window.showConfirmPopup("Rời Bàn", "Cậu có chắc muốn rời bàn không? Nếu ván đấu đang diễn ra, cậu sẽ bị xử thua đó nha!", async () => { 
-                // Nếu đang đánh mà bỏ chạy -> Xử thua ngay!
-                if (roomData.status === 'playing' && (myRole === 'host' || myRole === 'guest')) {
-                    const loserColor = myRole === 'host' ? 'red' : 'black';
-                    const winnerColor = loserColor === 'red' ? 'black' : 'red';
-                    await endCurrentSet(winnerColor);
-                } 
-                // Nếu đang chờ mà bỏ đi -> Trả lại ghế cho người khác
-                else if (roomData.status === 'waiting') {
-                    if (myRole === 'host') {
-                        await supabase.from('chess_rooms').update({ host_id: "ADMIN_PENDING", host_info: null, host_ready: false }).eq('id', roomId);
-                    } else if (myRole === 'guest') {
-                        await supabase.from('chess_rooms').update({ guest_id: null, guest_info: null, guest_ready: false }).eq('id', roomId);
-                    }
-                }
-                // Dọn dẹp xong thì cho về sảnh ngoài
-                window.location.href = '/game/chess'; 
-            });
-        };
     </script>
     <script src="/mhent-ui.js"></script>
 </body>
