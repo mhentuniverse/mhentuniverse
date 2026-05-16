@@ -253,7 +253,11 @@
         }
         .xq-spot:hover { background: rgba(255, 255, 255, 0.2); }
         .xq-spot.selected .xq-piece { border-color: #10b981; box-shadow: 0 0 20px #10b981; transform: scale(1.15) translateY(-3px); }
-        
+        /* HIỆU ỨNG NƯỚC ĐI CUỐI CÙNG */
+        .xq-spot.last-move {
+            background: rgba(238, 15, 15, 0.4);
+            border-radius: 50%;
+        }
         .xq-piece { 
             width: 40px; height: 40px; border-radius: 50%; background: #fdf5e6; box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(0,0,0,0.2);
             border: 2px solid #8b5a2b; display: flex; justify-content: center; align-items: center;
@@ -1167,6 +1171,14 @@
 
                     if (selectedSquare && selectedSquare.x === x && selectedSquare.y === y) spotEl.classList.add('selected');
 
+                    // 👉 TÔ MÀU NƯỚC ĐI VỪA XONG
+                    const lastMove = (roomData && roomData.move_log && roomData.move_log.length > 0) ? roomData.move_log[roomData.move_log.length - 1] : null;
+                    if (lastMove && lastMove.from && lastMove.to) {
+                        if ((lastMove.from.x === x && lastMove.from.y === y) || (lastMove.to.x === x && lastMove.to.y === y)) {
+                            spotEl.classList.add('last-move');
+                        }
+                    }
+
                     if (redCheckSpot && redCheckSpot.x === x && redCheckSpot.y === y) spotEl.classList.add('in-check');
                     else if (blackCheckSpot && blackCheckSpot.x === x && blackCheckSpot.y === y) spotEl.classList.add('in-check');
 
@@ -1442,8 +1454,9 @@
                     const logTxt = getNotation(movingPiece, fromX, fromY, x, y);
                     let currentLogs = Array.isArray(roomData.move_log) ? roomData.move_log : [];
                     // Chú ý: Ký phổ vẫn phải lưu là của "turn cũ"
-                    const updatedMoveLog = [...currentLogs, { turn: (nextTurn === 'red' ? 'black' : 'red'), notation: logTxt }];
-                    
+                    // 👉 LƯU THÊM TỌA ĐỘ VÀO DB ĐỂ VẼ HIỆU ỨNG LAST MOVE
+                    const updatedMoveLog = [...currentLogs, { turn: (nextTurn === 'red' ? 'black' : 'red'), notation: logTxt, from: {x: fromX, y: fromY}, to: {x: x, y: y} }];
+
                     let safeInc = (roomData.settings && roomData.settings.increment) ? roomData.settings.increment : 0;
 
                     // 👉 TÍNH TOÁN CHIẾU BÍ (CHECKMATE / STALEMATE)

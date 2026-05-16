@@ -95,7 +95,11 @@
         .square.light { background-color: #eeeed2; }
         .square.dark { background-color: #769656; }
         .square.selected { background-color: rgba(246, 246, 105, 0.7) !important; }
-        
+        /* HIỆU ỨNG NƯỚC ĐI CUỐI CÙNG */
+        .square.last-move { 
+            background-color: rgba(253, 17, 17, 0.6) !important; 
+        }
+
         .piece { width: 90%; height: 90%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; z-index: 2; transition: transform 0.1s; }
         .piece.white { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .piece.black { color: #0f172a; text-shadow: 0 1px 2px rgba(255,255,255,0.3); }
@@ -540,6 +544,13 @@
                     
                     // 👉 Gắn màu đang chọn
                     if (selectedSquare === squareCoord) squareEl.classList.add('selected');
+                    // 👉 TÔ MÀU NƯỚC ĐI VỪA XONG
+                    const lastMove = (roomData && roomData.move_log && roomData.move_log.length > 0) ? roomData.move_log[roomData.move_log.length - 1] : null;
+                    if (lastMove && lastMove.from && lastMove.to) {
+                        if (squareCoord === lastMove.from || squareCoord === lastMove.to) {
+                            squareEl.classList.add('last-move');
+                        }
+                    }
                     // 👉 Gắn màu Vua bị chiếu
                     if (checkSquare === squareCoord) squareEl.classList.add('in-check');
                     // 👉 Gắn chấm khả dụng
@@ -570,7 +581,8 @@
                 const move = game.move({ from: selectedSquare, to: coords, promotion: 'q' });
                 if (move) {
                     moveSound.play().catch(e=>{}); const nextTurn = game.turn() === 'w' ? 'white' : 'black'; const newFen = game.fen();
-                    const updatedMoveLog = [...(Array.isArray(roomData.move_log) ? roomData.move_log : []), { turn: turnColor, notation: move.san }];
+                    // 👉 LƯU THÊM TỌA ĐỘ VÀO DB ĐỂ VẼ HIỆU ỨNG LAST MOVE
+                    const updatedMoveLog = [...(Array.isArray(roomData.move_log) ? roomData.move_log : []), { turn: turnColor, notation: move.san, from: move.from, to: move.to }];
                     if (game.game_over()) {
                         let winnerColor = 'draw'; if (game.in_checkmate()) winnerColor = turnColor;
                         await endCurrentSet(winnerColor, { board_state: newFen, move_log: updatedMoveLog });
