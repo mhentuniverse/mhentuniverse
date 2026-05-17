@@ -367,16 +367,16 @@
             try {
                 const { data: room } = await supabase.from('chess_rooms').select('*').eq('id', roomId).single();
                 if (room) {
-                    if (room.status === 'waiting') {
-                        if(room.host_id === currentUser.uid) return window.location.href = `/game/chess/play?id=${roomId}`;
-                        await supabase.from('chess_rooms').update({
-                            guest_id: currentUser.uid, guest_info: { name: currentUser.displayName || "Khách", avatar: currentUser.photoURL || '/assets/avt-web.jpg' }
-                        }).eq('id', roomId);
-                        window.location.href = `/game/chess/play?id=${roomId}`;
-                    } else window.location.href = `/game/chess/play?id=${roomId}`; // Vào xem Spectator
-                } else showToast("Lỗi", "Mã phòng không tồn tại!", "error");
-            } catch (e) { showToast("Lỗi", "Đường truyền gián đoạn!", "error"); }
+                    // Cứ có phòng là đẩy thẳng vào play.html, để play.html tự lo việc xếp ghế (Host/Guest/Spectator)
+                    window.location.href = `/game/chess/play?id=${roomId}`;
+                } else {
+                    showToast("Lỗi", "Mã phòng không tồn tại!", "error");
+                }
+            } catch (error) { 
+                showToast("Lỗi", "Đường truyền gián đoạn!", "error"); 
+            }
         };
+        // LƯU Ý: Với Cờ Tướng thì sếp nhớ đổi chữ 'chess_rooms' thành 'xiangqi_rooms' và link '/game/xiangqi/play' nhé!
 
         function listenForRooms() { supabase.channel('public:chess_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'chess_rooms' }, loadLiveRooms).subscribe(); }
 

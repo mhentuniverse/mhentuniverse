@@ -420,7 +420,15 @@
             <h1 class="set-result-title" id="set-result-title" style="color: #10b981;">CẬU ĐÃ THẮNG VÁN NÀY!</h1>
             <p style="color: #94a3b8; font-size: 1.2rem; margin-top: 10px;">Hệ thống đang lật bàn cờ và đổi bên...</p>
             <div class="set-countdown-text" id="set-countdown">30</div>
-            <p style="color: #cbd5e1; font-weight: bold;">Ván đấu tiếp theo sẽ tự động bắt đầu</p>
+            <p style="color: #cbd5e1; font-weight: bold; margin-bottom: 25px;">Ván đấu tiếp theo sẽ tự động bắt đầu</p>
+            
+            <button class="btn-action" style="width: auto; padding: 12px 30px; font-size: 16px; background: #3b82f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);" onclick="toggleReviewBoard(true)">
+                <i class="fa-solid fa-eye"></i> Xem lại thế cờ bị Chiếu Bí
+            </button>
+        </div>
+
+        <div id="review-return-overlay" style="display: none; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 9999; background: rgba(15, 23, 42, 0.95); padding: 15px 30px; border-radius: 30px; border: 2px solid #3b82f6; cursor: pointer; color: white; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); align-items: center; gap: 10px;" onclick="toggleReviewBoard(false)">
+            <i class="fa-solid fa-rotate-left"></i> Chạm để quay lại (<span id="review-countdown" style="color: #10b981;">30</span>s)
         </div>
 
     </main>
@@ -660,7 +668,7 @@
                 let bH = (data.timer_host !== undefined && data.timer_host !== null) ? data.timer_host : safeTimeLimit * 60;
                 let bG = (data.timer_guest !== undefined && data.timer_guest !== null) ? data.timer_guest : safeTimeLimit * 60;
 
-                let elapsed = 0;
+                /*let elapsed = 0;
                 if (data.last_time_update) {
                     let lastTime = new Date(data.last_time_update).getTime();
                     let now = new Date().getTime();
@@ -668,7 +676,7 @@
                 }
 
                 if (data.turn === 'red') bH -= elapsed;
-                else bG -= elapsed;
+                else bG -= elapsed;*/
 
                 // 👉 BẢN VÁ 1: Khán giả nhìn từ góc của Host (Đỏ ở dưới)
                 myTimeLeft = (myRole === 'host' || myRole === 'spectator') ? bH : bG;
@@ -794,19 +802,27 @@
                 let breakEnd = new Date(data.set_break_ends_at).getTime();
                 if(window.breakTimer) clearInterval(window.breakTimer);
                 
+                // 👉 ĐOẠN ĐẾM NGƯỢC 30S CẬP NHẬT LẠI:
                 window.breakTimer = setInterval(async () => {
                     let now = new Date().getTime();
                     let distance = Math.floor((breakEnd - now) / 1000);
                     
                     const countEl = document.getElementById('set-countdown');
+                    const reviewCountEl = document.getElementById('review-countdown'); // 👉 Dò cái số nhỏ xíu
+                    
                     if (distance > 0) {
                         if(countEl) countEl.innerText = distance;
+                        if(reviewCountEl) reviewCountEl.innerText = distance; // Bơm số vào cục nhỏ
                     } else {
                         clearInterval(window.breakTimer);
                         if(setBreakUI) setBreakUI.style.display = 'none';
                         
-                        // Hết 30s, Host lật bàn cờ
-                        if (myRole === 'host') {
+                        // 👉 VÀO VÁN MỚI THÌ GIẤU LUÔN NÚT XEM LẠI ĐI
+                        const returnOverlay = document.getElementById('review-return-overlay');
+                        if(returnOverlay) returnOverlay.style.display = 'none';
+                        
+                        // Hết 30s, Host lật bàn cờ...
+                        if (roomData.host_id === currentUser.uid) {
                             const newBoard = [
                                 ['B_R', 'B_H', 'B_E', 'B_A', 'B_K', 'B_A', 'B_E', 'B_H', 'B_R'],
                                 [null,  null,  null,  null,  null,  null,  null,  null,  null ],
@@ -1097,6 +1113,18 @@
         };
 
         let selectedSquare = null; 
+        // 👉 HÀM ẨN/HIỆN MÀN HÌNH ĐẾM NGƯỢC
+        window.toggleReviewBoard = function(isReviewing) {
+            const breakOverlay = document.getElementById('set-break-overlay');
+            const returnOverlay = document.getElementById('review-return-overlay');
+            if (isReviewing) {
+                if(breakOverlay) breakOverlay.style.display = 'none'; // Giấu màn hình to
+                if(returnOverlay) returnOverlay.style.display = 'flex'; // Hiện cục nhỏ xíu ở dưới
+            } else {
+                if(breakOverlay) breakOverlay.style.display = 'flex'; // Hiện lại màn to
+                if(returnOverlay) returnOverlay.style.display = 'none'; // Giấu cục nhỏ đi
+            }
+        };
 
         function getNotation(piece, fromX, fromY, toX, toY) {
             const isRed = piece.startsWith('R_');

@@ -529,47 +529,21 @@
             joinRoomDirectly(roomId);
         };
 
-        // VÀO PHÒNG BẰNG SUPABASE
         window.joinRoomDirectly = async function(roomId) {
             if(!currentUser) return showToast("Lỗi", "Cậu chưa đăng nhập!", "error");
-            
             try {
-                const { data: room, error } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
-
+                const { data: room } = await supabase.from('xiangqi_rooms').select('*').eq('id', roomId).single();
                 if (room) {
-                    if (room.status === 'waiting') {
-                        if(room.host_id === currentUser.uid) {
-                            window.location.href = `/game/xiangqi/play?id=${roomId}`;
-                            return;
-                        }
-                        
-                        const myInfo = {
-                            name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "Khách"),
-                            avatar: currentUser.photoURL || '/assets/avt-web.jpg'
-                        };
-
-                        await supabase.from('xiangqi_rooms').update({
-                            guest_id: currentUser.uid,
-                            guest_info: myInfo,
-                            status: 'waiting' // Giữ nguyên waiting chờ sẵn sàng
-                        }).eq('id', roomId);
-
-                        window.location.href = `/game/xiangqi/play?id=${roomId}`;
-                    } 
-                    else if (room.status === 'playing' && (room.host_id === currentUser.uid || room.guest_id === currentUser.uid)) {
-                        window.location.href = `/game/xiangqi/play?id=${roomId}`;
-                    } 
-                    else {
-                        showToast("Thất bại", "Phòng này đã đầy hoặc ván đấu đang diễn ra rồi!", "error");
-                    }
+                    // Cứ có phòng là đẩy thẳng vào play.html, để play.html tự lo việc xếp ghế (Host/Guest/Spectator)
+                    window.location.href = `/game/xiangqi/play?id=${roomId}`;
                 } else {
                     showToast("Lỗi", "Mã phòng không tồn tại!", "error");
                 }
-            } catch (error) {
-                console.error(error);
-                showToast("Lỗi", "Đường truyền gián đoạn!", "error");
+            } catch (error) { 
+                showToast("Lỗi", "Đường truyền gián đoạn!", "error"); 
             }
         };
+        // LƯU Ý: Với Cờ Tướng thì sếp nhớ đổi chữ 'chess_rooms' thành 'xiangqi_rooms' và link '/game/xiangqi/play' nhé!
 
         // RADAR TÌM PHÒNG SUPABASE REALTIME
         async function fetchRooms() {
