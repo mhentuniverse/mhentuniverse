@@ -20,25 +20,21 @@
             background-color: #2c3e50;
             display: flex; 
             justify-content: center; 
-            align-items: flex-start; /* Căn từ trên xuống để cuộn */
+            align-items: flex-start;
             min-height: 100vh;
-            padding: 40px 0; /* Tạo khoảng trống trên dưới cho dễ nhìn */
-            overflow-y: auto; /* Bật lại thanh cuộn dọc */
+            padding: 40px 0;
+            overflow-y: auto;
         }
 
-        .scale-wrapper {
-            /* Đã gỡ bỏ toàn bộ lệnh Transform Scale fixed */
-            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
-        }
-
-        /* KHUNG POSTER CHUẨN 1080x1920 - Giữ nguyên size cố định để xuất ảnh nét */
+        /* KHUNG POSTER - Đã fix lỗi tự giãn chiều cao */
         .poster-canvas {
             width: 1080px; 
-            height: 1920px;
+            min-height: 1920px; /* Tối thiểu vẫn chuẩn 1920px */
+            height: auto; /* Tự động giãn xuống nếu chữ nhiều */
             background: #ffffff;
             position: relative;
             display: flex; flex-direction: column;
-            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
         }
 
         /* ================= HEADER ================= */
@@ -48,6 +44,7 @@
             position: relative;
             display: flex; flex-direction: column; justify-content: flex-end;
             padding: 50px 60px;
+            flex-shrink: 0;
         }
 
         .poster-header::before {
@@ -70,7 +67,7 @@
         /* ================= BODY ================= */
         .poster-body {
             flex: 1; padding: 50px 60px; background: var(--bg-light);
-            display: flex; flex-direction: column; gap: 40px;
+            display: flex; flex-direction: column; gap: 45px; /* Tăng gap cho thoáng */
         }
 
         .section-title {
@@ -156,111 +153,110 @@
             background: #ffffff; padding: 30px 60px;
             display: flex; justify-content: space-between; align-items: center;
             border-top: 2px solid #e2e8f0;
+            flex-shrink: 0;
         }
 
         .footer-info h4 { font-size: 22px; font-weight: 900; color: var(--m-dark); }
-        .footer-info p { font-size: 18px; color: #64748b; }
+        .footer-info p { font-size: 18px; color: #64748b; margin-top: 5px; }
         .qr-code { background: var(--m-pink); color: #fff; padding: 12px 25px; border-radius: 12px; font-size: 20px; font-weight: 800;}
 
     </style>
 </head>
 <body>
 
-    <div class="scale-wrapper">
-        <div class="poster-canvas">
+    <div class="poster-canvas">
+        
+        <div class="poster-header">
+            <div class="header-content">
+                <div class="badge-top">Hồ sơ xét chọn năm 2026</div>
+                <h1>Thanh niên tiên tiến<br><span>Làm theo lời Bác</span></h1>
+                <p>Báo cáo chỉ tiêu: Giới thiệu bản thân & Mô hình giải pháp</p>
+            </div>
+        </div>
+
+        <div class="poster-body">
             
-            <div class="poster-header">
-                <div class="header-content">
-                    <div class="badge-top">Hồ sơ xét chọn năm 2026</div>
-                    <h1>Thanh niên tiên tiến<br><span>Làm theo lời Bác</span></h1>
-                    <p>Báo cáo chỉ tiêu: Giới thiệu bản thân & Mô hình giải pháp</p>
+            <div>
+                <div class="section-title"><span>❶</span> Chỉ tiêu 1: Thông tin cá nhân</div>
+                <div class="profile-block">
+                    <div class="profile-left">
+                        <img class="avatar" src="https://mhentuniverse.vercel.app/assets/avt-web.jpg" alt="Lam Chi">
+                        <h2>Lam Chi</h2>
+                        <p>Sinh năm 2006</p>
+                        <div class="role-badge">Ủy viên BCH Đoàn Khoa</div>
+                        <div class="role-badge mhent">Co-founder @ MHEnt</div>
+                    </div>
+                    <div class="profile-right">
+                        <h3 style="font-size: 26px; color: var(--d-blue); margin-bottom: 25px; font-weight: 900;">NĂNG LỰC & THẾ MẠNH</h3>
+                        
+                        <div class="skill-item">
+                            <div class="skill-header"><span>Sáng tạo Nội dung (Content & Comic)</span> <span>95%</span></div>
+                            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 95%; background: var(--m-pink);"></div></div>
+                        </div>
+                        
+                        <div class="skill-item">
+                            <div class="skill-header"><span>Sản xuất Âm nhạc (Music Artist)</span> <span>90%</span></div>
+                            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 90%; background: var(--d-blue);"></div></div>
+                        </div>
+                        
+                        <div class="skill-item">
+                            <div class="skill-header"><span>Quản trị Nền tảng số (Vận hành Web)</span> <span>85%</span></div>
+                            <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 85%; background: #8b5cf6;"></div></div>
+                        </div>
+
+                        <p style="margin-top: 25px; font-size: 20px; color: #475569; line-height: 1.6; font-style: italic;">
+                            "Luôn tiên phong ứng dụng chuyên môn truyền thông đa phương tiện vào việc tổ chức, làm mới và lan tỏa các phong trào sinh viên."
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div class="poster-body">
-                
-                <div>
-                    <div class="section-title"><span>❶</span> Chỉ tiêu 1: Thông tin cá nhân</div>
-                    <div class="profile-block">
-                        <div class="profile-left">
-                            <img class="avatar" src="https://mhentuniverse.vercel.app/assets/avt-web.jpg" alt="Lam Chi">
-                            <h2>Lam Chi</h2>
-                            <p>Sinh năm 2006</p>
-                            <div class="role-badge">Ủy viên BCH Đoàn Khoa</div>
-                            <div class="role-badge mhent">Co-founder @ MHEnt</div>
+            <div>
+                <div class="section-title"><span>❷</span> Chỉ tiêu 3: Mô hình tiêu biểu</div>
+                <div class="solution-block">
+                    <div class="sol-header">
+                        <div class="sol-header-text">
+                            <h3>Hệ sinh thái số: MHEnt Universe</h3>
+                            <p>Không gian công nghệ phục vụ học tập & giải trí văn minh</p>
                         </div>
-                        <div class="profile-right">
-                            <h3 style="font-size: 26px; color: var(--d-blue); margin-bottom: 25px; font-weight: 900;">NĂNG LỰC & THẾ MẠNH</h3>
-                            
-                            <div class="skill-item">
-                                <div class="skill-header"><span>Sáng tạo Nội dung (Content & Comic)</span> <span>95%</span></div>
-                                <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 95%; background: var(--m-pink);"></div></div>
-                            </div>
-                            
-                            <div class="skill-item">
-                                <div class="skill-header"><span>Sản xuất Âm nhạc (Music Artist)</span> <span>90%</span></div>
-                                <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 90%; background: var(--d-blue);"></div></div>
-                            </div>
-                            
-                            <div class="skill-item">
-                                <div class="skill-header"><span>Quản trị Nền tảng số (Vận hành Web)</span> <span>85%</span></div>
-                                <div class="skill-bar-bg"><div class="skill-bar-fill" style="width: 85%; background: #8b5cf6;"></div></div>
-                            </div>
+                        <img class="mhent-logo" src="https://mhentuniverse.vercel.app/assets/logo-design.png" alt="MHEnt">
+                    </div>
 
-                            <p style="margin-top: 25px; font-size: 20px; color: #475569; line-height: 1.6; font-style: italic;">
-                                "Luôn tiên phong ứng dụng chuyên môn truyền thông đa phương tiện vào việc tổ chức, làm mới và lan tỏa các phong trào sinh viên."
-                            </p>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🎬 MHEnt Cinema</h4>
+                            <p>Trình chiếu phim và tác phẩm âm nhạc truyền cảm hứng do chính sinh viên thực hiện.</p>
+                        </div>
+                        <div class="feature-card blue">
+                            <h4>🎯 MHEnt Arena</h4>
+                            <p>Sân chơi trí tuệ trực tuyến rèn luyện tư duy cho Đoàn viên qua các bộ môn cờ.</p>
+                        </div>
+                        <div class="feature-card purple">
+                            <h4>📚 Teach & Tools</h4>
+                            <p>Cung cấp bộ công cụ số hóa, tài liệu giảng dạy và tự động hóa biểu mẫu Đoàn Hội.</p>
+                        </div>
+                        <div class="feature-card orange">
+                            <h4>🚀 Khởi nghiệp sáng tạo</h4>
+                            <p>Mô hình thể hiện rõ tinh thần dấn thân, quản trị nền tảng số thực tiễn của thanh niên.</p>
                         </div>
                     </div>
                 </div>
-
-                <div>
-                    <div class="section-title"><span>❷</span> Chỉ tiêu 3: Mô hình tiêu biểu</div>
-                    <div class="solution-block">
-                        <div class="sol-header">
-                            <div class="sol-header-text">
-                                <h3>Hệ sinh thái số: MHEnt Universe</h3>
-                                <p>Không gian công nghệ phục vụ học tập & giải trí văn minh</p>
-                            </div>
-                            <img class="mhent-logo" src="https://mhentuniverse.vercel.app/assets/logo-design.png" alt="MHEnt">
-                        </div>
-
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <h4>🎬 MHEnt Cinema</h4>
-                                <p>Trình chiếu phim và tác phẩm âm nhạc truyền cảm hứng do chính sinh viên thực hiện.</p>
-                            </div>
-                            <div class="feature-card blue">
-                                <h4>🎯 MHEnt Arena</h4>
-                                <p>Sân chơi trí tuệ trực tuyến rèn luyện tư duy cho Đoàn viên qua các bộ môn cờ.</p>
-                            </div>
-                            <div class="feature-card purple">
-                                <h4>📚 Teach & Tools</h4>
-                                <p>Cung cấp bộ công cụ số hóa, tài liệu giảng dạy và tự động hóa biểu mẫu Đoàn Hội.</p>
-                            </div>
-                            <div class="feature-card orange">
-                                <h4>🚀 Khởi nghiệp sáng tạo</h4>
-                                <p>Mô hình thể hiện rõ tinh thần dấn thân, quản trị nền tảng số thực tiễn của thanh niên.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="quote-block">
-                    "Học tập Bác từ những việc thiết thực: <strong>Đổi mới sáng tạo không ngừng</strong>, dùng sức trẻ và công nghệ để mang lại giá trị tích cực cho cộng đồng sinh viên."
-                </div>
-
             </div>
 
-            <div class="poster-footer">
-                <div class="footer-info">
-                    <h4>Báo cáo bởi: Phạm Huỳnh Lam Chi</h4>
-                    <p>Miyazaki Haruto Entertainment Co., Ltd - 2026</p>
-                </div>
-                <div class="qr-code">🌐 mhentuniverse.vercel.app</div>
+            <div class="quote-block">
+                "Học tập Bác từ những việc thiết thực: <strong>Đổi mới sáng tạo không ngừng</strong>, dùng sức trẻ và công nghệ để mang lại giá trị tích cực cho cộng đồng sinh viên."
             </div>
 
         </div>
+
+        <div class="poster-footer">
+            <div class="footer-info">
+                <h4>Báo cáo bởi: Phạm Huỳnh Lam Chi</h4>
+                <p>Miyazaki Haruto Entertainment Co., Ltd - 2026</p>
+            </div>
+            <div class="qr-code">🌐 mhentuniverse.vercel.app</div>
+        </div>
+
     </div>
 
 </body>
