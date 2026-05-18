@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo Thanh Niên Tiên Tiến - Phạm Huỳnh Lam Chi</title>
+    <title>Báo Cáo Thành Tích Thanh Niên Tiên Tiến 2026 - Đồng Chí Phạm Huỳnh Lam Chi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --doan-blue: #0056b3;
-            --doan-red: #dc3545;
-            --mhent-dark: #1a1a2e;
-            --mhent-accent: #722ed1;
-            --text-dark: #2d3748;
-            --bg-light: #f4f7f6;
+            --union-blue: #0052cc;
+            --union-red: #ff3344;
+            --mhent-purple: #6366f1;
+            --mhent-dark: #0b0f19;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
         }
 
         * {
@@ -21,272 +25,349 @@
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            line-height: 1.6;
-            padding: 20px 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f4f7ff 0%, #f9f5ff 100%);
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .report-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+        /* Khung Dashboard chính */
+        .dashboard-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
             overflow: hidden;
-            border-top: 6px solid var(--doan-blue);
         }
 
-        .report-header {
+        /* Top Hero Banner cao cấp */
+        .hero-banner {
+            background: linear-gradient(135deg, var(--mhent-dark) 0%, #1e1b4b 100%);
+            padding: 60px 40px;
             text-align: center;
-            padding: 40px 30px;
-            border-bottom: 1px solid #e2e8f0;
-            background: url('https://mhentuniverse.vercel.app/assets/banner-web.png') center/cover no-repeat;
             position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Lớp phủ mờ để chữ nổi bật trên banner */
-        .report-header::before {
-            content: "";
+        /* Hiệu ứng lưới công nghệ chìm phía sau */
+        .hero-banner::before {
+            content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.92);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
-        .header-content {
+        .company-badge-top {
             position: relative;
-            z-index: 1;
-        }
-
-        .header-content h1 {
-            font-size: 26px;
-            color: var(--doan-red);
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            font-weight: 800;
-        }
-
-        .header-content h3 {
-            font-size: 16px;
-            color: var(--doan-blue);
-            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 6px 16px;
+            border-radius: 100px;
+            color: #c084fc;
+            font-size: 13px;
             font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .report-body {
-            padding: 40px;
+        .hero-banner h1 {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
         }
 
-        /* Profile cá nhân */
-        .personal-info {
+        .hero-banner p {
+            color: #94a3b8;
+            font-size: 16px;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Nội dung chính bên dưới */
+        .main-content {
+            padding: 50px;
+        }
+
+        /* Profile Grid */
+        .profile-section {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 40px;
+            align-items: center;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 640px) {
+            .profile-section {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .main-content { padding: 24px; }
+        }
+
+        .avatar-container {
+            width: 160px;
+            height: 160px;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 4px solid #fff;
+            background: #fff;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-details h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .badge-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 12px 0 20px 0;
+        }
+
+        @media (max-width: 640px) {
+            .badge-group { justify-content: center; }
+        }
+
+        .badge {
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 12px;
+        }
+
+        .badge-union { background: #eff6ff; color: var(--union-blue); }
+        .badge-corp { background: #faf5ff; color: #9333ea; }
+
+        .formal-speech {
+            font-size: 15px;
+            color: #475569;
+            line-height: 1.7;
+            text-align: justify;
+        }
+
+        /* Tiêu đề mục báo cáo */
+        .section-headline {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 45px 0 24px 0;
             display: flex;
             align-items: center;
-            gap: 25px;
-            margin-bottom: 40px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 4px solid var(--doan-blue);
-        }
-
-        .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .info-text h2 {
-            font-size: 22px;
-            color: var(--text-dark);
-            margin-bottom: 5px;
-        }
-
-        .role-badge {
-            display: inline-block;
-            background: var(--doan-blue);
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .intro-speech {
-            font-size: 15px;
-            text-align: justify;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f0f7ff;
-            border-radius: 8px;
-            font-style: italic;
-            color: #2c3e50;
-        }
-
-        /* Báo cáo giải pháp - Khu vực PR MHEnt */
-        .solution-section {
-            margin-top: 30px;
-        }
-
-        .section-title {
-            font-size: 20px;
-            color: var(--doan-red);
-            font-weight: 700;
-            text-transform: uppercase;
-            border-bottom: 2px solid var(--doan-red);
-            padding-bottom: 10px;
-            margin-bottom: 25px;
-            display: flex;
             justify-content: space-between;
-            align-items: flex-end;
         }
 
-        .company-logo {
-            height: 40px;
-            object-fit: contain;
+        .section-headline .line-decor {
+            flex-grow: 1;
+            height: 2px;
+            background: #e2e8f0;
+            margin-left: 20px;
         }
 
-        .pr-banner {
-            width: 100%;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 1px solid #e2e8f0;
-        }
-
-        .features-grid {
+        /* Hệ sinh thái Grid System */
+        .ecosystem-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
-            margin-top: 25px;
         }
 
-        @media (max-width: 600px) {
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-            .personal-info {
-                flex-direction: column;
-                text-align: center;
-            }
+        @media (max-width: 768px) {
+            .ecosystem-grid { grid-template-columns: 1fr; }
         }
 
-        .feature-card {
-            background: #fff;
+        .eco-card {
+            background: #ffffff;
             border: 1px solid #e2e8f0;
-            padding: 20px;
-            border-radius: 10px;
-            transition: all 0.3s;
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
-        .feature-card:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            border-color: var(--mhent-accent);
+        .eco-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--mhent-purple);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.08);
         }
 
-        .feature-card h4 {
-            color: var(--mhent-dark);
+        .eco-icon {
+            font-size: 24px;
+            margin-bottom: 14px;
+            display: inline-block;
+        }
+
+        .eco-card h4 {
             font-size: 16px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
         }
 
-        .feature-card p {
+        .eco-card p {
             font-size: 14px;
             color: #64748b;
-            margin: 0;
+            line-height: 1.6;
         }
 
-        .cta-button {
-            display: block;
-            width: max-content;
-            margin: 35px auto 0;
-            padding: 12px 30px;
-            background: linear-gradient(90deg, var(--mhent-dark), var(--mhent-accent));
-            color: #fff;
+        /* Nút Khám phá khổng lồ & Độc quyền */
+        .promo-banner-box {
+            background: linear-gradient(135deg, #f5f3ff 0%, #edd4ff 100%);
+            border-radius: 24px;
+            padding: 30px;
+            margin-top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border: 1px solid rgba(147, 51, 234, 0.1);
+        }
+
+        @media (max-width: 640px) {
+            .promo-banner-box { flex-direction: column; text-align: center; }
+        }
+
+        .promo-text h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #581c87;
+        }
+
+        .promo-text p {
+            font-size: 14px;
+            color: #701a75;
+            margin-top: 4px;
+        }
+
+        .launch-btn {
+            background: var(--mhent-dark);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            padding: 14px 28px;
+            border-radius: 14px;
             text-decoration: none;
-            border-radius: 25px;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+
+        .launch-btn:hover {
+            background: var(--mhent-purple);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+            color: #fff;
+        }
+
+        .footer-branding {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 12px;
             font-weight: 600;
+            color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(114, 46, 209, 0.4);
-            transition: transform 0.2s;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            color: #fff;
         }
     </style>
 </head>
 <body>
 
-    <div class="report-container">
-        <div class="report-header">
-            <div class="header-content">
-                <h1>Báo cáo mô hình, giải pháp tiêu biểu</h1>
-                <h3>Thanh Niên Tiên Tiến Làm Theo Lời Bác - Năm 2026</h3>
+    <div class="dashboard-wrapper">
+        <div class="hero-banner">
+            <div class="company-badge-top">
+                <span>✦ MHEnt Universe v3.0 Powered Platform</span>
             </div>
+            <h1>Báo Cáo Giải Pháp Chuyển Đổi Số Tiêu Biểu</h1>
+            <p>Hồ Sơ Ứng Viên "Thanh Niên Tiên Tiến Làm Theo Lời Bác" Năm 2026</p>
         </div>
-        
-        <div class="report-body">
-            
-            <div class="personal-info">
-                <img class="avatar" src="https://via.placeholder.com/150" alt="Đồng chí Phạm Huỳnh Lam Chi">
-                <div class="info-text">
+
+        <div class="main-content">
+            <div class="profile-section">
+                <div class="avatar-container">
+                    <img src="/assets/avt-web.jpg" alt="Đồng chí Phạm Huỳnh Lam Chi">
+                </div>
+                <div class="profile-details">
                     <h2>Phạm Huỳnh Lam Chi</h2>
-                    <div class="role-badge">Ủy viên Ban Chấp hành Đoàn khoa</div>
-                    <p style="margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--mhent-accent);">
-                        Co-founder & Talent Manager @ Miyazaki Haruto Entertainment Co., Ltd.
+                    <div class="badge-group">
+                        <span class="badge badge-union">🏛️ Ủy viên BCH Đoàn khoa</span>
+                        <span class="badge badge-corp">🔮 Co-founder & Talent Manager @ MHEnt</span>
+                    </div>
+                    <p class="formal-speech">
+                        Kính thưa các đồng chí trong Ban Chấp hành Đoàn trường và các đồng chí Đoàn viên, Thanh niên. Học tập và làm theo tư tưởng, đạo đức, phong cách Hồ Chí Minh, bản thân tôi luôn nhận thức được rằng tinh thần tiên phong của người cán bộ Đoàn ngày nay phải gắn liền với năng lực đổi mới sáng tạo và chuyển đổi số thực tiễn. Không dừng lại ở lý thuyết, tôi đã chủ động ứng dụng kỹ năng chuyên môn trong thiết kế, biên tập nội dung số để cùng các cộng sự xây dựng nên một hệ sinh thái số hóa toàn diện phục vụ trực tiếp cho đời sống sinh viên.
                     </p>
                 </div>
             </div>
 
-            <div class="intro-speech">
-                "Kính chào các đồng chí! Tôi là Phạm Huỳnh Lam Chi. Với tư cách là một cán bộ Đoàn, tôi luôn tâm niệm việc học tập theo Bác phải gắn liền với đổi mới, sáng tạo. Nhận thấy xu hướng chuyển đổi số là tất yếu, tôi và các cộng sự đã xây dựng và phát triển một hệ sinh thái số hóa toàn diện mang tên <strong>MHEnt Universe</strong> - một giải pháp công nghệ phục vụ trực tiếp cho nhu cầu học tập, giải trí và kết nối của sinh viên."
+            <div class="section-headline">
+                <span>🛠️ Hệ Sinh Thái Số Hóa MHEnt Universe</span>
+                <div class="line-decor"></div>
             </div>
 
-            <div class="solution-section">
-                <div class="section-title">
-                    <span>Mô hình tiêu biểu: Hệ sinh thái MHEnt Universe</span>
-                    <img class="company-logo" src="https://mhentuniverse.vercel.app/assets/logo-design.png" alt="MHEnt Logo">
+            <p style="font-size: 15px; color: #475569; margin-bottom: 24px; text-align: justify;">
+                Giải pháp được vận hành thực tế tại địa chỉ <strong style="color: var(--mhent-purple);">mhentuniverse.vercel.app</strong>, hoạt động như một trung tâm kỹ thuật số đa nền tảng tích hợp đầy đủ các giải pháp giáo dục, công cụ số và không gian văn hóa văn minh cho Thanh niên:
+            </p>
+
+            <div class="ecosystem-grid">
+                <div class="eco-card">
+                    <span class="eco-icon">🎬</span>
+                    <h4>MHEnt Cinema & Music Room</h4>
+                    <p>Không gian lưu trữ, trình chiếu và lan tỏa các tác phẩm phim, âm nhạc truyền cảm hứng, mang tính giáo dục tư tưởng cao do chính sinh viên thực hiện.</p>
                 </div>
-                
-                <p style="margin-bottom: 20px; font-size: 15px;">
-                    Dự án <strong>MHEnt Universe</strong> được xây dựng và quản trị trực tiếp trên nền tảng Vercel, tích hợp đa dạng các module chức năng. Đây không chỉ là không gian giải trí an toàn, văn minh mà còn cung cấp nhiều công cụ số hữu ích cho Đoàn viên, Thanh niên.
-                </p>
-
-                <img class="pr-banner" src="https://mhentuniverse.vercel.app/assets/banner-web.png" alt="MHEnt Universe Banner">
-
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <h4>🎬 MHEnt Cinema & Music</h4>
-                        <p>Không gian nghệ thuật số, trình chiếu phim và lan tỏa các tác phẩm âm nhạc truyền cảm hứng do chính đội ngũ MHEnt sản xuất.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>🎯 MHEnt Arena & Game</h4>
-                        <p>Sân chơi trí tuệ trực tuyến tích hợp các bộ môn như Cờ vua, Cờ tướng, giúp rèn luyện tư duy và tạo môi trường giao lưu lành mạnh.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>📚 Không gian Teach & Tools</h4>
-                        <p>Cung cấp các công cụ hỗ trợ học tập (Tools), tra cứu, thiết kế và các biểu mẫu (Forms) phục vụ trực tiếp cho công tác quản lý Đoàn Hội.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>🚀 Sáng tạo & Khởi nghiệp</h4>
-                        <p>Được vận hành chuyên nghiệp bởi Miyazaki Haruto Entertainment Co., Ltd, là minh chứng rõ nét cho tinh thần dám nghĩ dám làm, khởi nghiệp sáng tạo của tuổi trẻ.</p>
-                    </div>
+                <div class="eco-card">
+                    <span class="eco-icon">🎯</span>
+                    <h4>MHEnt Arena & Trí Tuệ Số</h4>
+                    <p>Nền tảng thi đấu trực tuyến các bộ môn cờ vua, cờ tướng giúp Đoàn viên, thanh niên rèn luyện tư duy đỉnh cao trong kỷ nguyên số.</p>
                 </div>
+                <div class="eco-card">
+                    <span class="eco-icon">📚</span>
+                    <h4>Không Gian Teach & Công Cụ Học Tập</h4>
+                    <p>Module cung cấp tài nguyên, bài giảng số sinh động cùng các bộ công cụ tính toán thông minh hỗ trợ nâng cao hiệu quả học tập cho sinh viên.</p>
+                </div>
+                <div class="eco-card">
+                    <span class="eco-icon">🛠️</span>
+                    <h4>Hệ Thống Biểu Mẫu Số (Tools & Forms)</h4>
+                    <p>Ứng dụng công nghệ để tự động hóa, số hóa quy trình thu thập ý kiến, biểu mẫu phục vụ đắc lực cho công tác quản trị và phong trào Đoàn Hội.</p>
+                </div>
+            </div>
 
-                <a href="https://mhentuniverse.vercel.app" target="_blank" class="cta-button">
-                    Khám phá hệ sinh thái MHEnt Universe
+            <div class="promo-banner-box">
+                <div class="promo-text">
+                    <h3>Khám phá sản phẩm của Thanh niên Công nghệ</h3>
+                    <p>Bấm để truy cập trực tiếp vào hệ sinh thái máy chủ MHEnt Universe</p>
+                </div>
+                <a href="https://mhentuniverse.vercel.app" target="_blank" class="launch-btn">
+                    Khởi Chạy Máy Chủ 🚀
                 </a>
             </div>
 
+            <div class="footer-branding">
+                Hệ sinh thái Miyazaki Haruto Entertainment Co., Ltd • Bản quyền thuộc về Lam Chi 2026
+            </div>
         </div>
     </div>
 
