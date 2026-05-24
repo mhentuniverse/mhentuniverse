@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing - MHEnt. Edu</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/teach/teach-theme.css"> 
+    <link rel="stylesheet" href="/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; background: #0f172a; color: white; font-family: 'Nunito', sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        .header { display: flex; justify-content: center; padding: 20px; background: #1e293b; border-bottom: 4px solid #3b82f6; }
+        .header h1 { margin: 0; color: #f59e0b; font-size: 32px; font-weight: 900; text-transform: uppercase; }
+        
+        /* KHU VỰC CÂU HỎI */
+        .question-board { padding: 40px; text-align: center; height: 150px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); border-bottom: 2px solid #334155; }
+        #q-text { font-size: 45px; font-weight: 900; color: white; text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        
+        /* ĐƯỜNG ĐUA */
+        .track-container { flex: 1; position: relative; background: #334155; overflow: hidden; display: flex; flex-direction: column; }
+        .lane { flex: 1; border-bottom: 4px dashed #64748b; position: relative; display: flex; align-items: center; }
+        .lane:last-child { border-bottom: none; }
+        
+        .car { font-size: 80px; position: absolute; left: 5%; transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 10; filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.5)); }
+        .team-name { font-size: 16px; font-weight: 900; position: absolute; top: -10px; left: 0; background: rgba(0,0,0,0.7); padding: 2px 10px; border-radius: 10px; }
+        
+        /* VẠCH ĐÍCH */
+        #finish-line { position: absolute; right: -150px; top: 0; width: 60px; height: 100%; background: repeating-linear-gradient(45deg, #fff, #fff 20px, #000 20px, #000 40px); transition: right 1s ease-in-out; z-index: 5; box-shadow: -10px 0 20px rgba(0,0,0,0.5); }
+
+        .popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
+        .win-title { font-size: 80px; font-weight: 900; text-transform: uppercase; animation: popIn 0.5s ease; }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        
+        #waiting-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-size: 30px; color: #64748b; font-weight: 800; z-index: 200; }
+    </style>
+</head>
+<body>
+    <div id="waiting-msg"><i class="fa-solid fa-flag-checkered fa-bounce"></i><br><br>Waiting for Admin...</div>
+
+    <div id="main-game" style="display: none; height: 100%; flex-direction: column;">
+        <div class="header"><h1>ĐƯỜNG ĐUA TỐC ĐỘ</h1></div>
+        
+        <div class="question-board">
+            <div id="q-text">Chuẩn bị xuất phát...</div>
+        </div>
+
+        <div class="track-container">
+            <div class="lane">
+                <div id="car-1" class="car">🏎️<span class="team-name" style="color:#ef4444;">TEAM ĐỎ</span></div>
+            </div>
+            <div class="lane">
+                <div id="car-2" class="car">🚙<span class="team-name" style="color:#3b82f6;">TEAM XANH</span></div>
+            </div>
+            <div id="finish-line"></div>
+        </div>
+    </div>
+
+    <div id="win-popup" class="popup">
+        <h1 class="win-title" id="win-text">TEAM CHIẾN THẮNG</h1>
+    </div>
+
+    <script>
+        let pos1 = 5, pos2 = 5;
+        let questions = [], currentIndex = 0;
+        let moveStep = 0;
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'mhent_racing_cmd') {
+                const data = JSON.parse(e.newValue);
+                if (data.action === 'SYNC') initGame(data.payload.questions);
+                if (data.action === 'CORRECT') moveCar(data.payload.team);
+                if (data.action === 'SKIP') nextQuestion();
+            }
+        });
+
+        function initGame(qList) {
+            questions = qList; currentIndex = 0;
+            pos1 = 5; pos2 = 5; // Reset về vạch xuất phát
+            moveStep = 75 / questions.length; // Tính toán bước chạy (giữ lại 20% màn hình cho vạch đích)
+            
+            document.getElementById('car-1').style.left = pos1 + '%';
+            document.getElementById('car-2').style.left = pos2 + '%';
+            document.getElementById('finish-line').style.right = '-150px';
+            document.getElementById('win-popup').style.display = 'none';
+            document.getElementById('waiting-msg').style.display = 'none';
+            document.getElementById('main-game').style.display = 'flex';
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentIndex >= questions.length) {
+                showFinishLine();
+            } else {
+                document.getElementById('q-text').innerText = questions[currentIndex].q;
+            }
+        }
+
+        function moveCar(team) {
+            if (team === 1) { pos1 += moveStep; document.getElementById('car-1').style.left = pos1 + '%'; }
+            else { pos2 += moveStep; document.getElementById('car-2').style.left = pos2 + '%'; }
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            showQuestion();
+        }
+
+        function showFinishLine() {
+            document.getElementById('q-text').innerText = "VỀ ĐÍCH CÙNG LÚC NÀO!!!";
+            document.getElementById('q-text').style.color = "#f59e0b";
+            document.getElementById('finish-line').style.right = '50px';
+            
+            setTimeout(() => {
+                const popup = document.getElementById('win-popup');
+                const winText = document.getElementById('win-text');
+                popup.style.display = 'flex';
+                
+                if (pos1 > pos2) { winText.innerText = "TEAM ĐỎ CHIẾN THẮNG!"; winText.style.color = "#ef4444"; }
+                else if (pos2 > pos1) { winText.innerText = "TEAM XANH CHIẾN THẮNG!"; winText.style.color = "#3b82f6"; }
+                else { winText.innerText = "HAI ĐỘI HÒA NHAU!"; winText.style.color = "#fff"; }
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

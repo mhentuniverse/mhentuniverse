@@ -132,6 +132,7 @@
             <a class="admin-menu-item" id="menu-bomb" onclick="switchAdminTab('bomb')"><i class="fa-solid fa-bomb"></i> Bom Hẹn Giờ</a>
             <a class="admin-menu-item" id="menu-blast" onclick="switchAdminTab('blast')"><i class="fa-solid fa-cubes"></i> Blast Block</a>
             <a class="admin-menu-item" id="menu-unscram" onclick="switchAdminTab('unscram')"><i class="fa-solid fa-hurricane"></i> Word Tornado</a>
+            <a class="admin-menu-item" id="menu-racing" onclick="switchAdminTab('racing')"><i class="fa-solid fa-flag-checkered"></i> Đua Xe Flashcard</a>
         </aside>
 
         <main class="admin-content">
@@ -511,6 +512,40 @@
                     <button class="btn-admin" style="width: 100%; margin-top: 20px; background: #0ea5e9; padding: 15px;" onclick="syncUnscramble()">
                         <i class="fa-solid fa-paper-plane"></i> TẠO GAME & GỬI QUA MÁY CHIẾU
                     </button>
+                </div>
+            </div>
+
+            <div id="tab-racing" class="admin-tab">
+                <h1 class="admin-title" style="color: #f59e0b;"><i class="fa-solid fa-flag-checkered"></i> Đua Xe Flashcard</h1>
+                
+                <div class="admin-card" id="racing-setup">
+                    <button class="btn-admin" onclick="window.open('/teach/racing', '_blank')" style="width: 100%; margin-bottom: 25px; background: #f59e0b;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH ĐƯỜNG ĐUA CHO HỌC SINH
+                    </button>
+
+                    <h3 style="margin-top: 0; color: #f59e0b;"><i class="fa-solid fa-clipboard-list"></i> Nhập câu hỏi Đua Xe</h3>
+                    <p style="font-size: 14px; color: #64748b; margin-top: -5px;">Cú pháp: <b>Câu hỏi | Đáp án</b> (Mỗi câu 1 dòng)</p>
+                    <textarea id="racing-items" class="admin-textarea" placeholder="Ví dụ:&#10;Quốc hoa của Nhật Bản? | Hoa Anh Đào" style="min-height: 180px;"></textarea>
+
+                    <button class="btn-admin" style="width: 100%; margin-top: 20px; background: #f59e0b;" onclick="syncRacing()">
+                        <i class="fa-solid fa-paper-plane"></i> TẠO ĐƯỜNG ĐUA & MỞ BẢNG ĐIỀU KHIỂN
+                    </button>
+                </div>
+
+                <!-- Trạm điều khiển cầm tay cho Giáo viên -->
+                <div class="admin-card" id="racing-control-station" style="display: none; border-top: 5px solid #f59e0b;">
+                    <h3 style="margin-top: 0; color: #f59e0b;">Trạm Trọng Tài</h3>
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px dashed #cbd5e1;">
+                        <div style="color: #64748b; font-weight: 800;">Đang hiển thị câu:</div>
+                        <div id="racing-current-q" style="font-size: 24px; font-weight: 900; color: #1e293b;">...</div>
+                        <div style="color: #10b981; font-weight: 800; margin-top: 10px;">Đáp án: <span id="racing-current-a" style="font-size: 20px;">...</span></div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-admin" style="flex: 1; background: #ef4444; padding: 20px; font-size: 18px;" onclick="sendRacingCmd('CORRECT', 1)">ĐỎ ĐÚNG</button>
+                        <button class="btn-admin" style="flex: 1; background: #64748b; padding: 20px; font-size: 18px;" onclick="sendRacingCmd('SKIP', 0)">BỎ QUA</button>
+                        <button class="btn-admin" style="flex: 1; background: #3b82f6; padding: 20px; font-size: 18px;" onclick="sendRacingCmd('CORRECT', 2)">XANH ĐÚNG</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -1214,6 +1249,51 @@
             navigator.clipboard.writeText(link);
             showToast('Thành công!', 'Đã copy Link. Cậu có thể dán thẳng vào giáo án rồi đó!', 'success');
             logAdminAction(`Copy Link trực tiếp của ${gameType} (ID: ${rowId}) vào clipboard; Teacher: ${document.getElementById('teacher-name').value}, Education`);
+        };
+
+        let racingQuestions = [];
+        let currentRacingIdx = 0;
+
+        window.syncRacing = function() {
+            racingQuestions = [];
+            document.getElementById('racing-items').value.trim().split('\n').forEach(line => {
+                if (line.trim() !== "") {
+                    const parts = line.split('|');
+                    racingQuestions.push({ q: parts[0].trim(), a: parts[1] ? parts[1].trim() : "" });
+                }
+            });
+
+            if (racingQuestions.length === 0) return showToast("Lỗi", "Nhập ít nhất 1 câu hỏi nha sếp!", "error");
+
+            currentRacingIdx = 0;
+            updateRacingAdminUI();
+            
+            // Gửi lệnh sang màn hình chiếu
+            localStorage.setItem('mhent_racing_cmd', JSON.stringify({ action: 'SYNC', payload: { questions: racingQuestions }, rand: Math.random() }));
+            
+            document.getElementById('racing-control-station').style.display = 'block';
+            showToast("Thành công", "Đã thiết lập xong đường đua!", "success");
+        };
+
+        window.sendRacingCmd = function(action, team) {
+            if (currentRacingIdx >= racingQuestions.length) return;
+            
+            // Gửi lệnh cho xe chạy
+            localStorage.setItem('mhent_racing_cmd', JSON.stringify({ action: action, payload: { team: team }, rand: Math.random() }));
+            
+            // Cập nhật Trạm chỉ huy của Admin
+            currentRacingIdx++;
+            updateRacingAdminUI();
+        };
+
+        window.updateRacingAdminUI = function() {
+            if (currentRacingIdx < racingQuestions.length) {
+                document.getElementById('racing-current-q').innerText = racingQuestions[currentRacingIdx].q;
+                document.getElementById('racing-current-a').innerText = racingQuestions[currentRacingIdx].a || "(Không có)";
+            } else {
+                document.getElementById('racing-current-q').innerText = "🏁 HẾT CÂU HỎI. XE ĐANG VỀ ĐÍCH!";
+                document.getElementById('racing-current-a').innerText = "";
+            }
         };
     </script>
     <script src="/mhent-ui.js"></script>
