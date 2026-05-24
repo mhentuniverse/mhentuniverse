@@ -1300,7 +1300,8 @@
         };
 
         // --- MODULE RACING F1 ---
-        function addRacingRow() {
+        // Phải gán vào window để HTML onclick gọi được
+        window.addRacingRow = function() {
             const tbody = document.querySelector('#racing-table tbody') || document.getElementById('racing-table');
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -1309,11 +1310,12 @@
                 <td style="padding: 5px; text-align: center;"><button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:red; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
             `;
             tbody.appendChild(tr);
-        }
+        };
 
-        // Thêm sẵn 2 dòng cho đẹp
+        // Thêm sẵn 2 dòng cho đẹp khi vừa load trang
         document.addEventListener("DOMContentLoaded", () => {
-            addRacingRow(); addRacingRow();
+            window.addRacingRow(); 
+            window.addRacingRow();
         });
 
         window.syncRacing = function() {
