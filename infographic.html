@@ -31,25 +31,43 @@
             width: 1080px; 
             min-height: 1920px; 
             height: auto; 
-            background: #ffffff;
+            background-color: #fff2f6; /* Màu nền hồng nhạt chắp vá ở giữa */
+            background-image: url('full.jpg');
+            background-size: 100% auto;
+            background-position: top center;
+            background-repeat: no-repeat;
             position: relative;
             display: flex; flex-direction: column;
             box-shadow: 0 15px 50px rgba(0,0,0,0.5);
         }
 
+        /* Đây là phép thuật giữ cho thành phố ở dưới cùng không bị méo */
+        .poster-canvas::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 400px; 
+            background-image: url('full.jpg');
+            background-size: 100% auto;
+            background-position: bottom center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            pointer-events: none;
+        }
+
         /* ================= HEADER ================= */
         .poster-header {
-            background: url('https://mhentuniverse.vercel.app/assets/banner-web.png') center/cover;
+            /* Đã xóa ảnh banner-web.png */
             height: 380px;
             position: relative;
             display: flex; flex-direction: column; justify-content: flex-end;
             padding: 50px 60px;
             flex-shrink: 0;
+            z-index: 2;
         }
 
         .poster-header::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(26,26,46,0.2) 0%, rgba(26,26,46,0.95) 100%);
+            display: none; /* Tắt lớp phủ đen gradient */
         }
 
         .header-content { position: relative; z-index: 2; color: #fff; }
@@ -60,15 +78,20 @@
             padding: 8px 24px; border-radius: 50px; display: inline-block; margin-bottom: 15px;
         }
 
-        .header-content h1 { font-size: 58px; font-weight: 900; line-height: 1.1; margin-bottom: 10px; color: #fff; text-transform: uppercase; }
-        .header-content h1 span { color: var(--m-pink); }
-        .header-content p { font-size: 26px; color: #cbd5e1; font-weight: 600; }
+        /* Đổi chữ thành màu tối để nổi trên nền sen hồng */
+        .header-content h1 { font-size: 58px; font-weight: 900; line-height: 1.1; margin-bottom: 10px; color: var(--m-dark); text-transform: uppercase; }
+        .header-content h1 span { color: var(--d-red); } /* Chữ ký tự nhấn đổi sang đỏ */
+        .header-content p { font-size: 26px; color: #334155; font-weight: 600; }
 
         /* ================= BODY ================= */
         .poster-body {
-            flex: 1; padding: 50px 60px; background: var(--bg-light);
+            flex: 1; padding: 50px 60px; 
+            background: transparent; /* Tắt màu xám để lòi nền sen ra */
             display: flex; flex-direction: column; gap: 45px; 
+            position: relative; z-index: 2; /* Đảm bảo nổi lên trên lớp nền */
         }
+
+        
 
         .section-title {
             display: flex; align-items: center; gap: 15px;
@@ -163,11 +186,13 @@
 
         /* ================= FOOTER ================= */
         .poster-footer {
-            background: #ffffff; padding: 30px 50px;
+            background: transparent; /* Để trong suốt lấy thành phố dưới cùng */
+            border-top: none; /* Bỏ viền */
+            padding: 30px 50px 80px 50px; /* Đẩy lề dưới cao lên tí để chữ không đè vào tàu điện */
             display: flex; justify-content: space-between; align-items: center;
-            border-top: 2px solid #e2e8f0;
             flex-shrink: 0;
             gap: 20px;
+            position: relative; z-index: 2;
         }
 
         .footer-info h4 { font-size: 18px; font-weight: 900; color: var(--m-dark); line-height: 1.4; }
