@@ -31,14 +31,10 @@
             width: 1080px; 
             min-height: 1920px; 
             height: auto; 
-            background-color: #fff2f6; /* Màu nền hồng nhạt chắp vá ở giữa */
-            background-image: url('/assets/full.png');
-            background-size: 100% auto;
-            background-position: top center;
-            background-repeat: no-repeat;
+            background: transparent; /* Làm trong suốt nền chính */
             position: relative;
             display: flex; flex-direction: column;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            box-shadow: none; /* Tắt đổ bóng viền ngoài */
         }
 
         /* Đây là phép thuật giữ cho thành phố ở dưới cùng không bị méo */
@@ -57,18 +53,19 @@
 
         /* ================= HEADER ================= */
         .poster-header {
-            /* Đã xóa ảnh banner-web.png */
-            height: 380px;
+            background: transparent; /* Tắt nền */
+            height: 380px; /* Sếp có thể tự cân chỉnh lại chiều cao này nếu cần */
             position: relative;
             display: flex; flex-direction: column; justify-content: flex-end;
             padding: 50px 60px;
             flex-shrink: 0;
-            z-index: 2;
         }
 
+        /* Tắt lớp phủ đen bóng tối */
         .poster-header::before {
-            display: none; /* Tắt lớp phủ đen gradient */
+            display: none; 
         }
+
 
         .header-content { position: relative; z-index: 2; color: #fff; }
         
@@ -86,9 +83,8 @@
         /* ================= BODY ================= */
         .poster-body {
             flex: 1; padding: 50px 60px; 
-            background: transparent; /* Tắt màu xám để lòi nền sen ra */
+            background: transparent; /* Tắt màu xám nhạt */
             display: flex; flex-direction: column; gap: 45px; 
-            position: relative; z-index: 2; /* Đảm bảo nổi lên trên lớp nền */
         }
 
         
@@ -151,10 +147,11 @@
         .skill-bar-fill { height: 100%; border-radius: 10px; }
 
         /* PHẦN 2: DỰ ÁN TIÊU BIỂU */
-        .solution-block {
-            background: #fff; border-radius: 24px; padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            border: 2px solid rgba(255, 133, 162, 0.2);
+        .solution-block, .report-block, .story-container {
+            background: transparent; /* Biến màu trắng thành trong suốt */
+            border: none;            /* Xóa luôn cái viền màu mờ mờ */
+            box-shadow: none;        /* Xóa đổ bóng bọc ngoài */
+            padding: 10px 0;         /* Thu nhỏ lề lại một chút cho gọn */
         }
 
         .sol-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
@@ -164,9 +161,12 @@
 
         .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         
-        .feature-card {
-            background: var(--bg-light); padding: 25px; border-radius: 16px;
-            border-left: 6px solid var(--m-pink);
+        .feature-card, .ws-card, .achieve-card {
+            background: #ffffff; /* Đổi thành màu trắng tinh khiết */
+            padding: 25px; 
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); /* Thêm hiệu ứng nổi 3D siêu đẹp */
+            /* Giữ nguyên các thuộc tính border-left hoặc border-top cũ của sếp nha */
         }
         .feature-card.blue { border-left-color: var(--d-blue); }
         .feature-card.purple { border-left-color: #8b5cf6; }
@@ -186,13 +186,12 @@
 
         /* ================= FOOTER ================= */
         .poster-footer {
-            background: transparent; /* Để trong suốt lấy thành phố dưới cùng */
-            border-top: none; /* Bỏ viền */
-            padding: 30px 50px 80px 50px; /* Đẩy lề dưới cao lên tí để chữ không đè vào tàu điện */
+            background: transparent; /* Tắt nền trắng */
+            padding: 30px 50px;
             display: flex; justify-content: space-between; align-items: center;
+            border-top: none; /* Tắt luôn đường kẻ ngang nếu có */
             flex-shrink: 0;
             gap: 20px;
-            position: relative; z-index: 2;
         }
 
         .footer-info h4 { font-size: 18px; font-weight: 900; color: var(--m-dark); line-height: 1.4; }
