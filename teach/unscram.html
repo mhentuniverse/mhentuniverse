@@ -91,7 +91,10 @@
     <script src="/mhent-ui.js"></script>
     <script>
         let sentenceList = [];
+        let pairList = [];
         let currentIndex = 0;
+        let currentMode = 'sentence';
+        let columnColors = { left: '#ef4444', right: '#38bdf8' };
         let blocks = [];
         let animationId;
         let isMoving = false;
@@ -102,26 +105,43 @@
         window.addEventListener('storage', e => {
             if(e.key !== 'mhent_unscram_cmd') return;
             const data = JSON.parse(e.newValue);
-            if(data.action === 'SYNC') { 
-                initGame(data.payload.sentences);
+            if(data.action === 'SYNC') {
+                processGamePayload(data.payload);
                 showToast("Nhận lệnh!", "Dữ liệu mới đã được nạp từ Admin!", "success");
             }
         });
 
-        function initGame(sentences) {
+        function processGamePayload(payload) {
+            if (!payload) return;
             document.getElementById('waiting-msg').style.display = 'none';
             document.getElementById('main-game').style.display = 'flex';
-            
+
+            if (payload.mode === 'columns') {
+                initColumnsGame(payload);
+            } else {
+                initSentenceGame(payload.sentences || []);
+            }
+        }
+
+        function initSentenceGame(sentences) {
+            currentMode = 'sentence';
             sentenceList = sentences || [];
             currentIndex = 0;
-            if(sentenceList.length > 0) loadSentence(currentIndex);
+            loadSentence(currentIndex);
+        }
+
+        function initColumnsGame(payload) {
+            currentMode = 'columns';
+            pairList = (payload.pairs || []).filter(pair => pair.left && pair.right);
+            columnColors = payload.columnColors || columnColors;
+            loadColumns();
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const gameId = urlParams.get('id');
             const waitingMsg = document.getElementById('waiting-msg');
-            
+
             if (gameId) {
                 if(waitingMsg) waitingMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><br><br>Đang tải giáo án từ Két sắt Đám Mây...';
                 
@@ -131,8 +151,8 @@
                     let result = await res.json();
                     
                     if (result.success) {
-                        initGame(result.gameData.sentences);
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
+                        processGamePayload(result.gameData);
+                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName || 'Unscramble'}`, "success");
                     } else {
                         if(waitingMsg) waitingMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i><br><br>Lỗi: Không tìm thấy mã giáo án này!`;
                     }
@@ -142,28 +162,28 @@
             }
         });
 
-        function loadSentence(index) {
-            cancelAnimationFrame(animationId);
-            isMoving = false;
+        function clearArena() {
             const arena = document.getElementById('arena');
-            
             Array.from(arena.children).forEach(child => {
                 if(!child.classList.contains('sentence-counter')) child.remove();
             });
             blocks = [];
+            cancelAnimationFrame(animationId);
+            isMoving = false;
+        }
 
+        function loadSentence(index) {
+            clearArena();
             if(!sentenceList || sentenceList.length === 0) return;
+            const arena = document.getElementById('arena');
+            currentIndex = index;
             document.getElementById('counter').innerText = `Câu ${index + 1} / ${sentenceList.length}`;
-            
-            let words = sentenceList[index].split(' ').filter(w => w.trim() !== '');
 
+            const words = sentenceList[index].split(' ').filter(w => w.trim() !== '');
             words.forEach((word, i) => {
                 const el = document.createElement('div');
-                
-                // 🌀 TÔ MÀU NGẪU NHIÊN CHO TỪNG TỪ BẰNG CÁCH CHỌN 1 TRONG 6 MÀU
                 const randomColorClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
-                el.className = `word-block ${randomColorClass}`; // Gán lớp màu
-                
+                el.className = `word-block ${randomColorClass}`;
                 el.innerText = word;
                 arena.appendChild(el);
 
@@ -171,13 +191,41 @@
                 const arenaRect = arena.getBoundingClientRect();
                 let x = Math.random() * (arenaRect.width - rect.width - 40) + 20;
                 let y = Math.random() * (arenaRect.height - rect.height - 40) + 20;
-                
                 let vx = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
                 let vy = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
 
                 blocks.push({ el, x, y, vx, vy, width: rect.width, height: rect.height, order: i });
-                
                 el.style.transform = `translate(${arenaRect.width/2 - rect.width/2}px, ${arenaRect.height/2 - rect.height/2}px)`;
+            });
+        }
+
+        function loadColumns() {
+            clearArena();
+            const arena = document.getElementById('arena');
+            if(!pairList || pairList.length === 0) return;
+            document.getElementById('counter').innerText = `Tổng ${pairList.length} cặp`;
+
+            pairList.forEach((pair, index) => {
+                ['left', 'right'].forEach((side, sideIndex) => {
+                    const el = document.createElement('div');
+                    el.className = 'word-block';
+                    el.innerText = side === 'left' ? pair.left : pair.right;
+                    el.style.background = side === 'left' ? columnColors.left : columnColors.right;
+                    el.style.borderColor = '#fff';
+                    el.style.color = '#fff';
+                    if(side === 'right') el.style.color = '#fff';
+                    arena.appendChild(el);
+
+                    const rect = el.getBoundingClientRect();
+                    const arenaRect = arena.getBoundingClientRect();
+                    let x = Math.random() * (arenaRect.width - rect.width - 40) + 20;
+                    let y = Math.random() * (arenaRect.height - rect.height - 40) + 20;
+                    let vx = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
+                    let vy = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
+
+                    blocks.push({ el, x, y, vx, vy, width: rect.width, height: rect.height, order: index * 2 + sideIndex, pairIndex: index, side: side });
+                    el.style.transform = `translate(${arenaRect.width/2 - rect.width/2}px, ${arenaRect.height/2 - rect.height/2}px)`;
+                });
             });
         }
 
@@ -196,13 +244,10 @@
             blocks.forEach(b => {
                 b.x += b.vx * speedMulti;
                 b.y += b.vy * speedMulti;
-
                 if(b.x <= 0 || b.x + b.width >= arenaRect.width) b.vx *= -1;
                 if(b.y <= 0 || b.y + b.height >= arenaRect.height) b.vy *= -1;
-
                 b.x = Math.max(0, Math.min(b.x, arenaRect.width - b.width));
                 b.y = Math.max(0, Math.min(b.y, arenaRect.height - b.height));
-
                 b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
             });
 
@@ -214,21 +259,22 @@
             isMoving = false;
             cancelAnimationFrame(animationId);
 
+            if (currentMode === 'columns') {
+                revealPairAnswers();
+                return;
+            }
+
             const arenaRect = document.getElementById('arena').getBoundingClientRect();
-            const gapX = 20; // Khoảng cách ngang giữa các chữ
-            const gapY = 30; // Khoảng cách dọc giữa các dòng
-            const maxWidth = arenaRect.width - 100; // Cách 2 lề 50px cho an toàn không bị lẹm
+            const gapX = 20;
+            const gapY = 30;
+            const maxWidth = arenaRect.width - 100;
 
-            // Xếp các block về đúng số báo danh ban đầu
-            blocks.sort((a,b) => a.order - b.order);
-
-            // 🔥 THUẬT TOÁN CHIA DÒNG (WORD WRAP)
+            blocks.sort((a, b) => a.order - b.order);
             let lines = [];
             let currentLine = [];
             let currentLineWidth = 0;
 
             blocks.forEach(b => {
-                // Nếu độ dài dòng hiện tại + chữ mới vượt quá màn hình -> Cắt sang dòng mới
                 if (currentLineWidth + b.width > maxWidth && currentLine.length > 0) {
                     lines.push({ items: currentLine, width: currentLineWidth - gapX });
                     currentLine = [b];
@@ -238,35 +284,64 @@
                     currentLineWidth += b.width + gapX;
                 }
             });
-            // Đẩy dòng cuối cùng vào mảng
             if (currentLine.length > 0) {
                 lines.push({ items: currentLine, width: currentLineWidth - gapX });
             }
 
-            // 🔥 TÍNH TOÁN CHIỀU CAO TỔNG ĐỂ CĂN GIỮA THEO TRỤC Y
             const blockHeight = blocks[0].height;
             const totalHeight = (lines.length * blockHeight) + ((lines.length - 1) * gapY);
             let startY = (arenaRect.height - totalHeight) / 2;
 
-            // 🔥 CHO CHỮ BAY VỀ VỊ TRÍ THEO TỪNG DÒNG
             lines.forEach(line => {
-                let currentX = (arenaRect.width - line.width) / 2; // Căn giữa trục X cho dòng này
-                
+                let currentX = (arenaRect.width - line.width) / 2;
                 line.items.forEach(b => {
-                    b.el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'; 
+                    b.el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     b.x = currentX;
                     b.y = startY;
                     b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
                     currentX += b.width + gapX;
                 });
-                
-                // Xếp xong 1 dòng thì tụt tọa độ Y xuống để xếp dòng tiếp theo
                 startY += blockHeight + gapY;
             });
         }
 
-        function nextSentence() { if(currentIndex < sentenceList.length - 1) { currentIndex++; loadSentence(currentIndex); } }
-        function prevSentence() { if(currentIndex > 0) { currentIndex--; loadSentence(currentIndex); } }
+        function revealPairAnswers() {
+            if(pairList.length === 0) return;
+            const arena = document.getElementById('arena');
+            const arenaRect = arena.getBoundingClientRect();
+            const gapY = 24;
+            const leftX = 50;
+            const rightX = arenaRect.width - 50;
+
+            let startY = 40;
+            pairList.forEach((pair, index) => {
+                const leftBlock = blocks.find(b => b.pairIndex === index && b.side === 'left');
+                const rightBlock = blocks.find(b => b.pairIndex === index && b.side === 'right');
+                if (!leftBlock || !rightBlock) return;
+
+                leftBlock.el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                rightBlock.el.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+                leftBlock.x = leftX;
+                leftBlock.y = startY;
+                leftBlock.el.style.transform = `translate(${leftBlock.x}px, ${leftBlock.y}px)`;
+
+                rightBlock.x = rightX - rightBlock.width;
+                rightBlock.y = startY;
+                rightBlock.el.style.transform = `translate(${rightBlock.x}px, ${rightBlock.y}px)`;
+
+                startY += Math.max(leftBlock.height, rightBlock.height) + gapY;
+            });
+        }
+
+        function nextSentence() {
+            if (currentMode !== 'sentence') return;
+            if(currentIndex < sentenceList.length - 1) { currentIndex++; loadSentence(currentIndex); }
+        }
+        function prevSentence() {
+            if (currentMode !== 'sentence') return;
+            if(currentIndex > 0) { currentIndex--; loadSentence(currentIndex); }
+        }
 
     </script>
     <script type="module" src="/maintenance.js"></script>

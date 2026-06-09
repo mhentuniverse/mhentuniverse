@@ -504,9 +504,32 @@
                         <i class="fa-solid fa-play"></i> MỞ MÀN CHIẾU & BẮT ĐẦU TRẬN LỐC XOÁY TỪ NGỮ
                     </button>
 
-                    <div class="data-box">
-                        <label style="color: #475569; font-weight: 800; margin-bottom: 10px; display: block;">Nhập danh sách câu (Mỗi câu nằm trên 1 dòng):</label>
-                        <textarea id="unscram-sentences" class="admin-textarea" style="height: 250px; font-size: 16px; line-height: 1.5;" placeholder="Ví dụ:&#10;I wanna buy a .com domain so much!&#10;The quick brown fox jumps over the lazy dog."></textarea>
+                    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                        <span style="font-weight: 800; color: #475569;">Chọn kiểu Unscramble:</span>
+                        <button id="unscram-mode-sentence-btn" class="btn-admin" style="background: #0ea5e9; padding: 10px 18px;" onclick="switchUnscramMode('sentence')">Câu thường</button>
+                        <button id="unscram-mode-columns-btn" class="btn-admin" style="background: #64748b; padding: 10px 18px;" onclick="switchUnscramMode('columns')">Cột màu</button>
+                    </div>
+
+                    <div id="unscram-sentence-mode">
+                        <div class="data-box">
+                            <label style="color: #475569; font-weight: 800; margin-bottom: 10px; display: block;">Nhập danh sách câu (Mỗi câu nằm trên 1 dòng):</label>
+                            <textarea id="unscram-sentences" class="admin-textarea" style="height: 250px; font-size: 16px; line-height: 1.5;" placeholder="Ví dụ:&#10;I wanna buy a .com domain so much!&#10;The quick brown fox jumps over the lazy dog."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="unscram-column-mode" style="display: none;">
+                        <div class="data-box">
+                            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #475569;">
+                                    Màu cột 1 <input id="unscram-color-left" type="color" value="#ef4444" style="border: none; width: 42px; height: 42px; padding: 0;" />
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #475569;">
+                                    Màu cột 2 <input id="unscram-color-right" type="color" value="#38bdf8" style="border: none; width: 42px; height: 42px; padding: 0;" />
+                                </label>
+                            </div>
+                            <label style="color: #475569; font-weight: 800; margin-bottom: 10px; display: block;">Nhập cặp từ (mỗi dòng <code>từ1 | từ2</code>):</label>
+                            <textarea id="unscram-pair-lines" class="admin-textarea" style="height: 250px; font-size: 16px; line-height: 1.5;" placeholder="Ví dụ:&#10;look | after&#10;take | off"></textarea>
+                        </div>
                     </div>
 
                     <button class="btn-admin" style="width: 100%; margin-top: 20px; background: #0ea5e9; padding: 15px;" onclick="syncUnscramble()">
@@ -625,6 +648,7 @@
 
         for(let i=0; i<4; i++) addTableRow();
         let globalWordList = [], currentGridOrder = [], solvedWords = [], activeInputMode = 'table', activeWordId = null;
+        window.unscramMode = 'sentence';
 
         function switchInputTab(mode) {
             activeInputMode = mode;
@@ -634,6 +658,28 @@
             document.getElementById('area-text').style.display = mode === 'text' ? 'block' : 'none';
         }
         window.switchInputTab = switchInputTab;
+
+        window.switchUnscramMode = function(mode) {
+            window.unscramMode = mode;
+            const sentencePanel = document.getElementById('unscram-sentence-mode');
+            const columnPanel = document.getElementById('unscram-column-mode');
+            const sentenceBtn = document.getElementById('unscram-mode-sentence-btn');
+            const columnBtn = document.getElementById('unscram-mode-columns-btn');
+
+            if (mode === 'columns') {
+                sentencePanel.style.display = 'none';
+                columnPanel.style.display = 'block';
+                sentenceBtn.style.background = '#64748b';
+                columnBtn.style.background = '#0ea5e9';
+            } else {
+                sentencePanel.style.display = 'block';
+                columnPanel.style.display = 'none';
+                sentenceBtn.style.background = '#0ea5e9';
+                columnBtn.style.background = '#64748b';
+            }
+        };
+
+        switchUnscramMode('sentence');
 
         function addTableRow() {
             const row = document.createElement('div'); row.className = 'row-input';
@@ -803,12 +849,15 @@
 
         // 7. WORD TORNADO (UNSCRAMBLE)
         window.syncUnscramble = function() {
-            const text = document.getElementById('unscram-sentences').value;
-            const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
-            if (sentences.length === 0) return showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
-            localStorage.setItem('mhent_unscram_cmd', JSON.stringify({ action: 'SYNC', payload: { sentences: sentences }, rand: Math.random() }));
-            showToast("Tuyệt vời!", `Đã gửi ${sentences.length} câu bão táp sang Máy chiếu!`, "success");
-            logAdminAction(`Đồng bộ ${sentences.length} câu Unscramble sang Máy chiếu; Teacher: ${document.getElementById('teacher-name').value}, Education`);
+            const payload = window.getGamePayload('unscram');
+            if (!payload) return;
+            localStorage.setItem('mhent_unscram_cmd', JSON.stringify({ action: 'SYNC', payload: payload, rand: Math.random() }));
+            if (payload.mode === 'columns') {
+                showToast("Tuyệt vời!", `Đã gửi ${payload.pairs.length} cặp cột màu sang Máy chiếu!`, "success");
+            } else {
+                showToast("Tuyệt vời!", `Đã gửi ${payload.sentences.length} câu bão táp sang Máy chiếu!`, "success");
+            }
+            logAdminAction(`Đồng bộ Unscramble (${payload.mode}) sang Máy chiếu; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
@@ -1065,15 +1114,32 @@
             }
             // 🔥 THÊM LOGIC CỦA WORD TORNADO VÀO ĐÂY
             if(gameType === 'unscram') {
+                const mode = window.unscramMode || 'sentence';
+                if (mode === 'columns') {
+                    const rawPairs = document.getElementById('unscram-pair-lines').value.trim().split('\n');
+                    const pairs = rawPairs.map((line, index) => {
+                        const parts = line.split('|');
+                        return {
+                            left: parts[0] ? parts[0].trim() : '',
+                            right: parts[1] ? parts[1].trim() : ''
+                        };
+                    }).filter(pair => pair.left && pair.right);
+                    if (pairs.length === 0) {
+                        showToast("Lỗi", "Nhập ít nhất 1 cặp từ hợp lệ (từ1 | từ2)", "error");
+                        return null;
+                    }
+                    const leftColor = document.getElementById('unscram-color-left').value || '#ef4444';
+                    const rightColor = document.getElementById('unscram-color-right').value || '#38bdf8';
+                    return { mode: 'columns', pairs: pairs, columnColors: { left: leftColor, right: rightColor } };
+                }
                 const text = document.getElementById('unscram-sentences').value;
                 const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
                 if (sentences.length === 0) {
                     showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
                     return null;
                 }
-                return { sentences: sentences };
+                return { mode: 'sentence', sentences: sentences };
             }
-            return null;
             // 🔥 LOGIC CỦA F1 RACING
             if(gameType === 'racing') {
                 let questions = [];
@@ -1166,7 +1232,15 @@
             }
             // 🔥 THÊM LOGIC LOAD WORD TORNADO TỪ MÂY XUỐNG
             if(gameType === 'unscram') {
-                document.getElementById('unscram-sentences').value = (data.sentences || []).join('\n');
+                const mode = data.mode || 'sentence';
+                window.switchUnscramMode(mode);
+                if (mode === 'columns') {
+                    document.getElementById('unscram-pair-lines').value = (data.pairs || []).map(pair => `${pair.left} | ${pair.right}`).join('\n');
+                    document.getElementById('unscram-color-left').value = (data.columnColors && data.columnColors.left) || '#ef4444';
+                    document.getElementById('unscram-color-right').value = (data.columnColors && data.columnColors.right) || '#38bdf8';
+                } else {
+                    document.getElementById('unscram-sentences').value = (data.sentences || []).join('\n');
+                }
             }
             
             showToast('Tải thành công', 'Dữ liệu đã được nạp xuống bảng điều khiển!', 'success');
