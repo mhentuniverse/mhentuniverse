@@ -16,9 +16,12 @@
     <style>
         body { font-family: 'Nunito', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
-        .present-header { text-align: center; padding: 20px; }
+        .present-header { text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
         #present-status { font-size: 32px; font-weight: 900; color: var(--hub-color); min-height: 40px; margin-top: 10px; text-transform: uppercase; text-shadow: 2px 2px 5px rgba(0,0,0,0.3);}
-        
+        .mode-toggle-btn { background: #10b981; border: none; color: white; font-size: 14px; font-weight: 800; padding: 12px 20px; border-radius: 999px; cursor: pointer; box-shadow: 0 10px 20px rgba(16,185,129,0.25); transition: transform 0.2s, background 0.2s; }
+        .mode-toggle-btn:hover { transform: translateY(-2px); }
+        .mode-toggle-btn.challenge { background: #f59e0b; }
+
         .present-board { flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center; }
         .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
         
@@ -40,7 +43,10 @@
     <div id="waiting-msg"><i class="fa-solid fa-satellite-dish fa-beat"></i><br><br>Đang chờ kết nối từ Máy tính Giáo viên...</div>
 
     <div id="game-container" style="display: none; height: 100%; flex-direction: column;">
-        <div class="present-header"><div id="present-status">SẴN SÀNG! LẮNG NGHE GIÁO VIÊN!</div></div>
+        <div class="present-header">
+            <div id="present-status">SẴN SÀNG! LẮNG NGHE GIÁO VIÊN!</div>
+            <button id="toggle-mode-btn" class="mode-toggle-btn" onclick="toggleChallengeMode()">Bật Sương mù</button>
+        </div>
         <div class="present-board"><div class="word-grid" id="present-grid"></div></div>
     </div>
 
@@ -49,6 +55,30 @@
 
         let globalMode = 'normal', globalStrikes = 0, targetWord = null, strikesCurrent = 0, isQuestionActive = false, challengeTimer = null;
 
+        function updateModeButton() {
+            const btn = document.getElementById('toggle-mode-btn');
+            if (!btn) return;
+            if (globalMode === 'challenge') {
+                btn.innerText = 'Tắt Sương mù';
+                btn.classList.add('challenge');
+            } else {
+                btn.innerText = 'Bật Sương mù';
+                btn.classList.remove('challenge');
+            }
+        }
+
+        window.toggleChallengeMode = function() {
+            globalMode = globalMode === 'challenge' ? 'normal' : 'challenge';
+            if (isQuestionActive) {
+                applyFog();
+            } else {
+                document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
+            }
+            document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
+            document.getElementById('present-status').style.color = globalMode === 'challenge' ? '#f59e0b' : 'var(--hub-color)';
+            updateModeButton();
+        };
+
         window.addEventListener('storage', e => {
             if(e.key !== 'mhent_edu_cmd') return;
             const data = JSON.parse(e.newValue);
@@ -56,6 +86,9 @@
                 globalMode = data.payload.mode; globalStrikes = data.payload.strikes;
                 document.getElementById('waiting-msg').style.display = 'none'; document.getElementById('game-container').style.display = 'flex';
                 renderGrid(data.payload.order);
+                updateModeButton();
+                document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
+                document.getElementById('present-status').style.color = globalMode === 'challenge' ? '#f59e0b' : 'var(--hub-color)';
             }
             if(data.action === 'SHUFFLE') renderGrid(data.payload);
             if(data.action === 'SET_QUESTION') loadQuestion(data.payload);
@@ -174,6 +207,9 @@
                     
                     // Vẽ lưới từ vựng ra màn hình
                     renderGrid(shuffledOrder);
+                    updateModeButton();
+                    document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
+                    document.getElementById('present-status').style.color = globalMode === 'challenge' ? '#f59e0b' : 'var(--hub-color)';
                     
                     showToast("Sẵn sàng!", `Giáo án: ${result.dataName}`, "success");
 
