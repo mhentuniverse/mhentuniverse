@@ -390,10 +390,12 @@
                     // 🆕 TRƯỜNG HỢP USER MỚI (CHƯA SETUP PROFILE): Đẩy đi làm hồ sơ
                     showPopup('Chào mừng đặc vụ mới! Đang chuyển hướng thiết lập hồ sơ...', false);
                     setTimeout(() => {
-                        // 👉 Truyền tiếp cái "vé khứ hồi" sang trang Profile
-                        let profileUrl = '/profile.html';
+                        // 👉 Thêm ?setup=true làm cờ mặc định cho user mới
+                        let profileUrl = '/profile.html?setup=true'; 
+                        
                         if (returnPath) {
-                            profileUrl += '?redirect=' + encodeURIComponent(returnPath);
+                            // Vì đã có ?setup=true ở trước rồi, nên chỗ này phải dùng dấu & để nối thêm redirect
+                            profileUrl += '&redirect=' + encodeURIComponent(returnPath);
                         }
                         window.location.href = profileUrl;
                     }, 1500);

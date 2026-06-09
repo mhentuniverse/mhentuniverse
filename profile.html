@@ -332,6 +332,8 @@
                     const userSnap = await getDoc(userRef);
                     let mhentUserData = userSnap.exists() ? userSnap.data() : {};
 
+                    window.isFirstTimeSetup = (mhentUserData.isProfileSetup === false);
+
                     let displayName = mhentUserData.displayName || user.displayName || user.email.split('@')[0];
                     let avatarUrl = mhentUserData.photoURL || user.photoURL || "/assets/avt-web.jpg";
 
@@ -390,11 +392,11 @@
                 showToast('Thành công', 'Hồ sơ đã được cập nhật!', 'success');
 
                 const urlParams = new URLSearchParams(window.location.search);
-                // 👉 Bắt lấy "vé khứ hồi" từ URL
                 const returnPath = urlParams.get('redirect'); 
 
-                if (urlParams.get('setup') === 'true') {
-                    // Trạng thái Setup User mới: Ưu tiên trả về link xem phim nếu có vé
+                // Sửa lại dòng if này: Thêm điều kiện || window.isFirstTimeSetup
+                if (urlParams.get('setup') === 'true' || window.isFirstTimeSetup) {
+                    // Trạng thái Setup User mới: Ưu tiên trả về link cũ
                     setTimeout(() => {
                         window.location.href = returnPath ? returnPath : '/';
                     }, 1500); 
