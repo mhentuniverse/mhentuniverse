@@ -669,6 +669,49 @@
             logAdminAction(`Đồng bộ ${list.length} từ vựng sang máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
+        function renderAdminQuestionList() {
+            const container = document.getElementById('admin-question-list');
+            if (!container) return;
+            container.innerHTML = '';
+            globalWordList.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'q-btn';
+                btn.innerText = `${item.word} — ${item.meaning}`;
+                btn.onclick = () => {
+                    document.querySelectorAll('#admin-question-list .q-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById('admin-reading-meaning').innerText = item.meaning;
+                    localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: 'SET_QUESTION', payload: item, rand: Math.random() }));
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderMirrorGrid() {
+            const mirror = document.getElementById('admin-mirror-grid');
+            if (!mirror) return;
+            mirror.innerHTML = '';
+            currentGridOrder.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'mirror-card';
+                card.innerText = item.word;
+                card.onclick = () => {
+                    document.querySelectorAll('#admin-question-list .q-btn').forEach(b => b.classList.remove('active'));
+                    document.getElementById('admin-reading-meaning').innerText = item.meaning;
+                    localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: 'SET_QUESTION', payload: item, rand: Math.random() }));
+                };
+                mirror.appendChild(card);
+            });
+        }
+
+        window.adminShuffle = function() {
+            if (!currentGridOrder.length) return;
+            currentGridOrder.sort(() => 0.5 - Math.random());
+            renderMirrorGrid();
+            localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: 'SHUFFLE', payload: currentGridOrder, rand: Math.random() }));
+            showToast('Đã trộn', 'Đã cập nhật lại thứ tự trên màn chiếu', 'success');
+        };
+
         // 2. VÒNG QUAY ĐỊNH MỆNH (SPIN)
         window.syncSpinner = function() {
             const items = document.getElementById('spin-items').value.trim().split('\n').map(i => i.trim()).filter(i => i !== "");

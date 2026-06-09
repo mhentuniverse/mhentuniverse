@@ -23,6 +23,10 @@
         .mode-toggle-btn.challenge { background: #f59e0b; }
 
         .present-board { flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center; }
+        .present-meaning { font-size: 24px; font-weight: 700; color: #f8fafc; min-height: 60px; margin-top: 10px; max-width: 1000px; text-align: center; line-height: 1.3; }
+        .mode-toggle-btn { background: #10b981; border: none; color: white; font-size: 14px; font-weight: 800; padding: 12px 20px; border-radius: 999px; cursor: pointer; box-shadow: 0 10px 20px rgba(16,185,129,0.25); transition: transform 0.2s, background 0.2s; }
+        .mode-toggle-btn:hover { transform: translateY(-2px); }
+        .mode-toggle-btn.challenge { background: #f59e0b; }
         .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
         
         .word-card { background: #1e293b; border: 3px solid #334155; padding: 30px 20px; border-radius: 15px; font-size: 36px; font-weight: 900; color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
@@ -45,6 +49,7 @@
     <div id="game-container" style="display: none; height: 100%; flex-direction: column;">
         <div class="present-header">
             <div id="present-status">SẴN SÀNG! LẮNG NGHE GIÁO VIÊN!</div>
+            <div id="present-meaning" class="present-meaning">Chờ giáo viên chọn câu hỏi...</div>
             <button id="toggle-mode-btn" class="mode-toggle-btn" onclick="toggleChallengeMode()">Bật Sương mù</button>
         </div>
         <div class="present-board"><div class="word-grid" id="present-grid"></div></div>
@@ -79,12 +84,12 @@
             updateModeButton();
         };
 
-        window.addEventListener('storage', e => {
-            if(e.key !== 'mhent_edu_cmd') return;
-            const data = JSON.parse(e.newValue);
+        function processAdminCommand(data) {
+            if (!data || !data.action) return;
             if(data.action === 'SYNC_DATA') { 
                 globalMode = data.payload.mode; globalStrikes = data.payload.strikes;
                 document.getElementById('waiting-msg').style.display = 'none'; document.getElementById('game-container').style.display = 'flex';
+                document.getElementById('present-meaning').innerText = 'Chờ giáo viên chọn câu hỏi...';
                 renderGrid(data.payload.order);
                 updateModeButton();
                 document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
@@ -96,6 +101,12 @@
                 const card = document.querySelector(`.word-card[data-id="${data.payload}"]`);
                 if(card) handleClick(card, data.payload);
             }
+        }
+
+        window.addEventListener('storage', e => {
+            if(e.key !== 'mhent_edu_cmd') return;
+            const data = JSON.parse(e.newValue);
+            processAdminCommand(data);
         });
 
         function renderGrid(order) {
@@ -108,9 +119,17 @@
             applyFog();
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            const stored = localStorage.getItem('mhent_edu_cmd');
+            if (stored) {
+                try { processAdminCommand(JSON.parse(stored)); } catch (err) { console.warn('Không thể xử lý lệnh lưu trữ', err); }
+            }
+        });
+
         function loadQuestion(payload) {
             targetWord = payload; strikesCurrent = 0; isQuestionActive = true;
             document.getElementById('present-status').innerText = "HÃY TÌM TỪ CHÍNH XÁC!"; document.getElementById('present-status').style.color = "var(--hub-color)";
+            document.getElementById('present-meaning').innerText = payload.meaning || '...';
             
             // 🔥 CHÌA KHÓA Ở ĐÂY: Mọi thẻ đều bị xóa sạch trạng thái đúng/sai, trở lại thành "đạn mù" bình đẳng!
             document.querySelectorAll('.word-card').forEach(card => card.classList.remove('incorrect', 'correct', 'disabled'));
