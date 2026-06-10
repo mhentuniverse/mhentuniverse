@@ -29,6 +29,11 @@
         .mode-toggle-btn { background: #10b981; border: none; color: white; font-size: 14px; font-weight: 800; padding: 14px 26px; border-radius: 999px; cursor: pointer; box-shadow: 0 12px 24px rgba(16,185,129,0.25); transition: transform 0.2s, background 0.2s; }
         .mode-toggle-btn:hover { transform: translateY(-2px); }
         .mode-toggle-btn.challenge { background: #f59e0b; }
+        
+        .next-word-btn { background: #0ea5e9; border: none; color: white; font-size: 16px; font-weight: 800; padding: 14px 32px; border-radius: 12px; cursor: pointer; box-shadow: 0 12px 24px rgba(14,165,233,0.3); transition: transform 0.2s, background 0.2s; display: none; margin-top: 12px; }
+        .next-word-btn:hover:not(:disabled) { transform: translateY(-2px); background: #0284c7; }
+        .next-word-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .next-word-btn.active { display: inline-block; }
 
         .present-board { flex: 1; padding: 20px 30px 40px; display: flex; flex-direction: column; justify-content: center; }
         .word-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
@@ -61,6 +66,7 @@
             <div class="present-subtitle">HÃY TÌM TỪ CÓ NGHĨA LÀ</div>
             <div id="present-meaning" class="present-meaning">Chờ giáo viên chọn câu hỏi...</div>
             <div id="present-status">CHẾ ĐỘ BÌNH THƯỜNG</div>
+            <button id="next-word-btn" class="next-word-btn" onclick="goToNextWord()"><i class="fa-solid fa-arrow-right"></i> Tiếp theo</button>
         </div>
         <div class="present-board"><div class="word-grid" id="present-grid"></div></div>
     </div>
@@ -97,24 +103,30 @@
 
         function startAutoReveal() {
             if (!autoReveal || currentWordList.length === 0) return;
-            clearInterval(autoRevealTimer);
             autoRevealIndex = 0;
-            showNextWordAuto();
+            updateNextButtonVisibility();
+            goToNextWord();
         }
-
-        function showNextWordAuto() {
+        
+        function updateNextButtonVisibility() {
+            const btn = document.getElementById('next-word-btn');
+            if (autoReveal) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+        
+        function goToNextWord() {
+            if (!autoReveal || currentWordList.length === 0) return;
+            
             if (autoRevealIndex >= currentWordList.length) {
                 autoRevealIndex = 0;
             }
+            
             const word = currentWordList[autoRevealIndex];
             loadQuestion(word);
             autoRevealIndex++;
-            
-            autoRevealTimer = setTimeout(() => {
-                if (autoReveal && !isQuestionActive) {
-                    showNextWordAuto();
-                }
-            }, 3500);
         }
 
         function processAdminCommand(data) {
@@ -131,6 +143,7 @@
                 updateModeButton();
                 document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
                 document.getElementById('present-status').style.color = globalMode === 'challenge' ? '#f59e0b' : 'var(--hub-color)';
+                updateNextButtonVisibility();
                 if (autoReveal) {
                     startAutoReveal();
                 }
@@ -138,7 +151,6 @@
             if(data.action === 'SHUFFLE') renderGrid(data.payload);
             if(data.action === 'SET_QUESTION') loadQuestion(data.payload);
             if(data.action === 'ADMIN_CLICK') {
-                clearInterval(autoRevealTimer);
                 const card = document.querySelector(`.word-card[data-id="${data.payload}"]`);
                 if(card) handleClick(card, data.payload);
             }
@@ -197,7 +209,6 @@
 
             if(selectedId === targetWord.id) { // ĐÚNG
                 clearInterval(challengeTimer);
-                clearInterval(autoRevealTimer);
                 if(globalMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                 
                 card.classList.add('correct'); isQuestionActive = false;
@@ -206,17 +217,12 @@
 
                 sendCmd('SYNC_COLOR', { id: selectedId, status: 'correct' });
                 sendCmd('REPORT_SOLVED', targetWord); // Báo về cho Admin gạch chéo câu hỏi
-                
-                if (autoReveal) {
-                    setTimeout(() => showNextWordAuto(), 1500);
-                }
             } else { // SAI
                 card.classList.add('incorrect', 'disabled'); strikesCurrent++;
                 sendCmd('SYNC_COLOR', { id: selectedId, status: 'incorrect' });
 
                 if(strikesCurrent > globalStrikes) { // HẾT MẠNG
                     clearInterval(challengeTimer);
-                    clearInterval(autoRevealTimer);
                     if(globalMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                     
                     document.querySelector(`.word-card[data-id="${targetWord.id}"]`).classList.add('correct');
@@ -226,10 +232,6 @@
                     document.getElementById('present-status').innerText = "RẤT TIẾC! HẾT LƯỢT CHỌN!"; document.getElementById('present-status').style.color = "#ef4444";
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
                     sendCmd('REPORT_SOLVED', targetWord);
-                    
-                    if (autoReveal) {
-                        setTimeout(() => showNextWordAuto(), 1500);
-                    }
                 } else {
                     document.getElementById('present-status').innerText = `SAI RỒI! CÒN ${globalStrikes - strikesCurrent + 1} LƯỢT!`;
                     document.getElementById('present-status').style.color = "#f59e0b";
@@ -295,6 +297,7 @@
                     // Vẽ lưới từ vựng ra màn hình
                     renderGrid(shuffledOrder);
                     updateModeButton();
+                    updateNextButtonVisibility();
                     document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
                     document.getElementById('present-status').style.color = globalMode === 'challenge' ? '#f59e0b' : 'var(--hub-color)';
                     
