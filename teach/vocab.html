@@ -69,6 +69,7 @@
         function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
 
         let globalMode = 'normal', globalStrikes = 0, targetWord = null, strikesCurrent = 0, isQuestionActive = false, challengeTimer = null;
+        let autoReveal = false, autoRevealIndex = 0, currentWordList = [], autoRevealTimer = null;
 
         function updateModeButton() {
             const btn = document.getElementById('toggle-mode-btn');
@@ -94,20 +95,50 @@
             updateModeButton();
         };
 
+        function startAutoReveal() {
+            if (!autoReveal || currentWordList.length === 0) return;
+            clearInterval(autoRevealTimer);
+            autoRevealIndex = 0;
+            showNextWordAuto();
+        }
+
+        function showNextWordAuto() {
+            if (autoRevealIndex >= currentWordList.length) {
+                autoRevealIndex = 0;
+            }
+            const word = currentWordList[autoRevealIndex];
+            loadQuestion(word);
+            autoRevealIndex++;
+            
+            autoRevealTimer = setTimeout(() => {
+                if (autoReveal && !isQuestionActive) {
+                    showNextWordAuto();
+                }
+            }, 3500);
+        }
+
         function processAdminCommand(data) {
             if (!data || !data.action) return;
             if(data.action === 'SYNC_DATA') { 
-                globalMode = data.payload.mode; globalStrikes = data.payload.strikes;
-                document.getElementById('waiting-msg').style.display = 'none'; document.getElementById('game-container').style.display = 'flex';
+                globalMode = data.payload.mode; 
+                globalStrikes = data.payload.strikes;
+                autoReveal = data.payload.autoReveal || false;
+                currentWordList = data.payload.order || [];
+                document.getElementById('waiting-msg').style.display = 'none'; 
+                document.getElementById('game-container').style.display = 'flex';
                 document.getElementById('present-meaning').innerText = 'Chờ giáo viên chọn câu hỏi...';
                 renderGrid(data.payload.order);
                 updateModeButton();
                 document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
                 document.getElementById('present-status').style.color = globalMode === 'challenge' ? '#f59e0b' : 'var(--hub-color)';
+                if (autoReveal) {
+                    startAutoReveal();
+                }
             }
             if(data.action === 'SHUFFLE') renderGrid(data.payload);
             if(data.action === 'SET_QUESTION') loadQuestion(data.payload);
             if(data.action === 'ADMIN_CLICK') {
+                clearInterval(autoRevealTimer);
                 const card = document.querySelector(`.word-card[data-id="${data.payload}"]`);
                 if(card) handleClick(card, data.payload);
             }
@@ -166,6 +197,7 @@
 
             if(selectedId === targetWord.id) { // ĐÚNG
                 clearInterval(challengeTimer);
+                clearInterval(autoRevealTimer);
                 if(globalMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                 
                 card.classList.add('correct'); isQuestionActive = false;
@@ -174,12 +206,17 @@
 
                 sendCmd('SYNC_COLOR', { id: selectedId, status: 'correct' });
                 sendCmd('REPORT_SOLVED', targetWord); // Báo về cho Admin gạch chéo câu hỏi
+                
+                if (autoReveal) {
+                    setTimeout(() => showNextWordAuto(), 1500);
+                }
             } else { // SAI
                 card.classList.add('incorrect', 'disabled'); strikesCurrent++;
                 sendCmd('SYNC_COLOR', { id: selectedId, status: 'incorrect' });
 
                 if(strikesCurrent > globalStrikes) { // HẾT MẠNG
                     clearInterval(challengeTimer);
+                    clearInterval(autoRevealTimer);
                     if(globalMode === 'challenge') document.querySelectorAll('.word-card').forEach(c => c.classList.remove('covered', 'revealed-temp'));
                     
                     document.querySelector(`.word-card[data-id="${targetWord.id}"]`).classList.add('correct');
@@ -189,6 +226,10 @@
                     document.getElementById('present-status').innerText = "RẤT TIẾC! HẾT LƯỢT CHỌN!"; document.getElementById('present-status').style.color = "#ef4444";
                     document.querySelectorAll('.word-card').forEach(c => c.classList.add('disabled'));
                     sendCmd('REPORT_SOLVED', targetWord);
+                    
+                    if (autoReveal) {
+                        setTimeout(() => showNextWordAuto(), 1500);
+                    }
                 } else {
                     document.getElementById('present-status').innerText = `SAI RỒI! CÒN ${globalStrikes - strikesCurrent + 1} LƯỢT!`;
                     document.getElementById('present-status').style.color = "#f59e0b";
@@ -242,6 +283,8 @@
                     // Nạp dữ liệu vào biến toàn cục của Vocab
                     globalMode = payload.mode || 'normal';
                     globalStrikes = payload.strikes || 1;
+                    autoReveal = payload.autoReveal || false;
+                    currentWordList = [...(payload.globalWordList || [])].sort(() => 0.5 - Math.random());
                     
                     // Tạo một trật tự xáo trộn cho mảng từ vựng lấy từ Đám mây
                     const shuffledOrder = [...(payload.globalWordList || [])].sort(() => 0.5 - Math.random());
@@ -255,8 +298,12 @@
                     document.getElementById('present-status').innerText = globalMode === 'challenge' ? 'CHẾ ĐỘ SƯƠNG MÙ' : 'CHẾ ĐỘ BÌNH THƯỜNG';
                     document.getElementById('present-status').style.color = globalMode === 'challenge' ? '#f59e0b' : 'var(--hub-color)';
                     
+                    if (autoReveal) {
+                        startAutoReveal();
+                    }
+                    
                     if (typeof showToast === 'function') {
-                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName || 'Đã mở giáo án'}`, "success");
+                        showToast("Sẵn sàng!", `Giáo án: ${result.dataName || 'Đã mở giáo án'}` + (autoReveal ? " (Tự động)" : ""), "success");
                     } else {
                         console.log('Sẵn sàng! Giáo án:', result.dataName || 'Đã mở giáo án');
                     }

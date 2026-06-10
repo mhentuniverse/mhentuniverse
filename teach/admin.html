@@ -190,6 +190,12 @@
                             <input type="number" id="strike-input" class="admin-input" value="1" min="0">
                         </div>
                     </div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 20px; padding: 15px; background: rgba(16,185,129,0.08); border-radius: 12px; border: 2px solid rgba(16,185,129,0.2);">
+                        <input type="checkbox" id="auto-reveal-toggle" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="auto-reveal-toggle" style="margin: 0; cursor: pointer; font-weight: 800; color: #10b981; flex: 1;">
+                            <i class="fa-solid fa-circle-play" style="margin-right: 8px;"></i> Tự động hiện từ theo thứ tự
+                        </label>
+                    </div>
                     <button class="btn-admin" style="width: 100%; margin-top: 20px;" onclick="adminSyncData()">🚀 TẠO BẢNG & ĐẨY LÊN MÀN CHIẾU</button>
                 </div>
 
@@ -708,10 +714,12 @@
             }
             if (list.length === 0) return showToast("Lỗi", "Cần ít nhất 1 từ vựng!", "error");
             globalWordList = list; currentGridOrder = [...list].sort(() => 0.5 - Math.random()); solvedWords = [];
-            localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: 'SYNC_DATA', payload: { order: currentGridOrder, mode: document.getElementById('mode-select').value, strikes: parseInt(document.getElementById('strike-input').value) || 0 }, rand: Math.random() }));
+            const autoReveal = document.getElementById('auto-reveal-toggle').checked;
+            localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action: 'SYNC_DATA', payload: { order: currentGridOrder, mode: document.getElementById('mode-select').value, strikes: parseInt(document.getElementById('strike-input').value) || 0, autoReveal: autoReveal }, rand: Math.random() }));
             document.getElementById('control-station').style.display = 'block';
             renderAdminQuestionList(); renderMirrorGrid();
-            showToast("Thành công!", "Đã đẩy dữ liệu Từ vựng sang máy chiếu!", "success");
+            showToast("Thành công!", "Đã đẩy dữ liệu Từ vựng sang máy chiếu!" + (autoReveal ? " (Chế độ tự động)" : ""), "success");
+            logAdminAction(`Đồng bộ ${list.length} từ vựng sang máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}; Tự động: ${autoReveal}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
             logAdminAction(`Đồng bộ ${list.length} từ vựng sang máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
@@ -1043,7 +1051,8 @@
                         if(parts.length >= 2) list.push({ id: 'w_'+i, word: parts[0].trim(), meaning: parts[1].trim() });
                     });
                 }
-                return { globalWordList: list, mode: document.getElementById('mode-select').value, strikes: parseInt(document.getElementById('strike-input').value) || 0 };
+                const autoReveal = document.getElementById('auto-reveal-toggle').checked;
+                return { globalWordList: list, mode: document.getElementById('mode-select').value, strikes: parseInt(document.getElementById('strike-input').value) || 0, autoReveal: autoReveal };
             }
             if(gameType === 'baam') {
                 let cards = [];
@@ -1183,6 +1192,7 @@
             if(gameType === 'vocab') {
                 document.getElementById('mode-select').value = data.mode || 'normal';
                 document.getElementById('strike-input').value = data.strikes || 1;
+                document.getElementById('auto-reveal-toggle').checked = data.autoReveal || false;
                 switchInputTab('table');
                 document.getElementById('table-rows').innerHTML = '';
                 (data.globalWordList || []).forEach(item => {
