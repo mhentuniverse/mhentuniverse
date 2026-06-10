@@ -186,6 +186,14 @@
             applyFog();
         }
 
+        function shuffleCardPositions() {
+            const grid = document.getElementById('present-grid');
+            const cards = Array.from(grid.children);
+            cards.sort(() => 0.5 - Math.random()).forEach(card => {
+                grid.appendChild(card);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const stored = localStorage.getItem('mhent_edu_cmd');
             if (stored) {
@@ -200,6 +208,10 @@
             
             // 🔥 CHÌA KHÓA Ở ĐÂY: Mọi thẻ đều bị xóa sạch trạng thái đúng/sai, trở lại thành "đạn mù" bình đẳng!
             document.querySelectorAll('.word-card').forEach(card => card.classList.remove('incorrect', 'correct', 'disabled'));
+            
+            // Xáo trộn vị trí các thẻ từ mỗi lần câu hỏi thay đổi
+            shuffleCardPositions();
+            
             applyFog();
         }
 
