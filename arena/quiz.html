@@ -194,7 +194,7 @@
         // 1. KHỞI TẠO CĂN CỨ SUPABASE
         const SUPABASE_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'arena' } });
 
         // ĐỒNG BỘ DARK MODE TỪ LOCALSTORAGE
         if (localStorage.getItem('mhent_dark_mode') === 'on') {
@@ -231,26 +231,16 @@
         // TẢI ĐỀ TỪ SUPABASE (TỐC ĐỘ SIÊU NHANH)
         async function initQuiz() {
             try {
-                let quizInfo = null; let err1 = null;
-                ({ data: quizInfo, error: err1 } = await supabaseClient.schema('arena').from('quizzes').select('*').eq('id', quizId).single());
+                const { data: quizInfo, error: err1 } = await supabaseClient.from('quizzes').select('*').eq('id', quizId).single();
                 console.log('quiz load', quizId, quizInfo, err1);
-                if(err1 || !quizInfo) {
-                    ({ data: quizInfo, error: err1 } = await supabaseClient.from('arena.quizzes').select('*').eq('id', quizId).single());
-                    console.log('quiz load fallback', quizId, quizInfo, err1);
-                }
                 if(err1 || !quizInfo) throw new Error("Không tìm thấy hội thi!");
                 
                 timeLimit = quizInfo.time_limit * 60; 
                 quizMode = quizInfo.mode || 'default';
                 isGiveawayEvent = (quizInfo.event_type === 'giveaway');
 
-                let qData = null; let err2 = null;
-                ({ data: qData, error: err2 } = await supabaseClient.schema('arena').from('questions').select('*').eq('quiz_id', quizId));
+                const { data: qData, error: err2 } = await supabaseClient.from('questions').select('*').eq('quiz_id', quizId);
                 console.log('questions load', qData, err2);
-                if(err2 || !qData || qData.length === 0) {
-                    ({ data: qData, error: err2 } = await supabaseClient.from('arena.questions').select('*').eq('quiz_id', quizId));
-                    console.log('questions load fallback', qData, err2);
-                }
                 if(err2 || !qData || qData.length === 0) throw new Error("Đề thi trống không có gì để làm!");
 
                 // Chuyển đổi dữ liệu SQL thành cấu trúc Game để ráp vào UI cũ
@@ -418,7 +408,7 @@
 
             // Bắn đạn Upsert vào Supabase
             try {
-                await supabaseClient.from('arena.results').upsert({
+                await supabaseClient.from('results').upsert({
                     quiz_id: quizId,
                     student_id: userInfo.studentId,
                     is_test_mode: isTestMode,
@@ -471,6 +461,7 @@
         }
 
         async function uploadTicketToSupabase(ticketBlob, ticketCode) {
+            if (!ticketBlob) throw new Error('Không có dữ liệu vé để upload.');
             const fileName = `1st_anniversary/${ticketCode}.png`;
             // Nhớ đổi tên 'giveaway_tickets' thành bucket sếp tạo trên Supabase Storage nha
             const { data, error } = await supabaseClient.storage
@@ -478,7 +469,8 @@
                 .upload(fileName, ticketBlob, { upsert: false });
 
             if (error) throw error;
-            const { data: publicUrlData } = supabaseClient.storage.from('giveaway_tickets').getPublicUrl(fileName);
+            const { data: publicUrlData, error: publicUrlError } = supabaseClient.storage.from('giveaway_tickets').getPublicUrl(fileName);
+            if (publicUrlError) throw publicUrlError;
             return publicUrlData.publicUrl;
         }
 
