@@ -318,6 +318,10 @@
                                 <input type="checkbox" id="inp-new-is-school" style="width: 18px; height: 18px; cursor: pointer;"> 
                                 <span><i class="fa-solid fa-school-flag"></i> <strong>Giao diện Academic:</strong> Dùng từ "Sinh viên, Lớp, Khoa" thay cho "Định danh, Đơn vị, Tổ chức".</span>
                             </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #ec4899;">
+                                <input type="checkbox" id="inp-new-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;"> 
+                                <span><i class="fa-solid fa-gift"></i> <strong>Chế độ Give Away:</strong> Tự động in và gửi vé điện tử khi đạt điểm chuẩn.</span>
+                            </label>
                             
                             <div class="form-grid" style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 15px;">
                                 <div class="input-group" style="margin-bottom:0;">
@@ -375,6 +379,10 @@
                             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #4f46e5;">
                                 <input type="checkbox" id="inp-edit-is-school" style="width: 18px; height: 18px; cursor: pointer;"> 
                                 <span><i class="fa-solid fa-school-flag"></i> <strong>Giao diện Academic:</strong> Dùng từ "Sinh viên, Lớp, Khoa" thay cho "Định danh, Đơn vị, Tổ chức".</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #ec4899;">
+                                <input type="checkbox" id="inp-edit-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;"> 
+                                <span><i class="fa-solid fa-gift"></i> <strong>Chế độ Give Away:</strong> Tự động in và gửi vé điện tử khi đạt điểm chuẩn.</span>
                             </label>
                             
                             <div class="form-grid" style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 15px;">
@@ -565,7 +573,8 @@
                 description: document.getElementById('inp-new-desc').value.trim(), question_count: parseInt(document.getElementById('inp-new-count').value), 
                 time_limit: parseInt(document.getElementById('inp-new-time').value), status: document.getElementById('inp-new-status').value, mode: mode, 
                 start_time: document.getElementById('inp-new-start').value || null, end_time: document.getElementById('inp-new-end').value || null,
-                creator_email: window.currentUserEmail, is_verified: !window.isStudioMode // Admin tạo thì tự động verified
+                creator_email: window.currentUserEmail, is_verified: !window.isStudioMode, // Admin tạo thì tự động verified
+                event_type: document.getElementById('inp-new-is-giveaway').checked ? 'giveaway' : null
             };
             const { error } = await supabase.schema('arena').from('quizzes').insert([payload]);
             if(error) showPopup("Lỗi tạo đề: Mã này đã tồn tại!", true);
@@ -592,6 +601,8 @@
                 document.getElementById('inp-edit-start').value = q.start_time ? q.start_time.substring(0, 16) : ""; 
                 document.getElementById('inp-edit-end').value = q.end_time ? q.end_time.substring(0, 16) : "";
                 document.getElementById('btn-delete-quiz-action').style.display = 'inline-flex';
+
+                document.getElementById('inp-edit-is-giveaway').checked = (q.event_type === 'giveaway');
             } else document.getElementById('btn-delete-quiz-action').style.display = 'none';
         }
 
@@ -605,7 +616,8 @@
                 title: document.getElementById('inp-edit-title').value.trim(), description: document.getElementById('inp-edit-desc').value.trim(), 
                 question_count: parseInt(document.getElementById('inp-edit-count').value), time_limit: parseInt(document.getElementById('inp-edit-time').value), 
                 status: document.getElementById('inp-edit-status').value, mode: mode, 
-                start_time: document.getElementById('inp-edit-start').value || null, end_time: document.getElementById('inp-edit-end').value || null 
+                start_time: document.getElementById('inp-edit-start').value || null, end_time: document.getElementById('inp-edit-end').value || null,
+                event_type: document.getElementById('inp-edit-is-giveaway').checked ? 'giveaway' : null
             };
             const { error } = await supabase.schema('arena').from('quizzes').update(payload).eq('id', qId);
             if(error) showPopup("Cập nhật thất bại!", true); else { showPopup("Lưu cài đặt thành công!"); loadAllQuizzesIntoSelects(); }

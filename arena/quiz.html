@@ -217,7 +217,7 @@
         if(isTestMode) document.getElementById('display-test-mode').style.display = 'flex';
 
         // BIẾN TOÀN CỤC CHUNG CỦA GAME
-        let questions = []; userAnswers = []; currentQIndex = 0; timeLimit = 0; timerInterval = null; startTime = null; let quizMode = 'default'; 
+        let questions = []; userAnswers = []; currentQIndex = 0; timeLimit = 0; timerInterval = null; startTime = null; let quizMode = 'default'; let isGiveawayEvent = false;
 
         // THUẬT TOÁN XÓC BÀI (Chống gian lận)
         function shuffleArray(array) {
@@ -236,6 +236,7 @@
                 
                 timeLimit = quizInfo.time_limit * 60; 
                 quizMode = quizInfo.mode || 'default';
+                isGiveawayEvent = (quizInfo.event_type === 'giveaway');
 
                 const { data: qData, error: err2 } = await supabase.schema('arena').from('questions').select('*').eq('quiz_id', quizId);
                 if(err2 || !qData || qData.length === 0) throw new Error("Đề thi trống không có gì để làm!");
@@ -418,6 +419,52 @@
             } catch(e) { console.error("Lỗi cập nhật điểm Supabase:", e); }
         }
 
+        // ====================================================
+        // KHỐI MÁY IN VÉ GIVE AWAY 1ST ANNIVERSARY
+        // ====================================================
+        async function generatePrizeTicket(ticketCode) {
+            return new Promise((resolve, reject) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; 
+                img.src = '/assets/PrizeTicket_Blank.png'; // Đảm bảo sếp đã có ảnh này nha
+
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    ctx.font = "900 65px 'Nunito', sans-serif";
+                    ctx.fillStyle = "#ffffff";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.shadowColor = "#ff85a2"; 
+                    ctx.shadowBlur = 20;
+
+                    // Chỉnh tọa độ x, y cho chữ nằm đúng ô
+                    const x = 300;
+                    const y = 310;
+                    ctx.fillText(ticketCode, x, y);
+
+                    canvas.toBlob((blob) => resolve(blob), 'image/png');
+                };
+                img.onerror = reject;
+            });
+        }
+
+        async function uploadTicketToSupabase(ticketBlob, ticketCode) {
+            const fileName = `1st_anniversary/${ticketCode}.png`;
+            // Nhớ đổi tên 'giveaway_tickets' thành bucket sếp tạo trên Supabase Storage nha
+            const { data, error } = await supabase.storage
+                .from('giveaway_tickets') 
+                .upload(fileName, ticketBlob, { upsert: false });
+
+            if (error) throw error;
+            const { data: publicUrlData } = supabase.storage.from('giveaway_tickets').getPublicUrl(fileName);
+            return publicUrlData.publicUrl;
+        }
+
         window.executeSubmit = async function() {
             clearInterval(timerInterval); closeConfirmPopup();
             document.removeEventListener('visibilitychange', () => {});
@@ -425,11 +472,12 @@
             let endTime = new Date(); let elapsedSec = Math.floor((endTime - startTime) / 1000);
             let formattedTime = `${Math.floor(elapsedSec / 60)} phút ${elapsedSec % 60} giây`;
 
+            // Hiện loading (Tớ đã thêm id="loading-submit-text" vào thẻ h2)
             let mainCont = document.getElementById('main-container');
-            mainCont.innerHTML = `<div style="text-align: center; margin-top: 150px;"><i class="fa-solid fa-shield-cat fa-bounce fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i><h2 style="font-weight: 900; color: ${document.body.classList.contains('dark-mode') ? '#fff' : '#1e293b'};">Đang niêm phong bài thi...</h2></div>`;
+            mainCont.innerHTML = `<div style="text-align: center; margin-top: 150px;"><i class="fa-solid fa-shield-cat fa-bounce fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i><h2 id="loading-submit-text" style="font-weight: 900; color: ${document.body.classList.contains('dark-mode') ? '#fff' : '#1e293b'};">Đang niêm phong bài thi...</h2></div>`;
             document.getElementById('timer-display').style.display = 'none';
 
-            // Gọi hàm chốt sổ
+            // Gọi hàm chốt sổ lưu điểm Arena cũ
             await syncLiveProgress(true);
             
             let correctCount = 0; userAnswers.forEach((ansIdx, qIdx) => { if(ansIdx !== null && questions[qIdx].options[ansIdx].isCorrect) correctCount++; });
@@ -438,6 +486,42 @@
             let completed = JSON.parse(localStorage.getItem('mhent_completed_quizzes') || '[]');
             if(!completed.includes(quizId)) completed.push(quizId); localStorage.setItem('mhent_completed_quizzes', JSON.stringify(completed));
 
+            // ====================================================
+            // KÍCH HOẠT GIVE AWAY (Nếu Admin bật Toggle 'giveaway')
+            // ====================================================
+            if (isGiveawayEvent) {
+                if (finalScore >= 80) {
+                    // Đổi chữ hiển thị để Fan biết đang tạo quà
+                    document.getElementById('loading-submit-text').innerText = "Đang in vé Give Away độc quyền...";
+                    
+                    try {
+                        // In vé và upload
+                        const ticketCode = "MHE-" + Math.floor(1000 + Math.random() * 9000); 
+                        const ticketBlob = await generatePrizeTicket(ticketCode);
+                        const ticketUrl = await uploadTicketToSupabase(ticketBlob, ticketCode);
+
+                        // Lưu danh sách nhận giải vào Database
+                        const { error: dbError } = await supabase.from('giveaway_tickets').insert([{
+                            ticket_code: ticketCode,
+                            name: userInfo.fullName,
+                            email: userInfo.email || "chua_co_email@mhent.com",
+                            prize_id: quizId,
+                            image_url: ticketUrl,
+                            score: finalScore
+                        }]);
+                        if (dbError) throw dbError;
+
+                        showToast(`🎉 Tuyệt vời! Đã gửi vé ${ticketCode} vào hòm thư!`);
+                    } catch (error) {
+                        console.error("Lỗi in vé Give Away:", error);
+                        showToast("Lỗi hệ thống in vé, cậu vui lòng báo Admin nhé!");
+                    }
+                } else {
+                    showToast(`Cậu được ${finalScore} điểm. Phải 80 điểm mới có vé Give Away nha!`);
+                }
+            }
+
+            // Chuyển sang màn hình chúc mừng cuối cùng
             setTimeout(() => showFinalResultScreen(finalScore, formattedTime, correctCount), 1000);
         }
 
