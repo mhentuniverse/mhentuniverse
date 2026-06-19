@@ -322,6 +322,10 @@
                                 <input type="checkbox" id="inp-new-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;"> 
                                 <span><i class="fa-solid fa-gift"></i> <strong>Chế độ Give Away:</strong> Tự động in và gửi vé điện tử khi đạt điểm chuẩn.</span>
                             </label>
+                            <div id="div-new-giveaway-score" style="display: none; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 10px; border: 1px dashed #ec4899; margin-bottom: 15px;">
+                                <label style="color: #ec4899; font-size: 13px; font-weight: 800;"><i class="fa-solid fa-bullseye"></i> Số điểm tối thiểu để nhận vé (VD: 80):</label>
+                                <input type="number" id="inp-new-giveaway-score" class="admin-input" placeholder="Nhập điểm từ 0 đến 100..." value="80" style="margin-bottom: 0; border-color: #ec4899;">
+                            </div>
                             
                             <div class="form-grid" style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 15px;">
                                 <div class="input-group" style="margin-bottom:0;">
@@ -381,9 +385,14 @@
                                 <span><i class="fa-solid fa-school-flag"></i> <strong>Giao diện Academic:</strong> Dùng từ "Sinh viên, Lớp, Khoa" thay cho "Định danh, Đơn vị, Tổ chức".</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #ec4899;">
-                                <input type="checkbox" id="inp-edit-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;"> 
+                                <input type="checkbox" id="inp-edit-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('div-edit-giveaway-score').style.display = this.checked ? 'block' : 'none'"> 
                                 <span><i class="fa-solid fa-gift"></i> <strong>Chế độ Give Away:</strong> Tự động in và gửi vé điện tử khi đạt điểm chuẩn.</span>
                             </label>
+
+                            <div id="div-edit-giveaway-score" style="display: none; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 10px; border: 1px dashed #ec4899; margin-bottom: 15px;">
+                                <label style="color: #ec4899; font-size: 13px; font-weight: 800;"><i class="fa-solid fa-bullseye"></i> Số điểm tối thiểu để nhận vé (VD: 80):</label>
+                                <input type="number" id="inp-edit-giveaway-score" class="admin-input" placeholder="Nhập điểm từ 0 đến 100..." style="margin-bottom: 0; border-color: #ec4899;">
+                            </div>
                             
                             <div class="form-grid" style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 15px;">
                                 <div class="input-group" style="margin-bottom:0;">
@@ -574,7 +583,8 @@
                 time_limit: parseInt(document.getElementById('inp-new-time').value), status: document.getElementById('inp-new-status').value, mode: mode, 
                 start_time: document.getElementById('inp-new-start').value || null, end_time: document.getElementById('inp-new-end').value || null,
                 creator_email: window.currentUserEmail, is_verified: !window.isStudioMode, // Admin tạo thì tự động verified
-                event_type: document.getElementById('inp-new-is-giveaway').checked ? 'giveaway' : null
+                event_type: document.getElementById('inp-new-is-giveaway').checked ? 'giveaway' : null,
+                giveaway_score: document.getElementById('inp-new-is-giveaway').checked ? parseInt(document.getElementById('inp-new-giveaway-score').value) : null
             };
             const { error } = await supabase.schema('arena').from('quizzes').insert([payload]);
             if(error) showPopup("Lỗi tạo đề: Mã này đã tồn tại!", true);
@@ -602,7 +612,10 @@
                 document.getElementById('inp-edit-end').value = q.end_time ? q.end_time.substring(0, 16) : "";
                 document.getElementById('btn-delete-quiz-action').style.display = 'inline-flex';
 
-                document.getElementById('inp-edit-is-giveaway').checked = (q.event_type === 'giveaway');
+                let isGiveaway = (q.event_type === 'giveaway');
+                document.getElementById('inp-edit-is-giveaway').checked = isGiveaway;
+                document.getElementById('div-edit-giveaway-score').style.display = isGiveaway ? 'block' : 'none';
+                document.getElementById('inp-edit-giveaway-score').value = q.giveaway_score || 80;
             } else document.getElementById('btn-delete-quiz-action').style.display = 'none';
         }
 
@@ -617,7 +630,8 @@
                 question_count: parseInt(document.getElementById('inp-edit-count').value), time_limit: parseInt(document.getElementById('inp-edit-time').value), 
                 status: document.getElementById('inp-edit-status').value, mode: mode, 
                 start_time: document.getElementById('inp-edit-start').value || null, end_time: document.getElementById('inp-edit-end').value || null,
-                event_type: document.getElementById('inp-edit-is-giveaway').checked ? 'giveaway' : null
+                event_type: document.getElementById('inp-edit-is-giveaway').checked ? 'giveaway' : null,
+                giveaway_score: document.getElementById('inp-edit-is-giveaway').checked ? parseInt(document.getElementById('inp-edit-giveaway-score').value) : null
             };
             const { error } = await supabase.schema('arena').from('quizzes').update(payload).eq('id', qId);
             if(error) showPopup("Cập nhật thất bại!", true); else { showPopup("Lưu cài đặt thành công!"); loadAllQuizzesIntoSelects(); }

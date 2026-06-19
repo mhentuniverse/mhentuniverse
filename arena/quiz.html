@@ -217,7 +217,7 @@
         if(isTestMode) document.getElementById('display-test-mode').style.display = 'flex';
 
         // BIẾN TOÀN CỤC CHUNG CỦA GAME
-        let questions = []; userAnswers = []; currentQIndex = 0; timeLimit = 0; timerInterval = null; startTime = null; let quizMode = 'default'; let isGiveawayEvent = false;
+        let questions = []; userAnswers = []; currentQIndex = 0; timeLimit = 0; timerInterval = null; startTime = null; let quizMode = 'default'; let isGiveawayEvent = false; let giveawayTargetScore = 80;
 
         // THUẬT TOÁN XÓC BÀI (Chống gian lận)
         function shuffleArray(array) {
@@ -238,6 +238,7 @@
                 timeLimit = quizInfo.time_limit * 60; 
                 quizMode = quizInfo.mode || 'default';
                 isGiveawayEvent = (quizInfo.event_type === 'giveaway');
+                giveawayTargetScore = quizInfo.giveaway_score || 80;
 
                 const { data: qData, error: err2 } = await supabaseClient.from('questions').select('*').eq('quiz_id', quizId);
                 console.log('questions load', qData, err2);
@@ -505,7 +506,7 @@
             // if (isGiveawayEvent) { ... }
             // Bây giờ tạm disable để quiz chạy đúng
             if (isGiveawayEvent) {
-                if (finalScore >= 80) {
+                if (finalScore >= giveawayTargetScore) {
                     // Đổi chữ hiển thị để Fan biết đang tạo quà
                     document.getElementById('loading-submit-text').innerText = "Đang in vé Give Away độc quyền...";
                     
@@ -527,7 +528,7 @@
                         if (dbError) throw dbError;
 
                         // ====================================================
-                        // 3. CHUẨN BỊ CHỮ KÝ VÀ BẮN MAIL Ở ĐÂY NÈ SẾP
+                        // 3. CHUẨN BỊ CHỮ KÝ VÀ BẮN MAIL BẢN FULL "VĂN VỞ"
                         // ====================================================
                         const emailSignature = `
                             <table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; color: #333; margin-top: 30px; border-top: 2px solid #6366f1; padding-top: 20px; width: 100%;">
@@ -549,6 +550,18 @@
                         // API Trạm Bưu Điện của sếp
                         const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
                         
+                        // Nội dung Mail siêu xịn xò
+                        const mailHtmlBody = `
+                            Thân gửi <b>${userInfo.fullName}</b>,<br><br>
+                            Lời đầu tiên, Miyazaki Haruto Entertainment xin gửi lời chúc mừng nồng nhiệt nhất đến cậu vì đã xuất sắc hoàn thành thử thách của MHEnt. Universe! Sự tham gia nhiệt tình của cậu chính là mảnh ghép tuyệt vời trong dịp kỷ niệm 1 năm thành lập hệ sinh thái của chúng tớ.<br><br>
+                            Như một lời tri ân, đây là <b>Vé Điện Tử Độc Quyền</b> tham gia vòng quay may mắn dành riêng cho cậu. Mã số bí mật của cậu là: <strong style="color: #ec4899; font-size: 20px;">${ticketCode}</strong><br><br>
+                            <img src="${ticketUrl}" style="max-width: 100%; border-radius: 15px; margin-top: 10px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"><br><br>
+                            <span style="color: #ef4444; font-weight: bold; font-size: 16px;">⚠️ LƯU Ý QUAN TRỌNG:</span><br>
+                            Cậu vui lòng <b>giữ lại email này</b> hoặc chụp màn hình chiếc vé để làm minh chứng nhận thưởng hợp lệ nhé. Đừng quên theo dõi fanpage MHEnt. để cập nhật lịch quay số trúng thưởng trong thời gian sắp tới!<br><br>
+                            Chúc cậu thật nhiều may mắn và luôn giữ mãi ngọn lửa đam mê cùng MHEnt. Universe!<br>
+                            ${emailSignature}
+                        `;
+
                         // GỌI TRẠM BƯU ĐIỆN PHÓNG THƯ!
                         await fetch(MAILER_URL, {
                             method: "POST",
@@ -557,9 +570,8 @@
                             },
                             body: JSON.stringify({
                                 action: "send", 
-                                subject: "🎉 Vé Give Away 1st Anniversary MHEnt!",
-                                // Chú ý: ${emailSignature} được gắn ở cuối cùng của nội dung mail nè!
-                                body: `Thân gửi <b>${userInfo.fullName}</b>,<br><br>Cảm ơn cậu đã xuất sắc vượt qua thử thách của MHEnt. Universe!<br><br>Món quà nhỏ này là vé tham gia vòng quay may mắn độc quyền dành riêng cho cậu. Mã số bí mật của cậu là: <strong style="color: #ec4899; font-size: 18px;">${ticketCode}</strong><br><br><img src="${ticketUrl}" style="max-width: 100%; border-radius: 15px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">${emailSignature}`,
+                                subject: "🎉 Chúc mừng! Vé Give Away 1st Anniversary MHEnt dành cho bạn",
+                                body: mailHtmlBody,
                                 emails: [userInfo.email || "chua_co_email@mhent.com"],
                                 senderName: "Miyazaki Haruto Entertainment"
                             })
@@ -571,7 +583,7 @@
                         showToast("Lỗi hệ thống in vé, nhưng bài thi đã được lưu! Cậu vui lòng báo Admin nhé!");
                     }
                 } else {
-                    showToast(`Cậu được ${finalScore} điểm. Phải 80 điểm mới có vé Give Away nha!`);
+                    showToast(`Cậu được ${finalScore} điểm. Phải ${giveawayTargetScore} điểm mới có vé Give Away nha!`);
                 }
             }
 
