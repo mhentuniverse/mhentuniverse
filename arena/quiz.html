@@ -231,14 +231,26 @@
         // TẢI ĐỀ TỪ SUPABASE (TỐC ĐỘ SIÊU NHANH)
         async function initQuiz() {
             try {
-                const { data: quizInfo, error: err1 } = await supabaseClient.from('arena.quizzes').select('*').eq('id', quizId).single();
+                let quizInfo = null; let err1 = null;
+                ({ data: quizInfo, error: err1 } = await supabaseClient.schema('arena').from('quizzes').select('*').eq('id', quizId).single());
+                console.log('quiz load', quizId, quizInfo, err1);
+                if(err1 || !quizInfo) {
+                    ({ data: quizInfo, error: err1 } = await supabaseClient.from('arena.quizzes').select('*').eq('id', quizId).single());
+                    console.log('quiz load fallback', quizId, quizInfo, err1);
+                }
                 if(err1 || !quizInfo) throw new Error("Không tìm thấy hội thi!");
                 
                 timeLimit = quizInfo.time_limit * 60; 
                 quizMode = quizInfo.mode || 'default';
                 isGiveawayEvent = (quizInfo.event_type === 'giveaway');
 
-                const { data: qData, error: err2 } = await supabaseClient.from('arena.questions').select('*').eq('quiz_id', quizId);
+                let qData = null; let err2 = null;
+                ({ data: qData, error: err2 } = await supabaseClient.schema('arena').from('questions').select('*').eq('quiz_id', quizId));
+                console.log('questions load', qData, err2);
+                if(err2 || !qData || qData.length === 0) {
+                    ({ data: qData, error: err2 } = await supabaseClient.from('arena.questions').select('*').eq('quiz_id', quizId));
+                    console.log('questions load fallback', qData, err2);
+                }
                 if(err2 || !qData || qData.length === 0) throw new Error("Đề thi trống không có gì để làm!");
 
                 // Chuyển đổi dữ liệu SQL thành cấu trúc Game để ráp vào UI cũ
