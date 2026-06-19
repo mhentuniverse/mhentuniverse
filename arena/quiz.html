@@ -510,12 +510,12 @@
                     document.getElementById('loading-submit-text').innerText = "Đang in vé Give Away độc quyền...";
                     
                     try {
-                        // In vé và upload
+                        // 1. In vé và upload
                         const ticketCode = "MH-" + Math.floor(1000 + Math.random() * 9000); 
                         const ticketBlob = await generatePrizeTicket(ticketCode);
                         const ticketUrl = await uploadTicketToSupabase(ticketBlob, ticketCode);
 
-                        // Lưu danh sách nhận giải vào Database
+                        // 2. Lưu danh sách nhận giải vào Database
                         const { error: dbError } = await supabaseClient.from('giveaway_tickets').insert([{
                             ticket_code: ticketCode,
                             name: userInfo.fullName,
@@ -525,6 +525,45 @@
                             score: finalScore
                         }]);
                         if (dbError) throw dbError;
+
+                        // ====================================================
+                        // 3. CHUẨN BỊ CHỮ KÝ VÀ BẮN MAIL Ở ĐÂY NÈ SẾP
+                        // ====================================================
+                        const emailSignature = `
+                            <table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; color: #333; margin-top: 30px; border-top: 2px solid #6366f1; padding-top: 20px; width: 100%;">
+                                <tr>
+                                    <td style="padding-right: 20px; vertical-align: top;">
+                                        <img src="https://mhentuniverse.vercel.app/assets/icon-logo.png" width="100" style="display: block;">
+                                    </td>
+                                    <td style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+                                        <strong style="color: #6366f1; font-size: 16px; text-transform: uppercase;">Miyazaki Haruto Entertainment Co., Ltd.</strong><br>
+                                        📍 <span style="color: #64748b;">Operating in Vietnam and Online World</span><br><br>
+                                        ✉️ <strong>Email:</strong> <a href="mailto:miyazakiharuto.ent.co@gmail.com" style="color: #6366f1; text-decoration: none;">miyazakiharuto.ent.co@gmail.com</a><br>
+                                        🌐 <strong>Website:</strong> <a href="https://mhentuniverse.vercel.app" style="color: #6366f1; text-decoration: none;">MHEnt. Universe</a><br>
+                                        🔗 <strong>Contact with us:</strong> <a href="https://www.facebook.com/mharuto.entertainment" style="color: #6366f1; text-decoration: none;">MHEnt. Facebook</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #6366f1; text-decoration: none;">MHEnt. Universe Community</a><br>
+                                        <p style="font-style: italic; color: #94a3b8; font-size: 12px; margin-top: 10px;">— Khơi nguồn sáng tạo vô tận —</p>
+                                    </td>
+                                </tr>
+                            </table>`;
+
+                        // API Trạm Bưu Điện của sếp
+                        const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
+                        
+                        // GỌI TRẠM BƯU ĐIỆN PHÓNG THƯ!
+                        await fetch(MAILER_URL, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "text/plain;charset=utf-8",
+                            },
+                            body: JSON.stringify({
+                                action: "send", 
+                                subject: "🎉 Vé Give Away 1st Anniversary MHEnt!",
+                                // Chú ý: ${emailSignature} được gắn ở cuối cùng của nội dung mail nè!
+                                body: `Thân gửi <b>${userInfo.fullName}</b>,<br><br>Cảm ơn cậu đã xuất sắc vượt qua thử thách của MHEnt. Universe!<br><br>Món quà nhỏ này là vé tham gia vòng quay may mắn độc quyền dành riêng cho cậu. Mã số bí mật của cậu là: <strong style="color: #ec4899; font-size: 18px;">${ticketCode}</strong><br><br><img src="${ticketUrl}" style="max-width: 100%; border-radius: 15px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">${emailSignature}`,
+                                emails: [userInfo.email || "chua_co_email@mhent.com"],
+                                senderName: "Miyazaki Haruto Entertainment"
+                            })
+                        });
 
                         showToast(`🎉 Tuyệt vời! Đã gửi vé ${ticketCode} vào hòm thư!`);
                     } catch (error) {
