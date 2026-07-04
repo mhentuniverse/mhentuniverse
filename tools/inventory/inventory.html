@@ -153,7 +153,7 @@
                 <div id="edit-list-render"></div>
 
                 <div class="edit-box">
-                    <h3 style="color: #334155; margin-top: 0; margin-bottom: 15px; font-weight: 900;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
+                    <h3 id="add-item-title" style="color: #334155; margin-top: 0; margin-bottom: 15px; font-weight: 900;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
                     <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
                     <input type="text" id="new_name" class="edit-input-field" placeholder="Tên món (VD: Trà Olong)">
                     <div style="display: flex; gap: 10px;">
@@ -169,7 +169,8 @@
                         <input type="number" step="0.01" id="new_tare_weight" class="edit-input-field" placeholder="Nhập số kg vỏ mặc định (VD: 0.2)">
                     </div>
 
-                    <button class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
+                    <button id="add-item-button" class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
+                    <button id="cancel-edit-button" class="btn-action btn-back" type="button" style="width: 100%; margin-top: 10px; display: none; background: #e2e8f0; color: #475569;" onclick="cancelEdit()">Hủy sửa</button>
                 </div>
             </div>
         </main>
@@ -236,6 +237,7 @@
             const isEditMode = urlParams.get('edit') === 'true'; 
 
             let currentData = [];
+            let currentEditIndex = null;
 
             async function loadData() {
                 if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID.", true);
@@ -296,11 +298,44 @@
                                 <div style="color: var(--hub-color); font-size: 12px;">${item.catName}</div>
                                 <div>${item.name} <span style="font-size:11px; opacity:0.6;">(${item.unit})</span></div>
                             </div>
-                            <button class="btn-delete" onclick="removeItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-action" style="background: #f59e0b; color: white; padding: 8px 12px;" onclick="startEditItem(${index})"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-delete" onclick="removeItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                            </div>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
+            }
+
+            window.startEditItem = function(index) {
+                const item = currentData[index];
+                currentEditIndex = index;
+                document.getElementById('new_cat').value = item.catName;
+                document.getElementById('new_name').value = item.name;
+                document.getElementById('new_unit').value = item.unit;
+                document.getElementById('new_warn').value = item.warnAt;
+                document.getElementById('new_tare').checked = item.hasTare;
+                document.getElementById('tare_input_wrapper').style.display = item.hasTare ? 'block' : 'none';
+                document.getElementById('new_tare_weight').value = item.defaultTare || '';
+                document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-pen"></i> Chỉnh sửa món';
+                document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi';
+                document.getElementById('cancel-edit-button').style.display = 'inline-flex';
+                window.scrollTo({ top: document.getElementById('add-item-title').offsetTop - 120, behavior: 'smooth' });
+            }
+
+            window.cancelEdit = function() {
+                currentEditIndex = null;
+                document.getElementById('new_cat').value = '';
+                document.getElementById('new_name').value = '';
+                document.getElementById('new_unit').value = '';
+                document.getElementById('new_warn').value = '';
+                document.getElementById('new_tare').checked = false;
+                document.getElementById('tare_input_wrapper').style.display = 'none';
+                document.getElementById('new_tare_weight').value = '';
+                document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-plus"></i> Thêm Món Mới';
+                document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Đưa vào danh sách';
+                document.getElementById('cancel-edit-button').style.display = 'none';
             }
 
             window.addNewItem = function() {
@@ -316,25 +351,47 @@
                     return;
                 }
 
-                let itemId = 'item_' + Date.now();
                 let catId = 'cat_' + cat.replace(/\s+/g, '-').toLowerCase();
+                let warnValue = parseFloat(warn);
 
-                currentData.push({
-                    id: itemId, 
-                    cat: catId, 
-                    catName: cat, 
-                    name: name, 
-                    unit: unit, 
-                    hasTare: tare, 
-                    warnAt: parseFloat(warn),
-                    defaultTare: tare ? parseFloat(tareWeight || 0) : 0 // Lưu thẳng số bì lên Database
-                });
+                if (currentEditIndex !== null) {
+                    const item = currentData[currentEditIndex];
+                    item.cat = catId;
+                    item.catName = cat;
+                    item.name = name;
+                    item.unit = unit;
+                    item.hasTare = tare;
+                    item.warnAt = warnValue;
+                    item.defaultTare = tare ? parseFloat(tareWeight || 0) : 0;
+                    currentEditIndex = null;
+                    showToast('Đã lưu', name, 'success');
+                } else {
+                    let itemId = 'item_' + Date.now();
+                    currentData.push({
+                        id: itemId,
+                        cat: catId,
+                        catName: cat,
+                        name: name,
+                        unit: unit,
+                        hasTare: tare,
+                        warnAt: warnValue,
+                        defaultTare: tare ? parseFloat(tareWeight || 0) : 0 // Lưu thẳng số bì lên Database
+                    });
+                    showToast('Đã thêm', name, 'success');
+                }
 
-                document.getElementById('new_name').value = ''; 
-                document.getElementById('new_tare_weight').value = ''; // Reset ô nhập
+                document.getElementById('new_cat').value = '';
+                document.getElementById('new_name').value = '';
+                document.getElementById('new_unit').value = '';
+                document.getElementById('new_warn').value = '';
+                document.getElementById('new_tare').checked = false;
+                document.getElementById('new_tare_weight').value = '';
+                document.getElementById('tare_input_wrapper').style.display = 'none';
+                document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-plus"></i> Thêm Món Mới';
+                document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Đưa vào danh sách';
+                document.getElementById('cancel-edit-button').style.display = 'none';
                 
                 renderEditList();
-                showToast('Đã thêm', name, 'success');
             }
 
             window.removeItem = function(index) {
