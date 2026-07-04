@@ -163,11 +163,17 @@
             async function loadData() {
                 if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID.", true);
 
+                // 1. GỌI POPUP Ở ĐÂY
+                window.showTypingPopup("Đang nạp dữ liệu cấu hình...");
+
                 try {
                     const { data, error } = await supabase.from('inventory_presets').select('*').eq('id', presetId).single();
                     if (error) throw error;
 
                     currentData = data.items || [];
+                    
+                    // 2. TẮT POPUP VÌ ĐÃ CÓ DATA RỒI
+                    window.hideTypingPopup();
                     
                     if (isEditMode) {
                         // KÍCH HOẠT MÀN HÌNH EDIT
@@ -191,6 +197,8 @@
                     }
 
                 } catch (error) {
+                    // 3. TẮT POPUP NẾU LỖI
+                    window.hideTypingPopup();
                     showPopup("Lỗi Database", "Không thể lấy dữ liệu!", true);
                 }
             }
@@ -258,15 +266,21 @@
             }
 
             window.savePresetToSupabase = async function() {
-                showToast('Đang lưu', 'Đang nén dữ liệu đẩy lên mây...', 'info');
+                // 1. GỌI POPUP Ở ĐÂY
+                window.showTypingPopup("Đang nén dữ liệu đẩy lên mây...");
+                
                 try {
                     const { error } = await supabase.from('inventory_presets').update({ items: currentData }).eq('id', presetId);
                     if(error) throw error;
                     
+                    // 2. TẮT POPUP NẾU LƯU THÀNH CÔNG
+                    window.hideTypingPopup();
+
                     showPopup('Xong!', 'Danh sách đã được cập nhật an toàn trên mây.');
-                    // Tự động đá về chế độ Ghi Số Liệu bình thường sau 1.5 giây
                     setTimeout(() => { window.location.href = `?id=${presetId}`; }, 1500);
                 } catch(err) {
+                    // 3. TẮT POPUP NẾU BỊ LỖI
+                    window.hideTypingPopup();
                     showToast('Lỗi', 'Lưu thất bại!', 'error');
                 }
             }

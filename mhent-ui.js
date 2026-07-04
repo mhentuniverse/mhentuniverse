@@ -133,3 +133,34 @@ function initializeBackToTopButton() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeBackToTopButton);
+
+
+// ==========================================
+// ⏳ Hiệu ứng Loading "Đang gõ..." (Typing Popup)
+// ==========================================
+
+window.showTypingPopup = function(message = "Đang xử lý...") {
+    // Tránh việc mở chồng chéo nhiều popup
+    if (document.getElementById('mhent-typing-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'mhent-typing-overlay';
+    overlay.innerHTML = `
+        <div class="mhent-typing-box">
+            <div class="mhent-typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="mhent-typing-text">${message}</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+};
+
+window.hideTypingPopup = function() {
+    const overlay = document.getElementById('mhent-typing-overlay');
+    if (overlay) {
+        overlay.classList.add('closing');
+        // Chờ 300ms cho chạy xong animation mờ dần rồi mới xóa hẳn khỏi DOM
+        setTimeout(() => overlay.remove(), 300);
+    }
+};

@@ -162,9 +162,17 @@
 
             async function fetchPresets() {
                 const container = document.getElementById('preset-list');
+    
+                // 1. GỌI POPUP Ở ĐÂY
+                window.showTypingPopup("Đang tải dữ liệu từ mây..."); 
+
                 try {
                     const { data, error } = await supabase.from('inventory_presets').select('id, name, created_at').eq('user_id', currentUserUid).order('created_at', { ascending: false });
                     if (error) throw error;
+                    
+                    // 2. TẮT POPUP NẾU TẢI THÀNH CÔNG
+                    window.hideTypingPopup(); 
+
                     if (data.length === 0) {
                         container.innerHTML = `<p style="color: #64748b; width: 100%; text-align: center;">Chưa có bộ kiểm tồn nào. Tạo ngay đi sếp!</p>`;
                         return;
@@ -191,6 +199,8 @@
                     });
                     container.innerHTML = html;
                 } catch (error) {
+                    // 3. TẮT POPUP NẾU BỊ LỖI
+                    window.hideTypingPopup(); 
                     showToast("Lỗi Database", "Không thể kết nối Supabase!", "error");
                 }
             }
@@ -202,20 +212,25 @@
                 let name = prompt("Nhập tên bộ kiểm tồn (VD: Quản lý Goods sự kiện):");
                 if (!name || name.trim() === "") return;
 
-                showToast("Đang xử lý", "Đang khởi tạo không gian...", "info");
+                // 1. THAY SHOWTOAST BẰNG POPUP NÀY
+                window.showTypingPopup("Đang khởi tạo không gian...");
 
                 try {
                     const { data, error } = await supabase.from('inventory_presets').insert([
                         { user_id: currentUserUid, name: name, items: [] } 
-                    ]).select(); // .select() để supabase trả về cục data vừa tạo (lấy id)
+                    ]).select(); 
 
                     if (error) throw error;
                     
                     let newId = data[0].id;
-                    // Tự động đá sang phòng làm việc ở chế độ EDIT
+
+                    // 2. TẮT POPUP TRƯỚC KHI CHUYỂN TRANG
+                    window.hideTypingPopup();
                     window.location.href = `inventory.html?id=${newId}&edit=true`;
 
                 } catch (error) {
+                    // 3. TẮT POPUP NẾU LỖI
+                    window.hideTypingPopup();
                     showToast("Lỗi", "Tạo Preset thất bại!", "error");
                 }
             };
