@@ -369,7 +369,10 @@
                     }
                     if (item.catName) htmlContent += `<h2 class="category-title" id="${item.cat}">${item.catName}</h2>`;
                     
-                    let savedTare = localStorage.getItem('tare_' + item.id) || '';
+                    let savedTare = localStorage.getItem('tare_' + item.id);
+                    if (savedTare === null) {
+                        savedTare = item.defaultTare || '';
+                    }
                     htmlContent += `
                         <div class="item-card">
                             <div class="item-header">
@@ -398,10 +401,7 @@
                 container.innerHTML = htmlContent;
             }
 
-            let savedTare = localStorage.getItem('tare_' + item.id);
-                    if (savedTare === null) {
-                        savedTare = item.defaultTare || '';
-                    }
+            window.saveTare = function(id) { localStorage.setItem('tare_' + id, document.getElementById('tare_' + id).value); }
 
             window.calculate = function(id) {
                 let grossInput = document.getElementById('gross_' + id).value;
