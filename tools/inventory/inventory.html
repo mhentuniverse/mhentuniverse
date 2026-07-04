@@ -160,9 +160,15 @@
                         <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị (Bịch, Kg...)" style="flex: 1;">
                         <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi < ?" style="flex: 1;">
                     </div>
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #64748b; margin-bottom: 15px; cursor: pointer;">
-                        <input type="checkbox" id="new_tare" style="width: 18px; height: 18px;"> Món này cân bằng Kg (Có trừ bì)
+                    
+                    <!-- ĐÃ SỬA: Thêm hiệu ứng xổ ra ô nhập số bì -->
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #64748b; margin-bottom: 5px; cursor: pointer;">
+                        <input type="checkbox" id="new_tare" style="width: 18px; height: 18px;" onchange="document.getElementById('tare_input_wrapper').style.display = this.checked ? 'block' : 'none'"> Món này có Trừ Bì (Vỏ hộp)
                     </label>
+                    <div id="tare_input_wrapper" style="display: none; margin-bottom: 15px;">
+                        <input type="number" step="0.01" id="new_tare_weight" class="edit-input-field" placeholder="Nhập số kg vỏ mặc định (VD: 0.2)">
+                    </div>
+
                     <button class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
                 </div>
             </div>
@@ -303,6 +309,7 @@
                 let unit = document.getElementById('new_unit').value;
                 let warn = document.getElementById('new_warn').value;
                 let tare = document.getElementById('new_tare').checked;
+                let tareWeight = document.getElementById('new_tare_weight').value; // Bắt số liệu trừ bì
 
                 if(!cat || !name || !unit || !warn) {
                     showToast('Cảnh báo', 'Cậu nhập thiếu thông tin rồi!', 'error');
@@ -313,10 +320,19 @@
                 let catId = 'cat_' + cat.replace(/\s+/g, '-').toLowerCase();
 
                 currentData.push({
-                    id: itemId, cat: catId, catName: cat, name: name, unit: unit, hasTare: tare, warnAt: parseFloat(warn)
+                    id: itemId, 
+                    cat: catId, 
+                    catName: cat, 
+                    name: name, 
+                    unit: unit, 
+                    hasTare: tare, 
+                    warnAt: parseFloat(warn),
+                    defaultTare: tare ? parseFloat(tareWeight || 0) : 0 // Lưu thẳng số bì lên Database
                 });
 
                 document.getElementById('new_name').value = ''; 
+                document.getElementById('new_tare_weight').value = ''; // Reset ô nhập
+                
                 renderEditList();
                 showToast('Đã thêm', name, 'success');
             }
@@ -382,7 +398,10 @@
                 container.innerHTML = htmlContent;
             }
 
-            window.saveTare = function(id) { localStorage.setItem('tare_' + id, document.getElementById('tare_' + id).value); }
+            let savedTare = localStorage.getItem('tare_' + item.id);
+                    if (savedTare === null) {
+                        savedTare = item.defaultTare || '';
+                    }
 
             window.calculate = function(id) {
                 let grossInput = document.getElementById('gross_' + id).value;
