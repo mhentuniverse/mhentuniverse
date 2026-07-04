@@ -209,30 +209,35 @@
             window.createEmptyPreset = async function() {
                 if (!currentUserUid) return showToast("Lỗi", "Cậu cần đăng nhập trước!", "error");
                 
-                let name = prompt("Nhập tên bộ kiểm tồn (VD: Quản lý Goods sự kiện):");
-                if (!name || name.trim() === "") return;
+                // Gọi Popup Mới thay cho Prompt mặc định
+                window.showInputPopup(
+                    "Tạo Trạm Kiểm Tồn Mới 📦", 
+                    "Nhập tên (VD: Quản lý Kho sự kiện)...", 
+                    "Tạo ngay", 
+                    async function(name) {
+                        // Callback này sẽ chạy khi sếp gõ tên xong và bấm nút "Tạo ngay"
+                        if (!name || name.trim() === "") return;
 
-                // 1. THAY SHOWTOAST BẰNG POPUP NÀY
-                window.showTypingPopup("Đang khởi tạo không gian...");
+                        window.showTypingPopup("Đang khởi tạo không gian...");
 
-                try {
-                    const { data, error } = await supabase.from('inventory_presets').insert([
-                        { user_id: currentUserUid, name: name, items: [] } 
-                    ]).select(); 
+                        try {
+                            const { data, error } = await supabase.from('inventory_presets').insert([
+                                { user_id: currentUserUid, name: name, items: [] } 
+                            ]).select(); 
 
-                    if (error) throw error;
-                    
-                    let newId = data[0].id;
+                            if (error) throw error;
+                            
+                            let newId = data[0].id;
+                            
+                            window.hideTypingPopup();
+                            window.location.href = `inventory.html?id=${newId}&edit=true`;
 
-                    // 2. TẮT POPUP TRƯỚC KHI CHUYỂN TRANG
-                    window.hideTypingPopup();
-                    window.location.href = `inventory.html?id=${newId}&edit=true`;
-
-                } catch (error) {
-                    // 3. TẮT POPUP NẾU LỖI
-                    window.hideTypingPopup();
-                    showToast("Lỗi", "Tạo Preset thất bại!", "error");
-                }
+                        } catch (error) {
+                            window.hideTypingPopup();
+                            showToast("Lỗi", "Tạo Preset thất bại!", "error");
+                        }
+                    }
+                );
             };
         </script>
     </body>

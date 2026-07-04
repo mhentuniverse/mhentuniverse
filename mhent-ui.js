@@ -164,3 +164,47 @@ window.hideTypingPopup = function() {
         setTimeout(() => overlay.remove(), 300);
     }
 };
+
+// ==========================================
+// ⌨️ Popup Nhập Liệu Custom (Input Dialog)
+// ==========================================
+
+window.showInputPopup = function(title, placeholder, confirmText, callback) {
+    if (document.getElementById('mhent-input-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'mhent-input-overlay';
+    overlay.innerHTML = `
+        <div class="mhent-input-box">
+            <div class="mhent-input-title">${title}</div>
+            <input type="text" id="mhent-custom-input" class="mhent-input-field" placeholder="${placeholder}" autocomplete="off">
+            <div class="mhent-input-actions">
+                <button class="mhent-btn-cancel" onclick="closeInputPopup()">Hủy</button>
+                <button class="mhent-btn-confirm" id="mhent-btn-confirm-input">${confirmText}</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const inputField = document.getElementById('mhent-custom-input');
+    inputField.focus(); // Tự động đưa trỏ chuột vào khung gõ
+
+    // Bấm Enter để xác nhận cho lẹ
+    inputField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('mhent-btn-confirm-input').click();
+    });
+
+    document.getElementById('mhent-btn-confirm-input').addEventListener('click', () => {
+        const val = inputField.value.trim();
+        closeInputPopup();
+        if (callback) callback(val);
+    });
+};
+
+window.closeInputPopup = function() {
+    const overlay = document.getElementById('mhent-input-overlay');
+    if (overlay) {
+        overlay.classList.add('closing');
+        setTimeout(() => overlay.remove(), 300);
+    }
+};
