@@ -123,22 +123,19 @@
             import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
             import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-            // 1. SUPABASE (Sếp nhớ thay key)
-            const supabaseUrl = 'YOUR_SUPABASE_URL';
-            const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+            // SẾP NHỚ THAY KEY LẠI NHA
+            const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
             const supabase = createClient(supabaseUrl, supabaseKey);
 
-            // 2. FIREBASE (Giữ nguyên của sếp)
             const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
             const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
             const auth = getAuth(app);
 
-            // Gắn UI logic (Darkmode, Dropdown...)
+            // Giao diện (Darkmode, Logout...)
             const btnLogin = document.getElementById('btn-login');
-            const btnLogout = document.getElementById('btn-logout');
             if (btnLogin) btnLogin.addEventListener('click', () => { window.location.href = '/login'; });
-            if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); 
-
+            document.getElementById('btn-logout').addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); 
             window.toggleAccount = function() { document.getElementById('dropdown-account').classList.toggle('show'); };
             window.toggleDarkMode = function() {
                 document.body.classList.toggle('dark-mode');
@@ -146,7 +143,6 @@
             };
             if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
-            // XỬ LÝ AUTH & SUPABASE
             let currentUserUid = null;
 
             onAuthStateChanged(auth, async (user) => {
@@ -156,8 +152,7 @@
                     document.getElementById('user-profile').style.display = 'flex';
                     document.getElementById('user-name').innerText = user.displayName || "Khách";
                     if(user.photoURL) document.getElementById('user-avatar').src = user.photoURL;
-                    
-                    fetchPresets(); // Gọi database khi đã login
+                    fetchPresets(); 
                 } else {
                     document.getElementById('btn-login').style.display = 'flex';
                     document.getElementById('user-profile').style.display = 'none';
@@ -171,7 +166,7 @@
                     const { data, error } = await supabase.from('inventory_presets').select('id, name, created_at').eq('user_id', currentUserUid).order('created_at', { ascending: false });
                     if (error) throw error;
                     if (data.length === 0) {
-                        container.innerHTML = `<p style="color: #64748b; width: 100%; text-align: center;">Cậu chưa có Preset nào. Hãy bấm tạo mới ở trên nhé!</p>`;
+                        container.innerHTML = `<p style="color: #64748b; width: 100%; text-align: center;">Chưa có bộ kiểm tồn nào. Tạo ngay đi sếp!</p>`;
                         return;
                     }
 
@@ -179,11 +174,17 @@
                     data.forEach(preset => {
                         let dateStr = new Date(preset.created_at).toLocaleDateString('vi-VN');
                         html += `
-                            <div class="feature-card" onclick="window.location.href='inventory.html?id=${preset.id}'">
-                                <div class="feature-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-                                <div>
-                                    <h3 class="feature-title">${preset.name}</h3>
-                                    <p class="feature-desc">Ngày tạo: ${dateStr}</p>
+                            <div class="feature-card" style="position: relative;">
+                                <div onclick="window.location.href='inventory.html?id=${preset.id}&edit=true'" style="position: absolute; top: 15px; right: 15px; color: #94a3b8; cursor: pointer; padding: 10px; transition: 0.2s;" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#94a3b8'" title="Chỉnh sửa danh sách">
+                                    <i class="fa-solid fa-gear fa-lg"></i>
+                                </div>
+
+                                <div style="display: flex; gap: 20px; align-items: center; width: 100%;" onclick="window.location.href='inventory.html?id=${preset.id}'">
+                                    <div class="feature-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                                    <div>
+                                        <h3 class="feature-title">${preset.name}</h3>
+                                        <p class="feature-desc">Ngày tạo: ${dateStr}</p>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -194,22 +195,26 @@
                 }
             }
 
-            // TẠO PRESET TRỐNG
+            // TẠO PRESET MỚI VÀ CHUYỂN THẲNG QUA EDIT MODE
             window.createEmptyPreset = async function() {
                 if (!currentUserUid) return showToast("Lỗi", "Cậu cần đăng nhập trước!", "error");
                 
-                let name = prompt("Nhập tên bộ kiểm tồn (VD: Kho sự kiện tháng 7):");
+                let name = prompt("Nhập tên bộ kiểm tồn (VD: Quản lý Goods sự kiện):");
                 if (!name || name.trim() === "") return;
 
-                showToast("Đang xử lý", "Đang tạo Preset mới...", "info");
+                showToast("Đang xử lý", "Đang khởi tạo không gian...", "info");
 
                 try {
                     const { data, error } = await supabase.from('inventory_presets').insert([
-                        { user_id: currentUserUid, name: name, items: [] } // Tạo mảng rỗng
-                    ]);
+                        { user_id: currentUserUid, name: name, items: [] } 
+                    ]).select(); // .select() để supabase trả về cục data vừa tạo (lấy id)
+
                     if (error) throw error;
-                    showToast("Thành công", `Đã tạo ${name}! Cậu hãy vào Supabase để thêm cấu hình Data JSON nhé.`, "success");
-                    fetchPresets(); 
+                    
+                    let newId = data[0].id;
+                    // Tự động đá sang phòng làm việc ở chế độ EDIT
+                    window.location.href = `inventory.html?id=${newId}&edit=true`;
+
                 } catch (error) {
                     showToast("Lỗi", "Tạo Preset thất bại!", "error");
                 }

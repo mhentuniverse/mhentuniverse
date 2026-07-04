@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ghi Số Liệu - MHEnt. Tools</title>
+        <title>Phòng Làm Việc - MHEnt. Tools</title>
         <meta name="theme-color" content="#10b981">
         <link rel="stylesheet" href="/style.css">
         <link rel="stylesheet" href="/tools/tools-theme.css"> 
@@ -13,28 +13,24 @@
         
         <style>
             :root { --hub-color: #10b981; --hub-bg: rgba(16, 185, 129, 0.1); }
-            body { padding-bottom: 100px; /* Chừa chỗ cho thanh Bottom bar */ }
+            body { padding-bottom: 100px; }
 
-            /* CSS CHO KHU VỰC TOOL KIỂM TỒN */
             .tool-container { max-width: 600px; margin: 30px auto; padding: 0 20px; }
             .tool-header { position: sticky; top: 70px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 90; padding: 15px 0; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px;}
             body.dark-mode .tool-header { background: rgba(15, 23, 42, 0.95); border-color: #334155;}
-            
             .preset-title { font-size: 20px; color: var(--hub-color); font-weight: 900; margin: 0; text-align: center; }
             
-            /* Menu Tab Category */
             .nav-tabs { display: flex; gap: 10px; overflow-x: auto; padding-top: 15px; scrollbar-width: none; justify-content: center;}
             .nav-tabs::-webkit-scrollbar { display: none; }
             .tab-btn { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 20px; font-weight: 800; white-space: nowrap; text-decoration: none; font-size: 14px; transition: 0.2s;}
             .tab-btn:hover { background: var(--hub-color); color: #fff; border-color: var(--hub-color); }
             body.dark-mode .tab-btn { background: #1e293b; border-color: #334155; }
 
-            /* Card Từng Món Hàng */
             .category-title { font-size: 18px; color: var(--hub-color); margin: 30px 0 15px 0; border-bottom: 2px dashed #cbd5e1; padding-bottom: 5px; font-weight: 900;}
             body.dark-mode .category-title { border-color: #334155; }
             
-            .item-card { background: #fff; border-radius: 16px; padding: 15px 20px; margin-bottom: 15px; border: 2px solid #f1f5f9; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
-            body.dark-mode .item-card { background: #1e293b; border-color: #334155; box-shadow: none; }
+            .item-card { background: #fff; border-radius: 16px; padding: 15px 20px; margin-bottom: 15px; border: 2px solid #f1f5f9; display: flex; flex-direction: column; gap: 12px;}
+            body.dark-mode .item-card { background: #1e293b; border-color: #334155; }
             
             .item-header { display: flex; justify-content: space-between; align-items: center; }
             .item-name { font-weight: 900; font-size: 16px; color: #1e293b;}
@@ -44,34 +40,40 @@
             .input-group { display: flex; gap: 10px; align-items: center; }
             .input-box { flex: 1; display: flex; flex-direction: column; }
             .input-box label { font-size: 12px; color: #64748b; margin-bottom: 5px; font-weight: 800;}
-            .input-box input { background: #f8fafc; border: 2px solid #e2e8f0; color: #1e293b; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 900; outline: none; text-align: center; transition: 0.2s;}
+            .input-box input { background: #f8fafc; border: 2px solid #e2e8f0; color: #1e293b; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 900; outline: none; text-align: center; }
             .input-box input:focus { border-color: var(--hub-color); background: #fff;}
             body.dark-mode .input-box input { background: #0f172a; border-color: #334155; color: #fff;}
 
             .result-box { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 8px; padding: 10px; text-align: center; font-weight: 900; font-size: 18px; color: #10b981; min-width: 80px; display: flex; flex-direction: column; justify-content: center; }
             .result-box.empty { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
 
-            /* BOTTOM BAR CHỐT SỔ */
             .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; z-index: 100; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.05);}
             body.dark-mode .bottom-bar { background: rgba(15, 23, 42, 0.95); border-color: #334155; }
             
-            .btn-action { flex: 1; max-width: 300px; padding: 14px; border: none; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;}
-            .btn-report { background: var(--hub-color); color: white; box-shadow: 0 4px 15px var(--hub-bg);}
-            .btn-report:hover { transform: translateY(-2px); }
+            .btn-action { flex: 1; max-width: 300px; padding: 14px; border: none; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
+            .btn-report { background: var(--hub-color); color: white; }
             .btn-back { background: #f1f5f9; border: 2px solid #cbd5e1; color: #475569; }
             body.dark-mode .btn-back { background: #1e293b; border-color: #475569; color: #cbd5e1;}
-            .btn-copy { background: #3b82f6; color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);}
+            .btn-copy { background: #3b82f6; color: white; }
 
-            /* KHU VỰC REVIEW BÁO CÁO */
-            .review-area { background: #fff; padding: 20px; border-radius: 16px; border: 2px solid #e2e8f0; font-family: monospace; white-space: pre-wrap; font-size: 14px; line-height: 1.6; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.02);}
+            .review-area { background: #fff; padding: 20px; border-radius: 16px; border: 2px solid #e2e8f0; font-family: monospace; white-space: pre-wrap; font-size: 14px; line-height: 1.6; margin-bottom: 20px;}
             body.dark-mode .review-area { background: #1e293b; border-color: #334155; color: #f8fafc;}
+
+            /* --- STYLE CHO MÀN HÌNH CHỈNH SỬA (EDIT MODE) --- */
+            .edit-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin-top: 20px; }
+            body.dark-mode .edit-box { background: #0f172a; border-color: #334155; }
+            .edit-input-field { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; outline: none;}
+            body.dark-mode .edit-input-field { background: #1e293b; border-color: #475569; color: #fff;}
+            .edit-row { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; font-weight: 800;}
+            body.dark-mode .edit-row { background: #1e293b; border-color: #334155; color: #f8fafc;}
+            .btn-delete { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold;}
         </style>
     </head>
     <body>
         <nav class="navbar">
             <div class="nav-left">
                 <a onclick="window.location.href='/tools/inventory'" style="cursor: pointer;">
-                    <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--hub-color);">
+                    <img src="/assets/avt-web.jpg" alt="Avatar" class="avt-img" style="border-color: var(--hub-color);">
                     <span class="logo-name" style="color: var(--hub-color);">Phòng Làm Việc</span>
                 </a>
             </div>
@@ -82,8 +84,7 @@
 
         <div class="tool-header">
             <h1 class="preset-title" id="preset-title"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp dữ liệu...</h1>
-            <div class="nav-tabs" id="view-tabs" style="display: none;">
-                </div>
+            <div class="nav-tabs" id="view-tabs" style="display: none;"></div>
         </div>
 
         <div id="view-input" class="tool-container">
@@ -95,13 +96,40 @@
         </div>
 
         <div id="view-review" class="tool-container" style="display: none;">
-            <h2 style="color: #3b82f6; margin-bottom: 15px; font-weight: 900; text-align: center;"><i class="fa-solid fa-magnifying-glass"></i> Kiểm Tra Lại Báo Cáo</h2>
+            <h2 style="color: #3b82f6; margin-bottom: 15px; font-weight: 900; text-align: center;"><i class="fa-solid fa-magnifying-glass"></i> Kiểm Tra Báo Cáo</h2>
             <div class="review-area" id="reportText"></div>
         </div>
 
         <div class="bottom-bar" id="bar-review" style="display: none;">
             <button class="btn-action btn-back" onclick="quayLaiSua()"><i class="fa-solid fa-arrow-left"></i> Sửa Lại</button>
             <button class="btn-action btn-copy" onclick="copyReport()"><i class="fa-solid fa-copy"></i> Copy Báo Cáo</button>
+        </div>
+
+        <div id="view-edit" class="tool-container" style="display: none;">
+            <div style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 800; border: 1px solid #bfdbfe;">
+                <i class="fa-solid fa-pen-ruler"></i> Chế độ chỉnh sửa cấu hình danh sách món.
+            </div>
+
+            <div id="edit-list-render"></div>
+
+            <div class="edit-box">
+                <h3 style="color: #334155; margin-top: 0; margin-bottom: 15px; font-weight: 900;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
+                <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
+                <input type="text" id="new_name" class="edit-input-field" placeholder="Tên món (VD: Trà Olong)">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị (Bịch, Kg...)" style="flex: 1;">
+                    <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi < ?" style="flex: 1;">
+                </div>
+                <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #64748b; margin-bottom: 15px; cursor: pointer;">
+                    <input type="checkbox" id="new_tare" style="width: 18px; height: 18px;"> Món này cân bằng Kg (Có trừ bì)
+                </label>
+                <button class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
+            </div>
+        </div>
+
+        <div class="bottom-bar" id="bar-edit" style="display: none;">
+            <button class="btn-action btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-xmark"></i> Thoát</button>
+            <button class="btn-action btn-report" style="background: #3b82f6;" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU CẤU HÌNH TRÊN MÂY</button>
         </div>
         
         <footer>
@@ -114,58 +142,137 @@
         <script type="module">
             import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-            // SẾP NHỚ THAY KEY SUPABASE NHA
-            const supabaseUrl = 'YOUR_SUPABASE_URL';
-            const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+            // SẾP NHỚ THAY KEY NHA
+            const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
             const supabase = createClient(supabaseUrl, supabaseKey);
 
-            // LOGIC DARKMODE CHO RIÊNG PHÒNG LÀM VIỆC
             window.toggleDarkMode = function() {
                 document.body.classList.toggle('dark-mode');
                 localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
             };
             if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
-            // Lấy ID từ URL
+            // Lấy ID và param Edit
             const urlParams = new URLSearchParams(window.location.search);
             const presetId = urlParams.get('id');
+            const isEditMode = urlParams.get('edit') === 'true'; // CỤC NAM CHÂM KIỂM TRA MODE
+
             let currentData = [];
 
-            // LOAD DATA TỪ SUPABASE
             async function loadData() {
-                if (!presetId) {
-                    showPopup("Lỗi!", "Không tìm thấy ID bộ kiểm tồn trên thanh địa chỉ.", true);
-                    return;
-                }
+                if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID.", true);
 
                 try {
                     const { data, error } = await supabase.from('inventory_presets').select('*').eq('id', presetId).single();
                     if (error) throw error;
 
-                    document.getElementById('preset-title').innerText = data.name;
+                    currentData = data.items || [];
                     
-                    if (!data.items || data.items.length === 0) {
-                        document.getElementById('inventory-list').innerHTML = `
-                            <div style="text-align: center; padding: 40px 20px; color: #64748b;">
-                                <i class="fa-solid fa-box-open fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
-                                <h3>Preset này chưa có dữ liệu cấu hình!</h3>
-                                <p>Sếp hãy vào Dashboard Supabase, tìm ID này và dán mảng JSON vào cột "items" nha.</p>
-                            </div>`;
-                        return;
+                    if (isEditMode) {
+                        // KÍCH HOẠT MÀN HÌNH EDIT
+                        document.getElementById('preset-title').innerHTML = `<i class="fa-solid fa-gear"></i> Chỉnh sửa: ` + data.name;
+                        showEditMode();
+                    } else {
+                        // CHẠY BÌNH THƯỜNG
+                        document.getElementById('preset-title').innerText = data.name;
+                        if (currentData.length === 0) {
+                            document.getElementById('inventory-list').innerHTML = `
+                                <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+                                    <i class="fa-solid fa-box-open fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                                    <h3>Chưa có dữ liệu danh sách!</h3>
+                                    <button class="btn-action btn-report" style="margin: 20px auto;" onclick="window.location.href='?id=${presetId}&edit=true'">Thiết lập ngay ⚙️</button>
+                                </div>`;
+                        } else {
+                            renderInputList();
+                            document.getElementById('view-tabs').style.display = 'flex';
+                            document.getElementById('bar-input').style.display = 'flex';
+                        }
                     }
 
-                    currentData = data.items;
-                    renderInputList();
-                    document.getElementById('view-tabs').style.display = 'flex';
-                    document.getElementById('bar-input').style.display = 'flex';
-
                 } catch (error) {
-                    showPopup("Lỗi Database", "Không thể lấy dữ liệu món hàng từ Supabase!", true);
-                    document.getElementById('preset-title').innerText = "LỖI KẾT NỐI";
+                    showPopup("Lỗi Database", "Không thể lấy dữ liệu!", true);
                 }
             }
 
-            // VẼ GIAO DIỆN MÓN HÀNG
+            // --- CÁC HÀM CỦA MÀN HÌNH EDIT MODE ---
+            function showEditMode() {
+                document.getElementById('view-input').style.display = 'none';
+                document.getElementById('bar-input').style.display = 'none';
+                document.getElementById('view-edit').style.display = 'block';
+                document.getElementById('bar-edit').style.display = 'flex';
+                renderEditList();
+            }
+
+            window.renderEditList = function() {
+                const container = document.getElementById('edit-list-render');
+                if (currentData.length === 0) {
+                    container.innerHTML = `<p style="text-align:center; color:#64748b;">Danh sách đang trống. Hãy thêm món ở dưới nha.</p>`;
+                    return;
+                }
+
+                let html = '';
+                currentData.forEach((item, index) => {
+                    html += `
+                        <div class="edit-row">
+                            <div>
+                                <div style="color: var(--hub-color); font-size: 12px;">${item.catName}</div>
+                                <div>${item.name} <span style="font-size:11px; opacity:0.6;">(${item.unit})</span></div>
+                            </div>
+                            <button class="btn-delete" onclick="removeItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+
+            window.addNewItem = function() {
+                let cat = document.getElementById('new_cat').value;
+                let name = document.getElementById('new_name').value;
+                let unit = document.getElementById('new_unit').value;
+                let warn = document.getElementById('new_warn').value;
+                let tare = document.getElementById('new_tare').checked;
+
+                if(!cat || !name || !unit || !warn) {
+                    showToast('Cảnh báo', 'Cậu nhập thiếu thông tin rồi!', 'error');
+                    return;
+                }
+
+                let itemId = 'item_' + Date.now();
+                let catId = 'cat_' + cat.replace(/\s+/g, '-').toLowerCase();
+
+                currentData.push({
+                    id: itemId, cat: catId, catName: cat, name: name, unit: unit, hasTare: tare, warnAt: parseFloat(warn)
+                });
+
+                document.getElementById('new_name').value = ''; 
+                // Giữ lại Tên danh mục để sếp nhập liên tiếp các món trong cùng 1 nhóm cho nhanh
+                
+                renderEditList();
+                showToast('Đã thêm', name, 'success');
+            }
+
+            window.removeItem = function(index) {
+                currentData.splice(index, 1);
+                renderEditList();
+            }
+
+            window.savePresetToSupabase = async function() {
+                showToast('Đang lưu', 'Đang nén dữ liệu đẩy lên mây...', 'info');
+                try {
+                    const { error } = await supabase.from('inventory_presets').update({ items: currentData }).eq('id', presetId);
+                    if(error) throw error;
+                    
+                    showPopup('Xong!', 'Danh sách đã được cập nhật an toàn trên mây.');
+                    // Tự động đá về chế độ Ghi Số Liệu bình thường sau 1.5 giây
+                    setTimeout(() => { window.location.href = `?id=${presetId}`; }, 1500);
+                } catch(err) {
+                    showToast('Lỗi', 'Lưu thất bại!', 'error');
+                }
+            }
+
+
+            // --- CÁC HÀM CỦA MÀN HÌNH NHẬP LIỆU BÌNH THƯỜNG ---
             function renderInputList() {
                 const container = document.getElementById('inventory-list');
                 const tabsContainer = document.getElementById('view-tabs');
@@ -179,7 +286,6 @@
                     if (item.catName) htmlContent += `<h2 class="category-title" id="${item.cat}">${item.catName}</h2>`;
                     
                     let savedTare = localStorage.getItem('tare_' + item.id) || '';
-                    
                     htmlContent += `
                         <div class="item-card">
                             <div class="item-header">
@@ -201,46 +307,38 @@
                         </div>
                     `;
                 });
-
+                // Thêm nút Cài đặt thẳng vào Menu trượt
+                tabsHtml += `<a href="?id=${presetId}&edit=true" class="tab-btn" style="border-color: #3b82f6; color: #3b82f6;"><i class="fa-solid fa-gear"></i> Sửa</a>`;
                 tabsHtml += `<a href="index.html" class="tab-btn" style="border-color: #ef4444; color: #ef4444;"><i class="fa-solid fa-door-open"></i> Thoát</a>`;
+                
                 tabsContainer.innerHTML = tabsHtml;
                 container.innerHTML = htmlContent;
             }
 
-            // HÀM TÍNH TOÁN (Đẩy ra window để DOM gọi được)
-            window.saveTare = function(id) {
-                localStorage.setItem('tare_' + id, document.getElementById('tare_' + id).value);
-            }
+            window.saveTare = function(id) { localStorage.setItem('tare_' + id, document.getElementById('tare_' + id).value); }
 
             window.calculate = function(id) {
                 let grossInput = document.getElementById('gross_' + id).value;
                 let tareInput = document.getElementById('tare_' + id) ? document.getElementById('tare_' + id).value : 0;
                 let resultBox = document.getElementById('result_' + id);
-
                 if (grossInput === '') { resultBox.innerText = '--'; resultBox.classList.add('empty'); return; }
                 let net = Math.round((parseFloat(grossInput || 0) - parseFloat(tareInput || 0)) * 1000) / 1000;
-                
                 if (net <= 0) { resultBox.innerText = '0'; resultBox.classList.add('empty'); } 
                 else { resultBox.innerText = net; resultBox.classList.remove('empty'); }
             }
 
-            // CHỐT SỐ - CHUYỂN QUA MÀN 2
             window.chotSoLieu = function() {
                 let txt = `📅 BÁO CÁO TỒN KHO - ${new Date().toLocaleString('vi-VN')}\n--------------------------------\n\n`;
                 let outOfStock = [], lowStock = [], fullList = [];
-
                 currentData.forEach(item => {
                     let grossStr = document.getElementById('gross_' + item.id);
                     if (!grossStr || grossStr.value === '') return;
-                    
                     let tareElement = document.getElementById('tare_' + item.id);
                     let net = Math.round((parseFloat(grossStr.value) - (tareElement ? parseFloat(tareElement.value || 0) : 0)) * 1000) / 1000;
-
                     fullList.push(`- ${item.name}: ${net} ${item.unit}`);
                     if (net <= 0) outOfStock.push(`❌ ${item.name}`);
                     else if (net <= item.warnAt) lowStock.push(`⚠️ ${item.name} (Còn: ${net})`);
                 });
-
                 if (outOfStock.length > 0 || lowStock.length > 0) {
                     txt += `🚨 CẦN CHÚ Ý:\n`;
                     if (outOfStock.length > 0) txt += `\n🔴 HẾT HÀNG:\n` + outOfStock.join('\n') + '\n';
@@ -248,10 +346,8 @@
                     txt += `--------------------------------\n\n`;
                 }
                 txt += `📋 DANH SÁCH CHÉP SỔ:\n` + fullList.join('\n');
-
                 document.getElementById('reportText').innerText = txt;
 
-                // Ẩn Màn 1, Hiện Màn 2
                 document.getElementById('view-input').style.display = 'none';
                 document.getElementById('bar-input').style.display = 'none';
                 document.getElementById('view-tabs').style.display = 'none';
@@ -260,7 +356,6 @@
                 window.scrollTo(0, 0);
             }
 
-            // QUAY LẠI SỬA
             window.quayLaiSua = function() {
                 document.getElementById('view-review').style.display = 'none';
                 document.getElementById('bar-review').style.display = 'none';
@@ -274,7 +369,6 @@
                 showToast("Thành công", "Đã copy báo cáo, sẵn sàng gửi Group!", "success");
             }
 
-            // Chạy phát đầu tiên
             loadData();
         </script>
     </body>
