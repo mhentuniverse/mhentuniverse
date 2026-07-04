@@ -13,10 +13,30 @@
         
         <style>
             :root { --hub-color: #10b981; --hub-bg: rgba(16, 185, 129, 0.1); }
-            body { padding-bottom: 100px; }
+            
+            /* SỬA LỖI FLEXBOX ÉP FOOTER XUỐNG ĐÁY */
+            body { 
+                font-family: 'Nunito', sans-serif; margin: 0; background: #f8fafc; color: #1e293b;
+                display: flex; flex-direction: column; min-height: 100vh; /* Kéo giãn body 100% màn hình */
+            }
 
-            .tool-container { max-width: 600px; margin: 30px auto; padding: 0 20px; }
-            .tool-header { position: sticky; top: 70px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 90; padding: 15px 0; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px;}
+            .main-wrapper {
+                flex: 1; /* Cục nam châm đẩy footer xuống */
+                padding-top: 70px; /* Né cái Navbar fixed ở trên ra */
+                display: flex; flex-direction: column;
+            }
+
+            .tool-container { 
+                width: 100%; max-width: 600px; margin: 0 auto; padding: 0 20px 40px 20px; 
+                flex: 1; /* Cho phép nội dung co giãn tự do */
+            }
+
+            /* SỬA LỖI HEADER BỊ LẸM */
+            .tool-header { 
+                position: sticky; top: 70px; background: rgba(255, 255, 255, 0.95); 
+                backdrop-filter: blur(10px); z-index: 90; padding: 15px 0; 
+                border-bottom: 2px solid #f1f5f9; margin-bottom: 20px;
+            }
             body.dark-mode .tool-header { background: rgba(15, 23, 42, 0.95); border-color: #334155;}
             .preset-title { font-size: 20px; color: var(--hub-color); font-weight: 900; margin: 0; text-align: center; }
             
@@ -47,7 +67,10 @@
             .result-box { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 8px; padding: 10px; text-align: center; font-weight: 900; font-size: 18px; color: #10b981; min-width: 80px; display: flex; flex-direction: column; justify-content: center; }
             .result-box.empty { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
 
-            .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; z-index: 100; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.05);}
+            /* SỬA LỖI FOOTER VÀ BOTTOM BAR */
+            footer { margin-bottom: 80px; width: 100%; } /* Chừa 80px cho thanh Bottom Bar không đè lên Footer */
+            
+            .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; z-index: 100; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.05);}
             body.dark-mode .bottom-bar { background: rgba(15, 23, 42, 0.95); border-color: #334155; }
             
             .btn-action { flex: 1; max-width: 300px; padding: 14px; border: none; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
@@ -59,7 +82,6 @@
             .review-area { background: #fff; padding: 20px; border-radius: 16px; border: 2px solid #e2e8f0; font-family: monospace; white-space: pre-wrap; font-size: 14px; line-height: 1.6; margin-bottom: 20px;}
             body.dark-mode .review-area { background: #1e293b; border-color: #334155; color: #f8fafc;}
 
-            /* --- STYLE CHO MÀN HÌNH CHỈNH SỬA (EDIT MODE) --- */
             .edit-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin-top: 20px; }
             body.dark-mode .edit-box { background: #0f172a; border-color: #334155; }
             .edit-input-field { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; outline: none;}
@@ -82,22 +104,48 @@
             </div>
         </nav>
 
-        <div class="tool-header">
-            <h1 class="preset-title" id="preset-title"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp dữ liệu...</h1>
-            <div class="nav-tabs" id="view-tabs" style="display: none;"></div>
-        </div>
+        <!-- BAO BỌC TOÀN BỘ NỘI DUNG VÀO THẺ MAIN ĐỂ ÉP FOOTER XUỐNG -->
+        <main class="main-wrapper">
+            <div class="tool-header">
+                <h1 class="preset-title" id="preset-title"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp dữ liệu...</h1>
+                <div class="nav-tabs" id="view-tabs" style="display: none;"></div>
+            </div>
 
-        <div id="view-input" class="tool-container">
-            <div id="inventory-list"></div>
-        </div>
-        
+            <div id="view-input" class="tool-container">
+                <div id="inventory-list"></div>
+            </div>
+
+            <div id="view-review" class="tool-container" style="display: none;">
+                <h2 style="color: #3b82f6; margin-bottom: 15px; font-weight: 900; text-align: center;"><i class="fa-solid fa-magnifying-glass"></i> Kiểm Tra Báo Cáo</h2>
+                <div class="review-area" id="reportText"></div>
+            </div>
+
+            <div id="view-edit" class="tool-container" style="display: none;">
+                <div style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 800; border: 1px solid #bfdbfe;">
+                    <i class="fa-solid fa-pen-ruler"></i> Chế độ chỉnh sửa cấu hình danh sách món.
+                </div>
+
+                <div id="edit-list-render"></div>
+
+                <div class="edit-box">
+                    <h3 style="color: #334155; margin-top: 0; margin-bottom: 15px; font-weight: 900;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
+                    <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
+                    <input type="text" id="new_name" class="edit-input-field" placeholder="Tên món (VD: Trà Olong)">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị (Bịch, Kg...)" style="flex: 1;">
+                        <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi < ?" style="flex: 1;">
+                    </div>
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #64748b; margin-bottom: 15px; cursor: pointer;">
+                        <input type="checkbox" id="new_tare" style="width: 18px; height: 18px;"> Món này cân bằng Kg (Có trừ bì)
+                    </label>
+                    <button class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- CÁC THANH BOTTOM BAR CHỨA NÚT -->
         <div class="bottom-bar" id="bar-input" style="display: none;">
             <button class="btn-action btn-report" onclick="chotSoLieu()"><i class="fa-solid fa-check-double"></i> CHỐT SỐ LIỆU</button>
-        </div>
-
-        <div id="view-review" class="tool-container" style="display: none;">
-            <h2 style="color: #3b82f6; margin-bottom: 15px; font-weight: 900; text-align: center;"><i class="fa-solid fa-magnifying-glass"></i> Kiểm Tra Báo Cáo</h2>
-            <div class="review-area" id="reportText"></div>
         </div>
 
         <div class="bottom-bar" id="bar-review" style="display: none;">
@@ -105,44 +153,43 @@
             <button class="btn-action btn-copy" onclick="copyReport()"><i class="fa-solid fa-copy"></i> Copy Báo Cáo</button>
         </div>
 
-        <div id="view-edit" class="tool-container" style="display: none;">
-            <div style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 800; border: 1px solid #bfdbfe;">
-                <i class="fa-solid fa-pen-ruler"></i> Chế độ chỉnh sửa cấu hình danh sách món.
-            </div>
-
-            <div id="edit-list-render"></div>
-
-            <div class="edit-box">
-                <h3 style="color: #334155; margin-top: 0; margin-bottom: 15px; font-weight: 900;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
-                <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
-                <input type="text" id="new_name" class="edit-input-field" placeholder="Tên món (VD: Trà Olong)">
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị (Bịch, Kg...)" style="flex: 1;">
-                    <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi < ?" style="flex: 1;">
-                </div>
-                <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #64748b; margin-bottom: 15px; cursor: pointer;">
-                    <input type="checkbox" id="new_tare" style="width: 18px; height: 18px;"> Món này cân bằng Kg (Có trừ bì)
-                </label>
-                <button class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
-            </div>
-        </div>
-
         <div class="bottom-bar" id="bar-edit" style="display: none;">
             <button class="btn-action btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-xmark"></i> Thoát</button>
-            <button class="btn-action btn-report" style="background: #3b82f6;" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU CẤU HÌNH TRÊN MÂY</button>
+            <button class="btn-action btn-report" style="background: #3b82f6;" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU TRÊN MÂY</button>
         </div>
-        
+
         <footer>
-            <div class="footer-bottom">
-                <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+        <div class="footer-bottom">
+            <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
+            
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
+                    <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer" class="footer-link">
+                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                        Fanpage MHEnt.
+                    </a>
+                    <span style="opacity: 0.4; font-size: 10px;">•</span>
+                    <a onclick="window.open('https://www.facebook.com/groups/mhent.cinema', '_blank')" style="cursor: pointer" class="footer-link">
+                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Cộng đồng MHEnt.
+                    </a>
+                </div>
+
+                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
+                    <a onclick="window.location.href='/terms'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='inherit'">Điều khoản dịch vụ</a>
+                    <span style="opacity: 0.3;">|</span>
+                    <a onclick="window.location.href='/terms#community-guidelines'" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='inherit'">Nguyên tắc cộng đồng</a>
+                </div>
+
             </div>
-        </footer>
+        </div>
+    </footer>
 
         <script src="/mhent-ui.js"></script>
         <script type="module">
             import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-            // SẾP NHỚ THAY KEY NHA
             const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
             const supabase = createClient(supabaseUrl, supabaseKey);
@@ -153,17 +200,15 @@
             };
             if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
-            // Lấy ID và param Edit
             const urlParams = new URLSearchParams(window.location.search);
             const presetId = urlParams.get('id');
-            const isEditMode = urlParams.get('edit') === 'true'; // CỤC NAM CHÂM KIỂM TRA MODE
+            const isEditMode = urlParams.get('edit') === 'true'; 
 
             let currentData = [];
 
             async function loadData() {
                 if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID.", true);
 
-                // 1. GỌI POPUP Ở ĐÂY
                 window.showTypingPopup("Đang nạp dữ liệu cấu hình...");
 
                 try {
@@ -171,16 +216,12 @@
                     if (error) throw error;
 
                     currentData = data.items || [];
-                    
-                    // 2. TẮT POPUP VÌ ĐÃ CÓ DATA RỒI
                     window.hideTypingPopup();
                     
                     if (isEditMode) {
-                        // KÍCH HOẠT MÀN HÌNH EDIT
                         document.getElementById('preset-title').innerHTML = `<i class="fa-solid fa-gear"></i> Chỉnh sửa: ` + data.name;
                         showEditMode();
                     } else {
-                        // CHẠY BÌNH THƯỜNG
                         document.getElementById('preset-title').innerText = data.name;
                         if (currentData.length === 0) {
                             document.getElementById('inventory-list').innerHTML = `
@@ -195,15 +236,12 @@
                             document.getElementById('bar-input').style.display = 'flex';
                         }
                     }
-
                 } catch (error) {
-                    // 3. TẮT POPUP NẾU LỖI
                     window.hideTypingPopup();
                     showPopup("Lỗi Database", "Không thể lấy dữ liệu!", true);
                 }
             }
 
-            // --- CÁC HÀM CỦA MÀN HÌNH EDIT MODE ---
             function showEditMode() {
                 document.getElementById('view-input').style.display = 'none';
                 document.getElementById('bar-input').style.display = 'none';
@@ -254,8 +292,6 @@
                 });
 
                 document.getElementById('new_name').value = ''; 
-                // Giữ lại Tên danh mục để sếp nhập liên tiếp các món trong cùng 1 nhóm cho nhanh
-                
                 renderEditList();
                 showToast('Đã thêm', name, 'success');
             }
@@ -266,27 +302,20 @@
             }
 
             window.savePresetToSupabase = async function() {
-                // 1. GỌI POPUP Ở ĐÂY
                 window.showTypingPopup("Đang nén dữ liệu đẩy lên mây...");
-                
                 try {
                     const { error } = await supabase.from('inventory_presets').update({ items: currentData }).eq('id', presetId);
                     if(error) throw error;
                     
-                    // 2. TẮT POPUP NẾU LƯU THÀNH CÔNG
                     window.hideTypingPopup();
-
                     showPopup('Xong!', 'Danh sách đã được cập nhật an toàn trên mây.');
                     setTimeout(() => { window.location.href = `?id=${presetId}`; }, 1500);
                 } catch(err) {
-                    // 3. TẮT POPUP NẾU BỊ LỖI
                     window.hideTypingPopup();
                     showToast('Lỗi', 'Lưu thất bại!', 'error');
                 }
             }
 
-
-            // --- CÁC HÀM CỦA MÀN HÌNH NHẬP LIỆU BÌNH THƯỜNG ---
             function renderInputList() {
                 const container = document.getElementById('inventory-list');
                 const tabsContainer = document.getElementById('view-tabs');
@@ -321,7 +350,6 @@
                         </div>
                     `;
                 });
-                // Thêm nút Cài đặt thẳng vào Menu trượt
                 tabsHtml += `<a href="?id=${presetId}&edit=true" class="tab-btn" style="border-color: #3b82f6; color: #3b82f6;"><i class="fa-solid fa-gear"></i> Sửa</a>`;
                 tabsHtml += `<a href="index.html" class="tab-btn" style="border-color: #ef4444; color: #ef4444;"><i class="fa-solid fa-door-open"></i> Thoát</a>`;
                 
