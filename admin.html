@@ -394,7 +394,6 @@
                 <div class="admin-card" style="max-width: 900px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 250px); border: 2px solid var(--hub-color);">
                     
                     <div style="padding: 15px 20px; background: var(--hub-bg); border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                        <h3 id="aisa-mode-indicator" style="margin: 0; color: #e94560; font-weight: 900;">🌸 Đang giao tiếp với: HARMONY</h3>
                         <span id="aisa-status" style="font-size: 13px; font-weight: 700; color: #64748b; font-style: italic;">Trạm não bộ sẵn sàng...</span>
                     </div>
 
@@ -1366,7 +1365,6 @@
         // ==========================================
         // LOGIC TRỢ LÝ AISA
         // ==========================================
-        let aisaCurrentMode = "harmony"; 
         
         // MẸO DÙNG TRÊN ĐIỆN THOẠI: 
         // Khi test trên iPhone chung wifi với Laptop, hãy đổi chữ localhost thành IP của Laptop (VD: 192.168.1.5)
@@ -1420,22 +1418,12 @@
                 const data = await response.json();
                 
                 if(data.status === "success") {
-                    appendAisaMessage(data.speaker, data.reply, false);
-
-                    if(data.switched) {
-                        aisaCurrentMode = aisaCurrentMode === "harmony" ? "echo" : "harmony";
-                        const indicator = document.getElementById("aisa-mode-indicator");
-                        if(aisaCurrentMode === "harmony") {
-                            indicator.innerHTML = "🌸 Đang giao tiếp với: HARMONY";
-                            indicator.style.color = "#e94560";
-                        } else {
-                            indicator.innerHTML = "😈 Đang giao tiếp với: ECHO";
-                            indicator.style.color = "#a855f7";
-                        }
-                        appendAisaMessage("HỆ THỐNG", `Đã chuyển sang nhân cách ${aisaCurrentMode.toUpperCase()}`, false);
-                    }
+                    // Dùng vòng lặp in ra từng câu trả lời của 2 cô nàng
+                    data.replies.forEach(replyObj => {
+                        appendAisaMessage(replyObj.speaker, replyObj.text, false);
+                    });
                 } else {
-                    appendAisaMessage("LỖI", data.reply, false);
+                    appendAisaMessage("LỖI", data.replies[0].text, false);
                 }
             } catch (err) {
                 appendAisaMessage("LỖI", "Không kết nối được với não bộ! Cậu đã bật file Python Backend lên chưa?", false);

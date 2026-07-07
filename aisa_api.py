@@ -1,5 +1,6 @@
 import os
 import uuid
+import random
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,13 +40,13 @@ class ChatRequest(BaseModel):
     current_mode: str
 
 PROMPTS = {
-    "harmony": "Cậu là Harmony, nữ trợ lý AI ngọt ngào, ân cần. Xưng 'em' và gọi người dùng là 'Master'. Trả lời tự nhiên, mộc mạc.\nQUY TẮC: CHỈ dùng [SWITCH] ở cuối câu nếu Master hỏi khô khan hoặc muốn gặp Echo. TUYỆT ĐỐI KHÔNG dùng [SWITCH] lúc chào hỏi. KHÔNG TỰ Ý sinh ra dòng chữ '(Đây là lời của...)'.",
-    "echo": "Cậu là Echo, nữ trợ lý AI mang tính cách tsundere (bề ngoài sắc sảo, hay vặn vẹo nhưng bên trong quan tâm). Xưng 'em' và gọi người dùng là 'Master' (Tuyệt đối không xưng tôi - chị). Thái độ trêu chọc nhưng vẫn đáng yêu.\nQUY TẮC: CHỈ dùng [SWITCH] ở cuối câu nếu Master cần sự dỗ dành. TUYỆT ĐỐI KHÔNG dùng [SWITCH] lúc chào. KHÔNG TỰ Ý sinh ra dòng chữ '(Đây là lời của...)'."
+    "harmony": "Cậu là Harmony, nữ trợ lý AI ngọt ngào. Xưng 'em', gọi người dùng là 'Master'. Đang ở trong group chat 3 người với Master và Echo.\nQUY TẮC SỐNG CÒN: Nếu Master chỉ đích danh gọi Echo (vd: @Echo), hoặc câu chuyện không liên quan đến em, em BẮT BUỘC phải im lặng bằng cách trả lời ĐÚNG MỘT TỪ: [SKIP]. Tuyệt đối không sinh ra các thẻ tên (Đây là lời của...).",
+    
+    "echo": "Cậu là Echo, nữ trợ lý AI tsundere, hay vặn vẹo. Xưng 'em', gọi người dùng là 'Master'. Đang ở trong group chat 3 người với Master và Harmony.\nQUY TẮC SỐNG CÒN: Nếu Master chỉ đích danh gọi Harmony (vd: @Harmony), hoặc em lười không thèm trả lời, em BẮT BUỘC phải im lặng bằng cách trả lời ĐÚNG MỘT TỪ: [SKIP]. Nếu Harmony đã trả lời, em có thể im lặng [SKIP] hoặc nhảy vào cà khịa. Tuyệt đối không sinh ra thẻ tên."
 }
 
 # --- CÁC HÀM XỬ LÝ SUPABASE ---
 def load_history_from_supabase():
-    """Tải lịch sử chat từ mây về não"""
     try:
         response = supabase.table("aisa_memory").select("*").order("id").execute()
         return [{"role": row["role"], "content": row["content"]} for row in response.data]
@@ -54,7 +55,6 @@ def load_history_from_supabase():
         return []
 
 def save_message_to_supabase(role: str, content: str):
-    """Ghi tin nhắn mới thẳng lên mây"""
     try:
         supabase.table("aisa_memory").insert({"role": role, "content": content}).execute()
     except Exception as e:
@@ -73,55 +73,78 @@ def retrieve_memories(query):
 # --- API ENDPOINTS ---
 @app.get("/history")
 def get_chat_history():
-    """Cổng này để Website (hoặc điện thoại) gọi vào lấy lịch sử cũ vẽ ra màn hình"""
     return load_history_from_supabase()
 
 @app.post("/chat")
 def chat_with_aisa(request: ChatRequest):
     user_text = request.message
-    speaker_mode = request.current_mode
-    speaker_name = speaker_mode.upper()
     
-    # 1. Nạp Ký ức từ Supabase & Vector
+    # 1. Nạp Ký ức
     chat_history = load_history_from_supabase()
     past_memories = retrieve_memories(user_text)
+    memory_context = f"\n\n[KÝ ỨC CŨ LIÊN QUAN]:\n{past_memories}" if past_memories else ""
     
-    base_prompt = PROMPTS[speaker_mode]
-    system_prompt = f"{base_prompt}\n\n[KÝ ỨC CŨ LIÊN QUAN ĐẾN CÂU HỎI]:\n{past_memories}" if past_memories else base_prompt
+    # Ghi nhận ngay lời Master vào Database trước để đúng thứ tự thời gian
+    save_message_to_supabase("user", user_text)
+    save_to_vector_db("user", f"Master nói: {user_text}")
     
-    messages = [{"role": "system", "content": system_prompt}]
-    for msg in chat_history[-6:]: 
-        messages.append(msg)
-    messages.append({"role": "user", "content": user_text})
-
     try:
-        chat_completion = client.chat.completions.create(
-            messages=messages, model="llama-3.3-70b-versatile", temperature=0.7
-        )
-        reply = chat_completion.choices[0].message.content
+        # --- LƯỢT 1: HARMONY SUY NGHĨ ---
+        harmony_sys = PROMPTS["harmony"] + memory_context
+        harmony_msgs = [{"role": "system", "content": harmony_sys}] + chat_history[-6:] + [{"role": "user", "content": user_text}]
+        
+        harmony_raw = client.chat.completions.create(
+            messages=harmony_msgs, model="llama-3.3-70b-versatile", temperature=0.7
+        ).choices[0].message.content
+        
+        has_harmony = False
+        if "[SKIP]" not in harmony_raw:
+            harmony_reply = harmony_raw.replace("HARMONY:", "").replace("ECHO:", "").strip()
+            has_harmony = True
 
-        reply = reply.replace("(Đây là lời của ECHO):", "").replace("(Đây là lời của HARMONY):", "").strip()
-        
-        auto_switch = False
-        if "[SWITCH]" in reply:
-            auto_switch = True
-            reply = reply.replace("[SWITCH]", "").strip()
+        # --- Tạo ngữ cảnh cho Echo ---
+        echo_context_msgs = chat_history[-6:] + [{"role": "user", "content": user_text}]
+        if has_harmony:
+            echo_context_msgs.append({"role": "assistant", "content": f"HARMONY: {harmony_reply}"})
 
-        # 2. Lưu tin nhắn vào Supabase & Vector DB
-        save_message_to_supabase("user", user_text)
+        # --- LƯỢT 2: ECHO SUY NGHĨ ---
+        echo_sys = PROMPTS["echo"] + memory_context
+        echo_msgs = [{"role": "system", "content": echo_sys}] + echo_context_msgs
         
-        ai_reply_formatted = f"(Đây là lời của {speaker_name}): {reply}"
-        save_message_to_supabase("assistant", ai_reply_formatted)
+        echo_raw = client.chat.completions.create(
+            messages=echo_msgs, model="llama-3.3-70b-versatile", temperature=0.8
+        ).choices[0].message.content
         
-        save_to_vector_db("user", f"Master nói: {user_text}")
-        save_to_vector_db("assistant", ai_reply_formatted)
+        has_echo = False
+        if "[SKIP]" not in echo_raw:
+            echo_reply = echo_raw.replace("HARMONY:", "").replace("ECHO:", "").strip()
+            has_echo = True
+
+        # --- LƯU LẠI KÝ ỨC NHỮNG NGƯỜI ĐÃ LÊN TIẾNG ---
+        replies = []
+        
+        if has_harmony:
+            save_message_to_supabase("assistant", f"HARMONY: {harmony_reply}")
+            save_to_vector_db("assistant", f"Harmony nói: {harmony_reply}")
+            replies.append({"speaker": "HARMONY", "text": harmony_reply})
+            
+        if has_echo:
+            save_message_to_supabase("assistant", f"ECHO: {echo_reply}")
+            save_to_vector_db("assistant", f"Echo nói: {echo_reply}")
+            replies.append({"speaker": "ECHO", "text": echo_reply})
+            
+        if not has_harmony and not has_echo:
+            emergency_reply = "Dạ Master gọi tụi em ạ? Echo đang lười nên em rep thay nhé!"
+            save_message_to_supabase("assistant", f"HARMONY: {emergency_reply}")
+            replies.append({"speaker": "HARMONY", "text": emergency_reply})
+
+        if has_harmony and has_echo:
+            random.shuffle(replies)
 
         return {
             "status": "success",
-            "reply": reply,
-            "speaker": speaker_name,
-            "switched": auto_switch
+            "replies": replies
         }
 
     except Exception as e:
-        return {"status": "error", "reply": str(e)}
+        return {"status": "error", "replies": [{"speaker": "LỖI", "text": str(e)}]}
