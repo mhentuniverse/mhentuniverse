@@ -211,6 +211,7 @@
             <a class="admin-menu-item active" id="menu-users" onclick="switchTab('users')"><i class="fa-solid fa-users" style="width:20px;"></i> Quản lý Cư dân</a>
             <a class="admin-menu-item" id="menu-notify" onclick="switchTab('notify')"><i class="fa-solid fa-paper-plane" style="width:20px;"></i> Phát thanh (Mail)</a>
             <a class="admin-menu-item" id="menu-logs" onclick="switchTab('logs')"><i class="fa-solid fa-clock-rotate-left" style="width:20px;"></i> Nhật ký hệ thống</a>
+            <a class="admin-menu-item" id="menu-aisa" onclick="switchTab('aisa')"><i class="fa-solid fa-robot" style="width:20px;"></i> Trợ lý AISA</a>
             <a class="admin-menu-item" style="color: #ef4444;" id="menu-settings" onclick="switchTab('settings')"><i class="fa-solid fa-power-off" style="width:20px;"></i> Bảo trì Server</a>
         </aside>
 
@@ -382,6 +383,28 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-aisa" class="admin-tab">
+                <h1 class="page-title"><i class="fa-solid fa-microchip" style="color: var(--hub-color);"></i> AISA Core System</h1>
+                <p class="page-subtitle">Hệ thống trợ lý AI đa nhân cách (Tích hợp Vector Memory).</p>
+
+                <div class="admin-card" style="max-width: 900px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 250px); border: 2px solid var(--hub-color);">
+                    
+                    <div style="padding: 15px 20px; background: var(--hub-bg); border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 id="aisa-mode-indicator" style="margin: 0; color: #e94560; font-weight: 900;">🌸 Đang giao tiếp với: HARMONY</h3>
+                        <span id="aisa-status" style="font-size: 13px; font-weight: 700; color: #64748b; font-style: italic;">Trạm não bộ sẵn sàng...</span>
+                    </div>
+
+                    <div id="aisa-chat-box" style="flex: 1; overflow-y: auto; padding: 20px; background: #f8fafc;">
+                        <div style="text-align: center; color: #94a3b8; font-weight: bold; margin-bottom: 20px;">--- Bắt đầu phiên làm việc ---</div>
+                    </div>
+
+                    <div style="padding: 15px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; gap: 10px;">
+                        <input type="text" id="aisa-input" class="admin-input" style="margin-bottom: 0; flex: 1;" placeholder="Ra lệnh cho AISA..." onkeypress="if(event.key === 'Enter') sendAisaMessage()">
+                        <button class="btn-large" id="btn-send-aisa" onclick="sendAisaMessage()" style="padding: 10px 20px;"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
             </div>
@@ -1339,6 +1362,122 @@
                 btnElement.disabled = false;
             }
         }
+
+        // ==========================================
+        // LOGIC TRỢ LÝ AISA
+        // ==========================================
+        let aisaCurrentMode = "harmony"; 
+        
+        // MẸO DÙNG TRÊN ĐIỆN THOẠI: 
+        // Khi test trên iPhone chung wifi với Laptop, hãy đổi chữ localhost thành IP của Laptop (VD: 192.168.1.5)
+        const AISA_API_URL = "http://localhost:8000/chat"; 
+
+        function appendAisaMessage(sender, text, isUser = false) {
+            const chatBox = document.getElementById("aisa-chat-box");
+            const div = document.createElement("div");
+            div.style.marginBottom = "15px";
+            div.style.lineHeight = "1.5";
+            div.style.fontWeight = "700";
+            
+            if (isUser) {
+                div.style.textAlign = "right";
+                div.innerHTML = `<span style="background: #10b981; color: white; padding: 10px 15px; border-radius: 15px 15px 0 15px; display: inline-block; max-width: 80%; text-align: left;">🧑‍💻 Master: <br><span style="font-weight: 600;">${text}</span></span>`;
+            } else if (sender === "HỆ THỐNG") {
+                div.style.textAlign = "center";
+                div.innerHTML = `<span style="color: #64748b; font-size: 13px; font-weight: 800; font-style: italic;">⚡ ${text} ⚡</span>`;
+            } else {
+                let color = sender === "HARMONY" ? "#e94560" : "#a855f7";
+                let avatar = sender === "HARMONY" ? "🌸" : "😈";
+                div.innerHTML = `<span style="background: #f1f5f9; color: #1e293b; padding: 10px 15px; border-radius: 15px 15px 15px 0; display: inline-block; max-width: 80%; border: 1px solid #e2e8f0;"><span style="color: ${color};">${avatar} ${sender}:</span> <br><span style="font-weight: 600;">${text}</span></span>`;
+            }
+
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        window.sendAisaMessage = async function() {
+            const inputField = document.getElementById("aisa-input");
+            const btnSend = document.getElementById("btn-send-aisa");
+            const statusText = document.getElementById("aisa-status");
+            
+            const userText = inputField.value.trim();
+            if(!userText) return;
+
+            appendAisaMessage("Master", userText, true);
+            inputField.value = "";
+            inputField.disabled = true;
+            btnSend.disabled = true;
+            statusText.innerText = "Đang rà soát tiềm thức Vector...";
+            statusText.style.color = "#a855f7";
+
+            try {
+                const response = await fetch(AISA_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userText, current_mode: aisaCurrentMode })
+                });
+
+                const data = await response.json();
+                
+                if(data.status === "success") {
+                    appendAisaMessage(data.speaker, data.reply, false);
+
+                    if(data.switched) {
+                        aisaCurrentMode = aisaCurrentMode === "harmony" ? "echo" : "harmony";
+                        const indicator = document.getElementById("aisa-mode-indicator");
+                        if(aisaCurrentMode === "harmony") {
+                            indicator.innerHTML = "🌸 Đang giao tiếp với: HARMONY";
+                            indicator.style.color = "#e94560";
+                        } else {
+                            indicator.innerHTML = "😈 Đang giao tiếp với: ECHO";
+                            indicator.style.color = "#a855f7";
+                        }
+                        appendAisaMessage("HỆ THỐNG", `Đã chuyển sang nhân cách ${aisaCurrentMode.toUpperCase()}`, false);
+                    }
+                } else {
+                    appendAisaMessage("LỖI", data.reply, false);
+                }
+            } catch (err) {
+                appendAisaMessage("LỖI", "Không kết nối được với não bộ! Cậu đã bật file Python Backend lên chưa?", false);
+            }
+            
+            statusText.innerText = "Trạm não bộ sẵn sàng...";
+            statusText.style.color = "#64748b";
+            inputField.disabled = false;
+            btnSend.disabled = false;
+            inputField.focus();
+        }
+
+        // Hàm load lại ký ức cũ khi mở trang
+        async function loadAisaHistory() {
+            try {
+                // NHỚ ĐỔI ĐỊA CHỈ IP TƯƠNG ỨNG NHƯ HỒI NÃY NHA!
+                const response = await fetch("http://192.168.X.X:8000/history"); 
+                const history = await response.json();
+                
+                // Giữ lại 20 câu gần nhất cho đỡ rối mắt
+                history.slice(-20).forEach(msg => {
+                    if(msg.role === "user") {
+                        appendAisaMessage("Master", msg.content, true);
+                    } else {
+                        let speaker = msg.content.includes("HARMONY") ? "HARMONY" : "ECHO";
+                        let cleanText = msg.content.replace(`(Đây là lời của ${speaker}):`, "").trim();
+                        appendAisaMessage(speaker, cleanText, false);
+                    }
+                });
+            } catch (e) {
+                console.log("Trạm não bộ AI đang tắt hoặc chưa kết nối được IP.", e);
+            }
+        }
+
+        // Gọi hàm này ngay khi truy cập vào Tab AISA hoặc khi trang vừa load xong
+        document.getElementById('menu-aisa').addEventListener('click', () => {
+            const chatBox = document.getElementById("aisa-chat-box");
+            // Tránh load lặp đi lặp lại mỗi lần bấm tab
+            if (chatBox.children.length <= 1) { 
+                loadAisaHistory();
+            }
+        });
     </script>
     <script src="/mhent-ui.js"></script>
     <script src="/check-token.js"></script>
