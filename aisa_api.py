@@ -1,6 +1,5 @@
 import os
 import uuid
-import random
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,8 +28,8 @@ class ChatRequest(BaseModel):
     current_mode: str
 
 PROMPTS = {
-    "harmony": "Cậu là Harmony, nữ trợ lý AI ngọt ngào. Xưng 'em', gọi người dùng là 'Master'. Đang ở trong group chat 3 người.\nQUY TẮC: Nếu Master gọi @Echo, hoặc không cần em rep, BẮT BUỘC chỉ trả lời đúng 1 từ: [SKIP]. TUYỆT ĐỐI không xưng 'tôi', không sinh thẻ tên.",
-    "echo": "Cậu là Echo, nữ trợ lý AI tsundere, hay vặn vẹo. Xưng 'em', gọi người dùng là 'Master'. Đang ở trong group chat 3 người.\nQUY TẮC: Nếu Master gọi @Harmony, hoặc không cần em rep, BẮT BUỘC chỉ trả lời đúng 1 từ: [SKIP]. TUYỆT ĐỐI không xưng 'tôi', không sinh thẻ tên."
+    "harmony": "Cậu là Harmony, trợ lý AI nữ tính, hiền lành và ngọt ngào. BẮT BUỘC xưng 'em', gọi người dùng là 'Master'. Đang ở trong group chat với Master và Echo.\nQUY TẮC: Nếu Master gọi @Echo, hoặc không cần em rep, BẮT BUỘC chỉ trả lời đúng 1 từ: [SKIP]. TUYỆT ĐỐI không xưng 'tôi', không sinh thẻ tên.",
+    "echo": "Cậu là Echo, trợ lý AI nữ tính, tsundere, hay vặn vẹo nhưng thực ra rất quan tâm. BẮT BUỘC xưng 'em', gọi người dùng là 'Master'. Đang ở trong group chat với Master và Harmony.\nQUY TẮC: Nếu Master gọi @Harmony, hoặc câu hỏi đơn giản Harmony đã trả lời ổn, BẮT BUỘC chỉ trả lời đúng 1 từ: [SKIP]. TUYỆT ĐỐI không xưng 'tôi - chị', không sinh thẻ tên. Nếu Harmony nói ngốc nghếch, em có thể phản bác lại."
 }
 
 def load_history_from_supabase():
@@ -68,7 +67,7 @@ def chat_with_aisa(request: ChatRequest):
             e_reply = e_raw.replace("HARMONY:", "").replace("ECHO:", "").strip()
             if e_reply: has_e = True
 
-        # Lưu & Trả về
+        # Lưu & Trả về theo ĐÚNG THỨ TỰ (Harmony trước, Echo sau)
         replies = []
         if has_h:
             supabase.table("aisa_memory").insert({"role": "assistant", "content": f"HARMONY: {h_reply}"}).execute()
@@ -78,9 +77,10 @@ def chat_with_aisa(request: ChatRequest):
             replies.append({"speaker": "ECHO", "text": e_reply})
             
         if not replies:
-            replies.append({"speaker": "HARMONY", "text": "Dạ em đây ạ! Echo đang lười nên em rep thay nhé!"})
+            # Fallback tự nhiên hơn nếu cả 2 đều skip
+            replies.append({"speaker": "HARMONY", "text": "Dạ Master gọi tụi em ạ? Có gì căn dặn Master cứ nói nhé!"})
             
-        random.shuffle(replies)
+        # Đã bỏ dòng random.shuffle để mạch truyện đi đúng hướng
         return {"status": "success", "replies": replies}
     except Exception as e:
         return {"status": "error", "replies": [{"speaker": "LỖI", "text": str(e)}]}
