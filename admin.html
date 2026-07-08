@@ -1395,47 +1395,29 @@
 
         window.sendAisaMessage = async function() {
             const inputField = document.getElementById("aisa-input");
-            const btnSend = document.getElementById("btn-send-aisa");
-            const statusText = document.getElementById("aisa-status");
-            
             const userText = inputField.value.trim();
             if(!userText) return;
 
             appendAisaMessage("Master", userText, true);
             inputField.value = "";
-            inputField.disabled = true;
-            btnSend.disabled = true;
-            statusText.innerText = "Đang rà soát tiềm thức Vector...";
-            statusText.style.color = "#a855f7";
 
             try {
-                const response = await fetch(AISA_API_URL, {
+                const response = await fetch("https://aisa-mhent-api.onrender.com/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    // SỬA DÒNG BÊN DƯỚI NÈ:
                     body: JSON.stringify({ message: userText, current_mode: "group" })
                 });
 
                 const data = await response.json();
-                
                 if(data.status === "success") {
-                    // Dùng vòng lặp in ra từng câu trả lời của 2 cô nàng
-                    data.replies.forEach(replyObj => {
-                        appendAisaMessage(replyObj.speaker, replyObj.text, false);
-                    });
+                    data.replies.forEach(r => appendAisaMessage(r.speaker, r.text, false));
                 } else {
                     appendAisaMessage("LỖI", data.replies[0].text, false);
                 }
             } catch (err) {
-                appendAisaMessage("LỖI", "Không kết nối được với não bộ! Cậu đã bật file Python Backend lên chưa?", false);
+                appendAisaMessage("LỖI", "Mất kết nối với não bộ!", false);
             }
-            
-            statusText.innerText = "Trạm não bộ sẵn sàng...";
-            statusText.style.color = "#64748b";
-            inputField.disabled = false;
-            btnSend.disabled = false;
-            inputField.focus();
-        }
+        };
 
         // Hàm load lại ký ức cũ khi mở trang
         async function loadAisaHistory() {
