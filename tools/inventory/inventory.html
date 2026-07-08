@@ -27,7 +27,7 @@
             }
 
             .tool-container { 
-                width: 100%; max-width: 600px; margin: 0 auto; padding: 0 20px 40px 20px; 
+                width: 100%; max-width: 720px; margin: 0 auto; padding: 0 20px 40px 20px; 
                 flex: 1; /* Cho phép nội dung co giãn tự do */
             }
 
@@ -40,25 +40,26 @@
             body.dark-mode .tool-header { background: rgba(15, 23, 42, 0.95); border-color: #334155;}
             .preset-title { font-size: 20px; color: var(--hub-color); font-weight: 900; margin: 0; text-align: center; }
             
-            .nav-tabs { display: flex; gap: 10px; overflow-x: auto; padding-top: 15px; scrollbar-width: none; justify-content: center;}
+            .nav-tabs { display: flex; flex-wrap: nowrap; gap: 10px; overflow-x: auto; padding-top: 15px; scrollbar-width: none; justify-content: center;}
             .nav-tabs::-webkit-scrollbar { display: none; }
-            .tab-btn { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 20px; font-weight: 800; white-space: nowrap; text-decoration: none; font-size: 14px; transition: 0.2s;}
-            .tab-btn:hover { background: var(--hub-color); color: #fff; border-color: var(--hub-color); }
-            body.dark-mode .tab-btn { background: #1e293b; border-color: #334155; }
+            .tab-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 24px; font-weight: 800; white-space: nowrap; text-decoration: none; font-size: 14px; transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;}
+            .tab-btn:hover { transform: translateY(-1px); background: var(--hub-color); color: #fff; border-color: var(--hub-color); }
+            body.dark-mode .tab-btn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
 
             .category-title { font-size: 18px; color: var(--hub-color); margin: 30px 0 15px 0; border-bottom: 2px dashed #cbd5e1; padding-bottom: 5px; font-weight: 900;}
             body.dark-mode .category-title { border-color: #334155; }
             
-            .item-card { background: #fff; border-radius: 16px; padding: 15px 20px; margin-bottom: 15px; border: 2px solid #f1f5f9; display: flex; flex-direction: column; gap: 12px;}
-            body.dark-mode .item-card { background: #1e293b; border-color: #334155; }
+            .item-card { background: #fff; border-radius: 18px; padding: 18px 22px; margin-bottom: 18px; border: 2px solid #f1f5f9; display: flex; flex-direction: column; gap: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease;}
+            .item-card:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+            body.dark-mode .item-card { background: #111827; border-color: #334155; }
             
             .item-header { display: flex; justify-content: space-between; align-items: center; }
             .item-name { font-weight: 900; font-size: 16px; color: #1e293b;}
             body.dark-mode .item-name { color: #f8fafc; }
             .item-unit { font-size: 12px; background: var(--hub-bg); color: var(--hub-color); padding: 4px 10px; border-radius: 8px; font-weight: 800;}
 
-            .input-group { display: flex; gap: 10px; align-items: center; }
-            .input-box { flex: 1; display: flex; flex-direction: column; }
+            .input-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+            .input-box { flex: 1; min-width: 145px; display: flex; flex-direction: column; }
             .input-box label { font-size: 12px; color: #64748b; margin-bottom: 5px; font-weight: 800;}
             .input-box input { background: #f8fafc; border: 2px solid #e2e8f0; color: #1e293b; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 900; outline: none; text-align: center; }
             .input-box input:focus { border-color: var(--hub-color); background: #fff;}
@@ -66,6 +67,13 @@
 
             .result-box { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 8px; padding: 10px; text-align: center; font-weight: 900; font-size: 18px; color: #10b981; min-width: 80px; display: flex; flex-direction: column; justify-content: center; }
             .result-box.empty { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
+            .revenue-panel { background: rgba(15, 23, 42, 0.95); border-color: rgba(255, 255, 255, 0.12); color: #f8fafc; font-weight: 700; padding: 18px 20px; border-radius: 16px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08); }
+            .revenue-panel small { display: block; font-size: 13px; color: rgba(255,255,255,0.72); margin-top: 6px; }
+
+            .item-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+            .item-name { font-weight: 900; font-size: 18px; color: #1e293b; }
+            body.dark-mode .item-name { color: #f8fafc; }
+            .item-unit { font-size: 12px; background: var(--hub-bg); color: var(--hub-color); padding: 6px 12px; border-radius: 999px; font-weight: 800;}
 
             /* SỬA LỖI FOOTER VÀ BOTTOM BAR */
             footer { margin-bottom: 80px; width: 100%; } /* Chừa 80px cho thanh Bottom Bar không đè lên Footer */
@@ -138,6 +146,7 @@
 
             <div id="view-input" class="tool-container">
                 <div id="inventory-list"></div>
+                <div id="revenue-panel" class="result-box" style="display:none; margin-top: 20px; max-width: 420px; margin-left: auto; margin-right: auto;"></div>
             </div>
 
             <div id="view-review" class="tool-container" style="display: none;">
@@ -168,6 +177,9 @@
                     <div id="tare_input_wrapper" style="display: none; margin-bottom: 15px;">
                         <input type="number" step="0.01" id="new_tare_weight" class="edit-input-field" placeholder="Nhập số kg vỏ mặc định (VD: 0.2)">
                     </div>
+                    <input type="number" step="1" min="1" id="new_multiplier" class="edit-input-field" placeholder="Hệ số quy đổi (VD: 1 bịch = 50 cái)">
+                    <input type="number" step="0.01" min="0" id="new_price" class="edit-input-field" placeholder="Giá/đơn vị (VD: 25000)">
+                    <p style="font-size: 13px; color:#64748b; margin:0 0 15px 0;">Nếu có giá đơn vị, hệ thống sẽ ước tính doanh thu tạm.</p>
 
                     <button id="add-item-button" class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
                     <button id="cancel-edit-button" class="btn-action btn-back" type="button" style="width: 100%; margin-top: 10px; display: none; background: #e2e8f0; color: #475569;" onclick="cancelEdit()">Hủy sửa</button>
@@ -318,6 +330,8 @@
                 document.getElementById('new_tare').checked = item.hasTare;
                 document.getElementById('tare_input_wrapper').style.display = item.hasTare ? 'block' : 'none';
                 document.getElementById('new_tare_weight').value = item.defaultTare || '';
+                document.getElementById('new_multiplier').value = item.multiplier || '';
+                document.getElementById('new_price').value = item.pricePerUnit || '';
                 document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-pen"></i> Chỉnh sửa món';
                 document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi';
                 document.getElementById('cancel-edit-button').style.display = 'inline-flex';
@@ -353,6 +367,8 @@
 
                 let catId = 'cat_' + cat.replace(/\s+/g, '-').toLowerCase();
                 let warnValue = parseFloat(warn);
+                let multiplier = parseFloat(document.getElementById('new_multiplier').value);
+                let pricePerUnit = parseFloat(document.getElementById('new_price').value);
 
                 if (currentEditIndex !== null) {
                     const item = currentData[currentEditIndex];
@@ -363,6 +379,8 @@
                     item.hasTare = tare;
                     item.warnAt = warnValue;
                     item.defaultTare = tare ? parseFloat(tareWeight || 0) : 0;
+                    item.multiplier = multiplier > 0 ? multiplier : undefined;
+                    item.pricePerUnit = pricePerUnit > 0 ? pricePerUnit : undefined;
                     currentEditIndex = null;
                     showToast('Đã lưu', name, 'success');
                 } else {
@@ -375,7 +393,9 @@
                         unit: unit,
                         hasTare: tare,
                         warnAt: warnValue,
-                        defaultTare: tare ? parseFloat(tareWeight || 0) : 0 // Lưu thẳng số bì lên Database
+                        defaultTare: tare ? parseFloat(tareWeight || 0) : 0, // Lưu thẳng số bì lên Database
+                        multiplier: multiplier > 0 ? multiplier : undefined,
+                        pricePerUnit: pricePerUnit > 0 ? pricePerUnit : undefined
                     });
                     showToast('Đã thêm', name, 'success');
                 }
@@ -386,6 +406,8 @@
                 document.getElementById('new_warn').value = '';
                 document.getElementById('new_tare').checked = false;
                 document.getElementById('new_tare_weight').value = '';
+                document.getElementById('new_multiplier').value = '';
+                document.getElementById('new_price').value = '';
                 document.getElementById('tare_input_wrapper').style.display = 'none';
                 document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-plus"></i> Thêm Món Mới';
                 document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Đưa vào danh sách';
@@ -430,6 +452,8 @@
                     if (savedTare === null) {
                         savedTare = item.defaultTare || '';
                     }
+                    let grossLabel = item.multiplier ? 'Số bịch' : 'Tổng Cân';
+                    let priceInfo = item.pricePerUnit ? `<div style="font-size:14px; color:#475569; margin-top:8px;">Đơn giá: ${formatCurrency(item.pricePerUnit)} / ${item.unit}</div>` : '';
                     htmlContent += `
                         <div class="item-card">
                             <div class="item-header">
@@ -438,7 +462,7 @@
                             </div>
                             <div class="input-group">
                                 <div class="input-box">
-                                    <label>Tổng Cân</label>
+                                    <label>${grossLabel}</label>
                                     <input type="number" step="0.01" id="gross_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
                                 </div>
                                 ${item.hasTare ? `
@@ -448,6 +472,7 @@
                                 </div>` : ''}
                                 <div class="result-box empty" id="result_${item.id}">--</div>
                             </div>
+                            ${priceInfo}
                         </div>
                     `;
                 });
@@ -460,34 +485,89 @@
 
             window.saveTare = function(id) { localStorage.setItem('tare_' + id, document.getElementById('tare_' + id).value); }
 
+            window.formatCurrency = function(value) {
+                if (typeof value !== 'number' || Number.isNaN(value)) return '0 ₫';
+                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+            }
+
+            window.getNetValue = function(item) {
+                const grossEl = document.getElementById('gross_' + item.id);
+                if (!grossEl || grossEl.value === '') return null;
+                let total = parseFloat(grossEl.value || 0);
+                if (item.multiplier && item.multiplier > 0) {
+                    total = total * item.multiplier;
+                }
+                const tareEl = document.getElementById('tare_' + item.id);
+                if (tareEl) total -= parseFloat(tareEl.value || 0);
+                return Math.round(total * 1000) / 1000;
+            }
+
+            window.updateRevenuePreview = function() {
+                let totalRevenue = 0;
+                currentData.forEach(item => {
+                    if (!item.pricePerUnit) return;
+                    const net = window.getNetValue(item);
+                    if (net !== null && net > 0) totalRevenue += net * item.pricePerUnit;
+                });
+                const panel = document.getElementById('revenue-panel');
+                if (totalRevenue > 0) {
+                    panel.style.display = 'flex';
+                    panel.innerHTML = `DOANH THU DỰ KIẾN: ${formatCurrency(Math.round(totalRevenue))}<small>(Ước tính dựa trên giá mỗi đơn vị)</small>`;
+                } else {
+                    panel.style.display = 'none';
+                }
+            }
+
             window.calculate = function(id) {
-                let grossInput = document.getElementById('gross_' + id).value;
-                let tareInput = document.getElementById('tare_' + id) ? document.getElementById('tare_' + id).value : 0;
-                let resultBox = document.getElementById('result_' + id);
-                if (grossInput === '') { resultBox.innerText = '--'; resultBox.classList.add('empty'); return; }
-                let net = Math.round((parseFloat(grossInput || 0) - parseFloat(tareInput || 0)) * 1000) / 1000;
-                if (net <= 0) { resultBox.innerText = '0'; resultBox.classList.add('empty'); } 
-                else { resultBox.innerText = net; resultBox.classList.remove('empty'); }
+                const item = currentData.find(i => i.id === id);
+                const resultBox = document.getElementById('result_' + id);
+                if (!item || !resultBox) return;
+                const net = window.getNetValue(item);
+                if (net === null) {
+                    resultBox.innerText = '--';
+                    resultBox.classList.add('empty');
+                    window.updateRevenuePreview();
+                    return;
+                }
+                if (net <= 0) {
+                    resultBox.innerText = `0 ${item.unit}`;
+                    resultBox.classList.add('empty');
+                } else {
+                    let text = `${net} ${item.unit}`;
+                    if (item.pricePerUnit) {
+                        text += `\n${formatCurrency(Math.round(net * item.pricePerUnit))}`;
+                    }
+                    resultBox.innerText = text;
+                    resultBox.classList.remove('empty');
+                }
+                window.updateRevenuePreview();
             }
 
             window.chotSoLieu = function() {
                 let txt = `📅 BÁO CÁO TỒN KHO - ${new Date().toLocaleString('vi-VN')}\n--------------------------------\n\n`;
                 let outOfStock = [], lowStock = [], fullList = [];
+                let totalRevenue = 0;
+
                 currentData.forEach(item => {
-                    let grossStr = document.getElementById('gross_' + item.id);
-                    if (!grossStr || grossStr.value === '') return;
-                    let tareElement = document.getElementById('tare_' + item.id);
-                    let net = Math.round((parseFloat(grossStr.value) - (tareElement ? parseFloat(tareElement.value || 0) : 0)) * 1000) / 1000;
-                    fullList.push(`- ${item.name}: ${net} ${item.unit}`);
+                    const net = window.getNetValue(item);
+                    if (net === null) return;
+                    if (item.pricePerUnit) totalRevenue += net * item.pricePerUnit;
+                    fullList.push(`- ${item.name}: ${net} ${item.unit}${item.pricePerUnit ? ` | ${formatCurrency(Math.round(net * item.pricePerUnit))}` : ''}`);
                     if (net <= 0) outOfStock.push(`❌ ${item.name}`);
                     else if (net <= item.warnAt) lowStock.push(`⚠️ ${item.name} (Còn: ${net})`);
                 });
+
                 if (outOfStock.length > 0 || lowStock.length > 0) {
                     txt += `🚨 CẦN CHÚ Ý:\n`;
                     if (outOfStock.length > 0) txt += `\n🔴 HẾT HÀNG:\n` + outOfStock.join('\n') + '\n';
                     if (lowStock.length > 0) txt += `\n🟡 SẮP HẾT:\n` + lowStock.join('\n') + '\n';
                     txt += `--------------------------------\n\n`;
                 }
+
+                if (totalRevenue > 0) {
+                    txt += `💰 DOANH THU DỰ KIẾN: ${formatCurrency(Math.round(totalRevenue))}\n--------------------------------\n\n`;
+                }
+
                 txt += `📋 DANH SÁCH CHÉP SỔ:\n` + fullList.join('\n');
                 document.getElementById('reportText').innerText = txt;
 
