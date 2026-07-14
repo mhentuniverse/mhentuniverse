@@ -12,90 +12,6 @@
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Nunito', sans-serif !important; }
-        
-        .login-box {
-            width: 100%; max-width: 450px !important; padding: 40px !important;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-            border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); text-align: center;
-        }
-        body.dark-mode .login-box {
-            background: rgba(30, 41, 59, 0.95); box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .btn-back-login {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            margin-top: 25px !important; color: #64748b; font-size: 14px; font-weight: bold;
-            text-decoration: none; transition: 0.3s; cursor: pointer;
-        }
-        .btn-back-login:hover { color: #ff85a2; transform: translateY(-2px); }
-        body.dark-mode .btn-back-login { color: #94a3b8; }
-        body.dark-mode .btn-back-login:hover { color: #ff85a2; }
-
-        .btn-email-login, .btn-email-register {
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px;
-            padding: 12px 0; border-radius: 12px; width: 100%; transition: 0.3s; cursor: pointer;
-        }
-        
-        .btn-email-login:disabled, .btn-email-register:disabled {
-            opacity: 0.5; cursor: not-allowed; transform: none; filter: grayscale(50%);
-        }
-
-        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
-        .app-item:hover .app-icon svg { transform: scale(1.1); }
-        body.dark-mode .app-icon svg { color: #e2e8f0; }
-        
-        /* GIAO DIỆN POPUP */
-        .popup-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
-            display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column;
-        }
-        .popup-box {
-            background: #ffffff; padding: 35px 30px; border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 350px; width: 90%;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            border: 1px solid rgba(255, 133, 162, 0.1); 
-        }
-        body.dark-mode .popup-box { background: #1e293b; border: 1px solid rgba(255,255,255,0.05); }
-        
-        .popup-icon { width: 60px; height: 60px; margin: 0 auto 20px auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .popup-icon svg { width: 32px; height: 32px; stroke-width: 2.5; }
-        .popup-box:not(.error) .popup-icon { background: rgba(255, 133, 162, 0.1); color: #ff85a2; }
-        .popup-box.error .popup-icon { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; }
-        #popup-title { margin: 0 0 10px 0; font-size: 22px; color: #1e293b; font-weight: 800; }
-        body.dark-mode #popup-title { color: white; }
-        #popup-message { margin: 0; color: #64748b; font-size: 15px; font-weight: 600; line-height: 1.5; }
-        body.dark-mode #popup-message { color: #94a3b8; }
-
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
-        /* MÀN HÌNH LOADING ĐỘC LẬP */
-        .spinner-loader {
-            width: 60px; height: 60px;
-            border: 5px solid rgba(255, 133, 162, 0.3);
-            border-top-color: #ff85a2; border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media (max-width: 768px) {
-            .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
-            .login-box { max-width: 90% !important; padding: 30px 20px !important; }
-        }
-        /* Bọc ô mật khẩu để gắn con mắt */
-        .password-wrapper { position: relative; width: 100%; margin-bottom: 12px; }
-        .password-wrapper .auth-input { width: 100%; margin-bottom: 0; padding-right: 40px; box-sizing: border-box; }
-        
-        .toggle-password { 
-            position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
-            cursor: pointer; color: #94a3b8; font-size: 16px; transition: 0.2s; 
-        }
-        .toggle-password:hover { color: #ff5c8a; }
-    </style>
 </head>
 <body class="gradient-bg">
 
@@ -343,6 +259,27 @@
         });
         window.recaptchaVerifier.render();
 
+        function getSafeRedirectPath(target) {
+            if (!target) return '';
+            try {
+                const url = new URL(target, window.location.origin);
+                if (url.origin !== window.location.origin) return '';
+                if (['/login', '/login.html', '/auth-action.html'].includes(url.pathname)) return '';
+                return `${url.pathname}${url.search}${url.hash}`;
+            } catch (error) {
+                return '';
+            }
+        }
+
+        function getReturnPath() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const explicitRedirect = urlParams.get('redirect');
+            if (explicitRedirect) return explicitRedirect;
+
+            const referrerRedirect = getSafeRedirectPath(document.referrer);
+            return referrerRedirect || '/';
+        }
+
         // BỘ NÃO ĐIỀU HƯỚNG THÔNG MINH
         async function handleLoginSuccess(user) {
             try {
@@ -378,7 +315,7 @@
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
 
-                const returnPath = new URLSearchParams(window.location.search).get('redirect');
+                const returnPath = getReturnPath();
                 
                 if (userSnap.exists() && userSnap.data().isProfileSetup) {
                     // ✅ TRƯỜNG HỢP ĐÃ CÓ HỒ SƠ: Trả về trang cũ hoặc về Hub
@@ -388,7 +325,7 @@
                     }, 1500);
                 } else {
                     // 🆕 TRƯỜNG HỢP USER MỚI (CHƯA SETUP PROFILE): Đẩy đi làm hồ sơ
-                    showPopup('Chào mừng đặc vụ mới! Đang chuyển hướng thiết lập hồ sơ...', false);
+                    showPopup('Chào mừng tiểu hành tinh mới! Đang chuyển hướng thiết lập hồ sơ...', false);
                     setTimeout(() => {
                         // 👉 Thêm ?setup=true làm cờ mặc định cho user mới
                         let profileUrl = '/profile.html?setup=true'; 

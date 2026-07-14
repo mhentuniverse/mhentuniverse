@@ -132,7 +132,41 @@ function initializeBackToTopButton() {
     document.body.appendChild(button);
 }
 
-document.addEventListener('DOMContentLoaded', initializeBackToTopButton);
+window.buildLoginRedirectUrl = function(defaultPath = null) {
+    const currentPath = defaultPath || `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (!currentPath || currentPath.startsWith('/login') || currentPath.startsWith('/auth-action')) {
+        return '/login';
+    }
+    return `/login?redirect=${encodeURIComponent(currentPath)}`;
+};
+
+window.redirectToLogin = function(defaultPath = null) {
+    window.location.href = window.buildLoginRedirectUrl(defaultPath);
+};
+
+function initializeLoginRedirectButtons() {
+    const loginSelectors = ['#btn-login', '.btn-login', '.btn-auth'];
+
+    document.addEventListener('click', (event) => {
+        const target = event.target.closest ? event.target.closest(loginSelectors.join(',')) : null;
+        if (!target) return;
+        if (target.getAttribute('onclick')) return;
+        if (target.closest('.dropdown-menu')) return;
+
+        const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        if (currentPath.startsWith('/login') || currentPath.startsWith('/auth-action')) return;
+
+        const loginUrl = `/login?redirect=${encodeURIComponent(currentPath)}`;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.href = loginUrl;
+    }, true);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeBackToTopButton();
+    initializeLoginRedirectButtons();
+});
 
 
 // ==========================================

@@ -269,7 +269,7 @@
         };
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) return window.location.href = '/login';
+            if (!user) return window.redirectToLogin();
             const snap = await getDoc(doc(db, "users", user.uid));
             if (snap.exists() && snap.data().role?.includes('admin')) {
                 fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList();

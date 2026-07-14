@@ -11,75 +11,6 @@
     <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        :root { --hub-color: #ff5c8a; --bg-color: #f8fafc; --text-main: #1e293b; --text-muted: #64748b; }
-        
-        /* Bí quyết trượt mượt và không bị che bởi Navbar */
-        html { scroll-behavior: smooth; scroll-padding-top: 100px; }
-        body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.7; margin: 0; padding: 0; transition: 0.3s; }
-        
-        html, body { overflow-x: visible !important; }
-
-        /* --- LAYOUT CHÍNH --- */
-        .terms-layout { display: flex; max-width: 1100px; margin: 100px auto 60px auto; gap: 30px; align-items: flex-start; padding: 0 20px; }
-
-        /* --- SIDEBAR MỤC LỤC --- */
-        .terms-sidebar { 
-            width: 280px; 
-            background: white; 
-            border-radius: 15px; 
-            padding: 25px 20px; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
-            
-            /* Bộ combo ép dính chặt (Sticky) */
-            position: -webkit-sticky; /* Hỗ trợ Safari */
-            position: sticky; 
-            top: 100px; /* Cách mép trên 100px */
-            align-self: flex-start; /* Bắt buộc phải có để sticky hoạt động trong flexbox */
-            max-height: calc(100vh - 120px); /* Chiều cao tối đa bằng màn hình trừ đi khoảng không */
-            overflow-y: auto; /* Tự cuộn bên trong nếu mục lục quá dài */
-            
-            flex-shrink: 0; 
-            transition: 0.3s; 
-            border: 1px solid #e2e8f0; 
-        }
-        
-        /* Ẩn thanh cuộn xấu xí của sidebar (chỉ hiện mờ mờ cho đẹp) */
-        .terms-sidebar::-webkit-scrollbar { width: 4px; }
-        .terms-sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .terms-sidebar h3 { margin-top: 0; color: var(--hub-color); font-weight: 900; padding-bottom: 10px; border-bottom: 2px dashed #f1f5f9; font-size: 16px; text-transform: uppercase; }
-        .toc-list { list-style: none; padding: 0; margin: 0; }
-        .toc-list li { margin-bottom: 8px; }
-        .toc-list a { text-decoration: none; color: var(--text-muted); font-weight: 700; font-size: 14px; display: block; padding: 10px 15px; border-radius: 10px; transition: 0.3s; }
-        .toc-list a:hover { background: rgba(255, 92, 138, 0.1); color: var(--hub-color); transform: translateX(5px); }
-
-        /* --- NỘI DUNG ĐIỀU KHOẢN --- */
-        .terms-content { flex: 1; background: white; border-radius: 15px; padding: 40px 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #e2e8f0; }
-        .terms-content h1 { color: var(--hub-color); text-align: center; font-weight: 900; font-size: 28px; text-transform: uppercase; margin-top: 0; margin-bottom: 5px; }
-        .update-date { text-align: center; font-style: italic; color: var(--text-muted); margin-bottom: 40px; font-size: 14px; }
-        .terms-content h2 { border-left: 5px solid var(--hub-color); padding-left: 15px; margin-top: 40px; font-weight: 800; font-size: 20px; color: #0f172a; }
-        .terms-content p, .terms-content li { font-size: 15px; color: #475569; margin-bottom: 12px; }
-        .highlight-box { background: rgba(255, 92, 138, 0.05); border: 1px solid rgba(255, 92, 138, 0.2); padding: 20px; border-radius: 12px; margin: 20px 0; font-weight: 600; color: var(--hub-color); }
-        .btn-close { display: block; width: fit-content; margin: 40px auto 10px; padding: 12px 30px; background: var(--hub-color); color: white; text-decoration: none; border-radius: 10px; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
-        .btn-close:hover { background: #e04873; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 92, 138, 0.3); }
-
-        /* --- DARK MODE --- */
-        body.dark-mode { background: #0f172a; color: #f8fafc; }
-        body.dark-mode .terms-sidebar, body.dark-mode .terms-content { background: #1e293b; border-color: #334155; }
-        body.dark-mode .terms-sidebar h3 { border-bottom-color: #334155; }
-        body.dark-mode .terms-content h2 { color: #f8fafc; }
-        body.dark-mode .terms-content p, body.dark-mode .terms-content li { color: #94a3b8; }
-        body.dark-mode .toc-list a { color: #94a3b8; }
-        body.dark-mode .toc-list a:hover { background: rgba(255, 133, 162, 0.15); color: #ff85a2; }
-
-        /* --- RESPONSIVE MOBILE --- */
-        @media (max-width: 850px) {
-            .terms-layout { flex-direction: column; margin-top: 80px; }
-            .terms-sidebar { width: 100%; position: static; box-sizing: border-box; }
-            .terms-content { padding: 30px 25px; }
-            .terms-content h1 { font-size: 22px; }
-        }
-    </style>
 </head>
 <body class="gradient-bg">
 
@@ -329,7 +260,7 @@ if (btnLogin) {
                     window.openChrome('https://mhentuniverse.vercel.app/login.html?source=app');
                 } else {
                     // NẾU LÀ WEB: Chuyển trang bình thường (Vẫn giữ clean url /login của cậu)
-                    window.location.href = '/login';
+                    window.redirectToLogin();
                 }
             });
         }
