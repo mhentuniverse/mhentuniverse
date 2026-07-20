@@ -5,51 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tất cả thông báo - MHEnt. Cinema</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#ff85a2">
+    <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/glass-theme.css">
+        <link rel="stylesheet" href="/cinema/cinema-theme.css">
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* CSS riêng cho trang Full Notification */
-        .full-notif-container { background: #fff; padding: 0; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; }
-        .full-notif-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 2px solid #fff0f3; }
-        .full-notif-item { display: flex; padding: 20px 30px; gap: 20px; border-bottom: 1px solid #f0f0f0; transition: 0.3s; cursor: pointer; text-decoration: none;}
-        .full-notif-item:hover { background: #fff0f3; padding-left: 35px; }
-        .full-notif-item .notif-poster { width: 70px; height: 100px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .full-notif-item .notif-title { font-size: 16px; margin-bottom: 8px; font-weight: 800; color: #555; }
-        .full-notif-item .notif-desc { font-size: 14px; color: #777; line-height: 1.5; }
-        
-        .pagination { display: flex; justify-content: center; gap: 15px; padding: 20px; align-items: center;}
-        .page-btn { padding: 8px 20px; border: 1px solid #ff85a2; background: transparent; color: #ff85a2; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .page-btn:hover:not(:disabled) { background: #ff85a2; color: #fff; }
-        .page-btn:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; }
-        #page-info { font-weight: bold; color: #555; }
+        .full-notif-container { padding: 0; border-radius: 20px; overflow: hidden; }
+        .full-notif-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; }
+        .full-notif-item { display: flex; padding: 20px 30px; gap: 20px; transition: 0.3s; cursor: pointer; text-decoration: none; }
+        .full-notif-item:hover { padding-left: 35px; }
+        .full-notif-item .notif-poster { width: 70px; height: 100px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .full-notif-item .notif-title { font-size: 16px; margin-bottom: 8px; font-weight: 800; }
+        .full-notif-item .notif-desc { font-size: 14px; line-height: 1.5; }
+        .pagination { display: flex; justify-content: center; gap: 15px; padding: 20px; align-items: center; }
+        .page-btn { padding: 8px 20px; background: transparent; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .page-btn:disabled { border-color: var(--glass-border) !important; color: var(--glass-text-muted) !important; cursor: not-allowed; opacity: 0.5; }
+        .full-notif-item.unread { background: var(--hub-bg); border-left: 3px solid var(--hub-color); }
 
-        /* Dark Mode */
-        body.dark-mode .full-notif-container { background: #1a1a2e; }
-        body.dark-mode .full-notif-header { border-color: #2a2a35; }
-        body.dark-mode .full-notif-item { border-color: #2a2a35; }
-        body.dark-mode .full-notif-item:hover { background: rgba(255, 133, 162, 0.1); }
-        body.dark-mode .full-notif-item .notif-title { color: #e0e0e0; }
-        body.dark-mode #page-info { color: #ccc; }
-        body.dark-mode .full-notif-item.unread { background: rgba(255, 133, 162, 0.12); border-left: 3px solid #ff85a2; }
-
-        /* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
-        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
+        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; color: #e2e8f0; }
         .app-item:hover .app-icon svg { transform: scale(1.1); }
-        body.dark-mode .app-icon svg { color: #e2e8f0; }
 
-        /* VÁ LỖI LỆCH KHUNG VÀ KHOẢNG CÁCH TRÊN MOBILE */
         @media (max-width: 768px) {
-            .dropdown-menu.app-switcher-menu {
-                width: 260px !important;
-                right: -60px !important; /* Đẩy lại vào giữa màn hình */
-            }
-            .dropdown-menu.app-switcher-menu::before {
-                right: 90px !important; /* Fix mũi tên trên mobile (Đồng bộ với style.css) */
-            }
+            .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
+            .dropdown-menu.app-switcher-menu::before { right: 90px !important; }
             .app-switcher-container { margin-right: 8px !important; }
             #bell-container { margin-right: 5px !important; }
         }
