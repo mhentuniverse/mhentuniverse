@@ -19,10 +19,8 @@ const auth = getAuth(app);
 // 1. TẠO GIAO DIỆN RÈM BẢO TRÌ (GLASSMORPHISM STYLE)
 const lockScreen = document.createElement('div');
 lockScreen.id = 'maintenance-lock';
-// Phủ nền mờ, thiết lập flex căn giữa
 lockScreen.style.cssText = "display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 999999; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; font-family: 'Nunito', sans-serif; opacity: 0; transition: opacity 0.5s ease;";
 
-// Nội dung cái hộp kính
 lockScreen.innerHTML = `
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -46,26 +44,34 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(lockScreen);
 });
 
-// 2. LOGIC KIỂM TRA KÉP
+// 2. LOGIC KIỂM TRA KÉP CÓ "PHANH" TRÁNH XUNG ĐỘT
 let isSystemDown = false;
 let isAdmin = false;
+let hideTimeout; // Biến cứu tinh! Dùng để phanh lệnh ẩn màn hình
 
 function updateLockScreen() {
+    const box = document.getElementById('maintenance-box');
+
     if (isSystemDown && !isAdmin) {
+        // NẾU HỆ THỐNG ĐÓNG: HỦY NGAY LẬP TỨC các lệnh ẩn màn hình đang chạy ngầm
+        clearTimeout(hideTimeout);
+        
         lockScreen.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        // Ép animation chạy
         setTimeout(() => {
             lockScreen.style.opacity = '1';
-            document.getElementById('maintenance-box').style.transform = 'scale(1) translateY(0)';
+            if(box) box.style.transform = 'scale(1) translateY(0)';
         }, 50);
     } else {
         lockScreen.style.opacity = '0';
-        document.getElementById('maintenance-box').style.transform = 'scale(0.9) translateY(20px)';
-        setTimeout(() => {
+        if(box) box.style.transform = 'scale(0.9) translateY(20px)';
+        
+        // NẾU HỆ THỐNG MỞ: Xóa lệnh ẩn cũ để tránh tạo nhiều lệnh rác
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
             lockScreen.style.display = 'none';
             document.body.style.overflow = 'auto';
-        }, 500); // Chờ mờ đi rồi ẩn hẳn
+        }, 500); 
     }
 }
 
@@ -75,7 +81,7 @@ onSnapshot(doc(db, "system", "status"), (docSnap) => {
         const data = docSnap.data();
         const currentPath = window.location.pathname.toLowerCase();
 
-        // Riêng trang Admin Root thì KHÔNG BAO GIỜ bị khóa rèm (để sếp còn đường vào mở khóa)
+        // Riêng trang Admin Root thì KHÔNG BAO GIỜ bị khóa rèm
         if (currentPath.includes('/admin')) {
             isSystemDown = false;
         } else {
@@ -99,6 +105,9 @@ onSnapshot(doc(db, "system", "status"), (docSnap) => {
         isSystemDown = false;
     }
     updateLockScreen();
+}, (error) => {
+    console.warn("Chưa thể quét dữ liệu Bảo trì (Có thể do Firebase Rule chặn người chưa đăng nhập): ", error);
+    // Nếu sếp cài đặt rules chặn đọc dữ liệu bảng "system", người dùng sẽ rớt vào lỗi này
 });
 
 // Radar 2: Quét thẻ Admin
