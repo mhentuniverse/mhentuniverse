@@ -6,54 +6,71 @@
     <meta name="google-site-verification" content="5yblJtdUMrJUpigw4PLcUFQhC9Pax3YoG10FTQIun_E" />
     <title>Trang Chủ - MHEnt. Universe</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#050505">
+    <meta name="theme-color" content="#ff85a2">
     <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
     <link rel="apple-touch-icon" href="assets/icon-web.png">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="/glass-theme.css">
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Main Hall — Glassmorphism Minimalist */
-        body { margin: 0; padding: 0; background: var(--bg-primary); color: var(--text-primary); }
-        body.gradient-bg { background: radial-gradient(ellipse at 50% 0%, #0f172a 0%, #050505 55%); }
-        body:not(.dark-mode).gradient-bg { background: linear-gradient(135deg, #e0f7fa 0%, #ffe4e1 100%); }
+        body { margin: 0; padding: 0; background: #f0f4f8; color: #1e293b; transition: background 0.3s, color 0.3s; }
+        .stars-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at bottom, #e2e8f0 0%, #f8fafc 100%); z-index: -1; transition: 0.3s; }
+        
+        body.dark-mode { background: #0f172a; color: white; }
+        body.dark-mode .stars-bg { background: radial-gradient(circle at bottom, #1e293b 0%, #0f172a 100%); }
+        body.dark-mode .logo-box h1 { background: linear-gradient(135deg, #ff85a2, #ff5c8a, #ffb703); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        body.dark-mode .portal-card { background: rgba(30, 41, 59, 0.7); border-color: rgba(255, 255, 255, 0.1); }
+        body.dark-mode .portal-title { color: white; }
+        body.dark-mode .portal-desc { color: #94a3b8; }
+        body.dark-mode .svg-portal-icon { color: #e2e8f0; }
 
-        .hub-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 20px 40px; position: relative; z-index: 1; }
-
+        .hub-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 20px 40px 20px; position: relative; z-index: 1; }
+        
         .logo-box { text-align: center; margin-bottom: 50px; animation: slideDown 0.8s ease-out; }
-        .logo-box img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent-pink); box-shadow: 0 0 30px rgba(255, 133, 162, 0.35); margin-bottom: 15px; }
-        .logo-box h1 { font-size: clamp(22px, 4vw, 36px); margin: 0; background: linear-gradient(135deg, var(--accent-pink), var(--accent-pink-dark), var(--accent-yellow)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; text-transform: uppercase; }
-        .logo-box p { color: var(--text-muted); font-size: 16px; margin-top: 5px; letter-spacing: 1px; font-weight: bold; }
+        .logo-box img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ff85a2; box-shadow: 0 0 30px rgba(255, 133, 162, 0.5); margin-bottom: 15px; }
+        .logo-box h1 { font-size: 36px; margin: 0; color: #ff5c8a; letter-spacing: 2px; text-transform: uppercase; }
+        .logo-box p { color: #64748b; font-size: 16px; margin-top: 5px; letter-spacing: 1px; font-weight: bold; }
 
-        .portal-grid { padding: 0 20px; box-sizing: border-box; animation: fadeIn 1.2s ease-out; }
-
-        .portal-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 60%); opacity: 0; transition: 0.4s; pointer-events: none; }
+        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; width: 100%; max-width: 1100px; padding: 0 20px; box-sizing: border-box; animation: fadeIn 1.2s ease-out; }
+        
+        .portal-card { background: white; backdrop-filter: blur(10px); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 20px; padding: 40px 20px; text-align: center; cursor: pointer; text-decoration: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .portal-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); opacity: 0; transition: 0.4s; }
         .portal-card:hover::before { opacity: 1; transform: scale(1.2); }
+        .portal-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
 
-        .portal-card.cinema { --portal-accent: var(--accent-pink); }
-        .portal-card.manga { --portal-accent: var(--accent-teal); }
-        .portal-card.novel { --portal-accent: var(--accent-yellow); }
-        .portal-card.music { --portal-accent: var(--accent-purple); }
-        .portal-card.arena { --portal-accent: var(--accent-orange); }
-        .portal-card.edu { --portal-accent: var(--accent-cyan); }
-        .portal-card.game { --portal-accent: var(--accent-green); }
+        .portal-card.cinema:hover { border-color: #ff85a2; box-shadow: 0 10px 30px rgba(255, 133, 162, 0.3); }
+        .portal-card.cinema:hover .svg-portal-icon { color: #ff85a2; transform: scale(1.1); }
+        .portal-card.manga:hover { border-color: #00ffcc; box-shadow: 0 10px 30px rgba(0, 255, 204, 0.3); }
+        .portal-card.manga:hover .svg-portal-icon { color: #00ffcc; transform: scale(1.1); }
+        .portal-card.novel:hover { border-color: #ffb703; box-shadow: 0 10px 30px rgba(255, 183, 3, 0.3); }
+        .portal-card.novel:hover .svg-portal-icon { color: #ffb703; transform: scale(1.1); }
+        .portal-card.music:hover { border-color: #c084fc; box-shadow: 0 10px 30px rgba(192, 132, 252, 0.3); }
+        .portal-card.music:hover .svg-portal-icon { color: #c084fc; transform: scale(1.1); }
+        .portal-card.arena:hover { border-color: #ff9a55; box-shadow: 0 10px 30px rgba(192, 132, 252, 0.3); }
+        .portal-card.arena:hover .svg-portal-icon { color: #ff9a55; transform: scale(1.1); }
+        .portal-card.edu:hover { border-color: #0ea5e9; box-shadow: 0 10px 30px rgba(192, 132, 252, 0.3); }
+        .portal-card.edu:hover .svg-portal-icon { color: #0ea5e9; transform: scale(1.1); }
+        .portal-card.game:hover { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+        .portal-card.game:hover .svg-portal-icon { color: #10b981; transform: scale(1.1); }
 
-        .portal-card:hover { border-color: var(--portal-accent) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 0 28px color-mix(in srgb, var(--portal-accent) 30%, transparent) !important; }
-        .portal-card:hover .portal-title, .portal-card:hover .svg-portal-icon { color: var(--portal-accent) !important; transform: scale(1.05); }
+        .svg-portal-icon { margin-bottom: 20px; transition: 0.3s; color: #64748b; }
+        .portal-title { color: #1e293b; font-size: 22px; font-weight: 900; margin: 0 0 10px 0; letter-spacing: 1px; }
+        .portal-desc { color: #64748b; font-size: 14px; margin: 0; line-height: 1.5; }
 
-        .svg-portal-icon { margin-bottom: 20px; transition: 0.3s; color: var(--text-muted); }
-        .portal-title { font-size: 22px; font-weight: 900; margin: 0 0 10px; letter-spacing: 1px; color: var(--text-primary); }
-        .portal-desc { font-size: 14px; margin: 0; line-height: 1.5; color: var(--text-secondary); }
-
-        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; color: var(--text-secondary); }
+        /* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
+        .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
         .app-item:hover .app-icon svg { transform: scale(1.1); }
+        body.dark-mode .app-icon svg { color: #e2e8f0; }
 
         @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* VÁ LỖI LỆCH KHUNG TRÊN MOBILE */
         @media (max-width: 768px) {
-            .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
+            .dropdown-menu.app-switcher-menu {
+                width: 260px !important;
+                right: -60px !important; /* Đẩy lại vào giữa màn hình */
+            }
         }
     </style>
 </head>
@@ -311,14 +328,10 @@ if (btnLogin) {
         window.toggleDarkMode = function() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('mhent_theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('mhent_dark_mode', isDark ? 'on' : 'off');
         };
 
-        // Initialize theme from localStorage
-        const savedTheme = localStorage.getItem('mhent_theme');
-        if (savedTheme === 'dark') { 
-            document.body.classList.add('dark-mode'); 
-        }
+        if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
 
         onAuthStateChanged(auth, (user) => {
             const btnTheme = document.getElementById('btn-theme-toggle'); 
