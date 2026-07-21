@@ -13,14 +13,78 @@
     <link rel="stylesheet" href="/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* CSS riêng cho 404 - Nhỏ gọn, tinh tế */
-        .error-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 80vh; text-align: center; padding: 20px; animation: fadeIn 0.8s ease-out;
+        /* HIỆU ỨNG RIÊNG CHO TRANG 404 */
+        .error-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
         }
-        .error-code { font-size: 100px; font-weight: 900; color: var(--theme-accent); margin: 0; line-height: 1; text-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .error-title { font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 15px 0; }
-        .error-desc { font-size: 16px; font-weight: 400; color: var(--text-secondary); margin-bottom: 30px; line-height: 1.6; }
+
+        .error-glass-box {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 60px 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow-hover);
+            /* Hiệu ứng bay lơ lửng */
+            animation: floating 6s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .error-code { 
+            font-size: 130px; 
+            font-weight: 900; 
+            margin: 0; 
+            line-height: 1; 
+            background: linear-gradient(135deg, #ff85a2, #c084fc, #0ea5e9);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 15px 30px rgba(255, 133, 162, 0.3);
+        }
+        
+        .error-title { font-size: 26px; font-weight: 900; color: var(--text-primary); margin: 20px 0 15px; }
+        .error-desc { font-size: 16px; font-weight: 600; color: var(--text-secondary); margin-bottom: 35px; line-height: 1.6; }
+        
+        .btn-home-error {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #ff85a2, #ff5c8a);
+            color: white;
+            padding: 16px 35px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 16px;
+            box-shadow: 0 8px 25px rgba(255, 133, 162, 0.4);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-home-error:hover { 
+            transform: scale(1.05) translateY(-5px); 
+            box-shadow: 0 15px 35px rgba(255, 133, 162, 0.5); 
+        }
+
+        /* Nền vũ trụ tối khi bật Dark Mode */
+        body.dark-mode .error-wrapper {
+            background: radial-gradient(circle at center, #1e293b 0%, #050505 100%);
+        }
     </style>
 </head>
 <body class="theme-cinema gradient-bg">
@@ -128,18 +192,18 @@
         </div>
     </nav>
 
-    <main class="error-container">
-        <div class="glass-box" style="padding: 50px 40px; max-width: 500px; width: 100%;">
+    <div class="error-wrapper">
+        <div class="error-glass-box">
             <h1 class="error-code">404</h1>
             <h2 class="error-title">Ối chà! Lạc vào Hố Đen rồi...</h2>
-            <p class="error-desc">Có vẻ như cậu đã du hành <strong>nhầm dòng thời gian</strong> hoặc trang này đã bị hút vào một vũ trụ khác. Hãy kiểm tra lại đường link nhé!</p>
+            <p class="error-desc">Có vẻ như cậu đã du hành <strong>nhầm dòng thời gian</strong> hoặc trang này đã bị hút vào một vũ trụ khác. Hãy kích hoạt động cơ và quay về nhé!</p>
             
-            <button onclick="window.location.href='/'" class="btn-glass btn-glass-solid" style="border-radius: 25px; padding: 14px 30px;">
+            <button onclick="window.location.href='/'" class="btn-home-error">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                Quay Trở Về Căn Cứ
+                Trở Về Đại Sảnh
             </button>
         </div>
-    </main>
+    </div>
 
     <footer>
         <div class="footer-bottom">
