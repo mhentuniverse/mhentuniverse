@@ -5,33 +5,50 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Trang Chủ - MHEnt. Cinema</title>
         <link rel="manifest" href="/manifest.json">
-        <meta name="theme-color" content="#050505">
+        <meta name="theme-color" content="#ff85a2">
         <link rel="apple-touch-icon" href="/assets/icon-web.png">
         <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/glass-theme.css">
-        <link rel="stylesheet" href="/cinema/cinema-theme.css">
         <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
         <link rel="stylesheet" href="/mhent-ui.css">
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
         <script src="/data.js"></script>
 
         <style>
-            :root { --hub-color: #ff85a2; }
-
-            .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; color: #e2e8f0; }
+            :root {
+                --hub-color: #ff85a2;
+            }
+            /* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
+            .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
             .app-item:hover .app-icon svg { transform: scale(1.1); }
+            body.dark-mode .app-icon svg { color: #e2e8f0; }
 
+            .hero h1 { font-size: 38px; color: #1e293b; margin: 0 0 10px 0; font-weight: 900;}
+            .hero h1 span { color: var(--hub-color); }
+            .small-description { font-size: 15px; color: #64748b; margin: 0 0 35px 0; font-weight: 700; display: block; }
+
+            /* VÁ LỖI LỆCH KHUNG VÀ KHOẢNG CÁCH TRÊN MOBILE */
             @media (max-width: 768px) {
-                .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
+                .dropdown-menu.app-switcher-menu {
+                    width: 260px !important;
+                    right: -60px !important; /* Đẩy lại vào giữa màn hình */
+                }
                 .app-switcher-container { margin-right: 8px !important; }
                 #bell-container { margin-right: 5px !important; }
             }
-
-            .filter-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Nunito', sans-serif; font-size: 13.5px; }
+            
+            /* CSS FIX: BUTTON LỌC PHIM THÀNH VECTOR */
+            .filter-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 18px; border: 1px solid #ff85a2; background: transparent; color: #ff85a2; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Nunito', sans-serif; font-size: 13.5px; }
             .filter-btn svg { width: 16px; height: 16px; stroke-width: 2.2; }
+            .filter-btn:hover { background: #fff0f3; }
+            .filter-btn.active { background: #ff85a2; color: #fff; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.4); border-color: #ff85a2; }
+            #search-box:focus { border-color: #ff85a2; }
+            body.dark-mode .filter-btn { border-color: #ff85a2; color: #ff85a2; }
+            body.dark-mode .filter-btn.active { background: #ff85a2; color: #1a1a2e; }
+            body.dark-mode #search-box { background: #1a1a2e !important; border-color: #2a2a35 !important; color: #fff !important; }
+            body.dark-mode #search-box:focus { border-color: #ff85a2 !important; }
         </style>
     </head>
-    <body class="gradient-bg">
+    <body>
         <nav class="navbar">
             <div class="nav-left">
                 <a onclick="window.location.href='/cinema'" style="cursor: pointer;">
@@ -194,7 +211,7 @@
             <div class="filter-section" style="margin-bottom: 25px; display: flex; flex-direction: column; gap: 15px; align-items: flex-start;">            
                 <div style="position: relative; max-width: 500px; width: 100%;">
                     <svg viewBox="0 0 24 24" width="20" height="20" class="main-search-icon svg-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="search-box" placeholder="Tên phim cậu muốn tìm là gì..." oninput="toggleClearBtn(this, 'main-clear-btn'); window.applyFilters();" style="width: 100%; padding: 12px 45px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); outline: none; font-family: 'Nunito'; font-size: 15px; box-sizing: border-box; background: rgba(255,255,255,0.04); color: #e2e8f0; transition: 0.3s;">
+                    <input type="text" id="search-box" placeholder="Tên phim cậu muốn tìm là gì..." oninput="toggleClearBtn(this, 'main-clear-btn'); window.applyFilters();" style="width: 100%; padding: 12px 45px; border-radius: 25px; border: 2px solid #ffe0e9; outline: none; font-family: 'Nunito'; font-size: 15px; box-sizing: border-box; background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s;">
                     <span class="search-clear-btn main-clear" id="main-clear-btn" onclick="clearSearch('search-box', 'main-clear-btn')" title="Xóa">
                         <svg viewBox="0 0 24 24" width="14" height="14" class="svg-icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </span>
