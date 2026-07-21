@@ -7,12 +7,16 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff85a2">
     <link rel="apple-touch-icon" href="assets/icon-web.png">
+    
+    <!-- Gọi hệ thống CSS chính -->
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
     <link rel="stylesheet" href="/mhent-ui.css">
+    
+    <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="gradient-bg">
+<body class="theme-cinema gradient-bg">
     <nav class="navbar">
         <div class="nav-left">
             <a onclick="window.location.href='/'" style="cursor: pointer;">
@@ -122,8 +126,8 @@
             Quay lại Đại Sảnh
         </a>
     </div>
-    <main class="movie-section" style="padding-top: 40px; min-height: 70vh;">
-        <div class="profile-container">
+    <main class="login-page"> 
+        <div class="profile-container" style="max-width: 800px; width: 100%; box-sizing: border-box; margin: 0; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
             <div class="profile-tabs">
                 <div class="p-tab-btn active" id="tab-btn-info" onclick="switchTab('info')">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -140,7 +144,7 @@
                     <div class="profile-avatar-wrapper">
                         <img id="profile-avatar-preview" src="/assets/avt-web.jpg" alt="Avatar" class="avatar-big">
                     </div>
-                    <h2 id="display-name-title" style="color: #ff85a2; margin: 0;">Đang tải...</h2>
+                    <h2 id="display-name-title" style="color: var(--theme-accent); margin: 0;">Đang tải...</h2>
                 </div>
 
                 <div class="form-group">
@@ -154,12 +158,12 @@
                 
                 <div class="form-group">
                     <label style="margin-bottom: -4px;">Ảnh đại diện (Avatar)</label>
-                    <span style="font-size: 12.5px; color: #888; font-weight: normal; font-style: italic; line-height: 1.4;">Cậu có thể tải ảnh từ máy lên hoặc dán URL ảnh trực tiếp vào ô bên dưới nhé.</span>
+                    <span style="font-size: 12.5px; color: var(--text-secondary); font-weight: normal; font-style: italic; line-height: 1.4;">Cậu có thể tải ảnh từ máy lên hoặc dán URL ảnh trực tiếp vào ô bên dưới nhé.</span>
                     <div style="display: flex; gap: 10px; margin-top: 8px;" class="url-input-group">
                         <input type="text" id="profile-avatar-url" class="profile-input" placeholder="Dán link ảnh vào đây nha..." style="flex: 1; margin: 0;">
                         
-                        <button type="button" id="btn-upload-avatar" class="btn-upload" onclick="triggerAvatarUpload()">
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <button type="button" id="btn-upload-avatar" class="btn-email-login" style="margin-top: 0; width: auto; white-space: nowrap; padding: 0 20px;" onclick="triggerAvatarUpload()">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                             Tải ảnh lên
                         </button>
                     </div>
@@ -167,28 +171,34 @@
                 </div>
                 
                 <button class="btn-save-profile" onclick="updateUserProfile()">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                     Cập nhật hồ sơ
                 </button>
             </div>
 
             <div class="p-tab-content" id="tab-content-settings">
-                <h3 style="color: #ff85a2; margin-bottom: 5px; text-align: center;">Bảo mật tài khoản</h3>
-                <p style="text-align: center; color: #888; font-size: 14px; margin-bottom: 20px;">Quản lý mật khẩu và dữ liệu của cậu.</p>
+                <h3 style="color: var(--theme-accent); margin-bottom: 5px; text-align: center;">Bảo mật tài khoản</h3>
+                <p style="text-align: center; color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Quản lý mật khẩu và dữ liệu của cậu.</p>
                 
                 <button class="btn-outline-dark" onclick="resetPassword()">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: middle;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                     Gửi email đổi mật khẩu mới
                 </button>
                 
-                <div style="border-top: 1px solid #eee; margin: 15px 0;"></div>
+                <div style="border-top: 1px solid var(--border-color); width: 100%; margin: 15px 0;"></div>
                 
                 <h4 style="color: #ff4d4d; margin-bottom: 5px;">Khu vực nguy hiểm</h4>
-                <p style="color: #777; font-size: 13px; margin-bottom: 15px;">Hành động này sẽ xóa vĩnh viễn tài khoản và toàn bộ thư viện phim của cậu.</p>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Hành động này sẽ xóa vĩnh viễn tài khoản và toàn bộ thư viện phim của cậu.</p>
                 <button class="btn-danger" onclick="deleteMyAccount()">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: middle;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     Xóa tài khoản vĩnh viễn
                 </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 25px;">
+                <a onclick="window.location.href='/'" class="btn-back-login" style="cursor: pointer;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Đại Sảnh
+                </a>
             </div>
         </div>
     </main>
