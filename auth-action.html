@@ -6,34 +6,36 @@
     <title>Xác thực Hệ thống - MHEnt. Universe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff85a2">
+    
+    <!-- Gọi hệ thống CSS chính -->
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/mhent-ui.css">
+    
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f8fafc; font-family: 'Nunito', sans-serif !important;}
-        body.dark-mode { background: #0f172a; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: var(--bg-primary); font-family: 'Nunito', sans-serif !important;}
         
-        .auth-box { width: 100%; max-width: 450px; padding: 40px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; border: 1px solid rgba(255, 133, 162, 0.1); }
-        body.dark-mode .auth-box { background: rgba(30, 41, 59, 0.95); box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.05);}
+        .auth-box { 
+            width: 100%; max-width: 450px; padding: 40px; 
+            background: var(--bg-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px; box-shadow: var(--shadow-glass); text-align: center; border: 1px solid var(--border-color); 
+        }
         
-        .auth-logo { width: 90px; height: 90px; margin-bottom: 20px; border-radius: 50%; border: 3px solid #ff85a2; box-shadow: 0 10px 20px rgba(255,133,162,0.3); }
-        .auth-title { font-size: 24px; font-weight: 900; color: #1e293b; margin: 0 0 10px 0; }
-        body.dark-mode .auth-title { color: #f8fafc; }
-        .auth-desc { color: #64748b; font-size: 15px; font-weight: 700; margin-bottom: 30px; line-height: 1.5; }
-        body.dark-mode .auth-desc { color: #94a3b8; }
+        .auth-logo { width: 90px; height: 90px; margin-bottom: 20px; border-radius: 50%; border: 3px solid var(--theme-accent); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .auth-title { font-size: 24px; font-weight: 900; color: var(--text-primary); margin: 0 0 10px 0; }
+        .auth-desc { color: var(--text-secondary); font-size: 15px; font-weight: 700; margin-bottom: 30px; line-height: 1.5; }
         
         .password-wrapper { position: relative; width: 100%; margin-bottom: 15px; }
-        .password-wrapper input { width: 100%; padding: 14px 45px 14px 15px; border-radius: 12px; border: 2px solid #e2e8f0; font-family: 'Nunito'; font-weight: 700; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        .password-wrapper input:focus { border-color: #ff85a2; box-shadow: 0 0 0 3px rgba(255, 133, 162, 0.2); }
-        body.dark-mode .password-wrapper input { background: #1e293b; border-color: #334155; color: white; }
-        body.dark-mode .password-wrapper input:focus { border-color: #ff85a2; }
+        .password-wrapper input { width: 100%; padding: 14px 45px 14px 15px; border-radius: 12px; border: 2px solid var(--border-color); background: rgba(0,0,0,0.03); color: var(--text-primary); font-family: 'Nunito'; font-weight: 700; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        body.dark-mode .password-wrapper input { background: rgba(0,0,0,0.2); }
+        .password-wrapper input:focus { border-color: var(--theme-accent); background: var(--bg-primary); }
         
-        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 16px; transition: 0.2s; }
-        .toggle-password:hover { color: #ff5c8a; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); font-size: 16px; transition: 0.2s; }
+        .toggle-password:hover { color: var(--theme-accent); }
         
-        .btn-action { width: 100%; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, #ff85a2, #ff5c8a); color: white; font-weight: 900; font-size: 16px; border: none; cursor: pointer; transition: 0.3s; font-family: 'Nunito'; box-shadow: 0 10px 20px rgba(255, 92, 138, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;}
-        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 92, 138, 0.4); }
+        .btn-action { width: 100%; padding: 14px; border-radius: 12px; background: var(--theme-accent); color: white; font-weight: 900; font-size: 16px; border: none; cursor: pointer; transition: 0.3s; font-family: 'Nunito'; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); filter: brightness(1.1); }
         .btn-action:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
         
         /* CÁC GIAO DIỆN ĐƯỢC ẨN ĐI, TÙY NGỮ CẢNH MỚI HIỆN */
@@ -42,13 +44,13 @@
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body class="gradient-bg">
+<body class="theme-cinema gradient-bg">
 
     <div class="auth-box">
         <img src="/assets/avt-web.jpg" class="auth-logo" alt="Logo">
         
         <div id="ui-loading" class="action-section active">
-            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: #ff85a2; margin-bottom: 20px;"></i>
+            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: var(--theme-accent); margin-bottom: 20px;"></i>
             <h2 class="auth-title">Đang kiểm tra liên kết...</h2>
             <p class="auth-desc">Đợi tớ một xíu để đối chiếu dữ liệu với vệ tinh nhé!</p>
         </div>
@@ -73,7 +75,7 @@
             <i class="fa-solid fa-circle-check fa-4x" style="color: #10b981; margin-bottom: 20px;"></i>
             <h2 class="auth-title" id="success-title">Thành công rực rỡ!</h2>
             <p class="auth-desc" id="success-desc">Mọi thủ tục đã hoàn tất.</p>
-            <button class="btn-action" onclick="window.redirectToLogin('/auth-action.html')" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">
+            <button class="btn-action" onclick="window.redirectToLogin('/auth-action.html')" style="background: #10b981; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);">
                 <i class="fa-solid fa-right-to-bracket"></i> Về trang Đăng nhập
             </button>
         </div>
@@ -82,13 +84,14 @@
             <i class="fa-solid fa-triangle-exclamation fa-4x" style="color: #ef4444; margin-bottom: 20px;"></i>
             <h2 class="auth-title">Liên kết không hợp lệ!</h2>
             <p class="auth-desc" id="error-desc">Đường link này có thể đã hết hạn hoặc đã được sử dụng. Vui lòng quay lại tài khoản và yêu cầu link mới nhé!</p>
-            <button class="btn-action" onclick="window.redirectToLogin('/auth-action.html')" style="background: #64748b; box-shadow: 0 10px 20px rgba(100, 116, 139, 0.3);">
+            <button class="btn-action" onclick="window.redirectToLogin('/auth-action.html')" style="background: var(--text-secondary); box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 <i class="fa-solid fa-house"></i> Về Đăng nhập
             </button>
         </div>
 
     </div>
 
+    <!-- KHU VỰC SCRIPT GIỮ NGUYÊN HOÀN TOÀN -->
     <script src="/mhent-ui.js"></script>
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -99,7 +102,6 @@
             apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
             authDomain: "mhentuniverse.firebaseapp.com",
             projectId: "mhentuniverse",
-            // ... (Copy từ login.html qua)
         };
 
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -109,9 +111,9 @@
         window.togglePassword = function(inputId, icon) {
             const input = document.getElementById(inputId);
             if (input.type === "password") {
-                input.type = "text"; icon.classList.replace('fa-eye', 'fa-eye-slash'); icon.style.color = '#ff5c8a';
+                input.type = "text"; icon.classList.replace('fa-eye', 'fa-eye-slash'); icon.style.color = 'var(--theme-accent)';
             } else {
-                input.type = "password"; icon.classList.replace('fa-eye-slash', 'fa-eye'); icon.style.color = '#94a3b8';
+                input.type = "password"; icon.classList.replace('fa-eye-slash', 'fa-eye'); icon.style.color = 'var(--text-muted)';
             }
         };
 

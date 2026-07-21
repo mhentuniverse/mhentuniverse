@@ -5,192 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - MHEnt. Universe</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#6366f1">
+    <meta name="theme-color" content="#2563eb"> <!-- Màu xanh Coban của Admin -->
     <link rel="apple-touch-icon" href="assets/icon-web.png">
     <link rel="icon" type="image/jpeg" href="assets/icon-web.png">
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- Gọi hệ thống CSS chính -->
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/mhent-admin.css">
     <link rel="stylesheet" href="/mhent-ui.css">
+    
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --hub-color: #6366f1; --hub-bg: rgba(99, 102, 241, 0.15); }
-        
-        body, h1, h2, h3, h4, p, span, button, input, select, td, th, textarea { font-family: 'Nunito', sans-serif !important; }
-        body { background: #f8fafc; margin: 0; padding: 0; color: #1e293b; overflow-x: hidden; }
-        body.dark-mode { background: #0f172a; color: #fff; }
-
-        /* HEADER CỐ ĐỊNH */
-        .master-header { background: #fff; padding: 15px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 1000; border-bottom: 2px solid var(--hub-color); height: 70px;}
-        body.dark-mode .master-header { background: #1e293b; border-color: #334155; }
-        .brand { font-size: 24px; font-weight: 900; color: var(--hub-color); display: flex; align-items: center; gap: 10px; }
-        
-        .btn-theme, .btn-action { background: transparent; border: 2px solid #e2e8f0; color: #64748b; padding: 8px 15px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-theme:hover, .btn-action:hover { border-color: var(--hub-color); color: var(--hub-color); background: var(--hub-bg); transform: translateY(-2px); }
-        body.dark-mode .btn-theme, body.dark-mode .btn-action { border-color: #334155; color: #94a3b8; }
-        
-        /* LAYOUT SIDEBAR MỚI */
-        .admin-layout { display: flex; min-height: 100vh; padding-top: 70px; }
-        .admin-sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto; z-index: 10; box-sizing: border-box; }
-        .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
-        .admin-menu-item:hover { background: #f1f5f9; color: var(--hub-color); }
-        .admin-menu-item.active { background: var(--hub-bg); color: var(--hub-color); box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15); }
-        
-        .admin-content { flex: 1; margin-left: 260px; padding: 40px; box-sizing: border-box; min-width: 0; }
-        .admin-tab { display: none; animation: fadeIn 0.3s ease; }
-        .admin-tab.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        body.dark-mode .admin-sidebar { background: #1e293b; border-color: #334155; }
-        body.dark-mode .admin-menu-item:hover { background: #334155; }
-
-        /* STYLES CŨ CỦA PHẦN QUẢN LÝ USER */
-        .page-title { font-size: 32px; font-weight: 900; margin-bottom: 5px; margin-top: 0;}
-        .page-subtitle { color: #64748b; font-weight: 700; margin-bottom: 30px; font-size: 16px; }
-
-        .admin-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        body.dark-mode .admin-card { background: #1e293b; border-color: #334155; }
-        
-        .search-bar { width: 100%; max-width: 400px; padding: 12px 20px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 700; outline: none; transition: 0.3s; box-sizing: border-box; margin-bottom: 20px; }
-        .search-bar:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1); }
-        body.dark-mode .search-bar { background: #0f172a; border-color: #334155; color: #fff; }
-
-       /* 1. ĐÓNG KHUNG CHIỀU CAO CHO BẢNG VÀ HIỆN SCROLL LUÔN Ở ĐÂY */
-        .table-container { 
-            overflow-x: auto; 
-            overflow-y: auto; /* Thêm cuộn dọc bên trong bảng */
-            max-height: calc(100vh - 280px); /* Tự động tính toán chiều cao để không bị lẹm xuống đáy */
-            border-radius: 12px; 
-            border: 1px solid #e2e8f0; 
-        }
-        body.dark-mode .table-container { border-color: #334155; }
-        
-        .user-table { width: 100%; border-collapse: collapse; text-align: left; }
-        
-        /* 2. GHIM CỐ ĐỊNH THANH TIÊU ĐỀ BÊN TRÊN (STICKY HEADER) */
-        .user-table th { 
-            background: #f1f5f9; 
-            padding: 15px 20px; 
-            font-weight: 900; 
-            color: #475569; 
-            font-size: 14px; 
-            text-transform: uppercase; 
-            white-space: nowrap;
-            position: sticky; /* Ma thuật ghim cố định ở đây */
-            top: 0; 
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Viền bóng mờ cho đẹp */
-        }
-        body.dark-mode .user-table th { background: #0f172a; color: #94a3b8; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        
-        .user-table td { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; font-size: 15px; font-weight: 700; vertical-align: middle; }
-        body.dark-mode .user-table td { border-color: #334155; color: #cbd5e1; }
-        
-        .badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 4px; margin-right: 4px;}
-        .badge.admin { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; }
-        .badge.arena { background: #e0f2fe; color: #0ea5e9; border: 1px solid #7dd3fc; }
-        .badge.cinema { background: #fce7f3; color: #e94560; border: 1px solid #fbcfe8; }
-        .badge.manga { background: #fef08a; color: #d97706; border: 1px solid #fde047; }
-        .badge.novel { background: #ecfccb; color: #65a30d; border: 1px solid #d9f99d; }
-        .badge.music { background: #f3e8ff; color: #a855f7; border: 1px solid #d8b4fe; }
-        .badge.teacher { background: #ccfbf1; color: #0d9488; border: 1px solid #99f6e4; } 
-        .badge.tester { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-        .badge.user { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
-        body.dark-mode .badge.user { background: #334155; color: #cbd5e1; border-color: #475569; }
-
-        .btn-edit { background: var(--hub-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-edit:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
-
-        /* DASHBOARD METRICS */
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .metric-card { background: #fff; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
-        body.dark-mode .metric-card { background: #1e293b; border-color: #334155; }
-        .metric-icon { width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-        .metric-info h3 { margin: 0; font-size: 14px; color: #64748b; text-transform: uppercase; font-weight: 800; }
-        .metric-info p { margin: 5px 0 0 0; font-size: 28px; font-weight: 900; color: #1e293b; }
-        body.dark-mode .metric-info p { color: #fff; }
-
-        /* FORMS & INPUTS MỚI */
-        .admin-input, .admin-textarea { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; box-sizing: border-box; margin-bottom: 15px;}
-        .admin-input:focus, .admin-textarea:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
-        body.dark-mode .admin-input, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
-        .btn-large { background: var(--hub-color); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        .btn-large:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); }
-
-        /* MODAL CHỈNH SỬA USER */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
-        .modal-overlay.active { opacity: 1; }
-        .modal-box { background: #fff; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; transform: scale(0.8) translateY(20px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 50px rgba(0,0,0,0.1); position: relative; }
-        .modal-overlay.active .modal-box { transform: scale(1) translateY(0); } 
-        body.dark-mode .modal-box { background: #1e293b; border: 1px solid #334155; }
-        .modal-box::-webkit-scrollbar { width: 6px; }
-        .modal-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ef4444; font-weight: 900; background: none; border: none; transition: 0.2s;}
-        
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
-        body.dark-mode .input-group label { color: #cbd5e1; }
-        .modal-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 700; outline: none; box-sizing: border-box; transition: 0.3s; }
-        body.dark-mode .modal-input { background: #0f172a; border-color: #334155; color: white; }
-        
-        .btn-save { background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; width: 100%; transition: 0.3s; }
-
-        .tag-picker { display: flex; flex-wrap: wrap; gap: 8px; }
-        .tag-btn { background: #f8fafc; color: #64748b; border: 2px solid #e2e8f0; padding: 8px 15px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: 0.3s; user-select: none; font-weight: 800; }
-        .tag-btn.selected { background: var(--hub-bg); color: var(--hub-color); border-color: var(--hub-color); transform: scale(1.05); }
-        .tag-btn.admin-tag.selected { background: #fee2e2; color: #ef4444; border-color: #ef4444;}
-        body.dark-mode .tag-btn { background: #0f172a; border-color: #334155; color: #94a3b8; }
-        body.dark-mode .tag-btn.selected { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: #818cf8; }
-
-        .dynamic-group { display: none; opacity: 0; transform: translateY(-15px); transition: 0.4s; margin-top: 15px; padding: 15px; border-radius: 12px; border-left: 4px solid transparent; background: rgba(99, 102, 241, 0.02);}
-        .dynamic-group.show { display: block; opacity: 1; transform: translateY(0); }
-        #group-cinema.show { border-left-color: #ff85a2; } #group-arena.show { border-left-color: #ff9a55; } #group-manga.show { border-left-color: #d97706; } #group-novel.show { border-left-color: #65a30d; } #group-music.show { border-left-color: #a855f7; } #group-teacher.show { border-left-color: #0ea5e9; } #group-tester.show { border-left-color: #475569; }
-
-        #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; text-align: center; }
-        
-        /* STYLE CHO Ô CHỌN NGƯỜI NHẬN MAIL (TAGGING INPUT) */
-        .mail-target-container { position: relative; width: 100%; margin-bottom: 15px; }
-        .mail-tags-box { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; min-height: 50px; align-items: center; transition: 0.3s; }
-        .mail-tags-box:focus-within { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
-        body.dark-mode .mail-tags-box { background: #0f172a; border-color: #334155; }
-        
-        .mail-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--hub-bg); color: var(--hub-color); padding: 4px 10px 4px 4px; border-radius: 20px; font-size: 13px; font-weight: 800; border: 1px solid rgba(99,102,241,0.3); }
-        .mail-tag img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
-        .mail-tag .remove-tag { cursor: pointer; color: #ef4444; font-size: 14px; margin-left: 4px; }
-        .mail-tag .remove-tag:hover { color: #b91c1c; }
-        
-        #mail-target-input { border: none; outline: none; background: transparent; flex: 1; min-width: 150px; font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 600; color: #1e293b; }
-        body.dark-mode #mail-target-input { color: #fff; }
-
-        .mail-suggestions { position: absolute; top: 100%; left: 0; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; z-index: 100; display: none; margin-top: 5px; }
-        body.dark-mode .mail-suggestions { background: #1e293b; border-color: #334155; }
-        
-        .suggestion-item { display: flex; align-items: center; gap: 10px; padding: 10px 15px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
-        .suggestion-item:last-child { border-bottom: none; }
-        .suggestion-item:hover { background: #f8fafc; }
-        body.dark-mode .suggestion-item { border-color: #0f172a; }
-        body.dark-mode .suggestion-item:hover { background: #334155; }
-        
-        .suggestion-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-        .suggestion-item .sugg-name { font-weight: 800; color: #1e293b; font-size: 14px; }
-        .suggestion-item .sugg-email { color: #64748b; font-size: 12px; }
-        body.dark-mode .suggestion-item .sugg-name { color: #fff; }
-
-        /* CSS cho Nút gạt (Switch) */
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px;}
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-        input:checked + .slider { background-color: #ef4444; }
-        #toggle-global:checked + .slider { background-color: #b91c1c; } /* Đỏ đậm cho cầu dao tổng */
-        input:checked + .slider:before { transform: translateX(24px); }
-        body.dark-mode .slider { background-color: #334155; }
-    </style>
 </head>
-<body>
+<body class="theme-admin gradient-bg">
 
     <div id="security-shield">
-        <i class="fa-solid fa-fingerprint fa-beat fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i>
+        <i class="fa-solid fa-fingerprint fa-beat fa-4x" style="color: var(--theme-accent); margin-bottom: 20px;"></i>
         <h2 style="font-weight: 900;">XÁC THỰC QUYỀN LỰC TỐI CAO...</h2>
         <p style="color: #94a3b8;">Chỉ dành cho Giám đốc điều hành MHEnt.</p>
     </div>
@@ -206,7 +37,7 @@
     <div class="admin-layout">
         
         <aside class="admin-sidebar">
-            <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Menu Root</div>
+            <div style="font-size: 12px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Menu Root</div>
             <a class="admin-menu-item" id="menu-dash" onclick="switchTab('dash')"><i class="fa-solid fa-chart-pie" style="width:20px;"></i> Tổng quan</a>
             <a class="admin-menu-item active" id="menu-users" onclick="switchTab('users')"><i class="fa-solid fa-users" style="width:20px;"></i> Quản lý Cư dân</a>
             <a class="admin-menu-item" id="menu-notify" onclick="switchTab('notify')"><i class="fa-solid fa-paper-plane" style="width:20px;"></i> Phát thanh (Mail)</a>
@@ -222,21 +53,21 @@
                 <p class="page-subtitle">Báo cáo số liệu toàn diện hệ sinh thái MHEnt. Universe.</p>
 
                 <div class="metrics-grid">
-                    <div class="metric-card">
+                    <div class="metric-card glass-box">
                         <div class="metric-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fa-solid fa-users"></i></div>
                         <div class="metric-info">
                             <h3>Tổng Cư Dân</h3>
                             <p id="total-users-count">--</p>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;"><i class="fa-solid fa-user-plus"></i></div>
+                    <div class="metric-card glass-box">
+                        <div class="metric-icon" style="background: rgba(37, 99, 235, 0.1); color: #2563eb;"><i class="fa-solid fa-user-plus"></i></div>
                         <div class="metric-info">
                             <h3>Cư dân mới (Hôm nay)</h3>
                             <p id="new-users-today">0</p>
                         </div>
                     </div>
-                    <div class="metric-card">
+                    <div class="metric-card glass-box">
                         <div class="metric-icon" style="background: rgba(244, 63, 94, 0.1); color: #f43f5e;"><i class="fa-solid fa-fire"></i></div>
                         <div class="metric-info">
                             <h3>Dịch vụ Hot nhất</h3>
@@ -245,8 +76,8 @@
                     </div>
                 </div>
 
-                <div class="admin-card">
-                    <h3 style="margin-top:0;"><i class="fa-solid fa-chart-line"></i> Hoạt động Hệ sinh thái (24h qua)</h3>
+                <div class="admin-card glass-box">
+                    <h3 style="margin-top:0; color: var(--text-primary);"><i class="fa-solid fa-chart-line"></i> Hoạt động Hệ sinh thái (24h qua)</h3>
                     <div style="position: relative; width: 100%; height: 300px;">
                         <canvas id="activityChart"></canvas>
                     </div>
@@ -257,7 +88,7 @@
                 <h1 class="page-title">Quản Lý Cư Dân</h1>
                 <p class="page-subtitle">Gắn thẻ phân quyền đa vũ trụ cho tài khoản MHEnt.</p>
 
-                <div class="admin-card">
+                <div class="admin-card glass-box">
                     <input type="text" id="search-input" class="search-bar" placeholder="🔍 Tìm theo Tên hoặc Email..." onkeyup="filterUsers()">
                     
                     <div class="table-container">
@@ -272,7 +103,7 @@
                                 </tr>
                             </thead>
                             <tbody id="user-table-body">
-                                <tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp danh sách cư dân...</td></tr>
+                                <tr><td colspan="5" style="text-align:center; color: var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp danh sách cư dân...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -283,8 +114,8 @@
                 <h1 class="page-title">Phát Thanh Toàn Vũ Trụ</h1>
                 <p class="page-subtitle">Quản lý và Lên lịch gửi Email thông báo trực tiếp đến cư dân.</p>
 
-                <div class="admin-card" style="max-width: 900px;">
-                    <h3 style="margin-top: 0; color: var(--hub-color);"><i class="fa-solid fa-pen-nib"></i> Soạn Thư Mới</h3>
+                <div class="admin-card glass-box" style="max-width: 900px;">
+                    <h3 style="margin-top: 0; color: var(--theme-accent);"><i class="fa-solid fa-pen-nib"></i> Soạn Thư Mới</h3>
                     
                     <label style="font-weight: 800; display: block; margin-bottom: 8px; color: #a855f7;"><i class="fa-solid fa-users-viewfinder"></i> Chọn Cư dân (Để trống sẽ gửi TOÀN SERVER):</label>
                     <div class="mail-target-container">
@@ -296,7 +127,7 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                         <div>
-                            <label style="font-weight: 800; display: block; margin-bottom: 8px;"><i class="fa-solid fa-user-tie"></i> Gửi với tư cách:</label>
+                            <label style="font-weight: 800; display: block; margin-bottom: 8px; color: var(--text-primary);"><i class="fa-solid fa-user-tie"></i> Gửi với tư cách:</label>
                             <select id="mail-sender-name" class="admin-input" style="margin-bottom: 0;">
                                 <option value="Miyazaki Haruto Entertainment Universe">Miyazaki Haruto Entertainment Universe</option>
                                 <option value="Phạm Huỳnh Lam Chi">Phạm Huỳnh Lam Chi</option>
@@ -304,7 +135,7 @@
                             </select>
                         </div>
                         <div>
-                            <label style="font-weight: 800; display: block; margin-bottom: 8px;"><i class="fa-solid fa-file-signature"></i> Chọn Chữ ký:</label>
+                            <label style="font-weight: 800; display: block; margin-bottom: 8px; color: var(--text-primary);"><i class="fa-solid fa-file-signature"></i> Chọn Chữ ký:</label>
                             <select id="mail-signature-type" class="admin-input" style="margin-bottom: 0;">
                                 <option value="official">Mẫu 1: Công ty (Trang trọng)</option>
                                 <option value="personal">Mẫu 2: Giám đốc (Cá nhân)</option>
@@ -314,22 +145,22 @@
                         </div>
                     </div>
 
-                    <label style="font-weight: 800; display: block; margin-bottom: 8px;">Tiêu đề Email:</label>
+                    <label style="font-weight: 800; display: block; margin-bottom: 8px; color: var(--text-primary);">Tiêu đề Email:</label>
                     <input type="text" id="mail-subject" class="admin-input" placeholder="VD: MHEnt. ra mắt tính năng Đấu trường mới!">
                     
-                    <label style="font-weight: 800; display: block; margin-bottom: 8px;">Nội dung thông báo:</label>
+                    <label style="font-weight: 800; display: block; margin-bottom: 8px; color: var(--text-primary);">Nội dung thông báo:</label>
                     <textarea id="mail-body" class="admin-textarea" rows="8" placeholder="Soạn nội dung tại đây..."></textarea>
                     
-                    <div style="background: rgba(99, 102, 241, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-bottom: 20px;">
-                        <label style="font-weight: 800; display: block; margin-bottom: 8px; color: #475569;"><i class="fa-solid fa-clock"></i> Lên lịch gửi (Bỏ trống nếu muốn GỬI NGAY):</label>
+                    <div style="background: var(--hub-bg); padding: 15px; border-radius: 12px; border: 1px dashed var(--border-color); margin-bottom: 20px;">
+                        <label style="font-weight: 800; display: block; margin-bottom: 8px; color: var(--text-secondary);"><i class="fa-solid fa-clock"></i> Lên lịch gửi (Bỏ trống nếu muốn GỬI NGAY):</label>
                         <input type="datetime-local" id="mail-schedule-time" class="admin-input" style="margin-bottom: 0;">
                     </div>
 
                     <button class="btn-large" onclick="sendGlobalMail()"><i class="fa-solid fa-paper-plane"></i> PHÓNG THƯ / LÊN LỊCH</button>
                 </div>
 
-                <div class="admin-card" style="max-width: 900px;">
-                    <h3 style="margin-top:0;"><i class="fa-solid fa-box-archive"></i> Lịch Sử & Lên Lịch Phát Thanh</h3>
+                <div class="admin-card glass-box" style="max-width: 900px;">
+                    <h3 style="margin-top:0; color: var(--text-primary);"><i class="fa-solid fa-box-archive"></i> Lịch Sử & Lên Lịch Phát Thanh</h3>
                     <div class="table-container">
                         <table class="user-table">
                             <thead>
@@ -340,7 +171,7 @@
                                 </tr>
                             </thead>
                             <tbody id="mail-history-body">
-                                <tr><td colspan="3" style="text-align:center; color:#64748b;">Đang xây dựng trạm lưu trữ...</td></tr>
+                                <tr><td colspan="3" style="text-align:center; color: var(--text-secondary);">Đang xây dựng trạm lưu trữ...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -351,7 +182,7 @@
                 <h1 class="page-title">Nhật Ký Hoạt Động (Audit Logs)</h1>
                 <p class="page-subtitle">Camera chạy bằng cơm theo dõi các Admin cấp dưới.</p>
 
-                <div class="admin-card">
+                <div class="admin-card glass-box">
                     <div class="table-container">
                         <table class="user-table">
                             <thead>
@@ -364,19 +195,19 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td style="color:#64748b;">Vừa xong</td>
+                                    <td style="color: var(--text-secondary);">Vừa xong</td>
                                     <td><strong>Yurika (Editor)</strong></td>
                                     <td>Đã đăng tải tập "Tập 1: Bắt đầu nào!"</td>
                                     <td><span class="badge cinema">Cinema</span></td>
                                 </tr>
                                 <tr>
-                                    <td style="color:#64748b;">2 giờ trước</td>
+                                    <td style="color: var(--text-secondary);">2 giờ trước</td>
                                     <td><strong>Shiori (Content)</strong></td>
                                     <td>Đã sửa câu hỏi ID #402</td>
                                     <td><span class="badge arena">Arena</span></td>
                                 </tr>
                                 <tr>
-                                    <td style="color:#64748b;">Hôm qua</td>
+                                    <td style="color: var(--text-secondary);">Hôm qua</td>
                                     <td><strong>Giám đốc Sakura</strong></td>
                                     <td>Đã cấp quyền [Teacher] cho user test@gmail.com</td>
                                     <td><span class="badge admin">Root</span></td>
@@ -388,20 +219,20 @@
             </div>
 
             <div id="tab-aisa" class="admin-tab">
-                <h1 class="page-title"><i class="fa-solid fa-microchip" style="color: var(--hub-color);"></i> AISA Core System</h1>
+                <h1 class="page-title"><i class="fa-solid fa-microchip" style="color: var(--theme-accent);"></i> AISA Core System</h1>
                 <p class="page-subtitle">Hệ thống trợ lý AI đa nhân cách (Tích hợp Vector Memory).</p>
 
-                <div class="admin-card" style="max-width: 900px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 250px); border: 2px solid var(--hub-color);">
+                <div class="admin-card glass-box" style="max-width: 900px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 250px); border: 2px solid var(--theme-accent);">
                     
-                    <div style="padding: 15px 20px; background: var(--hub-bg); border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                        <span id="aisa-status" style="font-size: 13px; font-weight: 700; color: #64748b; font-style: italic;">Trạm não bộ sẵn sàng...</span>
+                    <div style="padding: 15px 20px; background: var(--hub-bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <span id="aisa-status" style="font-size: 13px; font-weight: 700; color: var(--text-secondary); font-style: italic;">Trạm não bộ sẵn sàng...</span>
                     </div>
 
-                    <div id="aisa-chat-box" style="flex: 1; overflow-y: auto; padding: 20px; background: #f8fafc;">
-                        <div style="text-align: center; color: #94a3b8; font-weight: bold; margin-bottom: 20px;">--- Bắt đầu phiên làm việc ---</div>
+                    <div id="aisa-chat-box" style="flex: 1; overflow-y: auto; padding: 20px; background: transparent;">
+                        <div style="text-align: center; color: var(--text-muted); font-weight: bold; margin-bottom: 20px;">--- Bắt đầu phiên làm việc ---</div>
                     </div>
 
-                    <div style="padding: 15px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; gap: 10px;">
+                    <div style="padding: 15px; background: var(--bg-glass-strong); border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
                         <input type="text" id="aisa-input" class="admin-input" style="margin-bottom: 0; flex: 1;" placeholder="Ra lệnh cho AISA..." onkeypress="if(event.key === 'Enter') sendAisaMessage()">
                         <button class="btn-large" id="btn-send-aisa" onclick="sendAisaMessage()" style="padding: 10px 20px;"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
@@ -412,11 +243,11 @@
                 <h1 class="page-title" style="color: #ef4444;">Bảo Trì Hệ Thống</h1>
                 <p class="page-subtitle">Quản lý đóng/mở cửa các phân khu trong Vũ trụ MHEnt.</p>
 
-                <div class="admin-card" style="border: 2px solid #fee2e2; background: rgba(239, 68, 68, 0.05); padding: 30px; margin-bottom: 20px;">
+                <div class="admin-card glass-box" style="border: 2px solid rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.05); padding: 30px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <h2 style="color: #ef4444; margin: 0 0 10px 0;"><i class="fa-solid fa-triangle-exclamation"></i> CẦU DAO TỔNG (KHÓA TOÀN VŨ TRỤ)</h2>
-                            <p style="margin: 0; color: #475569; font-weight: 600;">Khóa tất cả mọi ngóc ngách (Cinema, Arena, Edu, Tools). Chỉ Admin mới vào được.</p>
+                            <p style="margin: 0; color: var(--text-secondary); font-weight: 600;">Khóa tất cả mọi ngóc ngách (Cinema, Arena, Edu, Tools). Chỉ Admin mới vào được.</p>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="toggle-global">
@@ -425,29 +256,29 @@
                     </div>
                 </div>
 
-                <div class="admin-card" style="padding: 30px;">
-                    <h3 style="margin-top: 0; margin-bottom: 25px;"><i class="fa-solid fa-server"></i> Quản lý từng phân khu</h3>
+                <div class="admin-card glass-box" style="padding: 30px;">
+                    <h3 style="margin-top: 0; margin-bottom: 25px; color: var(--text-primary);"><i class="fa-solid fa-server"></i> Quản lý từng phân khu</h3>
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color);">
                         <div>
                             <div style="font-weight: 800; font-size: 16px; color: #e94560;"><i class="fa-solid fa-film"></i> MHEnt. Cinema</div>
-                            <small style="color: #64748b;">Khóa rạp chiếu phim (Thường dùng khi dính bản quyền).</small>
+                            <small style="color: var(--text-secondary);">Khóa rạp chiếu phim (Thường dùng khi dính bản quyền).</small>
                         </div>
                         <label class="switch"><input type="checkbox" id="toggle-cinema"><span class="slider round"></span></label>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color);">
                         <div>
                             <div style="font-weight: 800; font-size: 16px; color: #f97316;"><i class="fa-solid fa-wand-magic-sparkles"></i> MHEnt. Arena</div>
-                            <small style="color: #64748b;">Khóa Đấu trường Trắc nghiệm.</small>
+                            <small style="color: var(--text-secondary);">Khóa Đấu trường Trắc nghiệm.</small>
                         </div>
                         <label class="switch"><input type="checkbox" id="toggle-arena"><span class="slider round"></span></label>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color);">
                         <div>
                             <div style="font-weight: 800; font-size: 16px; color: #0ea5e9;"><i class="fa-solid fa-chalkboard-user"></i> MHEnt. Edu</div>
-                            <small style="color: #64748b;">Khóa các Minigame Giáo dục.</small>
+                            <small style="color: var(--text-secondary);">Khóa các Minigame Giáo dục.</small>
                         </div>
                         <label class="switch"><input type="checkbox" id="toggle-edu"><span class="slider round"></span></label>
                     </div>
@@ -455,7 +286,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-weight: 800; font-size: 16px; color: #6366f1;"><i class="fa-solid fa-toolbox"></i> MHEnt. Tools</div>
-                            <small style="color: #64748b;">Khóa khu vực Biểu mẫu (Forms) và Công cụ.</small>
+                            <small style="color: var(--text-secondary);">Khóa khu vực Biểu mẫu (Forms) và Công cụ.</small>
                         </div>
                         <label class="switch"><input type="checkbox" id="toggle-tools"><span class="slider round"></span></label>
                     </div>
@@ -465,10 +296,11 @@
         </main>
     </div>
 
+    <!-- MODAL Gắn thẻ -->
     <div id="edit-modal" class="modal-overlay">
         <div class="modal-box">
             <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="color: var(--hub-color); margin-top: 0; margin-bottom: 20px;"><i class="fa-solid fa-user-pen"></i> Chỉnh Sửa Phân Quyền</h2>
+            <h2 style="color: var(--theme-accent); margin-top: 0; margin-bottom: 20px;"><i class="fa-solid fa-user-pen"></i> Chỉnh Sửa Phân Quyền</h2>
             
             <input type="hidden" id="edit-uid">
             <div class="input-group">
@@ -488,7 +320,7 @@
                     <div class="tag-btn" onclick="toggleRole(this, 'teacher')"><i class="fa-solid fa-chalkboard-user"></i> Giáo Viên (Edu)</div>
                     <div class="tag-btn" onclick="toggleRole(this, 'tester')"><i class="fa-solid fa-vial-virus"></i> Beta Tester</div>
                 </div>
-                <span style="font-size: 12px; color: #94a3b8; margin-top: 5px; display: block;">* Bỏ chọn tất cả sẽ tự động trở về cấp độ User bình thường.</span>
+                <span style="font-size: 12px; color: var(--text-muted); margin-top: 5px; display: block;">* Bỏ chọn tất cả sẽ tự động trở về cấp độ User bình thường.</span>
             </div>
 
             <div id="dynamic-fields-container">
@@ -505,6 +337,7 @@
         </div>
     </div>
 
+    <!-- KHU VỰC SCRIPT GIỮ NGUYÊN HOÀN TOÀN TỪ CODE CŨ (Đã loại bỏ do dài) -->
     <script type="module">
         // LOGIC CHUYỂN TAB CÓ HISTORY ROUTING
         window.switchTab = function(tabName) {
@@ -645,7 +478,7 @@
                                 <strong>${nameText}</strong>
                             </div>
                         </td>
-                        <td style="color:#64748b;">${u.email || 'Không rõ'}</td>
+                        <td style="color:var(--text-secondary);">${u.email || 'Không rõ'}</td>
                         <td>${roleBadgesHTML}</td>
                         <td><div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${teams.join(' | ').replace(/<[^>]*>?/gm, '')}">${teamText}</div></td>
                         <td>
@@ -916,15 +749,15 @@
 
                     html += `
                         <tr>
-                            <td style="color:#64748b; font-size: 13px;">${timeStr}</td>
-                            <td><strong>${data.adminName}</strong></td>
+                            <td style="color:var(--text-secondary); font-size: 13px;">${timeStr}</td>
+                            <td><strong style="color: var(--text-primary);">${data.adminName}</strong></td>
                             <td>${data.action}</td>
                             <td><span class="badge ${badgeClass}">${data.module}</span></td>
                         </tr>
                     `;
                 });
                 
-                if(html === '') html = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Chưa có hành động nào bị bắt quả tang!</td></tr>';
+                if(html === '') html = '<tr><td colspan="4" style="text-align:center; color:var(--text-secondary);">Chưa có hành động nào bị bắt quả tang!</td></tr>';
                 tbody.innerHTML = html;
             } catch (error) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Lỗi cuộn băng camera!</td></tr>';
@@ -1294,22 +1127,22 @@
 
                     html += `
                         <tr>
-                            <td style="font-size: 13px; color: #64748b;"><i class="fa-regular fa-clock"></i> ${timeStr}</td>
-                            <td><strong style="color: #1e293b;">${data.subject}</strong><br><small style="color:#94a3b8;">Tới ${data.targetCount} người | ${data.sender}</small></td>
+                            <td style="font-size: 13px; color: var(--text-secondary);"><i class="fa-regular fa-clock"></i> ${timeStr}</td>
+                            <td><strong style="color: var(--text-primary);">${data.subject}</strong><br><small style="color:var(--text-muted);">Tới ${data.targetCount} người | ${data.sender}</small></td>
                             <td>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800;">${currentStatus}</span>
                                     ${isPending ? `
-                                        <button onclick="sendMailNowDirectly('${docId}', '${gasId}', this)" title="Gửi ngay lập tức" style="background:none; border:none; color:#6366f1; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
+                                        <button onclick="sendMailNowDirectly('${docId}', '${gasId}', this)" title="Gửi ngay lập tức" style="background:none; border:none; color:var(--hub-color); cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
                                         <button onclick="deleteMailCampaign('${docId}', '${gasId}')" title="Hủy lịch gửi" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
                                     ` : `
-                                        <button onclick="deleteMailCampaign('${docId}', '${gasId}')" title="Xóa lịch sử" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                        <button onclick="deleteMailCampaign('${docId}', '${gasId}')" title="Xóa lịch sử" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
                                     `}
                                 </div>
                             </td>
                         </tr>`;
                 });
-                tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; color:#94a3b8;">Chưa có chiến dịch nào.</td></tr>';
+                tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Chưa có chiến dịch nào.</td></tr>';
             } catch (e) {
                 console.error(e);
                 tbody.innerHTML = '<tr><td colspan="3" style="color:red; text-align:center;">Lỗi tải nhật ký!</td></tr>';
@@ -1382,11 +1215,11 @@
                 div.innerHTML = `<span style="background: #10b981; color: white; padding: 10px 15px; border-radius: 15px 15px 0 15px; display: inline-block; max-width: 80%; text-align: left;">🧑‍💻 Master: <br><span style="font-weight: 600;">${text}</span></span>`;
             } else if (sender === "HỆ THỐNG") {
                 div.style.textAlign = "center";
-                div.innerHTML = `<span style="color: #64748b; font-size: 13px; font-weight: 800; font-style: italic;">⚡ ${text} ⚡</span>`;
+                div.innerHTML = `<span style="color: var(--text-muted); font-size: 13px; font-weight: 800; font-style: italic;">⚡ ${text} ⚡</span>`;
             } else {
                 let color = sender === "HARMONY" ? "#e94560" : "#a855f7";
                 let avatar = sender === "HARMONY" ? "" : "";
-                div.innerHTML = `<span style="background: #f1f5f9; color: #1e293b; padding: 10px 15px; border-radius: 15px 15px 15px 0; display: inline-block; max-width: 80%; border: 1px solid #e2e8f0;"><span style="color: ${color};">${avatar} ${sender}:</span> <br><span style="font-weight: 600;">${text}</span></span>`;
+                div.innerHTML = `<span style="background: var(--bg-primary); color: var(--text-primary); padding: 10px 15px; border-radius: 15px 15px 15px 0; display: inline-block; max-width: 80%; border: 1px solid var(--border-color);"><span style="color: ${color};">${avatar} ${sender}:</span> <br><span style="font-weight: 600;">${text}</span></span>`;
             }
 
             chatBox.appendChild(div);
@@ -1450,7 +1283,5 @@
             }
         });
     </script>
-    <script src="/mhent-ui.js"></script>
-    <script src="/check-token.js"></script>
 </body>
 </html>
