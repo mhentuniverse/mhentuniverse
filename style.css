@@ -1,6 +1,7 @@
 /* =========================================
-   MHEnt. CINEMA - MAIN STYLESHEET (V10 - THE PERFECT VECTOR EDITION)
+   MHEnt. UNIVERSE - MAIN STYLESHEET (V11 - GLASSMORPHISM EDITION)
    Mục lục:
+   0. CSS Variables System (Light/Dark Theme)
    1. Thiết lập chung & Menu
    2. Trang chủ & Tìm kiếm (Live Search)
    3. Khu vực "Tiếp tục xem" (Continue Watching)
@@ -12,6 +13,42 @@
    9. CHẾ ĐỘ TỐI (DARK MODE - Đã sửa lỗi màu chữ & Kính lúp)
    10. GIAO DIỆN ĐIỆN THOẠI (Mobile Responsive)
    ========================================= */
+
+   /* ==========================================================================
+   0. CSS VARIABLES SYSTEM & CLASS KÍNH MỜ
+   ========================================================================== */
+:root {
+    --bg-primary: #f8fbff;
+    --bg-glass: rgba(255, 255, 255, 0.7);
+    --bg-glass-strong: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(203, 213, 225, 0.4);
+    --text-primary: #333;
+    --text-secondary: #555;
+    --theme-accent: #ff85a2; /* Màu hồng mặc định */
+}
+
+body.dark-mode {
+    --bg-primary: #0f0f16;
+    --bg-glass: rgba(15, 23, 42, 0.45);
+    --bg-glass-strong: rgba(15, 23, 42, 0.85);
+    --border-color: rgba(51, 65, 85, 0.5);
+    --text-primary: #f1f1f1;
+    --text-secondary: #aaa;
+}
+
+/* Biến đổi màu theo trang */
+body.theme-cinema { --theme-accent: #ff85a2; }
+body.theme-arena { --theme-accent: #ff9a55; }
+body.theme-game { --theme-accent: #10b981; }
+
+/* Class Kính mờ xài chung */
+.glass-box {
+    background: var(--bg-glass) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+}
 
 /* =========================================
    1. THIẾT LẬP CHUNG & MENU
@@ -25,12 +62,30 @@ html, body {
 }
 
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body { font-family: 'Nunito', sans-serif; margin: 0; padding: 0; padding-top: calc(75px + env(safe-area-inset-top)); padding-bottom: calc(24px + env(safe-area-inset-bottom)); background-color: #f8fbff; color: #333; font-size: 15px; line-height: 1.5; animation: fadeInPage 0.35s ease-in-out forwards; transition: background-color 0.4s ease, color 0.4s ease; }
+body { 
+    font-family: 'Nunito', sans-serif; 
+    margin: 0; padding: 0; 
+    padding-top: calc(75px + env(safe-area-inset-top)); 
+    padding-bottom: calc(24px + env(safe-area-inset-bottom)); 
+    background-color: var(--bg-primary); /* ĐÃ ĐỔI SANG BIẾN */
+    color: var(--text-primary); /* ĐÃ ĐỔI SANG BIẾN */
+    font-size: 15px; line-height: 1.5; 
+    animation: fadeInPage 0.35s ease-in-out forwards; 
+    transition: background-color 0.4s ease, color 0.4s ease; 
+}
 @keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
 .gradient-bg { background: linear-gradient(135deg, #e0f7fa 0%, #ffe4e1 100%); }
 
 /* Navbar */
-.navbar { display: flex; justify-content: space-between; align-items: center; background-color: #ffffff; padding: 10px 40px; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; box-shadow: 0 2px 15px rgba(0,0,0,0.08); box-sizing: border-box; }
+.navbar { 
+    display: flex; justify-content: space-between; align-items: center; 
+    background-color: var(--bg-glass-strong); /* KÍNH MỜ NAVBAR */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 40px; position: fixed; top: 0; left: 0; width: 100%; 
+    z-index: 9999; box-shadow: 0 2px 15px rgba(0,0,0,0.05); box-sizing: border-box; 
+}
 .nav-left a { display: flex; align-items: center; gap: 15px; text-decoration: none; }
 .avt-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #ff85a2; }
 .logo-name { font-size: 19px; font-weight: 900; color: #ff85a2; }
@@ -864,4 +919,68 @@ body.dark-mode .app-item.active { background: rgba(255, 133, 162, 0.2); border-c
 .show-by-auth { 
     display: block !important; 
     visibility: visible !important; 
+}
+
+/* ==================================
+   GIAO DIỆN TRANG HUB (PORTAL) - ĐÃ VÁ LỖI DARK MODE
+   ================================== */
+
+body { margin: 0; padding: 0; background: #f0f4f8; color: #1e293b; transition: background 0.3s, color 0.3s; }
+.stars-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at bottom, #e2e8f0 0%, #f8fafc 100%); z-index: -1; transition: 0.3s; }
+
+body.dark-mode { background: #0f172a; color: white; }
+body.dark-mode .stars-bg { background: radial-gradient(circle at bottom, #1e293b 0%, #0f172a 100%); }
+body.dark-mode .logo-box h1 { background: linear-gradient(135deg, #ff85a2, #ff5c8a, #ffb703); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+body.dark-mode .portal-card { background: rgba(30, 41, 59, 0.7); border-color: rgba(255, 255, 255, 0.1); }
+body.dark-mode .portal-title { color: white; }
+body.dark-mode .portal-desc { color: #94a3b8; }
+body.dark-mode .svg-portal-icon { color: #e2e8f0; }
+
+.hub-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 20px 40px 20px; position: relative; z-index: 1; }
+
+.logo-box { text-align: center; margin-bottom: 50px; animation: slideDown 0.8s ease-out; }
+.logo-box img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ff85a2; box-shadow: 0 0 30px rgba(255, 133, 162, 0.5); margin-bottom: 15px; }
+.logo-box h1 { font-size: 36px; margin: 0; color: #ff5c8a; letter-spacing: 2px; text-transform: uppercase; }
+.logo-box p { color: #64748b; font-size: 16px; margin-top: 5px; letter-spacing: 1px; font-weight: bold; }
+
+.portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; width: 100%; max-width: 1100px; padding: 0 20px; box-sizing: border-box; animation: fadeIn 1.2s ease-out; }
+
+.portal-card { background: white; backdrop-filter: blur(10px); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 20px; padding: 40px 20px; text-align: center; cursor: pointer; text-decoration: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+.portal-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); opacity: 0; transition: 0.4s; }
+.portal-card:hover::before { opacity: 1; transform: scale(1.2); }
+.portal-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+
+.portal-card.cinema:hover { border-color: #ff85a2; box-shadow: 0 10px 30px rgba(255, 133, 162, 0.3); }
+.portal-card.cinema:hover .svg-portal-icon { color: #ff85a2; transform: scale(1.1); }
+.portal-card.manga:hover { border-color: #00ffcc; box-shadow: 0 10px 30px rgba(0, 255, 204, 0.3); }
+.portal-card.manga:hover .svg-portal-icon { color: #00ffcc; transform: scale(1.1); }
+.portal-card.novel:hover { border-color: #ffb703; box-shadow: 0 10px 30px rgba(255, 183, 3, 0.3); }
+.portal-card.novel:hover .svg-portal-icon { color: #ffb703; transform: scale(1.1); }
+.portal-card.music:hover { border-color: #c084fc; box-shadow: 0 10px 30px rgba(192, 132, 252, 0.3); }
+.portal-card.music:hover .svg-portal-icon { color: #c084fc; transform: scale(1.1); }
+.portal-card.arena:hover { border-color: #ff9a55; box-shadow: 0 10px 30px rgba(192, 132, 252, 0.3); }
+.portal-card.arena:hover .svg-portal-icon { color: #ff9a55; transform: scale(1.1); }
+.portal-card.edu:hover { border-color: #0ea5e9; box-shadow: 0 10px 30px rgba(192, 132, 252, 0.3); }
+.portal-card.edu:hover .svg-portal-icon { color: #0ea5e9; transform: scale(1.1); }
+.portal-card.game:hover { border-color: #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+.portal-card.game:hover .svg-portal-icon { color: #10b981; transform: scale(1.1); }
+
+.svg-portal-icon { margin-bottom: 20px; transition: 0.3s; color: #64748b; }
+.portal-title { color: #1e293b; font-size: 22px; font-weight: 900; margin: 0 0 10px 0; letter-spacing: 1px; }
+.portal-desc { color: #64748b; font-size: 14px; margin: 0; line-height: 1.5; }
+
+/* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
+.app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
+.app-item:hover .app-icon svg { transform: scale(1.1); }
+body.dark-mode .app-icon svg { color: #e2e8f0; }
+
+@keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* VÁ LỖI LỆCH KHUNG TRÊN MOBILE */
+@media (max-width: 768px) {
+    .dropdown-menu.app-switcher-menu {
+        width: 260px !important;
+        right: -60px !important; /* Đẩy lại vào giữa màn hình */
+    }
 }
