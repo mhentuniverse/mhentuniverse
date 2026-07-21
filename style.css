@@ -196,12 +196,33 @@ body {
 /* ======================================================
    TÙY CHỈNH THANH CUỘN (SCROLLBAR) TOÀN HỆ THỐNG
    ====================================================== */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.03); border-radius: 10px; }
-::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--theme-accent); }
-html { scrollbar-width: thin; scrollbar-color: var(--border-color) rgba(0, 0, 0, 0.03); }
+/* 1. Dành cho Chrome, Edge, Safari... */
+::-webkit-scrollbar { 
+    width: 6px; /* Làm cho nó siêu mỏng (từ 8px xuống 6px) */
+    height: 6px; 
+}
+::-webkit-scrollbar-track { 
+    background: transparent; /* Nền trong suốt để không bị phô */
+    margin-top: 65px; /* THUẬT TOÁN SỬA LỖI: Đẩy thanh cuộn tụt xuống 65px để né cái Navbar */
+}
+::-webkit-scrollbar-thumb { 
+    background: rgba(203, 213, 225, 0.8); /* Màu xám kính mờ */
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { 
+    background: var(--theme-accent); /* Khi rê chuột vào mới nổi màu đặc trưng */
+}
 
+/* 2. Dành cho Firefox */
+html { 
+    scrollbar-width: thin; 
+    scrollbar-color: rgba(203, 213, 225, 0.8) transparent; 
+}
+
+/* --- Dark Mode Scrollbar --- */
+body.dark-mode ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); }
+body.dark-mode ::-webkit-scrollbar-thumb:hover { background: var(--theme-accent); }
+body.dark-mode html { scrollbar-color: rgba(71, 85, 105, 0.8) transparent; }
 
 /* =========================================
    2. TRANG CHỦ & TÌM KIẾM (LIVE SEARCH)
