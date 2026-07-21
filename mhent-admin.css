@@ -61,22 +61,62 @@ body.dark-mode .admin-menu-item:hover { background: rgba(255,255,255,0.05); }
 }
 
 /* Bảng Dữ Liệu (Table) */
-.table-container { overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 280px); border-radius: 12px; border: 1px solid var(--border-color); }
-.user-table { width: 100%; border-collapse: collapse; text-align: left; }
-.user-table th { background: rgba(0,0,0,0.03); padding: 15px 20px; font-weight: 900; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; white-space: nowrap; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-body.dark-mode .user-table th { background: rgba(255,255,255,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-.user-table td { padding: 15px 20px; border-bottom: 1px solid var(--border-color); font-size: 15px; font-weight: 700; vertical-align: middle; color: var(--text-primary);}
+.table-container { 
+    overflow-x: auto; 
+    overflow-y: auto; 
+    max-height: calc(100vh - 280px); 
+    border-radius: 12px; 
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary); /* Ép nền mảng cứng để tránh xuyên thấu */
+}
 
-/* --- MỚI THÊM VÀO ĐỂ ÉP CHỮ RÕ NÉT --- */
-.user-table td span { 
-    /* Bỏ độ trong suốt mặc định nếu có */
+.user-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    text-align: left; 
+}
+
+/* ÉP NỀN CHO TIÊU ĐỀ BẢNG (TH) TRÁNH BỊ XUYÊN THẤU */
+.user-table th { 
+    background-color: #f1f5f9 !important; /* Dùng mã màu cứng thay vì rgba trong suốt */
+    padding: 15px 20px; 
+    font-weight: 900; 
+    color: #475569 !important; 
+    font-size: 14px; 
+    text-transform: uppercase; 
+    white-space: nowrap; 
+    position: sticky; 
+    top: 0; 
+    z-index: 10; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+}
+
+body.dark-mode .user-table th { 
+    background-color: #0f172a !important; 
+    color: #94a3b8 !important; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+}
+
+/* ĐỊNH DẠNG Ô DỮ LIỆU (TD) */
+.user-table td { 
+    padding: 15px 20px; 
+    border-bottom: 1px solid var(--border-color); 
+    font-size: 15px; 
+    font-weight: 700; 
+    vertical-align: middle; 
+    color: var(--text-primary);
+    background-color: transparent; /* Giữ trong suốt để ăn theo nền Container */
+}
+
+/* --- ÉP CHỮ TRONG BẢNG PHẢI RÕ NÉT (TRỊ LỖI OPACITY CỦA JAVASCRIPT) --- */
+.user-table td span, 
+.user-table td strong { 
     opacity: 1 !important; 
-    /* Tăng độ đậm của chữ */
     font-weight: 800 !important;
 }
 
-/* Đảm bảo email luôn hiển thị rõ ràng */
-.user-table td[style*="color:var(--text-secondary)"] {
+.user-table td[style*="color:var(--text-secondary)"],
+.user-table td[style*="color:#64748b"] {
     color: var(--text-primary) !important; 
 }
 
