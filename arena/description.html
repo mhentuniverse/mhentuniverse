@@ -18,12 +18,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .desc-container { max-width: 900px; width: 95%; margin: 100px auto 60px auto; padding: 0; min-height: 60vh;}
+        /* BÙA KHÓA CHẶT LAYOUT - CHỐNG FOOTER BAY LƠ LỬNG VÀ NÚT BỊ CHE */
+        body { display: flex !important; flex-direction: column !important; min-height: 100vh !important; }
         
+        .back-btn-wrapper { 
+            max-width: 1400px; width: 95%; margin: 85px auto 10px auto !important; padding: 0; 
+            display: block !important; position: relative; z-index: 5;
+        }
+        
+        .desc-container { 
+            flex: 1 0 auto !important; /* Ép main dãn ra đẩy footer xuống đáy */
+            max-width: 900px; width: 95%; margin: 10px auto 60px auto !important; padding: 0; box-sizing: border-box;
+        }
+        
+        footer { flex-shrink: 0 !important; width: 100%; position: relative; z-index: 10; margin-top: auto !important; }
+        /* ================================================================= */
+
         .desc-box { 
             background: var(--bg-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
             border-radius: 24px; padding: 40px; box-shadow: var(--shadow-glass); 
             border: 1px solid var(--border-color); transition: 0.3s;
+            width: 100%; box-sizing: border-box; overflow: hidden; /* Chống tràn chữ */
         }
         
         .quiz-title-big { font-size: 28px; font-weight: 900; color: var(--text-primary); margin-top: 0; margin-bottom: 15px; line-height: 1.3; }
@@ -36,6 +51,7 @@
             font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 30px; 
             border-left: 5px solid var(--theme-accent); white-space: pre-wrap; 
             border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
+            word-break: break-word; overflow-wrap: break-word; /* Chống vỡ khung khi chữ dài */
         }
         body.dark-mode .quiz-rules { background: rgba(0,0,0,0.2); }
         
@@ -92,7 +108,7 @@
         .btn-start-quiz:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 154, 85, 0.4); }
 
         @media (max-width: 768px) {
-            .desc-container { margin-top: 80px; }
+            .back-btn-wrapper { margin-top: 75px !important; }
             .desc-box { padding: 25px 20px; border-radius: 20px; }
             .quiz-title-big { font-size: 22px; }
             .quiz-meta-tag { flex-direction: column; gap: 8px; }
@@ -193,10 +209,11 @@
         </div>
     </nav>
 
+    <!-- NÚT QUAY LẠI ĐÃ ĐƯỢC PHỤC HỒI AN TOÀN -->
     <div class="back-btn-wrapper">
-        <a onclick="window.location.href='/arena'" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" class="btn-back">
+        <a onclick="window.location.href='/arena'" style="cursor: pointer;" class="btn-back">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Quay lại Trang Chủ
+            Quay lại Trang Chủ Arena
         </a>
     </div>
 
@@ -302,7 +319,7 @@
         window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); document.getElementById('dropdown-account')?.classList.remove('show'); };
         window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
-        window.onclick = function(e) { if (!e.target.closest('.user-section') && !e.target.closest('.popup-overlay')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); } if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active'); };
+        window.onclick = function(e) { if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); } if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active'); };
         
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -310,11 +327,13 @@
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
                 if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
                 if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
                     let userRole = userSnap.exists() ? (userSnap.data().role || 'user') : 'user';
                     localStorage.setItem('mhent_user_role', userRole);
-                    if (userRole.includes('admin') || userRole.includes('arena') || userRole.includes('creator')) {
+
+                    if (userRole.includes('admin') || userRole.includes('arena')) {
                         document.getElementById('studio-panel-btn').style.display = 'block';
                         document.getElementById('admin-divider').style.display = 'block';
                         if(userRole.includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
