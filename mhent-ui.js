@@ -228,113 +228,171 @@ window.closeInputPopup = function() {
 };
 
 // ==========================================================================
-// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER (MENU TRƯỢT NGANG V2.1 - PRO MAX)
+// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER SIÊU LINH HOẠT (CONFIG-DRIVEN V4.0)
 // ==========================================================================
 
-// 1. TỪ ĐIỂN CÁC VŨ TRỤ TRONG MHENT
-const MHENT_APPS_DICT = {
-    cinema: { name: 'Cinema', url: '/cinema', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>' },
-    arena:  { name: 'Arena',  url: '/arena',  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg>' },
-    teach:  { name: 'Edu',    url: '/teach',  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>' },
-    game:   { name: 'Game',   url: '/game',   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>' },
-    music:  { name: 'Music',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>' },
-    manga:  { name: 'Manga',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>' },
-    novel:  { name: 'Novel',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>' }
+// 1. TỪ ĐIỂN CẤU HÌNH ĐA VŨ TRỤ (Muốn thêm vũ trụ mới chỉ cần khai báo vào đây!)
+const MHENT_UNIVERSES = {
+    cinema: {
+        name: 'Cinema',
+        path: '/cinema',
+        color: '#ff85a2',
+        roleKey: 'cinema',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+        // Danh sách tính năng cá nhân tự động gắn vào Drawer khi ở khu vực này:
+        personalMenu: [
+            { title: 'Thư viện phim đã lưu', url: '/cinema/library', icon: 'fa-bookmark', color: '#ff85a2' }
+        ],
+        studioUrl: '/cinema/studio',
+        adminUrl: '/cinema/admin',
+        adminLabel: 'Admin Cinema',
+        studioLabel: 'Studio Cinema'
+    },
+    arena: {
+        name: 'Arena',
+        path: '/arena',
+        color: '#ff9a55',
+        roleKey: 'arena',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg>',
+        personalMenu: [
+            { title: 'Lịch sử làm bài thi', url: '/arena#history', icon: 'fa-clock-rotate-left', color: '#ff9a55' }
+        ],
+        studioUrl: '/arena/studio',
+        adminUrl: '/arena/admin',
+        adminLabel: 'Admin Arena',
+        studioLabel: 'Studio Arena'
+    },
+    teach: {
+        name: 'Edu',
+        path: '/teach',
+        color: '#0ea5e9',
+        roleKey: 'teacher',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>',
+        personalMenu: [],
+        studioUrl: '/teach/studio',
+        adminUrl: '/teach/admin',
+        adminLabel: 'Admin Edu',
+        studioLabel: 'Studio Edu'
+    },
+    game: {
+        name: 'Game',
+        path: '/game',
+        color: '#10b981',
+        roleKey: 'game',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>',
+        personalMenu: [],
+        studioUrl: null,
+        adminUrl: null
+    }
+    // Sếp có thể tự thêm manga, novel... vào đây cực kỳ dễ dàng sau này!
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER BÊN PHẢI) - ĐÃ VÁ LỖI NHẬN DIỆN TRÊN TRANG CHỦ!
+// 2. HÀM MỞ MENU TRƯỢT NGANG (TỰ ĐỘNG NHẬN DIỆN NGỮ CẢNH THEO CONFIG)
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // ⚡ NÂNG CẤP BỘ NÃO NHẬN DIỆN V3.0 (DOM + MEMORY DUAL CHECK):
+    // Quét trạng thái đăng nhập
     let loginBtn = document.getElementById('btn-login');
     let profileEl = document.getElementById('user-profile');
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
     let avtEl = document.getElementById('user-avatar');
     
-    // 1. Kiểm tra thực tế trên màn hình: Thẻ Profile có đang hiện không? Hoặc nút Login có đang bị giấu đi không?
     let isLoggedInDOM = (profileEl && window.getComputedStyle(profileEl).display !== 'none') || 
                         (loginBtn && window.getComputedStyle(loginBtn).display === 'none');
     
-    // 2. Kiểm tra trong bộ nhớ (Dành riêng cho các trang Admin/Studio/Arena)
     let userRole = localStorage.getItem('mhent_user_role') || '';
     let isLoggedInMemory = (window.currentUserEmail !== undefined && window.currentUserEmail !== "") || 
-                           userRole.includes('admin') || userRole.includes('arena') || userRole.includes('cinema');
+                           userRole.includes('admin') || userRole !== 'guest';
 
-    // => Chỉ cần 1 trong 2 điều kiện đúng là CHẮC CHẮN ĐÃ ĐĂNG NHẬP!
     let isLoggedOut = !(isLoggedInDOM || isLoggedInMemory);
 
     let userName = "Khách thăm quan";
     let userAvt = "/assets/avt-web.jpg";
     let userBadge = "✨ Vui lòng đăng nhập";
     
+    // 👉 TỰ ĐỘNG QUÉT XEM SẾP ĐANG Ở VŨ TRỤ NÀO DỰA VÀO PATHNAME:
     let currentPath = window.location.pathname;
-    let isRootAdmin = false;
-    let isStudioCreator = false;
+    let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => currentPath.startsWith(MHENT_UNIVERSES[key].path));
+    let currentUni = activeUniKey ? MHENT_UNIVERSES[activeUniKey] : null; // Nếu null tức là đang đứng ở Root (Đại sảnh / Profile / About)
 
-    // Nếu ĐÃ ĐĂNG NHẬP -> Lấy tên thật, ảnh thật và quét quyền lực!
+    let isRootAdmin = false;
+    let hasStudioPermission = false;
+
     if (!isLoggedOut) {
         userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText !== "" ? nameEl.innerText : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
         userAvt = avtEl && avtEl.src && avtEl.src !== window.location.href ? avtEl.src : "/assets/avt-web.jpg";
         
-        // Quét nút Admin Panel trong dropdown hoặc đường dẫn để biết quyền
-        let adminPanelBtn = document.getElementById('admin-panel-btn');
-        let studioPanelBtn = document.getElementById('studio-panel-btn');
-        
-        isRootAdmin = (adminPanelBtn && window.getComputedStyle(adminPanelBtn).display !== 'none') || 
-                      currentPath.includes('/admin') || 
-                      userRole.includes('admin');
-                      
-        isStudioCreator = (studioPanelBtn && window.getComputedStyle(studioPanelBtn).display !== 'none') || 
-                          currentPath.includes('/studio') || 
-                          userRole.includes('cinema') || userRole.includes('arena');
+        isRootAdmin = currentPath.includes('/admin') || userRole.includes('admin');
+        hasStudioPermission = currentPath.includes('/studio') || isRootAdmin || (currentUni && userRole.includes(currentUni.roleKey));
 
         if (isRootAdmin) userBadge = '👑 Root Admin Toàn Quyền';
-        else if (isStudioCreator) userBadge = '🎬 Creator / Uploader';
+        else if (hasStudioPermission) userBadge = `🎬 Creator ${currentUni ? currentUni.name : 'MHEnt'}`;
         else userBadge = '✨ Thành viên MHEnt';
     }
 
     let isDark = document.body.classList.contains('dark-mode');
-
     let overlay = document.createElement('div');
     overlay.className = 'mhent-drawer-overlay';
     overlay.id = 'mhent-side-drawer-overlay';
     overlay.onclick = function(e) { if (e.target === overlay) window.closeSideDrawer(); };
 
-    // XÂY DỰNG DANH SÁCH MENU TÙY THEO TRẠNG THÁI
+    // XÂY DỰNG DANH SÁCH MENU HOÀN TOÀN TỰ ĐỘNG:
     let menuHTML = '';
 
     if (!isLoggedOut) {
-        // ---> KHI ĐÃ ĐĂNG NHẬP: Hiện đầy đủ chức năng cá nhân & quyền hạn
-        menuHTML = `
+        // [1] Hồ sơ chung (Luôn có)
+        menuHTML += `
             <a onclick="window.location.href='/profile#info'; closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-user"></i> <span>Hồ sơ cá nhân</span></div>
                 <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
             </a>
+        `;
 
-            <a onclick="window.location.href='/cinema/library'; closeSideDrawer();" class="drawer-item">
-                <div class="drawer-item-left"><i class="fa-solid fa-bookmark"></i> <span>Thư viện phim đã lưu</span></div>
-                <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
-            </a>
+        // [2] Nút tính năng cá nhân TỰ ĐỘNG sinh ra theo Vũ trụ hiện tại:
+        if (currentUni && currentUni.personalMenu) {
+            currentUni.personalMenu.forEach(item => {
+                menuHTML += `
+                    <a onclick="window.location.href='${item.url}'; closeSideDrawer();" class="drawer-item">
+                        <div class="drawer-item-left"><i class="fa-solid ${item.icon}" style="color: ${item.color};"></i> <span>${item.title}</span></div>
+                        <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
+                    </a>
+                `;
+            });
+        }
 
+        // [3] Dark Mode (Luôn có)
+        menuHTML += `
             <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
                 <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
                 <input type="checkbox" id="drawer-dark-switch" ${isDark ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--theme-accent, #ff85a2); pointer-events: none;">
             </div>
+        `;
 
-            ${isRootAdmin ? `
-            <a onclick="window.location.href='/admin'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
-                <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>Admin Dashboard</span></div>
-                <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px;">ROOT</span>
-            </a>` : ''}
+        // [4] Admin Dashboard (Tự động trỏ đúng url của khu vực hoặc Root)
+        if (isRootAdmin) {
+            let targetAdminUrl = (currentUni && currentUni.adminUrl) ? currentUni.adminUrl : '/admin';
+            let labelAdmin = (currentUni && currentUni.adminLabel) ? currentUni.adminLabel : 'Admin Root';
+            menuHTML += `
+                <a onclick="window.location.href='${targetAdminUrl}'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
+                    <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>${labelAdmin}</span></div>
+                    <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px;">ROOT</span>
+                </a>
+            `;
+        }
 
-            ${isStudioCreator || isRootAdmin ? `
-            <a onclick="window.location.href='/cinema/studio'; closeSideDrawer();" class="drawer-item" style="color: #ff9a55;">
-                <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: #ff9a55;"></i> <span>Phòng Studio</span></div>
-                <span style="font-size: 10px; background: rgba(255,154,85,0.2); color: #ff9a55; padding: 2px 8px; border-radius: 10px;">CREATOR</span>
-            </a>` : ''}
+        // [5] Studio Dashboard (Tự động trỏ đúng Studio của vũ trụ hiện tại)
+        if (hasStudioPermission && currentUni && currentUni.studioUrl) {
+            menuHTML += `
+                <a onclick="window.location.href='${currentUni.studioUrl}'; closeSideDrawer();" class="drawer-item" style="color: ${currentUni.color};">
+                    <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: ${currentUni.color};"></i> <span>${currentUni.studioLabel}</span></div>
+                    <span style="font-size: 10px; background: rgba(255,154,85,0.2); color: ${currentUni.color}; padding: 2px 8px; border-radius: 10px;">CREATOR</span>
+                </a>
+            `;
+        }
 
+        // [6] Các cài đặt chung
+        menuHTML += `
             <a onclick="window.openNavCustomizer(); closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-sliders"></i> <span>Tùy chỉnh Menu đáy</span></div>
                 <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
@@ -346,7 +404,7 @@ window.openSideDrawer = function() {
             </a>
         `;
     } else {
-        // ---> KHI ĐANG ĐĂNG XUẤT (KHÁCH): Chỉ hiện Dark Mode, Tùy chỉnh Nav & About
+        // ---> KHI ĐANG ĐĂNG XUẤT (KHÁCH)
         menuHTML = `
             <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
                 <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
@@ -365,7 +423,6 @@ window.openSideDrawer = function() {
         `;
     }
 
-    // XÂY DỰNG NÚT FOOTER TƯƠNG ỨNG
     let footerHTML = !isLoggedOut ? `
         <button class="drawer-btn-logout" onclick="closeSideDrawer(); let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else { localStorage.setItem('mhent_user_role', 'guest'); window.location.href='/'; }">
             <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
@@ -399,14 +456,6 @@ window.openSideDrawer = function() {
     setTimeout(() => overlay.classList.add('show'), 10);
 };
 
-window.closeSideDrawer = function() {
-    let overlay = document.getElementById('mhent-side-drawer-overlay');
-    if (overlay) {
-        overlay.classList.remove('show');
-        setTimeout(() => overlay.remove(), 350);
-    }
-};
-
 // 3. HÀM MỞ MENU TRƯỢT BÊN TRÁI CHO ADMIN / STUDIO (LEFT DRAWER)
 window.toggleAdminLeftDrawer = function() {
     let sidebar = document.querySelector('.admin-sidebar');
@@ -434,7 +483,7 @@ window.toggleAdminLeftDrawer = function() {
     }
 };
 
-// 4. HÀM VẼ MENU ĐÁY TỰ ĐỘNG
+// 4. HÀM VẼ MENU ĐÁY TỰ ĐỘNG (DỰA TRÊN TỪ ĐIỂN CONFIG TRÊN)
 window.renderBottomNav = function() {
     if (window.innerWidth > 768) return;
 
@@ -458,11 +507,11 @@ window.renderBottomNav = function() {
     `;
 
     favApps.forEach(appKey => {
-        let app = MHENT_APPS_DICT[appKey];
+        let app = MHENT_UNIVERSES[appKey];
         if (app) {
-            let isActive = currentPath.includes(app.url) && app.url !== '#' ? 'active' : '';
+            let isActive = currentPath.startsWith(app.path) ? 'active' : '';
             html += `
-                <a onclick="window.location.href='${app.url}'" class="bottom-nav-item ${isActive}">
+                <a onclick="window.location.href='${app.path}'" class="bottom-nav-item ${isActive}">
                     ${app.icon}
                     <span>${app.name}</span>
                 </a>
@@ -481,11 +530,10 @@ window.renderBottomNav = function() {
     nav.innerHTML = html;
 };
 
-// Tự động gọi hàm vẽ Menu khi trang web tải xong & Gắn lệnh bấm Logo Admin
+// Tự động gọi hàm vẽ Menu khi tải trang
 document.addEventListener("DOMContentLoaded", () => {
     window.renderBottomNav();
 
-    // NẾU ĐANG Ở ADMIN / STUDIO: Tự động biến Logo thành nút Mở Menu Trái!
     let adminBrand = document.querySelector('.master-header .brand');
     if (adminBrand) {
         adminBrand.style.cursor = "pointer";
@@ -497,21 +545,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 5. HÀM MỞ BẢNG CHỌN VŨ TRỤ YÊU THÍCH (GỌI KHI BẤM NÚT TÙY CHỈNH)
+// 5. HÀM MỞ BẢNG CHỌN VŨ TRỤ YÊU THÍCH
 window.openNavCustomizer = function() {
     let favApps = JSON.parse(localStorage.getItem('mhent_custom_nav') || '["cinema", "arena"]');
     
     let appsHTML = '';
-    for (let key in MHENT_APPS_DICT) {
-        let app = MHENT_APPS_DICT[key];
+    for (let key in MHENT_UNIVERSES) {
+        let app = MHENT_UNIVERSES[key];
         let isChecked = favApps.includes(key) ? 'checked' : '';
         appsHTML += `
             <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--text-primary);">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="color: var(--theme-accent, #ff85a2);">${app.icon}</span>
+                    <span style="color: ${app.color};">${app.icon}</span>
                     <span>MHEnt. ${app.name}</span>
                 </div>
-                <input type="checkbox" name="custom_app_item" value="${key}" ${isChecked} style="width: 18px; height: 18px; accent-color: var(--theme-accent, #ff85a2); cursor: pointer;">
+                <input type="checkbox" name="custom_app_item" value="${key}" ${isChecked} style="width: 18px; height: 18px; accent-color: ${app.color}; cursor: pointer;">
             </label>
         `;
     }
@@ -522,7 +570,7 @@ window.openNavCustomizer = function() {
     overlay.innerHTML = `
         <div class="mhent-ui-box" style="text-align: left; max-width: 420px;">
             <h3 style="font-weight: 900; color: var(--text-primary); margin-top: 0; margin-bottom: 5px; text-align: center;">Tùy chỉnh Menu Đáy 📱</h3>
-            <p style="color: var(--text-secondary); font-size: 13.5px; text-align: center; margin-bottom: 20px;">Chọn từ 2 đến 3 vũ trụ cậu hay ghé thăm nhất để ghim xuống thanh điều hướng nhé!</p>
+            <p style="color: var(--text-secondary); font-size: 13.5px; text-align: center; margin-bottom: 20px;">Chọn từ 1 đến 3 vũ trụ cậu hay ghé thăm nhất để ghim xuống thanh điều hướng nhé!</p>
             
             <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; padding-right: 5px;">
                 ${appsHTML}
