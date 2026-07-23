@@ -242,21 +242,29 @@ const MHENT_APPS_DICT = {
     novel:  { name: 'Novel',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>' }
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER BÊN PHẢI) - ĐÃ PHÂN BIỆT KHÁCH & THÀNH VIÊN!
+// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER BÊN PHẢI) - ĐÃ VÁ LỖI NHẬN DIỆN TRÊN TRANG CHỦ!
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // 1. KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP THỰC TẾ
-    let userRole = localStorage.getItem('mhent_user_role') || 'guest';
+    // ⚡ NÂNG CẤP BỘ NÃO NHẬN DIỆN V3.0 (DOM + MEMORY DUAL CHECK):
     let loginBtn = document.getElementById('btn-login');
-    
-    // Nếu nút Login đang hiện, hoặc role là guest -> Chắc chắn là Khách (Đã đăng xuất)!
-    let isLoggedOut = (loginBtn && window.getComputedStyle(loginBtn).display !== 'none') || (userRole === 'guest' && !window.currentUserEmail);
-
+    let profileEl = document.getElementById('user-profile');
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
     let avtEl = document.getElementById('user-avatar');
     
+    // 1. Kiểm tra thực tế trên màn hình: Thẻ Profile có đang hiện không? Hoặc nút Login có đang bị giấu đi không?
+    let isLoggedInDOM = (profileEl && window.getComputedStyle(profileEl).display !== 'none') || 
+                        (loginBtn && window.getComputedStyle(loginBtn).display === 'none');
+    
+    // 2. Kiểm tra trong bộ nhớ (Dành riêng cho các trang Admin/Studio/Arena)
+    let userRole = localStorage.getItem('mhent_user_role') || '';
+    let isLoggedInMemory = (window.currentUserEmail !== undefined && window.currentUserEmail !== "") || 
+                           userRole.includes('admin') || userRole.includes('arena') || userRole.includes('cinema');
+
+    // => Chỉ cần 1 trong 2 điều kiện đúng là CHẮC CHẮN ĐÃ ĐĂNG NHẬP!
+    let isLoggedOut = !(isLoggedInDOM || isLoggedInMemory);
+
     let userName = "Khách thăm quan";
     let userAvt = "/assets/avt-web.jpg";
     let userBadge = "✨ Vui lòng đăng nhập";
@@ -265,13 +273,22 @@ window.openSideDrawer = function() {
     let isRootAdmin = false;
     let isStudioCreator = false;
 
-    // Chỉ khi ĐÃ ĐĂNG NHẬP mới quét quyền lực và tên thật
+    // Nếu ĐÃ ĐĂNG NHẬP -> Lấy tên thật, ảnh thật và quét quyền lực!
     if (!isLoggedOut) {
         userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText !== "" ? nameEl.innerText : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
         userAvt = avtEl && avtEl.src && avtEl.src !== window.location.href ? avtEl.src : "/assets/avt-web.jpg";
         
-        isRootAdmin = currentPath.includes('/admin') || userRole.includes('admin');
-        isStudioCreator = currentPath.includes('/studio') || userRole.includes('cinema') || userRole.includes('arena');
+        // Quét nút Admin Panel trong dropdown hoặc đường dẫn để biết quyền
+        let adminPanelBtn = document.getElementById('admin-panel-btn');
+        let studioPanelBtn = document.getElementById('studio-panel-btn');
+        
+        isRootAdmin = (adminPanelBtn && window.getComputedStyle(adminPanelBtn).display !== 'none') || 
+                      currentPath.includes('/admin') || 
+                      userRole.includes('admin');
+                      
+        isStudioCreator = (studioPanelBtn && window.getComputedStyle(studioPanelBtn).display !== 'none') || 
+                          currentPath.includes('/studio') || 
+                          userRole.includes('cinema') || userRole.includes('arena');
 
         if (isRootAdmin) userBadge = '👑 Root Admin Toàn Quyền';
         else if (isStudioCreator) userBadge = '🎬 Creator / Uploader';
@@ -285,7 +302,7 @@ window.openSideDrawer = function() {
     overlay.id = 'mhent-side-drawer-overlay';
     overlay.onclick = function(e) { if (e.target === overlay) window.closeSideDrawer(); };
 
-    // 2. XÂY DỰNG DANH SÁCH MENU TÙY THEO TRẠNG THÁI
+    // XÂY DỰNG DANH SÁCH MENU TÙY THEO TRẠNG THÁI
     let menuHTML = '';
 
     if (!isLoggedOut) {
@@ -348,7 +365,7 @@ window.openSideDrawer = function() {
         `;
     }
 
-    // 3. XÂY DỰNG NÚT FOOTER TƯƠNG ỨNG
+    // XÂY DỰNG NÚT FOOTER TƯƠNG ỨNG
     let footerHTML = !isLoggedOut ? `
         <button class="drawer-btn-logout" onclick="closeSideDrawer(); let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else { localStorage.setItem('mhent_user_role', 'guest'); window.location.href='/'; }">
             <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
