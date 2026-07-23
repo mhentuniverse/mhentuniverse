@@ -314,14 +314,20 @@ window.openSideDrawer = function() {
     // 👉 TỰ ĐỘNG QUÉT XEM SẾP ĐANG Ở VŨ TRỤ NÀO DỰA VÀO PATHNAME:
     let currentPath = window.location.pathname;
     let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => currentPath.startsWith(MHENT_UNIVERSES[key].path));
-    let currentUni = activeUniKey ? MHENT_UNIVERSES[activeUniKey] : null; // Nếu null tức là đang đứng ở Root (Đại sảnh / Profile / About)
+    let currentUni = activeUniKey ? MHENT_UNIVERSES[activeUniKey] : null;
 
     let isRootAdmin = false;
     let hasStudioPermission = false;
 
     if (!isLoggedOut) {
         userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText !== "" ? nameEl.innerText : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
-        userAvt = avtEl && avtEl.src && avtEl.src !== window.location.href ? avtEl.src : "/assets/avt-web.jpg";
+        
+        // ⚡ FIX TRIỆT ĐỂ LỖI VỠ AVATAR: Kiểm tra kỹ link ảnh trước khi gán
+        if (avtEl && avtEl.getAttribute('src') && avtEl.getAttribute('src').trim() !== "" && !avtEl.src.includes('index.html')) {
+            userAvt = avtEl.src;
+        } else if (window.currentUserPhotoURL) {
+            userAvt = window.currentUserPhotoURL;
+        }
         
         isRootAdmin = currentPath.includes('/admin') || userRole.includes('admin');
         hasStudioPermission = currentPath.includes('/studio') || isRootAdmin || (currentUni && userRole.includes(currentUni.roleKey));
@@ -337,7 +343,7 @@ window.openSideDrawer = function() {
     overlay.id = 'mhent-side-drawer-overlay';
     overlay.onclick = function(e) { if (e.target === overlay) window.closeSideDrawer(); };
 
-    // XÂY DỰNG DANH SÁCH MENU HOÀN TOÀN TỰ ĐỘNG:
+    // XÂY DỰNG DANH SÁCH MENU:
     let menuHTML = '';
 
     if (!isLoggedOut) {
@@ -369,7 +375,7 @@ window.openSideDrawer = function() {
             </div>
         `;
 
-        // [4] Admin Dashboard (Tự động trỏ đúng url của khu vực hoặc Root)
+        // [4] Admin Dashboard
         if (isRootAdmin) {
             let targetAdminUrl = (currentUni && currentUni.adminUrl) ? currentUni.adminUrl : '/admin';
             let labelAdmin = (currentUni && currentUni.adminLabel) ? currentUni.adminLabel : 'Admin Root';
@@ -381,7 +387,7 @@ window.openSideDrawer = function() {
             `;
         }
 
-        // [5] Studio Dashboard (Tự động trỏ đúng Studio của vũ trụ hiện tại)
+        // [5] Studio Dashboard
         if (hasStudioPermission && currentUni && currentUni.studioUrl) {
             menuHTML += `
                 <a onclick="window.location.href='${currentUni.studioUrl}'; closeSideDrawer();" class="drawer-item" style="color: ${currentUni.color};">
@@ -437,7 +443,7 @@ window.openSideDrawer = function() {
         <div class="mhent-side-drawer">
             <div class="drawer-header">
                 <button class="drawer-close-btn" onclick="closeSideDrawer()">&times;</button>
-                <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.src='/assets/avt-web.jpg'">
+                <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.onerror=null; this.src='/assets/avt-web.jpg';">
                 <div class="drawer-name">${userName}</div>
                 <div class="drawer-email">${userBadge}</div>
             </div>
@@ -456,7 +462,16 @@ window.openSideDrawer = function() {
     setTimeout(() => overlay.classList.add('show'), 10);
 };
 
-// 3. HÀM MỞ MENU TRƯỢT BÊN TRÁI CHO ADMIN / STUDIO (LEFT DRAWER)
+// 3. HÀM ĐÓNG MENU TRƯỢT NGANG (SIDE DRAWER) - 👉 ĐÃ BỔ SUNG KẺ THẤT LẠC VÀO ĐÂY RỒI NÈ SẾP!
+window.closeSideDrawer = function() {
+    let overlay = document.getElementById('mhent-side-drawer-overlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 350);
+    }
+};
+
+// 4. HÀM MỞ MENU TRƯỢT BÊN TRÁI CHO ADMIN / STUDIO (LEFT DRAWER)
 window.toggleAdminLeftDrawer = function() {
     let sidebar = document.querySelector('.admin-sidebar');
     if (!sidebar) return;
