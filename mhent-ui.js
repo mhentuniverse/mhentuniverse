@@ -228,14 +228,13 @@ window.closeInputPopup = function() {
 };
 
 // ==========================================================================
-// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER SIÊU LINH HOẠT (V4.2 - PRO MAX)
+// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER SIÊU LINH HOẠT (V5.0 - PRO MAX)
 // ==========================================================================
 
-// 1. TỪ ĐIỂN CÁC VŨ TRỤ (Cấu hình riêng cho từng phân khu)
-const MHENT_APPS_DICT = {
+// 1. TỪ ĐIỂN CẤU HÌNH ĐA VŨ TRỤ (Cấu hình linh hoạt theo từng phân khu)
+const MHENT_UNIVERSES = {
     cinema: {
         name: 'Cinema',
-        url: '/cinema',
         path: '/cinema',
         color: '#ff85a2',
         roleKey: 'cinema',
@@ -250,7 +249,6 @@ const MHENT_APPS_DICT = {
     },
     arena: {
         name: 'Arena',
-        url: '/arena',
         path: '/arena',
         color: '#ff9a55',
         roleKey: 'arena',
@@ -265,7 +263,6 @@ const MHENT_APPS_DICT = {
     },
     teach: {
         name: 'Edu',
-        url: '/teach',
         path: '/teach',
         color: '#0ea5e9',
         roleKey: 'teacher',
@@ -276,31 +273,31 @@ const MHENT_APPS_DICT = {
         adminLabel: 'Admin Edu',
         studioLabel: 'Studio Edu'
     },
-    game:   { name: 'Game',   url: '/game',   path: '/game',   color: '#10b981', roleKey: 'game', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>', personalMenu: [], studioUrl: null, adminUrl: null },
-    music:  { name: 'Music',  url: '#',       path: '#',       color: '#8b5cf6', roleKey: 'music', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>', personalMenu: [], studioUrl: null, adminUrl: null },
-    manga:  { name: 'Manga',  url: '#',       path: '#',       color: '#ec4899', roleKey: 'manga', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>', personalMenu: [], studioUrl: null, adminUrl: null },
-    novel:  { name: 'Novel',  url: '#',       path: '#',       color: '#f43f5e', roleKey: 'novel', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>', personalMenu: [], studioUrl: null, adminUrl: null }
+    game:   { name: 'Game',   path: '/game',   color: '#10b981', roleKey: 'game', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>', personalMenu: [], studioUrl: null, adminUrl: null },
+    music:  { name: 'Music',  path: '#',       color: '#8b5cf6', roleKey: 'music', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>', personalMenu: [], studioUrl: null, adminUrl: null },
+    manga:  { name: 'Manga',  path: '#',       color: '#ec4899', roleKey: 'manga', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>', personalMenu: [], studioUrl: null, adminUrl: null },
+    novel:  { name: 'Novel',  path: '#',       color: '#f43f5e', roleKey: 'novel', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>', personalMenu: [], studioUrl: null, adminUrl: null }
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V4.3 - CHUẨN ROLE-BASED ACCESS CONTROL!)
+// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V5.0 - CHUẨN RBAC & PHÂN KHU)
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // Kiểm tra thực tế trên màn hình:
+    // Quét trạng thái DOM thực tế
     let loginBtn = document.getElementById('btn-login');
     let profileEl = document.getElementById('user-profile');
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
     let avtEl = document.getElementById('user-avatar');
     
-    let isLoginBtnVisible = loginBtn && window.getComputedStyle(loginBtn).display !== 'none';
+    let isLoginBtnVisible = loginBtn && (window.getComputedStyle(loginBtn).display !== 'none' || loginBtn.style.display === 'block' || loginBtn.style.display === 'inline-block' || loginBtn.style.display === 'flex');
     let isProfileVisible = profileEl && window.getComputedStyle(profileEl).display !== 'none';
     
     let userRole = localStorage.getItem('mhent_user_role') || '';
     let hasValidMemory = (window.currentUserEmail !== undefined && window.currentUserEmail !== "") || 
                          (userRole !== '' && userRole !== 'guest' && userRole !== 'null');
 
-    // Chốt trạng thái Khách vs Thành viên:
+    // Chốt trạng thái Khách vs Thành viên
     let isLoggedOut = true;
     if (isLoginBtnVisible) {
         isLoggedOut = true;
@@ -316,13 +313,13 @@ window.openSideDrawer = function() {
     
     // Quét ngữ cảnh khu vực hiện tại
     let currentPath = window.location.pathname;
-    let activeUniKey = Object.keys(MHENT_APPS_DICT).find(key => MHENT_APPS_DICT[key].path !== '#' && currentPath.startsWith(MHENT_APPS_DICT[key].path));
-    let currentUni = activeUniKey ? MHENT_APPS_DICT[activeUniKey] : null;
+    let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => MHENT_UNIVERSES[key].path !== '#' && currentPath.startsWith(MHENT_UNIVERSES[key].path));
+    let currentUni = activeUniKey ? MHENT_UNIVERSES[activeUniKey] : null;
 
     let isRootAdmin = false;
     let isStudioCreator = false;
 
-    // KHI ĐÃ ĐĂNG NHẬP -> QUÉT QUYỀN LỰC HOÀN TOÀN DỰA VÀO ROLE & DOM (KHÔNG CHECK TÊN!):
+    // KHI ĐÃ ĐĂNG NHẬP -> QUÉT ROLE CHUẨN XÁC KỂ CẢ TRÊN MOBILE (KHÔNG CHECK TÊN!):
     if (!isLoggedOut) {
         userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText.trim() !== "" ? nameEl.innerText.trim() : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
         
@@ -332,18 +329,28 @@ window.openSideDrawer = function() {
             userAvt = window.currentUserPhotoURL;
         }
         
-        // 👉 CHỈ DÙNG DOM VÀ ROLE KỸ THUẬT ĐỂ PHÂN QUYỀN:
+        // 👉 PHÂN QUYỀN THÔNG MINH (Soi cả inline style để không bị CSS mobile che mắt):
         let adminPanelBtn = document.getElementById('admin-panel-btn');
         let studioPanelBtn = document.getElementById('studio-panel-btn');
         
-        isRootAdmin = (adminPanelBtn && window.getComputedStyle(adminPanelBtn).display !== 'none') || 
-                      currentPath.includes('/admin') || 
-                      userRole.includes('admin');
-                      
-        isStudioCreator = (studioPanelBtn && window.getComputedStyle(studioPanelBtn).display !== 'none') || 
-                          currentPath.includes('/studio') || 
-                          isRootAdmin ||
-                          userRole.includes('cinema') || userRole.includes('arena');
+        let isAdminDOM = adminPanelBtn && (
+            (adminPanelBtn.style.display && adminPanelBtn.style.display !== 'none') ||
+            window.getComputedStyle(adminPanelBtn).display !== 'none' ||
+            adminPanelBtn.getAttribute('style')?.includes('block') ||
+            adminPanelBtn.getAttribute('style')?.includes('flex') ||
+            adminPanelBtn.getAttribute('style')?.includes('inline')
+        );
+
+        let isStudioDOM = studioPanelBtn && (
+            (studioPanelBtn.style.display && studioPanelBtn.style.display !== 'none') ||
+            window.getComputedStyle(studioPanelBtn).display !== 'none' ||
+            studioPanelBtn.getAttribute('style')?.includes('block') ||
+            studioPanelBtn.getAttribute('style')?.includes('flex') ||
+            studioPanelBtn.getAttribute('style')?.includes('inline')
+        );
+        
+        isRootAdmin = isAdminDOM || currentPath.includes('/admin') || userRole.includes('admin') || (window.currentUserRole === 'admin');
+        isStudioCreator = isStudioDOM || currentPath.includes('/studio') || isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || (window.currentUserRole && (window.currentUserRole.includes('creator') || window.currentUserRole.includes('studio')));
 
         if (isRootAdmin) {
             userBadge = '👑 Root Admin Toàn Quyền';
@@ -359,10 +366,11 @@ window.openSideDrawer = function() {
     overlay.id = 'mhent-side-drawer-overlay';
     overlay.onclick = function(e) { if (e.target === overlay) window.closeSideDrawer(); };
 
-    // XÂY DỰNG DANH SÁCH MENU THEO TỪNG PHÂN KHU:
+    // XÂY DỰNG DANH SÁCH MENU THEO TỪNG VŨ TRỤ:
     let menuHTML = '';
 
     if (!isLoggedOut) {
+        // [1] Hồ sơ chung (Luôn có)
         menuHTML += `
             <a onclick="window.location.href='/profile#info'; closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-user"></i> <span>Hồ sơ cá nhân</span></div>
@@ -370,6 +378,7 @@ window.openSideDrawer = function() {
             </a>
         `;
 
+        // [2] Nút tính năng riêng TỰ ĐỘNG sinh ra theo Vũ trụ hiện tại:
         if (currentUni && currentUni.personalMenu) {
             currentUni.personalMenu.forEach(item => {
                 menuHTML += `
@@ -381,6 +390,7 @@ window.openSideDrawer = function() {
             });
         }
 
+        // [3] Dark Mode (Luôn có)
         menuHTML += `
             <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
                 <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
@@ -388,6 +398,7 @@ window.openSideDrawer = function() {
             </div>
         `;
 
+        // [4] Admin Dashboard (Tự động chuyển hướng theo phân khu)
         if (isRootAdmin) {
             let targetAdminUrl = (currentUni && currentUni.adminUrl) ? currentUni.adminUrl : '/admin';
             let labelAdmin = (currentUni && currentUni.adminLabel) ? currentUni.adminLabel : 'Admin Dashboard';
@@ -399,6 +410,7 @@ window.openSideDrawer = function() {
             `;
         }
 
+        // [5] Studio Dashboard (Tự động chuyển hướng theo phân khu)
         if (isStudioCreator || isRootAdmin) {
             let targetStudioUrl = (currentUni && currentUni.studioUrl) ? currentUni.studioUrl : '/cinema/studio';
             let labelStudio = (currentUni && currentUni.studioLabel) ? currentUni.studioLabel : 'Phòng Studio';
@@ -410,6 +422,7 @@ window.openSideDrawer = function() {
             `;
         }
 
+        // [6] Các cài đặt chung
         menuHTML += `
             <a onclick="window.openNavCustomizer(); closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-sliders"></i> <span>Tùy chỉnh Menu đáy</span></div>
@@ -422,6 +435,7 @@ window.openSideDrawer = function() {
             </a>
         `;
     } else {
+        // ---> KHI ĐANG ĐĂNG XUẤT (KHÁCH)
         menuHTML = `
             <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
                 <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
@@ -454,7 +468,7 @@ window.openSideDrawer = function() {
         <div class="mhent-side-drawer">
             <div class="drawer-header">
                 <button class="drawer-close-btn" onclick="closeSideDrawer()">&times;</button>
-                <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.src='/assets/avt-web.jpg'">
+                <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.onerror=null; this.src='/assets/avt-web.jpg';">
                 <div class="drawer-name">${userName}</div>
                 <div class="drawer-email">${userBadge}</div>
             </div>
@@ -533,7 +547,7 @@ window.renderBottomNav = function() {
     `;
 
     favApps.forEach(appKey => {
-        let app = MHENT_APPS_DICT[appKey];
+        let app = MHENT_UNIVERSES[appKey];
         if (app) {
             let isActive = currentPath.startsWith(app.path) ? 'active' : '';
             html += `
@@ -576,8 +590,8 @@ window.openNavCustomizer = function() {
     let favApps = JSON.parse(localStorage.getItem('mhent_custom_nav') || '["cinema", "arena"]');
     
     let appsHTML = '';
-    for (let key in MHENT_APPS_DICT) {
-        let app = MHENT_APPS_DICT[key];
+    for (let key in MHENT_UNIVERSES) {
+        let app = MHENT_UNIVERSES[key];
         let isChecked = favApps.includes(key) ? 'checked' : '';
         appsHTML += `
             <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--text-primary);">
