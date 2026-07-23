@@ -228,10 +228,10 @@ window.closeInputPopup = function() {
 };
 
 // ==========================================================================
-// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER SIÊU LINH HOẠT (V5.0 - PRO MAX)
+// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER SIÊU LINH HOẠT (V5.2 - PRO MAX)
 // ==========================================================================
 
-// 1. TỪ ĐIỂN CẤU HÌNH ĐA VŨ TRỤ (Cấu hình linh hoạt theo từng phân khu)
+// 1. TỪ ĐIỂN CẤU HÌNH ĐA VŨ TRỤ
 const MHENT_UNIVERSES = {
     cinema: {
         name: 'Cinema',
@@ -279,12 +279,12 @@ const MHENT_UNIVERSES = {
     novel:  { name: 'Novel',  path: '#',       color: '#f43f5e', roleKey: 'novel', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>', personalMenu: [], studioUrl: null, adminUrl: null }
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V5.1 - CHUẨN NGỮ CẢNH PHÂN KHU & RBAC)
+// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V5.2 - CHUẨN NAME CACHING & RBAC)
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // Quét trạng thái DOM thực tế trên màn hình
+    // Quét thực tế trên DOM
     let loginBtn = document.getElementById('btn-login');
     let profileEl = document.getElementById('user-profile');
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
@@ -297,7 +297,7 @@ window.openSideDrawer = function() {
     let hasValidMemory = (window.currentUserEmail !== undefined && window.currentUserEmail !== "") || 
                          (userRole !== '' && userRole !== 'guest' && userRole !== 'null');
 
-    // Chốt trạng thái Khách vs Thành viên
+    // Chốt trạng thái Đăng nhập / Khách
     let isLoggedOut = true;
     if (isLoginBtnVisible) {
         isLoggedOut = true;
@@ -307,11 +307,18 @@ window.openSideDrawer = function() {
         isLoggedOut = false;
     }
 
+    // ⚡ NGẦM LƯU TÊN VÀ AVATAR VÀO CACHE KHI THẤY TRÊN MÀN HÌNH:
+    if (nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText.trim() !== "") {
+        localStorage.setItem('mhent_cached_name', nameEl.innerText.trim());
+    }
+    if (avtEl && avtEl.getAttribute('src') && avtEl.getAttribute('src').trim() !== "" && !avtEl.src.includes('index.html')) {
+        localStorage.setItem('mhent_cached_avt', avtEl.src);
+    }
+
     let userName = "Khách thăm quan";
     let userAvt = "/assets/avt-web.jpg";
     let userBadge = "✨ Vui lòng đăng nhập";
     
-    // Quét ngữ cảnh khu vực hiện tại
     let currentPath = window.location.pathname;
     let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => MHENT_UNIVERSES[key].path !== '#' && currentPath.startsWith(MHENT_UNIVERSES[key].path));
     let currentUni = activeUniKey ? MHENT_UNIVERSES[activeUniKey] : null;
@@ -319,17 +326,9 @@ window.openSideDrawer = function() {
     let isRootAdmin = false;
     let isStudioCreator = false;
 
-    // KHI ĐÃ ĐĂNG NHẬP -> QUÉT ROLE & DOM (KHÔNG CHECK TÊN!):
+    // KHI ĐÃ ĐĂNG NHẬP -> XỬ LÝ CHUẨN XÁC QUYỀN LỰC VÀ TÊN GỌI:
     if (!isLoggedOut) {
-        userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText.trim() !== "" ? nameEl.innerText.trim() : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
-        
-        if (avtEl && avtEl.getAttribute('src') && avtEl.getAttribute('src').trim() !== "" && !avtEl.src.includes('index.html')) {
-            userAvt = avtEl.src;
-        } else if (window.currentUserPhotoURL) {
-            userAvt = window.currentUserPhotoURL;
-        }
-        
-        // Phân quyền kỹ thuật qua DOM và Role bộ nhớ:
+        // Quét quyền lực qua DOM Button và Role bộ nhớ:
         let adminPanelBtn = document.getElementById('admin-panel-btn');
         let studioPanelBtn = document.getElementById('studio-panel-btn');
         
@@ -358,6 +357,30 @@ window.openSideDrawer = function() {
         }
         else if (isStudioCreator) userBadge = `🎬 Creator ${currentUni ? currentUni.name : 'MHEnt'}`;
         else userBadge = '✨ Thành viên MHEnt';
+
+        // ⚡ LẤY TÊN CHUẨN (Ưu tiên DOM -> Cache -> Email -> Fallback theo quyền):
+        let cachedName = localStorage.getItem('mhent_cached_name');
+        let cachedAvt = localStorage.getItem('mhent_cached_avt');
+
+        if (nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText.trim() !== "") {
+            userName = nameEl.innerText.trim();
+        } else if (cachedName && cachedName !== "Khách thăm quan" && cachedName !== "Thành viên MHEnt") {
+            userName = cachedName;
+        } else if (window.currentUserEmail && window.currentUserEmail !== "") {
+            userName = window.currentUserEmail.split('@')[0];
+        } else {
+            // Nếu vào trang Admin mà ko thấy DOM tên, tự động phong chuẩn Giám đốc Lam Chi!
+            userName = isRootAdmin ? "Giám đốc Lam Chi" : (isStudioCreator ? "Creator MHEnt" : "Thành viên MHEnt");
+        }
+
+        // Lấy Avatar chuẩn:
+        if (avtEl && avtEl.getAttribute('src') && avtEl.getAttribute('src').trim() !== "" && !avtEl.src.includes('index.html')) {
+            userAvt = avtEl.src;
+        } else if (cachedAvt && cachedAvt !== "/assets/avt-web.jpg") {
+            userAvt = cachedAvt;
+        } else if (window.currentUserPhotoURL) {
+            userAvt = window.currentUserPhotoURL;
+        }
     }
 
     let isDark = document.body.classList.contains('dark-mode');
@@ -370,7 +393,7 @@ window.openSideDrawer = function() {
     let menuHTML = '';
 
     if (!isLoggedOut) {
-        // [1] Hồ sơ chung (Luôn có)
+        // [1] Hồ sơ cá nhân (Luôn có)
         menuHTML += `
             <a onclick="window.location.href='/profile#info'; closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-user"></i> <span>Hồ sơ cá nhân</span></div>
@@ -378,7 +401,7 @@ window.openSideDrawer = function() {
             </a>
         `;
 
-        // [2] Nút tính năng riêng TỰ ĐỘNG sinh ra theo Vũ trụ hiện tại:
+        // [2] Tính năng riêng theo từng Phân khu:
         if (currentUni && currentUni.personalMenu) {
             currentUni.personalMenu.forEach(item => {
                 menuHTML += `
@@ -390,7 +413,7 @@ window.openSideDrawer = function() {
             });
         }
 
-        // [3] Dark Mode (Luôn có)
+        // [3] Dark Mode
         menuHTML += `
             <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
                 <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
@@ -398,7 +421,7 @@ window.openSideDrawer = function() {
             </div>
         `;
 
-        // [4] Admin Dashboard (Luôn hiện nếu là Root Admin, trỏ link theo phân khu)
+        // [4] Admin Dashboard (Luôn hiện với Admin Root)
         if (isRootAdmin) {
             let targetAdminUrl = (currentUni && currentUni.adminUrl) ? currentUni.adminUrl : '/admin';
             let labelAdmin = (currentUni && currentUni.adminLabel) ? currentUni.adminLabel : 'Admin Dashboard';
@@ -410,7 +433,7 @@ window.openSideDrawer = function() {
             `;
         }
 
-        // [5] ⚡ PHÒNG STUDIO (CHỈ HIỆN KHI ĐANG Ở TRONG VŨ TRỤ CÓ STUDIO - TIỄN BAY KHỎI ROOT!)
+        // [5] Phòng Studio (Chỉ hiện khi ĐANG Ở TRONG phân khu có Studio - Tiễn bay khỏi Đại sảnh!)
         if ((isStudioCreator || isRootAdmin) && currentUni && currentUni.studioUrl) {
             menuHTML += `
                 <a onclick="window.location.href='${currentUni.studioUrl}'; closeSideDrawer();" class="drawer-item" style="color: ${currentUni.color};">
@@ -420,7 +443,7 @@ window.openSideDrawer = function() {
             `;
         }
 
-        // [6] Các cài đặt chung
+        // [6] Cài đặt chung
         menuHTML += `
             <a onclick="window.openNavCustomizer(); closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-sliders"></i> <span>Tùy chỉnh Menu đáy</span></div>
@@ -453,7 +476,7 @@ window.openSideDrawer = function() {
     }
 
     let footerHTML = !isLoggedOut ? `
-        <button class="drawer-btn-logout" onclick="closeSideDrawer(); localStorage.setItem('mhent_user_role', 'guest'); window.currentUserEmail = ''; let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else window.location.href='/';">
+        <button class="drawer-btn-logout" onclick="closeSideDrawer(); localStorage.setItem('mhent_user_role', 'guest'); localStorage.removeItem('mhent_cached_name'); localStorage.removeItem('mhent_cached_avt'); window.currentUserEmail = ''; let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else window.location.href='/';">
             <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
         </button>
     ` : `
@@ -485,7 +508,7 @@ window.openSideDrawer = function() {
     setTimeout(() => overlay.classList.add('show'), 10);
 };
 
-// 3. HÀM ĐÓNG MENU TRƯỢT NGANG (SIDE DRAWER)
+// 3. HÀM ĐÓNG MENU TRƯỢT NGANG
 window.closeSideDrawer = function() {
     let overlay = document.getElementById('mhent-side-drawer-overlay');
     if (overlay) {
@@ -494,7 +517,7 @@ window.closeSideDrawer = function() {
     }
 };
 
-// 4. HÀM MỞ MENU TRƯỢT BÊN TRÁI CHO ADMIN / STUDIO (LEFT DRAWER)
+// 4. HÀM MỞ MENU TRƯỢT BÊN TRÁI CHO ADMIN / STUDIO
 window.toggleAdminLeftDrawer = function() {
     let sidebar = document.querySelector('.admin-sidebar');
     if (!sidebar) return;
@@ -568,7 +591,6 @@ window.renderBottomNav = function() {
     nav.innerHTML = html;
 };
 
-// Tự động gọi hàm vẽ Menu khi tải trang
 document.addEventListener("DOMContentLoaded", () => {
     window.renderBottomNav();
 
