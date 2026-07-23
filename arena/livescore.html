@@ -133,7 +133,10 @@
         Hệ thống Khảo thí Trực tuyến MHEnt. Arena | Cập nhật lần cuối: <span id="last-update">--:--:--</span>
     </footer>
 
+    <!-- Gọi mhent-ui trước để tránh xung đột -->
     <script src="/mhent-ui.js"></script>
+
+    <!-- DUY NHẤT 1 LUỒNG SCRIPT TẠI ĐÂY -->
     <script>
         const SUPABASE_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
@@ -142,13 +145,14 @@
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get('id');
 
-        if(!quizId) {
+        if (!quizId) {
             document.body.innerHTML = `<div style="text-align:center; padding:100px; color:#ef4444;"><i class="fa-solid fa-triangle-exclamation fa-5x"></i><h1 style="font-weight:900;">LỖI: THIẾU MÃ CUỘC THI!</h1><p>Cậu phải truy cập bằng link: livescore?id=MÃ_CUỘC_THI</p></div>`;
         } else {
             document.getElementById('display-id').innerText = quizId;
             loadQuizTitle(); 
             fetchLiveScore(); 
             
+            // Lắng nghe tín hiệu Realtime từ Supabase
             const myChannel = supabase.channel('arena-room');
             myChannel
                 .on('postgres_changes', { event: '*', schema: 'arena', table: 'results' }, payload => {
