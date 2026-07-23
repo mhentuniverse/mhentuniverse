@@ -136,11 +136,13 @@
     <!-- Gọi mhent-ui trước để tránh xung đột -->
     <script src="/mhent-ui.js"></script>
 
-    <!-- DUY NHẤT 1 LUỒNG SCRIPT TẠI ĐÂY -->
+    <!-- DUY NHẤT 1 LUỒNG SCRIPT TẠI ĐÂY (ĐÃ ĐỔI TÊN THÀNH supabaseClient ĐỂ KHÔNG BỊ TRÙNG) -->
     <script>
         const SUPABASE_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // 👉 ĐÃ ĐỔI TÊN BIẾN THÀNH supabaseClient Ở ĐÂY NÈ SẾP:
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const urlParams = new URLSearchParams(window.location.search);
         const quizId = urlParams.get('id');
@@ -153,7 +155,7 @@
             fetchLiveScore(); 
             
             // Lắng nghe tín hiệu Realtime từ Supabase
-            const myChannel = supabase.channel('arena-room');
+            const myChannel = supabaseClient.channel('arena-room');
             myChannel
                 .on('postgres_changes', { event: '*', schema: 'arena', table: 'results' }, payload => {
                     if (payload.new && payload.new.quiz_id === quizId) {
@@ -165,14 +167,14 @@
 
         async function loadQuizTitle() {
             try {
-                const { data: quiz } = await supabase.schema('arena').from('quizzes').select('title').eq('id', quizId).single();
+                const { data: quiz } = await supabaseClient.schema('arena').from('quizzes').select('title').eq('id', quizId).single();
                 if(quiz) document.getElementById('display-title').innerText = quiz.title;
             } catch(e) { console.error(e); }
         }
 
         async function fetchLiveScore() {
             try {
-                const { data: results, error } = await supabase.schema('arena').from('results')
+                const { data: results, error } = await supabaseClient.schema('arena').from('results')
                     .select('*').eq('quiz_id', quizId).eq('is_test_mode', false).order('score', { ascending: false });
 
                 document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
