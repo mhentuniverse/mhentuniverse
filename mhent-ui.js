@@ -228,7 +228,7 @@ window.closeInputPopup = function() {
 };
 
 // ==========================================================================
-// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER (MENU TRƯỢT NGANG V2.0)
+// 🚀 HỆ THỐNG MENU ĐÁY & SIDE DRAWER (MENU TRƯỢT NGANG V2.1 - PRO MAX)
 // ==========================================================================
 
 // 1. TỪ ĐIỂN CÁC VŨ TRỤ TRONG MHENT
@@ -242,32 +242,35 @@ const MHENT_APPS_DICT = {
     novel:  { name: 'Novel',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>' }
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER)
+// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER BÊN PHẢI) - ĐÃ FIX LỖI NHẬN DIỆN SẾP!
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // Lấy thông tin user hiện tại từ Navbar đỉnh (nếu có)
-    let nameEl = document.getElementById('user-name');
+    // ⚡ NÂNG CẤP THÔNG MINH: Quét tên sếp từ nhiều nguồn (DOM -> Biến toàn cục -> LocalStorage -> URL)
+    let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
     let avtEl = document.getElementById('user-avatar');
-    let userName = nameEl && nameEl.innerText !== "Đang tải..." ? nameEl.innerText : "Khách thăm quan";
+    
+    let userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText !== "" ? nameEl.innerText : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Khách thăm quan");
+    
+    // Nếu đang ở trang Admin hoặc Studio thì CHẮC CHẮN là sếp hoặc Uploader rùi!
+    let currentPath = window.location.pathname;
+    let userRole = localStorage.getItem('mhent_user_role') || '';
+    let isRootAdmin = currentPath.includes('/admin') || userRole.includes('admin');
+    let isStudioCreator = currentPath.includes('/studio') || userRole.includes('cinema') || userRole.includes('arena');
+
+    if (userName === "Khách thăm quan") {
+        if (isRootAdmin) userName = "Giám đốc Lam Chi";
+        else if (isStudioCreator) userName = window.currentTeamName || "Creator MHEnt";
+    }
+
     let userAvt = avtEl && avtEl.src ? avtEl.src : "/assets/avt-web.jpg";
     let isDark = document.body.classList.contains('dark-mode');
-
-    // Kiểm tra quyền Admin & Studio
-    let adminBtn = document.getElementById('admin-panel-btn');
-    let studioBtn = document.getElementById('studio-panel-btn');
-    let hasAdmin = adminBtn && adminBtn.style.display !== 'none';
-    let hasStudio = studioBtn && studioBtn.style.display !== 'none';
 
     let overlay = document.createElement('div');
     overlay.className = 'mhent-drawer-overlay';
     overlay.id = 'mhent-side-drawer-overlay';
-    
-    // Khi bấm ra ngoài vùng tối sẽ tự đóng Drawer
-    overlay.onclick = function(e) {
-        if (e.target === overlay) window.closeSideDrawer();
-    };
+    overlay.onclick = function(e) { if (e.target === overlay) window.closeSideDrawer(); };
 
     overlay.innerHTML = `
         <div class="mhent-side-drawer">
@@ -275,7 +278,7 @@ window.openSideDrawer = function() {
                 <button class="drawer-close-btn" onclick="closeSideDrawer()">&times;</button>
                 <img src="${userAvt}" alt="Avatar" class="drawer-avt">
                 <div class="drawer-name">${userName}</div>
-                <div class="drawer-email">${hasAdmin ? '👑 Root Admin' : (hasStudio ? '🎬 Creator / Uploader' : '✨ Thành viên MHEnt')}</div>
+                <div class="drawer-email">${isRootAdmin ? '👑 Root Admin Toàn Quyền' : (isStudioCreator ? '🎬 Creator / Uploader' : '✨ Thành viên MHEnt')}</div>
             </div>
 
             <div class="drawer-menu-list">
@@ -294,13 +297,13 @@ window.openSideDrawer = function() {
                     <input type="checkbox" id="drawer-dark-switch" ${isDark ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--theme-accent, #ff85a2); pointer-events: none;">
                 </div>
 
-                ${hasAdmin ? `
+                ${isRootAdmin ? `
                 <a onclick="window.location.href='/admin'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
                     <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>Admin Dashboard</span></div>
                     <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px;">ROOT</span>
                 </a>` : ''}
 
-                ${hasStudio ? `
+                ${isStudioCreator || isRootAdmin ? `
                 <a onclick="window.location.href='/cinema/studio'; closeSideDrawer();" class="drawer-item" style="color: #ff9a55;">
                     <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: #ff9a55;"></i> <span>Phòng Studio</span></div>
                     <span style="font-size: 10px; background: rgba(255,154,85,0.2); color: #ff9a55; padding: 2px 8px; border-radius: 10px;">CREATOR</span>
@@ -337,7 +340,34 @@ window.closeSideDrawer = function() {
     }
 };
 
-// 3. HÀM VẼ MENU ĐÁY TỰ ĐỘNG
+// 3. HÀM MỞ MENU TRƯỢT BÊN TRÁI CHO ADMIN / STUDIO (LEFT DRAWER)
+window.toggleAdminLeftDrawer = function() {
+    let sidebar = document.querySelector('.admin-sidebar');
+    if (!sidebar) return;
+
+    let overlay = document.getElementById('admin-left-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'admin-left-overlay';
+        overlay.className = 'mhent-drawer-overlay';
+        overlay.onclick = function() { window.toggleAdminLeftDrawer(); };
+        document.body.appendChild(overlay);
+    }
+
+    if (sidebar.classList.contains('show-mobile')) {
+        sidebar.classList.remove('show-mobile');
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.style.display = 'none', 300);
+    } else {
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            sidebar.classList.add('show-mobile');
+            overlay.classList.add('show');
+        }, 10);
+    }
+};
+
+// 4. HÀM VẼ MENU ĐÁY TỰ ĐỘNG
 window.renderBottomNav = function() {
     if (window.innerWidth > 768) return;
 
@@ -373,7 +403,6 @@ window.renderBottomNav = function() {
         }
     });
 
-    // 👉 ĐÃ ĐỔI HÀNH ĐỘNG NÚT HỒ SƠ THÀNH MỞ SIDE DRAWER:
     let isProfileActive = currentPath.includes('/profile') ? 'active' : '';
     html += `
         <a onclick="window.openSideDrawer(); return false;" class="bottom-nav-item ${isProfileActive}" style="cursor: pointer;">
@@ -385,16 +414,26 @@ window.renderBottomNav = function() {
     nav.innerHTML = html;
 };
 
-// Tự động gọi hàm vẽ Menu khi trang web tải xong
+// Tự động gọi hàm vẽ Menu khi trang web tải xong & Gắn lệnh bấm Logo Admin
 document.addEventListener("DOMContentLoaded", () => {
     window.renderBottomNav();
+
+    // NẾU ĐANG Ở ADMIN / STUDIO: Tự động biến Logo thành nút Mở Menu Trái!
+    let adminBrand = document.querySelector('.master-header .brand');
+    if (adminBrand) {
+        adminBrand.style.cursor = "pointer";
+        adminBrand.title = "Bấm để mở Menu chức năng";
+        if (window.innerWidth <= 768) {
+            adminBrand.innerHTML = `<i class="fa-solid fa-bars" style="margin-right: 8px; color: var(--theme-accent, #ff85a2);"></i>` + adminBrand.innerHTML;
+        }
+        adminBrand.onclick = function() { window.toggleAdminLeftDrawer(); };
+    }
 });
 
-// 3. HÀM MỞ BẢNG CHỌN VŨ TRỤ YÊU THÍCH (GỌI KHI BẤM NÚT TÙY CHỈNH)
+// 5. HÀM MỞ BẢNG CHỌN VŨ TRỤ YÊU THÍCH (GỌI KHI BẤM NÚT TÙY CHỈNH)
 window.openNavCustomizer = function() {
     let favApps = JSON.parse(localStorage.getItem('mhent_custom_nav') || '["cinema", "arena"]');
     
-    // Xây dựng danh sách nút Checkbox
     let appsHTML = '';
     for (let key in MHENT_APPS_DICT) {
         let app = MHENT_APPS_DICT[key];
@@ -410,7 +449,6 @@ window.openNavCustomizer = function() {
         `;
     }
 
-    // Tạo Overlay Modal
     let overlay = document.createElement('div');
     overlay.className = 'mhent-ui-overlay show';
     overlay.id = 'modal-nav-customizer';
@@ -432,7 +470,7 @@ window.openNavCustomizer = function() {
     document.body.appendChild(overlay);
 };
 
-// 4. HÀM LƯU LẠI VÀ VẼ LẠI MENU NGAY LẬP TỨC
+// 6. HÀM LƯU LẠI VÀ VẼ LẠI MENU NGAY LẬP TỨC
 window.saveCustomNav = function() {
     let checkedBoxes = document.querySelectorAll('input[name="custom_app_item"]:checked');
     if (checkedBoxes.length < 1 || checkedBoxes.length > 3) {
@@ -444,14 +482,11 @@ window.saveCustomNav = function() {
     let selectedApps = [];
     checkedBoxes.forEach(box => selectedApps.push(box.value));
 
-    // Lưu vào bộ nhớ máy
     localStorage.setItem('mhent_custom_nav', JSON.stringify(selectedApps));
 
-    // Đóng Modal
     let modal = document.getElementById('modal-nav-customizer');
     if (modal) modal.remove();
 
-    // Vẽ lại thanh Menu dưới đáy lập tức mà không cần F5!
     window.renderBottomNav();
 
     if (typeof showToast === 'function') showToast("Thành công", "Đã cập nhật thanh Menu của cậu!", "success");

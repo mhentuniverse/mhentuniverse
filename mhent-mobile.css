@@ -377,3 +377,65 @@
     }
     .drawer-btn-logout:active { background: #ef4444; color: white; }
 }
+
+/* ==========================================================================
+   6. BIẾN SIDEBAR ADMIN / STUDIO THÀNH MENU TRƯỢT TRÁI (LEFT DRAWER)
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+    /* Ép Sidebar không nằm xoay ngang nữa mà ẩn sang cạnh trái màn hình */
+    .admin-layout .admin-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 78% !important;
+        max-width: 280px !important;
+        height: 100vh !important;
+        background: var(--bg-glass-strong, rgba(255, 255, 255, 0.98)) !important;
+        backdrop-filter: blur(25px) !important;
+        -webkit-backdrop-filter: blur(25px) !important;
+        z-index: 1000001 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        padding: 25px 20px !important;
+        box-shadow: 10px 0 35px rgba(0, 0, 0, 0.3) !important;
+        border-right: 1px solid var(--border-color, rgba(203, 213, 225, 0.8)) !important;
+        
+        /* Ẩn sang trái -100% */
+        transform: translateX(-100%) !important;
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    }
+
+    body.dark-mode .admin-layout .admin-sidebar {
+        background: var(--bg-glass-strong, rgba(15, 23, 42, 0.98)) !important;
+        border-right-color: rgba(51, 65, 85, 0.8) !important;
+        box-shadow: 10px 0 35px rgba(0, 0, 0, 0.7) !important;
+    }
+
+    /* Khi kích hoạt -> Trượt vào vị trí 0 */
+    .admin-layout .admin-sidebar.show-mobile {
+        transform: translateX(0) !important;
+    }
+
+    /* Làm đẹp lại các nút menu bên trong Left Drawer */
+    .admin-layout .admin-sidebar .admin-menu-item {
+        margin-bottom: 8px !important;
+        padding: 14px 18px !important;
+        border-radius: 14px !important;
+        font-size: 15px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+    
+    /* Hiện lại chữ mô tả (vì trước đây CSS cũ ẩn chữ chỉ để icon) */
+    .admin-layout .admin-sidebar .admin-menu-item span,
+    .admin-layout .admin-sidebar .admin-menu-item i {
+        display: inline-block !important;
+    }
+
+    /* Khi bấm chọn tab xong thì tự động thu gọn Menu Trái lại cho lẹ */
+    .admin-layout .admin-sidebar .admin-menu-item:active {
+        transform: scale(0.98);
+    }
+}
