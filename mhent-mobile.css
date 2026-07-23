@@ -379,7 +379,7 @@
 }
 
 /* ==========================================================================
-   6. BIẾN SIDEBAR ADMIN / STUDIO THÀNH MENU TRƯỢT TRÁI (LEFT DRAWER)
+   6. BIẾN SIDEBAR ADMIN / STUDIO THÀNH MENU TRƯỢT TRÁI (ĐÃ FIX LỖI ÁM ĐEN!)
    ========================================================================== */
 @media screen and (max-width: 768px) {
     /* Ép Sidebar không nằm xoay ngang nữa mà ẩn sang cạnh trái màn hình */
@@ -398,23 +398,29 @@
         flex-direction: column !important;
         overflow-y: auto !important;
         padding: 25px 20px !important;
-        box-shadow: 10px 0 35px rgba(0, 0, 0, 0.3) !important;
         border-right: 1px solid var(--border-color, rgba(203, 213, 225, 0.8)) !important;
         
         /* Ẩn sang trái -100% */
         transform: translateX(-100%) !important;
-        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+        /* ⚡ TRỊ TRIỆT ĐỂ LỖI ÁM ĐEN: Khi đóng lại thì xóa sạch bóng (box-shadow: none) */
+        box-shadow: none !important; 
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease !important;
     }
 
     body.dark-mode .admin-layout .admin-sidebar {
         background: var(--bg-glass-strong, rgba(15, 23, 42, 0.98)) !important;
         border-right-color: rgba(51, 65, 85, 0.8) !important;
-        box-shadow: 10px 0 35px rgba(0, 0, 0, 0.7) !important;
+        box-shadow: none !important; /* Xóa bóng khi đóng ở Dark Mode */
     }
 
-    /* Khi kích hoạt -> Trượt vào vị trí 0 */
+    /* ⚡ KHI MỞ MENU RA (.show-mobile) -> TRƯỢT VÀO VÀ HIỆN BÓNG ĐEN */
     .admin-layout .admin-sidebar.show-mobile {
         transform: translateX(0) !important;
+        box-shadow: 15px 0 35px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    body.dark-mode .admin-layout .admin-sidebar.show-mobile {
+        box-shadow: 15px 0 35px rgba(0, 0, 0, 0.7) !important;
     }
 
     /* Làm đẹp lại các nút menu bên trong Left Drawer */
@@ -428,14 +434,69 @@
         gap: 12px !important;
     }
     
-    /* Hiện lại chữ mô tả (vì trước đây CSS cũ ẩn chữ chỉ để icon) */
     .admin-layout .admin-sidebar .admin-menu-item span,
     .admin-layout .admin-sidebar .admin-menu-item i {
         display: inline-block !important;
     }
 
-    /* Khi bấm chọn tab xong thì tự động thu gọn Menu Trái lại cho lẹ */
     .admin-layout .admin-sidebar .admin-menu-item:active {
         transform: scale(0.98);
+    }
+}
+
+/* ==========================================================================
+   7. HIỆU ỨNG CHUYỂN ĐỘNG CHUẨN APP NATIVE (APP ANIMATIONS V1.0)
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+    /* --- 1. HIỆU ỨNG TRƯỢT TRANG & TAB MƯỢT MÀ --- */
+    /* Mỗi khi chuyển tab hoặc mở trang, nội dung sẽ lướt từ dưới lên */
+    main, .admin-content, .movie-section, .arena-section, .desc-container, .profile-container, .admin-tab.active {
+        animation: appPageSlideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+    }
+
+    @keyframes appPageSlideUp {
+        0% {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* --- 2. HIỆU ỨNG NẢY LÒ XO CHO BOTTOM NAV BAR --- */
+    /* Khi icon được active (chọn), nó sẽ nảy bật lên rồi hạ xuống vị trí chuẩn */
+    .bottom-nav-item.active svg,
+    .bottom-nav-item.active i {
+        animation: navIconBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+    }
+
+    @keyframes navIconBounce {
+        0% {
+            transform: scale(1) translateY(0);
+        }
+        40% {
+            transform: scale(1.35) translateY(-8px); /* Bật mạnh lên trên */
+        }
+        70% {
+            transform: scale(1.1) translateY(-1px);  /* Rớt xuống nhẹ */
+        }
+        100% {
+            transform: scale(1.18) translateY(-3px); /* Dừng ở vị trí active */
+        }
+    }
+
+    /* --- 3. HIỆU ỨNG CHẠM NGÓN TAY (TAP FEEDBACK) --- */
+    /* Khi bấm ngón tay vào nút trên Bottom Nav, nút sẽ lõm xuống nhẹ */
+    .bottom-nav-item:active {
+        transform: scale(0.88);
+        transition: transform 0.1s ease;
+    }
+
+    /* Hiệu ứng trượt qua lại cho các thẻ Card phim và bài thi khi chạm vào */
+    .movie-card:active, .quiz-card:active, .cw-card:active {
+        transform: scale(0.96) !important;
+        transition: transform 0.15s ease !important;
     }
 }

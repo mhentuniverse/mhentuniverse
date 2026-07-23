@@ -242,29 +242,42 @@ const MHENT_APPS_DICT = {
     novel:  { name: 'Novel',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>' }
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER BÊN PHẢI) - ĐÃ FIX LỖI NHẬN DIỆN SẾP!
+// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER BÊN PHẢI) - ĐÃ PHÂN BIỆT KHÁCH & THÀNH VIÊN!
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // ⚡ NÂNG CẤP THÔNG MINH: Quét tên sếp từ nhiều nguồn (DOM -> Biến toàn cục -> LocalStorage -> URL)
+    // 1. KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP THỰC TẾ
+    let userRole = localStorage.getItem('mhent_user_role') || 'guest';
+    let loginBtn = document.getElementById('btn-login');
+    
+    // Nếu nút Login đang hiện, hoặc role là guest -> Chắc chắn là Khách (Đã đăng xuất)!
+    let isLoggedOut = (loginBtn && window.getComputedStyle(loginBtn).display !== 'none') || (userRole === 'guest' && !window.currentUserEmail);
+
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
     let avtEl = document.getElementById('user-avatar');
     
-    let userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText !== "" ? nameEl.innerText : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Khách thăm quan");
+    let userName = "Khách thăm quan";
+    let userAvt = "/assets/avt-web.jpg";
+    let userBadge = "✨ Vui lòng đăng nhập";
     
-    // Nếu đang ở trang Admin hoặc Studio thì CHẮC CHẮN là sếp hoặc Uploader rùi!
     let currentPath = window.location.pathname;
-    let userRole = localStorage.getItem('mhent_user_role') || '';
-    let isRootAdmin = currentPath.includes('/admin') || userRole.includes('admin');
-    let isStudioCreator = currentPath.includes('/studio') || userRole.includes('cinema') || userRole.includes('arena');
+    let isRootAdmin = false;
+    let isStudioCreator = false;
 
-    if (userName === "Khách thăm quan") {
-        if (isRootAdmin) userName = "Giám đốc Lam Chi";
-        else if (isStudioCreator) userName = window.currentTeamName || "Creator MHEnt";
+    // Chỉ khi ĐÃ ĐĂNG NHẬP mới quét quyền lực và tên thật
+    if (!isLoggedOut) {
+        userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText !== "" ? nameEl.innerText : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
+        userAvt = avtEl && avtEl.src && avtEl.src !== window.location.href ? avtEl.src : "/assets/avt-web.jpg";
+        
+        isRootAdmin = currentPath.includes('/admin') || userRole.includes('admin');
+        isStudioCreator = currentPath.includes('/studio') || userRole.includes('cinema') || userRole.includes('arena');
+
+        if (isRootAdmin) userBadge = '👑 Root Admin Toàn Quyền';
+        else if (isStudioCreator) userBadge = '🎬 Creator / Uploader';
+        else userBadge = '✨ Thành viên MHEnt';
     }
 
-    let userAvt = avtEl && avtEl.src ? avtEl.src : "/assets/avt-web.jpg";
     let isDark = document.body.classList.contains('dark-mode');
 
     let overlay = document.createElement('div');
@@ -272,58 +285,95 @@ window.openSideDrawer = function() {
     overlay.id = 'mhent-side-drawer-overlay';
     overlay.onclick = function(e) { if (e.target === overlay) window.closeSideDrawer(); };
 
+    // 2. XÂY DỰNG DANH SÁCH MENU TÙY THEO TRẠNG THÁI
+    let menuHTML = '';
+
+    if (!isLoggedOut) {
+        // ---> KHI ĐÃ ĐĂNG NHẬP: Hiện đầy đủ chức năng cá nhân & quyền hạn
+        menuHTML = `
+            <a onclick="window.location.href='/profile#info'; closeSideDrawer();" class="drawer-item">
+                <div class="drawer-item-left"><i class="fa-solid fa-user"></i> <span>Hồ sơ cá nhân</span></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
+            </a>
+
+            <a onclick="window.location.href='/cinema/library'; closeSideDrawer();" class="drawer-item">
+                <div class="drawer-item-left"><i class="fa-solid fa-bookmark"></i> <span>Thư viện phim đã lưu</span></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
+            </a>
+
+            <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
+                <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
+                <input type="checkbox" id="drawer-dark-switch" ${isDark ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--theme-accent, #ff85a2); pointer-events: none;">
+            </div>
+
+            ${isRootAdmin ? `
+            <a onclick="window.location.href='/admin'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
+                <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>Admin Dashboard</span></div>
+                <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px;">ROOT</span>
+            </a>` : ''}
+
+            ${isStudioCreator || isRootAdmin ? `
+            <a onclick="window.location.href='/cinema/studio'; closeSideDrawer();" class="drawer-item" style="color: #ff9a55;">
+                <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: #ff9a55;"></i> <span>Phòng Studio</span></div>
+                <span style="font-size: 10px; background: rgba(255,154,85,0.2); color: #ff9a55; padding: 2px 8px; border-radius: 10px;">CREATOR</span>
+            </a>` : ''}
+
+            <a onclick="window.openNavCustomizer(); closeSideDrawer();" class="drawer-item">
+                <div class="drawer-item-left"><i class="fa-solid fa-sliders"></i> <span>Tùy chỉnh Menu đáy</span></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
+            </a>
+
+            <a onclick="window.location.href='/profile#settings'; closeSideDrawer();" class="drawer-item">
+                <div class="drawer-item-left"><i class="fa-solid fa-gear"></i> <span>Cài đặt bảo mật</span></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
+            </a>
+        `;
+    } else {
+        // ---> KHI ĐANG ĐĂNG XUẤT (KHÁCH): Chỉ hiện Dark Mode, Tùy chỉnh Nav & About
+        menuHTML = `
+            <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
+                <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
+                <input type="checkbox" id="drawer-dark-switch" ${isDark ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--theme-accent, #ff85a2); pointer-events: none;">
+            </div>
+
+            <a onclick="window.openNavCustomizer(); closeSideDrawer();" class="drawer-item">
+                <div class="drawer-item-left"><i class="fa-solid fa-sliders"></i> <span>Tùy chỉnh Menu đáy</span></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
+            </a>
+
+            <a onclick="window.location.href='/about'; closeSideDrawer();" class="drawer-item">
+                <div class="drawer-item-left"><i class="fa-solid fa-circle-info"></i> <span>Về MHEnt. Universe</span></div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
+            </a>
+        `;
+    }
+
+    // 3. XÂY DỰNG NÚT FOOTER TƯƠNG ỨNG
+    let footerHTML = !isLoggedOut ? `
+        <button class="drawer-btn-logout" onclick="closeSideDrawer(); let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else { localStorage.setItem('mhent_user_role', 'guest'); window.location.href='/'; }">
+            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
+        </button>
+    ` : `
+        <button class="drawer-btn-logout" style="background: var(--theme-accent, #ff85a2); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(255,133,162,0.3);" onclick="closeSideDrawer(); if(window.redirectToLogin) window.redirectToLogin(); else window.location.href='/login';">
+            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập / Đăng ký
+        </button>
+    `;
+
     overlay.innerHTML = `
         <div class="mhent-side-drawer">
             <div class="drawer-header">
                 <button class="drawer-close-btn" onclick="closeSideDrawer()">&times;</button>
-                <img src="${userAvt}" alt="Avatar" class="drawer-avt">
+                <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.src='/assets/avt-web.jpg'">
                 <div class="drawer-name">${userName}</div>
-                <div class="drawer-email">${isRootAdmin ? '👑 Root Admin Toàn Quyền' : (isStudioCreator ? '🎬 Creator / Uploader' : '✨ Thành viên MHEnt')}</div>
+                <div class="drawer-email">${userBadge}</div>
             </div>
 
             <div class="drawer-menu-list">
-                <a onclick="window.location.href='/profile#info'; closeSideDrawer();" class="drawer-item">
-                    <div class="drawer-item-left"><i class="fa-solid fa-user"></i> <span>Hồ sơ cá nhân</span></div>
-                    <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
-                </a>
-
-                <a onclick="window.location.href='/cinema/library'; closeSideDrawer();" class="drawer-item">
-                    <div class="drawer-item-left"><i class="fa-solid fa-bookmark"></i> <span>Thư viện phim đã lưu</span></div>
-                    <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
-                </a>
-
-                <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
-                    <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
-                    <input type="checkbox" id="drawer-dark-switch" ${isDark ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--theme-accent, #ff85a2); pointer-events: none;">
-                </div>
-
-                ${isRootAdmin ? `
-                <a onclick="window.location.href='/admin'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
-                    <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>Admin Dashboard</span></div>
-                    <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px;">ROOT</span>
-                </a>` : ''}
-
-                ${isStudioCreator || isRootAdmin ? `
-                <a onclick="window.location.href='/cinema/studio'; closeSideDrawer();" class="drawer-item" style="color: #ff9a55;">
-                    <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: #ff9a55;"></i> <span>Phòng Studio</span></div>
-                    <span style="font-size: 10px; background: rgba(255,154,85,0.2); color: #ff9a55; padding: 2px 8px; border-radius: 10px;">CREATOR</span>
-                </a>` : ''}
-
-                <a onclick="window.openNavCustomizer(); closeSideDrawer();" class="drawer-item">
-                    <div class="drawer-item-left"><i class="fa-solid fa-sliders"></i> <span>Tùy chỉnh Menu đáy</span></div>
-                    <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
-                </a>
-
-                <a onclick="window.location.href='/profile#settings'; closeSideDrawer();" class="drawer-item">
-                    <div class="drawer-item-left"><i class="fa-solid fa-gear"></i> <span>Cài đặt bảo mật</span></div>
-                    <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
-                </a>
+                ${menuHTML}
             </div>
 
             <div class="drawer-footer">
-                <button class="drawer-btn-logout" onclick="closeSideDrawer(); let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else window.location.href='/';">
-                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
-                </button>
+                ${footerHTML}
             </div>
         </div>
     `;
