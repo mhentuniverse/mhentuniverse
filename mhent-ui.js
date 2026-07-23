@@ -287,31 +287,45 @@ const MHENT_UNIVERSES = {
     // Sếp có thể tự thêm manga, novel... vào đây cực kỳ dễ dàng sau này!
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (TỰ ĐỘNG NHẬN DIỆN NGỮ CẢNH THEO CONFIG)
+// 2. HÀM MỞ MENU TRƯỢT NGANG (TỰ ĐỘNG NHẬN DIỆN NGỮ CẢNH THEO CONFIG V4.1)
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // Quét trạng thái đăng nhập
+    // ⚡ NÂNG CẤP BỘ NÃO V4.1: ƯU TIÊN SỐ 1 CHO MÀN HÌNH THỰC TẾ (DOM OVERRIDE)
     let loginBtn = document.getElementById('btn-login');
     let profileEl = document.getElementById('user-profile');
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
     let avtEl = document.getElementById('user-avatar');
     
-    let isLoggedInDOM = (profileEl && window.getComputedStyle(profileEl).display !== 'none') || 
-                        (loginBtn && window.getComputedStyle(loginBtn).display === 'none');
+    // 1. Quét xem nút Login trên trang web có đang HIỆN không?
+    let isLoginBtnVisible = loginBtn && window.getComputedStyle(loginBtn).display !== 'none';
     
+    // 2. Quét xem thẻ Profile trên trang web có đang HIỆN không?
+    let isProfileVisible = profileEl && window.getComputedStyle(profileEl).display !== 'none';
+    
+    // 3. Quét bộ nhớ (Chỉ hợp lệ khi chuỗi khác rỗng VÀ khác 'guest' VÀ khác 'null')
     let userRole = localStorage.getItem('mhent_user_role') || '';
-    let isLoggedInMemory = (window.currentUserEmail !== undefined && window.currentUserEmail !== "") || 
-                           userRole.includes('admin') || userRole !== 'guest';
+    let hasValidMemory = (window.currentUserEmail !== undefined && window.currentUserEmail !== "") || 
+                         (userRole !== '' && userRole !== 'guest' && userRole !== 'null');
 
-    let isLoggedOut = !(isLoggedInDOM || isLoggedInMemory);
+    // 👉 CHỐT TRẠNG THÁI ĐĂNG NHẬP:
+    // Nếu nút Login đang hiện rành rành -> CHẮC CHẮN 1000% LÀ KHÁCH (ĐÃ ĐĂNG XUẤT)!
+    let isLoggedOut = true;
+    if (isLoginBtnVisible) {
+        isLoggedOut = true;
+        // Dọn sạch rác bộ nhớ cũ lập tức để chống nhận diện nhầm
+        if (userRole !== 'guest') localStorage.setItem('mhent_user_role', 'guest');
+        window.currentUserEmail = "";
+    } else if (isProfileVisible || hasValidMemory) {
+        isLoggedOut = false;
+    }
 
     let userName = "Khách thăm quan";
     let userAvt = "/assets/avt-web.jpg";
     let userBadge = "✨ Vui lòng đăng nhập";
     
-    // 👉 TỰ ĐỘNG QUÉT XEM SẾP ĐANG Ở VŨ TRỤ NÀO DỰA VÀO PATHNAME:
+    // Quét xem cậu đang ở vũ trụ nào:
     let currentPath = window.location.pathname;
     let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => currentPath.startsWith(MHENT_UNIVERSES[key].path));
     let currentUni = activeUniKey ? MHENT_UNIVERSES[activeUniKey] : null;
@@ -319,10 +333,11 @@ window.openSideDrawer = function() {
     let isRootAdmin = false;
     let hasStudioPermission = false;
 
+    // Chỉ khi CHẮC CHẮN ĐÃ ĐĂNG NHẬP mới gán quyền và tên thật
     if (!isLoggedOut) {
         userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText !== "" ? nameEl.innerText : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
         
-        // ⚡ FIX TRIỆT ĐỂ LỖI VỠ AVATAR: Kiểm tra kỹ link ảnh trước khi gán
+        // Bảo hiểm chống vỡ Avatar:
         if (avtEl && avtEl.getAttribute('src') && avtEl.getAttribute('src').trim() !== "" && !avtEl.src.includes('index.html')) {
             userAvt = avtEl.src;
         } else if (window.currentUserPhotoURL) {
@@ -343,7 +358,7 @@ window.openSideDrawer = function() {
     overlay.id = 'mhent-side-drawer-overlay';
     overlay.onclick = function(e) { if (e.target === overlay) window.closeSideDrawer(); };
 
-    // XÂY DỰNG DANH SÁCH MENU:
+    // XÂY DỰNG DANH SÁCH MENU TỰ ĐỘNG:
     let menuHTML = '';
 
     if (!isLoggedOut) {
@@ -355,7 +370,7 @@ window.openSideDrawer = function() {
             </a>
         `;
 
-        // [2] Nút tính năng cá nhân TỰ ĐỘNG sinh ra theo Vũ trụ hiện tại:
+        // [2] Nút tính năng cá nhân theo Vũ trụ hiện tại:
         if (currentUni && currentUni.personalMenu) {
             currentUni.personalMenu.forEach(item => {
                 menuHTML += `
@@ -397,7 +412,7 @@ window.openSideDrawer = function() {
             `;
         }
 
-        // [6] Các cài đặt chung
+        // [6] Cài đặt chung
         menuHTML += `
             <a onclick="window.openNavCustomizer(); closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-sliders"></i> <span>Tùy chỉnh Menu đáy</span></div>
@@ -410,7 +425,7 @@ window.openSideDrawer = function() {
             </a>
         `;
     } else {
-        // ---> KHI ĐANG ĐĂNG XUẤT (KHÁCH)
+        // ---> KHI ĐANG ĐĂNG XUẤT (KHÁCH): Chỉ hiện Dark Mode, Tùy chỉnh Nav & About
         menuHTML = `
             <div class="drawer-item" onclick="toggleDarkMode(); document.getElementById('drawer-dark-switch').checked = document.body.classList.contains('dark-mode');">
                 <div class="drawer-item-left"><i class="fa-solid fa-moon"></i> <span>Chế độ tối (Dark Mode)</span></div>
@@ -429,8 +444,9 @@ window.openSideDrawer = function() {
         `;
     }
 
+    // NÚT FOOTER: Thêm lệnh xóa sạch bộ nhớ trước khi gọi click Đăng xuất
     let footerHTML = !isLoggedOut ? `
-        <button class="drawer-btn-logout" onclick="closeSideDrawer(); let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else { localStorage.setItem('mhent_user_role', 'guest'); window.location.href='/'; }">
+        <button class="drawer-btn-logout" onclick="closeSideDrawer(); localStorage.setItem('mhent_user_role', 'guest'); window.currentUserEmail = ''; let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else window.location.href='/';">
             <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
         </button>
     ` : `
