@@ -279,12 +279,12 @@ const MHENT_UNIVERSES = {
     novel:  { name: 'Novel',  path: '#',       color: '#f43f5e', roleKey: 'novel', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>', personalMenu: [], studioUrl: null, adminUrl: null }
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V5.0 - CHUẨN RBAC & PHÂN KHU)
+// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V5.1 - CHUẨN NGỮ CẢNH PHÂN KHU & RBAC)
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // Quét trạng thái DOM thực tế
+    // Quét trạng thái DOM thực tế trên màn hình
     let loginBtn = document.getElementById('btn-login');
     let profileEl = document.getElementById('user-profile');
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
@@ -319,7 +319,7 @@ window.openSideDrawer = function() {
     let isRootAdmin = false;
     let isStudioCreator = false;
 
-    // KHI ĐÃ ĐĂNG NHẬP -> QUÉT ROLE CHUẨN XÁC KỂ CẢ TRÊN MOBILE (KHÔNG CHECK TÊN!):
+    // KHI ĐÃ ĐĂNG NHẬP -> QUÉT ROLE & DOM (KHÔNG CHECK TÊN!):
     if (!isLoggedOut) {
         userName = nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText.trim() !== "" ? nameEl.innerText.trim() : (window.currentUserEmail ? window.currentUserEmail.split('@')[0] : "Thành viên MHEnt");
         
@@ -329,7 +329,7 @@ window.openSideDrawer = function() {
             userAvt = window.currentUserPhotoURL;
         }
         
-        // 👉 PHÂN QUYỀN THÔNG MINH (Soi cả inline style để không bị CSS mobile che mắt):
+        // Phân quyền kỹ thuật qua DOM và Role bộ nhớ:
         let adminPanelBtn = document.getElementById('admin-panel-btn');
         let studioPanelBtn = document.getElementById('studio-panel-btn');
         
@@ -398,7 +398,7 @@ window.openSideDrawer = function() {
             </div>
         `;
 
-        // [4] Admin Dashboard (Tự động chuyển hướng theo phân khu)
+        // [4] Admin Dashboard (Luôn hiện nếu là Root Admin, trỏ link theo phân khu)
         if (isRootAdmin) {
             let targetAdminUrl = (currentUni && currentUni.adminUrl) ? currentUni.adminUrl : '/admin';
             let labelAdmin = (currentUni && currentUni.adminLabel) ? currentUni.adminLabel : 'Admin Dashboard';
@@ -410,14 +410,12 @@ window.openSideDrawer = function() {
             `;
         }
 
-        // [5] Studio Dashboard (Tự động chuyển hướng theo phân khu)
-        if (isStudioCreator || isRootAdmin) {
-            let targetStudioUrl = (currentUni && currentUni.studioUrl) ? currentUni.studioUrl : '/cinema/studio';
-            let labelStudio = (currentUni && currentUni.studioLabel) ? currentUni.studioLabel : 'Phòng Studio';
+        // [5] ⚡ PHÒNG STUDIO (CHỈ HIỆN KHI ĐANG Ở TRONG VŨ TRỤ CÓ STUDIO - TIỄN BAY KHỎI ROOT!)
+        if ((isStudioCreator || isRootAdmin) && currentUni && currentUni.studioUrl) {
             menuHTML += `
-                <a onclick="window.location.href='${targetStudioUrl}'; closeSideDrawer();" class="drawer-item" style="color: ${currentUni ? currentUni.color : '#ff9a55'};">
-                    <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: ${currentUni ? currentUni.color : '#ff9a55'};"></i> <span>${labelStudio}</span></div>
-                    <span style="font-size: 10px; background: rgba(255,154,85,0.2); color: ${currentUni ? currentUni.color : '#ff9a55'}; padding: 2px 8px; border-radius: 10px;">CREATOR</span>
+                <a onclick="window.location.href='${currentUni.studioUrl}'; closeSideDrawer();" class="drawer-item" style="color: ${currentUni.color};">
+                    <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: ${currentUni.color};"></i> <span>${currentUni.studioLabel}</span></div>
+                    <span style="font-size: 10px; background: rgba(255,154,85,0.2); color: ${currentUni.color}; padding: 2px 8px; border-radius: 10px;">CREATOR</span>
                 </a>
             `;
         }
@@ -468,7 +466,7 @@ window.openSideDrawer = function() {
         <div class="mhent-side-drawer">
             <div class="drawer-header">
                 <button class="drawer-close-btn" onclick="closeSideDrawer()">&times;</button>
-                <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.onerror=null; this.src='/assets/avt-web.jpg';">
+                <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.src='/assets/avt-web.jpg'">
                 <div class="drawer-name">${userName}</div>
                 <div class="drawer-email">${userBadge}</div>
             </div>
