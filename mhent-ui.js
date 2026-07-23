@@ -226,3 +226,144 @@ window.closeInputPopup = function() {
         setTimeout(() => overlay.remove(), 300);
     }
 };
+
+// ==========================================================================
+// 🚀 HỆ THỐNG MENU ĐÁY TỰ ĐỘNG & TÙY CHỈNH (BOTTOM NAV AUTO-RENDER)
+// ==========================================================================
+
+// 1. TỪ ĐIỂN CÁC VŨ TRỤ TRONG MHENT
+const MHENT_APPS_DICT = {
+    cinema: { name: 'Cinema', url: '/cinema', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>' },
+    arena:  { name: 'Arena',  url: '/arena',  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line></svg>' },
+    teach:  { name: 'Edu',    url: '/teach',  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>' },
+    game:   { name: 'Game',   url: '/game',   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>' },
+    music:  { name: 'Music',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>' },
+    manga:  { name: 'Manga',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>' },
+    novel:  { name: 'Novel',  url: '#',       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>' }
+};
+
+// 2. HÀM VẼ MENU ĐÁY TỰ ĐỘNG
+window.renderBottomNav = function() {
+    // Nếu màn hình > 768px (Máy tính) thì thôi, không vẽ
+    if (window.innerWidth > 768) return;
+
+    let nav = document.getElementById('mhent-bottom-nav');
+    if (!nav) {
+        nav = document.createElement('div');
+        nav.id = 'mhent-bottom-nav';
+        nav.className = 'mhent-bottom-nav';
+        document.body.appendChild(nav);
+    }
+
+    // Đọc danh sách app yêu thích của user (Mặc định là Cinema & Arena)
+    let favApps = JSON.parse(localStorage.getItem('mhent_custom_nav') || '["cinema", "arena"]');
+
+    // Lấy đường dẫn hiện tại để bật sáng nút tương ứng
+    let currentPath = window.location.pathname;
+
+    // Nút 1: Đại Sảnh (Luôn cố định đầu tiên)
+    let isHomeActive = (currentPath === '/' || currentPath === '/index.html') ? 'active' : '';
+    let html = `
+        <a onclick="window.location.href='/'" class="bottom-nav-item ${isHomeActive}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+            <span>Đại Sảnh</span>
+        </a>
+    `;
+
+    // Nút 2 & 3 (Hoặc 4): Các vũ trụ user thích
+    favApps.forEach(appKey => {
+        let app = MHENT_APPS_DICT[appKey];
+        if (app) {
+            let isActive = currentPath.includes(app.url) && app.url !== '#' ? 'active' : '';
+            html += `
+                <a onclick="window.location.href='${app.url}'" class="bottom-nav-item ${isActive}">
+                    ${app.icon}
+                    <span>${app.name}</span>
+                </a>
+            `;
+        }
+    });
+
+    // Nút cuối: Hồ Sơ (Luôn cố định cuối cùng)
+    let isProfileActive = currentPath.includes('/profile') ? 'active' : '';
+    html += `
+        <a onclick="window.location.href='/profile#info'" class="bottom-nav-item ${isProfileActive}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Hồ Sơ</span>
+        </a>
+    `;
+
+    nav.innerHTML = html;
+};
+
+// Tự động gọi hàm vẽ Menu khi trang web tải xong
+document.addEventListener("DOMContentLoaded", () => {
+    window.renderBottomNav();
+});
+
+// 3. HÀM MỞ BẢNG CHỌN VŨ TRỤ YÊU THÍCH (GỌI KHI BẤM NÚT TÙY CHỈNH)
+window.openNavCustomizer = function() {
+    let favApps = JSON.parse(localStorage.getItem('mhent_custom_nav') || '["cinema", "arena"]');
+    
+    // Xây dựng danh sách nút Checkbox
+    let appsHTML = '';
+    for (let key in MHENT_APPS_DICT) {
+        let app = MHENT_APPS_DICT[key];
+        let isChecked = favApps.includes(key) ? 'checked' : '';
+        appsHTML += `
+            <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--text-primary);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--theme-accent, #ff85a2);">${app.icon}</span>
+                    <span>MHEnt. ${app.name}</span>
+                </div>
+                <input type="checkbox" name="custom_app_item" value="${key}" ${isChecked} style="width: 18px; height: 18px; accent-color: var(--theme-accent, #ff85a2); cursor: pointer;">
+            </label>
+        `;
+    }
+
+    // Tạo Overlay Modal
+    let overlay = document.createElement('div');
+    overlay.className = 'mhent-ui-overlay show';
+    overlay.id = 'modal-nav-customizer';
+    overlay.innerHTML = `
+        <div class="mhent-ui-box" style="text-align: left; max-width: 420px;">
+            <h3 style="font-weight: 900; color: var(--text-primary); margin-top: 0; margin-bottom: 5px; text-align: center;">Tùy chỉnh Menu Đáy 📱</h3>
+            <p style="color: var(--text-secondary); font-size: 13.5px; text-align: center; margin-bottom: 20px;">Chọn từ 2 đến 3 vũ trụ cậu hay ghé thăm nhất để ghim xuống thanh điều hướng nhé!</p>
+            
+            <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; padding-right: 5px;">
+                ${appsHTML}
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="document.getElementById('modal-nav-customizer').remove()" class="mhent-ui-btn-outline" style="flex: 1;">Hủy</button>
+                <button onclick="saveCustomNav()" class="mhent-ui-btn-primary" style="flex: 1; background: var(--theme-accent, #ff85a2);">Lưu Ngay</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+};
+
+// 4. HÀM LƯU LẠI VÀ VẼ LẠI MENU NGAY LẬP TỨC
+window.saveCustomNav = function() {
+    let checkedBoxes = document.querySelectorAll('input[name="custom_app_item"]:checked');
+    if (checkedBoxes.length < 1 || checkedBoxes.length > 3) {
+        if (typeof showToast === 'function') showToast("Lỗi", "Cậu vui lòng chọn từ 1 đến 3 vũ trụ nhé!", "error");
+        else alert("Vui lòng chọn từ 1 đến 3 vũ trụ!");
+        return;
+    }
+
+    let selectedApps = [];
+    checkedBoxes.forEach(box => selectedApps.push(box.value));
+
+    // Lưu vào bộ nhớ máy
+    localStorage.setItem('mhent_custom_nav', JSON.stringify(selectedApps));
+
+    // Đóng Modal
+    let modal = document.getElementById('modal-nav-customizer');
+    if (modal) modal.remove();
+
+    // Vẽ lại thanh Menu dưới đáy lập tức mà không cần F5!
+    window.renderBottomNav();
+
+    if (typeof showToast === 'function') showToast("Thành công", "Đã cập nhật thanh Menu của cậu!", "success");
+};

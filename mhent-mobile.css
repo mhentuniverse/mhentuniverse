@@ -1,0 +1,290 @@
+/* ==========================================================================
+   MHEnt. UNIVERSE - MOBILE UI & APP-LIKE EXPERIENCE (V1.0)
+   Tối ưu chuyên biệt cho thiết bị di động (Smartphones & Mini Tablets < 768px)
+   ========================================================================== */
+
+/* ==============================================================
+   0. THIẾT LẬP NỀN TẢNG & TỐI ƯU CẢM ỨNG (TOUCH OPTIMIZATIONS)
+   ============================================================== */
+@media screen and (max-width: 768px) {
+    /* Loại bỏ hiện tượng nháy màu xanh/xám khi chạm ngón tay vào nút trên iOS/Android */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Ép khung nội dung chính luôn chừa khoảng trống 85px ở sát đáy 
+       để nội dung không bao giờ bị che khuất bởi Thanh Điều Hướng Đáy (Bottom Nav) */
+    body, main, .movie-section, .arena-section, .desc-container, .profile-container {
+        padding-bottom: 85px !important;
+    }
+
+    /* Đảm bảo các vùng cuộn mượt mà theo quán tính ngón tay */
+    .table-container, .admin-table-container, .ep-list-container, .notif-body {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ==============================================================
+   1. THANH ĐIỀU HƯỚNG ĐÁY CHUẨN APP (BOTTOM NAVIGATION BAR)
+   ============================================================== */
+/* Mặc định trên Máy tính: Ẩn hoàn toàn thanh điều hướng đáy */
+.mhent-bottom-nav {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+    /* Ẩn menu cồng kềnh trên Navbar đỉnh của máy tính */
+    .navbar .nav-links,
+    .navbar .menu-toggle {
+        display: none !important;
+    }
+
+    /* Tinh chỉnh lại Navbar đỉnh cho gọn gàng hơn trên điện thoại */
+    .navbar {
+        padding: 8px 15px !important;
+        height: 55px !important;
+    }
+
+    .navbar .logo-name {
+        font-size: 17px !important;
+    }
+
+    .navbar .avt-img {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Kích hoạt Thanh Điều Hướng Đáy cố định */
+    .mhent-bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 65px;
+        background: var(--bg-glass-strong, rgba(255, 255, 255, 0.95));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border-color, rgba(203, 213, 225, 0.6));
+        justify-content: space-around;
+        align-items: center;
+        z-index: 99999;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+        
+        /* Hỗ trợ vùng an toàn (Safe Area) cho iPhone X trở lên (lõm đáy) */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-sizing: content-box;
+    }
+
+    body.dark-mode .mhent-bottom-nav {
+        background: var(--bg-glass-strong, rgba(15, 23, 42, 0.96));
+        border-top-color: rgba(51, 65, 85, 0.8);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Các nút bấm trên Bottom Nav */
+    .bottom-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: var(--text-secondary, #64748b);
+        font-family: 'Nunito', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        gap: 4px;
+        height: 100%;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .bottom-nav-item svg,
+    .bottom-nav-item i {
+        font-size: 20px;
+        width: 22px;
+        height: 22px;
+        stroke-width: 2;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Trạng thái đang chọn (Active) hoặc Hover */
+    .bottom-nav-item.active,
+    .bottom-nav-item:active {
+        color: var(--theme-accent, #ff85a2);
+        font-weight: 900;
+    }
+
+    .bottom-nav-item.active svg,
+    .bottom-nav-item.active i {
+        transform: scale(1.15) translateY(-2px);
+        color: var(--theme-accent, #ff85a2);
+    }
+
+    /* Đốm sáng nhỏ dưới icon đang active */
+    .bottom-nav-item.active::after {
+        content: '';
+        width: 4px;
+        height: 4px;
+        background: var(--theme-accent, #ff85a2);
+        border-radius: 50%;
+        position: absolute;
+        bottom: 6px;
+    }
+}
+
+/* ==============================================================
+   2. BẢNG TRƯỢT ĐÁY NATIVE (BOTTOM SHEET MODALS)
+   ============================================================== */
+@media screen and (max-width: 768px) {
+    /* Biến các Popup/Modal giữa màn hình thành Bảng trượt từ dưới lên */
+    .modal-overlay,
+    .mhent-ui-overlay,
+    .overlay {
+        align-items: flex-end !important; /* Ép hộp thoại xuống sát đáy */
+        padding: 0 !important;
+    }
+
+    .modal-box,
+    .modal-content,
+    .mhent-ui-box,
+    .popup-box {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 28px 28px 0 0 !important; /* Chỉ bo tròn 2 góc trên */
+        padding: 30px 20px 40px 20px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        
+        /* Hiệu ứng trượt từ dưới lên (Bottom Sheet) */
+        transform: translateY(100%) !important;
+        opacity: 1 !important;
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+        
+        /* Thanh nắm kéo (Drag Handle) giả lập iOS ở đỉnh Modal */
+        position: relative;
+    }
+
+    /* Tạo thanh gạch ngang nhỏ ở đầu Modal */
+    .modal-box::before,
+    .modal-content::before,
+    .mhent-ui-box::before,
+    .popup-box::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 5px;
+        background: var(--border-color, rgba(203, 213, 225, 0.8));
+        border-radius: 10px;
+    }
+
+    /* Khi Modal kích hoạt -> Trượt vào vị trí 0 */
+    .modal-overlay.active .modal-box,
+    .modal-overlay.active .modal-content,
+    .mhent-ui-overlay.show .mhent-ui-box,
+    .overlay.active .popup-box {
+        transform: translateY(0) !important;
+    }
+
+    /* Khi đóng Modal -> Trượt ngược xuống đáy */
+    .mhent-ui-overlay.out .mhent-ui-box {
+        transform: translateY(100%) !important;
+    }
+}
+
+/* ==============================================================
+   3. LƯỚI VUỐT NGANG SIÊU MƯỢT (HORIZONTAL SWIPE FEED)
+   ============================================================== */
+@media screen and (max-width: 768px) {
+    /* Áp dụng cho các danh sách phim hoặc hội thi có class .mobile-swipe-feed */
+    .mobile-swipe-feed {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 15px !important;
+        padding: 5px 10px 20px 10px !important;
+        
+        /* Bắt điểm dừng cuộn mượt mà từng thẻ (Snap Scrolling) */
+        scroll-snap-type: x mandatory;
+        
+        /* Ẩn thanh cuộn xấu xí trên di động */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE 10+ */
+    }
+
+    .mobile-swipe-feed::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    /* Tinh chỉnh thẻ con bên trong Lưới vuốt ngang */
+    .mobile-swipe-feed .movie-card {
+        flex: 0 0 145px !important; /* Cố định chiều rộng 145px cho phim */
+        width: 145px !important;
+        scroll-snap-align: start;
+    }
+
+    .mobile-swipe-feed .quiz-card,
+    .mobile-swipe-feed .cw-card {
+        flex: 0 0 280px !important; /* Cố định chiều rộng 280px cho bài quiz/tiếp tục xem */
+        width: 280px !important;
+        scroll-snap-align: center;
+    }
+}
+
+/* ==============================================================
+   4. TINH CHỈNH CHI TIẾT & NÚT BẤM DỄ CHẠM (TOUCH TARGETS)
+   ============================================================== */
+@media screen and (max-width: 768px) {
+    /* Đảm bảo mọi nút hành động đều có độ cao tối thiểu 44px (Chuẩn Apple Human Interface) */
+    button, 
+    .btn-primary, 
+    .btn-action, 
+    .btn-start-quiz, 
+    .btn-save-profile, 
+    .btn-admin {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Các nút hành động chính giãn full 100% chiều ngang cho dễ bấm bằng 1 tay */
+    .btn-group, 
+    .nav-buttons, 
+    .mhent-ui-actions {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 10px !important;
+    }
+
+    .btn-group a, 
+    .btn-group button, 
+    .nav-buttons button, 
+    .mhent-ui-actions button {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* Bảng Dropdown thông báo & tải khoản mở rộng vừa vặn màn hình di động */
+    .dropdown-menu.notif-dropdown,
+    .dropdown-menu.account-dropdown,
+    .dropdown-menu.app-switcher-menu {
+        position: fixed !important;
+        top: 60px !important;
+        right: 10px !important;
+        left: 10px !important;
+        width: calc(100% - 20px) !important;
+        max-width: none !important;
+        max-height: calc(100vh - 150px) !important;
+        overflow-y: auto !important;
+    }
+
+    .dropdown-menu::before {
+        display: none !important; /* Ẩn mũi tên tam giác trên di động cho sạch */
+    }
+}
