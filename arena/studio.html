@@ -8,387 +8,224 @@
     <meta name="theme-color" content="#ff9a55"> 
     <link rel="apple-touch-icon" href="/assets/icon-web.png">
     <link rel="icon" type="image/jpeg" href="/assets/icon-web.png">
+    
+    <!-- GỌI HỆ THỐNG CSS CHÍNH & ADMIN CORE -->
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/mhent-admin.css">
     <link rel="stylesheet" href="/arena/arena-theme.css">
     <link rel="stylesheet" href="/mhent-ui.css">
+    
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Tùy chỉnh màu chủ đạo của Studio thành Tím Khói (Purple) để phân biệt với Admin (Cam) */
-        :root { --studio-color: #ff9a55; --studio-bg: #ede9fe; }
-        body, h1, h2, h3, h4, p, span, button, input, select, textarea, td, th { font-family: 'Nunito', sans-serif !important; }
-        body { background: #f8fafc; overflow-x: hidden; margin: 0; padding: 0; }
-        body.dark-mode { background: #0f172a; color: #fff; }
-
-        .admin-layout { display: flex; min-height: 100vh; padding-top: 70px; }
-        .admin-sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto; z-index: 10; }
-        .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
-        .admin-menu-item:hover { background: var(--studio-bg); color: var(--studio-color); }
-        .admin-menu-item.active { background: var(--studio-bg); color: var(--studio-color); box-shadow: 0 4px 10px rgba(139,92,246,0.15); }
+        /* ÉP MÀU CAM LỬA CỦA ARENA CHO TOÀN BỘ TRẠM QUẢN TRỊ */
+        :root { --hub-color: #ff9a55; --hub-bg: rgba(255, 154, 85, 0.15); }
+        .btn-purple { background: #8b5cf6 !important; } .btn-purple:hover { background: #7c3aed !important; box-shadow: 0 8px 20px rgba(139,92,246,0.3) !important; }
+        .btn-green { background: #10b981 !important; } .btn-green:hover { background: #059669 !important; box-shadow: 0 8px 20px rgba(16,185,129,0.3) !important; }
         
-        .admin-content { flex: 1; margin-left: 260px; padding: 40px; max-width: 100%; box-sizing: border-box; overflow-x: hidden; }
-        .admin-title { font-size: 28px; font-weight: 900; color: #1e293b; margin: 0 0 30px 0; }
-        .admin-tab { display: none; animation: fadeIn 0.3s ease; }
-        .admin-tab.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .dash-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 20px; }
-        .dash-icon { width: 60px; height: 60px; border-radius: 15px; background: var(--studio-bg); color: var(--studio-color); display: flex; justify-content: center; align-items: center; font-size: 24px; }
-        .dash-info h3 { font-size: 24px; font-weight: 900; margin: 0; color: #1e293b; }
-        .dash-info p { margin: 5px 0 0 0; font-size: 13px; font-weight: 700; color: #64748b; }
-
-        .admin-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 30px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .input-group { margin-bottom: 20px; }
-        .input-group.full { grid-column: 1 / -1; }
-        .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
-        .admin-input, .admin-select, .admin-textarea { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .admin-input:focus, .admin-select:focus, .admin-textarea:focus { border-color: var(--studio-color); background: #fff; box-shadow: 0 4px 12px rgba(139,92,246,0.1); }
-        .admin-textarea { resize: vertical; min-height: 100px; }
-        
-        /* Đổi màu các nút chức năng chính sang Tím */
-        .btn-admin { background: var(--studio-color); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-admin:hover { background: #7c3aed; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139,92,246,0.3); }
-        .btn-green { background: #10b981; } .btn-green:hover { background: #059669; box-shadow: 0 8px 20px rgba(16,185,129,0.3); }
-        .btn-orange { background: var(--hub-color); } .btn-orange:hover { background: #ea580c; box-shadow: 0 8px 20px rgba(234,88,12,0.3); }
-
-        .admin-table-container { overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .admin-table th { background: #f1f5f9; padding: 15px 20px; font-weight: 900; color: #475569; border-bottom: 2px solid #e2e8f0; white-space: nowrap; font-size: 14px; text-transform: uppercase; }
-        .admin-table td { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-size: 14px; font-weight: 600; vertical-align: middle; }
-        .admin-table tr:hover td { background: #f8fafc; }
-        .badge { padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; background: #e2e8f0; color: #475569;}
-        .badge.green { background: #dcfce7; color: #10b981; }
-        .badge.orange { background: #ffedd5; color: #f97316; }
-
-        /* MÀN BẢO VỆ CỬA */
-        #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; }
-
-        /* CUSTOM POPUP */
-        .modal-overlay { position: fixed; top:0; left:0; width: 100%; height:100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 99999; display: none; align-items: center; justify-content: center; opacity: 1; transition: 0.3s; }
-        .popup-box { background: #fff; padding: 30px; border-radius: 20px; text-align: center; width: 85%; max-width: 400px; transform: scale(1); transition: 0.3s; }
-
-        /* ANIMATION NẢY */
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-        .pop-active { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-
-        /* DARK MODE */
-        body.dark-mode .admin-sidebar, body.dark-mode .admin-card, body.dark-mode .admin-table-container, body.dark-mode .dash-card, body.dark-mode .popup-box { background: #1e293b; border-color: #334155; }
-        body.dark-mode .admin-title, body.dark-mode .input-group label, body.dark-mode .dash-info h3 { color: #f8fafc; }
-        body.dark-mode .admin-menu-item:hover { background: #334155; }
-        body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
-        body.dark-mode .admin-table th { background: #0f172a; color: #94a3b8; border-color: #334155; }
-        body.dark-mode .admin-table td { border-color: #334155; color: #cbd5e1; }
-        body.dark-mode .admin-table tr:hover td { background: #0f172a; }
-        body.dark-mode .qr-specific-box { background: #1e293b !important; border: 1px solid #334155; }
-
-        /* ==========================================================
-           QUYỀN NĂNG RESPONSIVE (MOBILE & MINI-TAB) DÀNH CHO ADMIN/STUDIO
-           ========================================================== */
-        @media (max-width: 992px) {
-            /* 1. Bẻ gãy cấu trúc 2 cột, cho nó xếp chồng lên nhau */
-            .admin-layout { 
-                flex-direction: column; 
-                padding-top: 70px; 
-            }
-            
-            /* 2. Biến Sidebar bên trái thành thanh Menu vuốt ngang ở trên cùng */
-            .admin-sidebar { 
-                width: 100%; 
-                position: relative; 
-                height: auto; 
-                border-right: none; 
-                border-bottom: 1px solid #e2e8f0;
-                padding: 15px 20px; 
-                display: flex; 
-                overflow-x: auto; /* Cho phép vuốt ngang */
-                white-space: nowrap; 
-                z-index: 5;
-                -webkit-overflow-scrolling: touch; /* Vuốt mượt trên iOS */
-                box-sizing: border-box;
-            }
-            /* Giấu cái chữ "Góc sáng tạo / Bảng điều khiển" đi cho gọn */
-            .admin-sidebar > div:first-child { display: none; } 
-            
-            /* Chỉnh lại các nút bấm trong Menu ngang */
-            .admin-menu-item { 
-                margin-bottom: 0; 
-                margin-right: 10px; 
-                flex-shrink: 0; /* Không cho nút bị bóp méo */
-                padding: 10px 15px;
-            }
-            
-            /* 3. Trả lại không gian tự do cho Nội dung chính */
-            .admin-content { 
-                margin-left: 0; 
-                padding: 20px; 
-            }
-            
-            /* 4. Thu gọn các Form, Box, Chữ cho vừa màn hình điện thoại */
-            .admin-title { font-size: 22px; text-align: center; }
-            .form-grid { grid-template-columns: 1fr; gap: 15px; } /* Form 2 cột thành 1 cột */
-            .admin-card { padding: 20px; }
-            .dash-card { flex-direction: column; text-align: center; }
-            .dash-card .dash-info { display: flex; flex-direction: column; align-items: center;}
-            
-            /* Bảng kết quả cho phép cuộn ngang để không bị vỡ */
-            .admin-table-container { border-radius: 8px; }
-            .admin-table th, .admin-table td { padding: 10px; font-size: 13px; }
-        }
-
-        /* Tinh chỉnh riêng cho màn hình điện thoại cực nhỏ (iPhone màn hình bé) */
-        @media (max-width: 480px) {
-            .admin-content { padding: 15px 10px; }
-            .admin-card { padding: 15px; border-radius: 15px; }
-            .dash-grid { grid-template-columns: 1fr; } /* Thống kê 3 ô dọc xuống */
-        }
+        /* Chỉnh lại Modal cho mịn */
+        .modal-overlay { z-index: 10000 !important; }
+        #qr-popup { z-index: 10001 !important; }
     </style>
 </head>
-<body class="gradient-bg">
+<body class="theme-arena gradient-bg">
 
     <div id="security-shield">
-        <i class="fa-solid fa-wand-magic-sparkles fa-beat fa-4x" style="color: var(--studio-color); margin-bottom: 20px;"></i>
+        <i class="fa-solid fa-wand-magic-sparkles fa-beat fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i>
         <h2 style="font-weight: 900;">ĐANG NẠP KHÔNG GIAN SÁNG TẠO...</h2>
         <p style="color: #94a3b8;">Chỉ dành cho Creator được cấp phép!</p>
     </div>
 
-    <div id="delete-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 350px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out;">
-            <div style="width: 60px; height: 60px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-                <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            </div>
-            <h3 style="margin: 0 0 10px 0; color: #1e293b; font-size: 20px; font-weight: 800;">Xác nhận xóa?</h3>
-            <p id="delete-modal-text" style="color: #64748b; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">Hành động này <b>KHÔNG THỂ hoàn tác</b>. Cậu có chắc chắn muốn xóa vĩnh viễn dữ liệu này không?</p>
-            
-            <div style="display: flex; gap: 10px;">
-                <button onclick="document.getElementById('delete-modal-overlay').style.display='none'" style="flex: 1; padding: 12px; border: none; background: #f1f5f9; color: #64748b; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">Hủy</button>
-                <button id="btn-confirm-delete" style="flex: 1; padding: 12px; border: none; background: #ef4444; color: white; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Xóa Bỏ</button>
+    <!-- MODAL XÓA BẢO VỆ -->
+    <div id="delete-modal-overlay" class="mhent-ui-overlay">
+        <div class="mhent-ui-box warning">
+            <div class="mhent-ui-icon"><svg viewBox="0 0 24 24" width="50" height="50" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></div>
+            <h3 class="mhent-ui-title">Xác nhận xóa?</h3>
+            <p id="delete-modal-text" class="mhent-ui-msg">Hành động này KHÔNG THỂ hoàn tác.</p>
+            <div class="mhent-ui-actions">
+                <button onclick="document.getElementById('delete-modal-overlay').classList.remove('show')" class="mhent-ui-btn-outline">Hủy bỏ</button>
+                <button id="btn-confirm-delete" class="mhent-ui-btn-primary">Xóa vĩnh viễn</button>
             </div>
         </div>
     </div>
 
-    <div id="edit-modal" class="modal-overlay" style="z-index: 10000; opacity: 0; pointer-events: none;">
-        <div class="admin-card" style="width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; position: relative; margin: 0; transform: scale(0.8); transition: 0.3s; box-sizing: border-box;" id="edit-box">
-            <span onclick="closeEditModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ef4444; font-weight: 900;">&times;</span>
-            <h2 style="margin-top: 0; color: var(--studio-color);"><i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Câu Hỏi</h2>
+    <!-- MODAL SỬA CÂU HỎI -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 700px; text-align: left;" id="edit-box">
+            <button class="close-btn" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-top: 0; color: var(--hub-color);"><i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Câu Hỏi</h2>
             <form id="edit-question-form">
                 <input type="hidden" id="edit-row-index"> 
                 <div class="input-group full">
                     <label>Nội dung câu hỏi <span style="color:red;">*</span></label>
                     <textarea id="edit-question" class="admin-textarea" required></textarea>
                 </div>
-                <div class="form-grid">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="input-group"><label><i class="fa-solid fa-check" style="color:#10b981;"></i> Đáp án ĐÚNG</label><input type="text" id="edit-correct" class="admin-input" style="border-color:#10b981;" required></div>
                     <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 1</label><input type="text" id="edit-wrong1" class="admin-input" required></div>
                     <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 2</label><input type="text" id="edit-wrong2" class="admin-input" required></div>
                     <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 3</label><input type="text" id="edit-wrong3" class="admin-input" required></div>
                 </div>
-                <div class="input-group full"><label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label><textarea id="edit-exp" class="admin-textarea"></textarea></div>
-                <button type="submit" class="btn-admin btn-green" id="btn-save-edit" style="width: 100%; justify-content: center;">LƯU CHỈNH SỬA <i class="fa-solid fa-floppy-disk"></i></button>
+                <div class="input-group full" style="margin-top: 15px;"><label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label><textarea id="edit-exp" class="admin-textarea"></textarea></div>
+                <button type="submit" class="btn-large btn-save" id="btn-save-edit" style="margin-top: 15px;">LƯU CHỈNH SỬA <i class="fa-solid fa-floppy-disk"></i></button>
             </form>
         </div>
     </div>
 
-    <div id="qr-popup" class="modal-overlay" style="z-index: 10001; opacity: 0; pointer-events: none;">
-        <div class="popup-box qr-specific-box" style="width: 90%; max-width: 650px; text-align: center; position: relative; padding: 35px; border-radius: 20px; transition: 0.3s;" id="qr-box">
-            
-            <button onclick="window.closeQRCode()" style="position: absolute; top: -15px; right: -15px; width: 45px; height: 45px; border-radius: 50%; background: #ef4444; color: white; border: 4px solid #fff; font-size: 20px; cursor: pointer; z-index: 99999; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(239,68,68,0.4); padding: 0; margin: 0; outline: none; transition: 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            
-            <h2 style="margin-top:0; color: var(--studio-color);"><i class="fa-solid fa-qrcode"></i> Chia sẻ với Sinh viên</h2>
-            <p style="color:#64748b; font-size: 14px; margin-bottom: 25px; font-weight: 700;">Gửi mã này cho đội Design hoặc copy link dán vào Group lớp nhé!</p>
+    <!-- MODAL QR CODE -->
+    <div id="qr-popup" class="modal-overlay">
+        <div class="modal-box" style="max-width: 650px; text-align: center;" id="qr-box">
+            <button class="close-btn" onclick="window.closeQRCode()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-top:0; color: var(--hub-color);"><i class="fa-solid fa-qrcode"></i> Asset Truyền Thông</h2>
+            <p style="color:var(--text-secondary); font-size: 14px; margin-bottom: 25px; font-weight: 700;">Gửi cho Design dán lên Poster hoặc copy link gửi thẳng cho sinh viên!</p>
             
             <div style="display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center;">
-                <div style="flex: 1; min-width: 220px; background: #f8fafc; padding: 15px; border-radius: 15px; border: 2px dashed #cbd5e1;">
+                <div style="flex: 1; min-width: 220px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 16px; border: 2px dashed var(--border-color);">
                     <img id="qr-image-bw" src="" alt="QR B&W" style="width: 100%; max-width: 220px; border-radius: 10px; display: block; background: white; padding: 10px; margin: 0 auto 15px auto;">
-                    <button class="btn-admin" onclick="downloadQR('bw')" style="width: 100%; padding: 10px; font-size: 14px; background: #1e293b;"><i class="fa-solid fa-download"></i> Tải Đen Trắng</button>
+                    <button class="btn-large" onclick="downloadQR('bw')" style="padding: 10px; font-size: 14px; background: #1e293b;"><i class="fa-solid fa-download"></i> Tải Đen Trắng</button>
                 </div>
-                <div style="flex: 1; min-width: 220px; background: #f3e8ff; padding: 15px; border-radius: 15px; border: 2px dashed #a855f7;">
+                <div style="flex: 1; min-width: 220px; background: rgba(255, 154, 85, 0.05); padding: 15px; border-radius: 16px; border: 2px dashed var(--hub-color);">
                     <img id="qr-image-color" src="" alt="QR Màu" style="width: 100%; max-width: 220px; border-radius: 10px; display: block; background: white; padding: 10px; margin: 0 auto 15px auto;">
-                    <button class="btn-admin" onclick="downloadQR('color')" style="width: 100%; padding: 10px; font-size: 14px;"><i class="fa-solid fa-download"></i> Tải Bản Màu</button>
+                    <button class="btn-large" onclick="downloadQR('color')" style="padding: 10px; font-size: 14px;"><i class="fa-solid fa-download"></i> Tải Bản Màu</button>
                 </div>
             </div>
             
-            <div class="input-group full" style="margin-bottom: 15px;">
-                <input type="text" id="qr-link-input" class="admin-input" readonly style="text-align: center; font-size: 13px; color: #8b5cf6; cursor: pointer;" onclick="this.select()">
+            <div class="input-group" style="margin-bottom: 15px;">
+                <input type="text" id="qr-link-input" class="admin-input" readonly style="text-align: center; font-size: 14px; color: var(--hub-color); cursor: pointer;" onclick="this.select()">
             </div>
-            <button class="btn-admin" onclick="copyQuizLink(this)" style="width:100%; justify-content:center;">
+            <button class="btn-large" onclick="copyQuizLink(this)" style="width:100%; justify-content:center;">
                 <i class="fa-solid fa-copy"></i> Copy Link Ngay
             </button>
         </div>
     </div>
 
-    <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 2px solid var(--studio-bg);">
-        <div class="nav-left">
-            <a onclick="window.location.href='/arena'" style="cursor: pointer;">
-                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img">
-                <span class="logo-name" style="color: var(--studio-color);">MHEnt. Studio</span>
-            </a>
+    <header class="master-header">
+        <div class="brand"><i class="fa-solid fa-wand-magic-sparkles"></i> MHEnt. Studio</div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <span id="creator-email-display" style="font-weight: 800; color: var(--text-secondary); font-size: 13.5px; display: none;"></span>
+            <button class="btn-theme" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i></button>
+            <button class="btn-action" onclick="window.location.href='/arena'"><i class="fa-solid fa-house"></i> Về Đại Sảnh</button>
         </div>
-        <div class="nav-right">
-            <span id="creator-email-display" style="font-weight: 800; color: #64748b; font-size: 13px; margin-right: 15px; display: none;"></span>
-            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
-                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            </button>
-            <button class="btn-theme" onclick="window.location.href='/arena'" style="border:none;"><i class="fa-solid fa-house"></i></button>
-        </div>
-    </nav>
+    </header>
 
     <div class="admin-layout">
         <aside class="admin-sidebar">
-            <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Góc Sáng Tạo</div>
-            <a class="admin-menu-item active" id="menu-dash" onclick="switchTab('dash')"><i class="fa-solid fa-chart-pie"></i> Tổng Quan</a>
-            <a class="admin-menu-item" id="menu-create" onclick="switchTab('create')"><i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Bài Mới</a>
-            <a class="admin-menu-item" id="menu-editquiz" onclick="switchTab('editquiz')"><i class="fa-solid fa-sliders"></i> Cài Đặt Bài Thi</a>
-            <a class="admin-menu-item" id="menu-add" onclick="switchTab('add')"><i class="fa-solid fa-puzzle-piece"></i> Thêm Câu Hỏi</a>
-            <a class="admin-menu-item" id="menu-quest" onclick="switchTab('quest')"><i class="fa-solid fa-layer-group"></i> Kho Đề Của Tôi</a>
-            <a class="admin-menu-item" id="menu-result" onclick="switchTab('result')"><i class="fa-solid fa-users-viewfinder"></i> Báo Cáo Sinh Viên</a>
+            <div style="font-size: 12px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Góc Sáng Tạo</div>
+            <a class="admin-menu-item active" id="menu-dash" onclick="switchTab('dash')"><i class="fa-solid fa-chart-pie" style="width:20px;"></i> Tổng Quan</a>
+            <a class="admin-menu-item" id="menu-create" onclick="switchTab('create')"><i class="fa-solid fa-wand-magic-sparkles" style="width:20px;"></i> Tạo Bài Mới</a>
+            <a class="admin-menu-item" id="menu-editquiz" onclick="switchTab('editquiz')"><i class="fa-solid fa-sliders" style="width:20px;"></i> Cài Đặt Bài Thi</a>
+            <a class="admin-menu-item" id="menu-add" onclick="switchTab('add')"><i class="fa-solid fa-puzzle-piece" style="width:20px;"></i> Thêm Câu Hỏi</a>
+            <a class="admin-menu-item" id="menu-quest" onclick="switchTab('quest')"><i class="fa-solid fa-layer-group" style="width:20px;"></i> Kho Đề Của Tôi</a>
+            <a class="admin-menu-item" id="menu-result" onclick="switchTab('result')"><i class="fa-solid fa-users-viewfinder" style="width:20px;"></i> Báo Cáo Sinh Viên</a>
         </aside>
 
         <main class="admin-content">
             
             <div id="tab-dash" class="admin-tab active">
-                <h1 class="admin-title">Chào mừng Creator, <span id="creator-name-title" style="color: var(--studio-color);"></span>! 👋</h1>
-                <div class="admin-card" style="padding: 20px; display: flex; gap: 20px; align-items: flex-end;">
-                    <div class="input-group" style="margin-bottom: 0; flex: 1;">
+                <h1 class="page-title">Chào mừng Creator, <span id="creator-name-title" style="color: var(--hub-color);"></span>! 👋</h1>
+                <p class="page-subtitle">Quản lý và thống kê các hội thi trắc nghiệm do chính bạn khởi tạo.</p>
+
+                <div class="admin-card" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="input-group" style="margin-bottom: 0; flex: 1; min-width: 250px;">
                         <label>Chọn Hội Thi của bạn để xem thống kê</label>
-                        <select id="select-view-dash" class="admin-select" onchange="loadDashboardStats()"><option value="">Đang tải...</option></select>
+                        <select id="select-view-dash" class="admin-input" style="margin-bottom:0;" onchange="loadDashboardStats()"><option value="">Đang tải...</option></select>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn-admin btn-orange" onclick="openLivescore()"><i class="fa-solid fa-satellite-dish"></i> LIVESCORE</button>
-                        <button class="btn-admin" onclick="showQRCode()"><i class="fa-solid fa-share-nodes"></i> CHIA SẺ</button>
+                        <button class="btn-large btn-purple" style="padding: 14px 20px;" onclick="openLivescore()"><i class="fa-solid fa-satellite-dish"></i> LIVESCORE</button>
+                        <button class="btn-large" style="padding: 14px 20px;" onclick="showQRCode()"><i class="fa-solid fa-share-nodes"></i> CHIA SẺ</button>
                     </div>
                 </div>
-                <div class="dash-grid" id="dash-widgets" style="display: none;">
-                    <div class="dash-card"><div class="dash-icon"><i class="fa-solid fa-users"></i></div><div class="dash-info"><h3 id="stat-total">0</h3><p>Tổng SV Tham gia</p></div></div>
-                    <div class="dash-card"><div class="dash-icon" style="background:#dcfce7; color:#10b981;"><i class="fa-solid fa-check-double"></i></div><div class="dash-info"><h3 id="stat-done">0</h3><p>Đã nộp bài</p></div></div>
-                    <div class="dash-card"><div class="dash-icon" style="background:#fee2e2; color:#ef4444;"><i class="fa-solid fa-bullseye"></i></div><div class="dash-info"><h3 id="stat-avg">0 đ</h3><p>Điểm Trung bình</p></div></div>
+                <div class="metrics-grid" id="dash-widgets" style="display: none;">
+                    <div class="metric-card"><div class="metric-icon" style="background: rgba(37,99,235,0.1); color:#2563eb;"><i class="fa-solid fa-users"></i></div><div class="metric-info"><h3>Tổng SV Tham gia</h3><p id="stat-total">0</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background: rgba(16,185,129,0.1); color:#10b981;"><i class="fa-solid fa-check-double"></i></div><div class="metric-info"><h3>Đã nộp bài</h3><p id="stat-done">0</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background: rgba(239,68,68,0.1); color:#ef4444;"><i class="fa-solid fa-bullseye"></i></div><div class="metric-info"><h3>Điểm Trung bình</h3><p id="stat-avg">0 đ</p></div></div>
                 </div>
             </div>
 
             <div id="tab-create" class="admin-tab">
-                <h1 class="admin-title">Sáng Tạo Bài Thi Mới</h1>
+                <h1 class="page-title">Sáng Tạo Bài Thi Mới</h1>
+                <p class="page-subtitle">Khởi tạo sân chơi mới cho sinh viên và cộng đồng.</p>
                 <div class="admin-card">
                     <form id="create-quiz-form">
-                        <div class="form-grid">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div class="input-group"><label>Mã Bài Thi (Viết liền) <span style="color:red;">*</span></label><input type="text" id="inp-new-id" class="admin-input" required placeholder="VD: HOITHIABC"></div>
                             <div class="input-group"><label>Tên Bài Thi hiển thị <span style="color:red;">*</span></label><input type="text" id="inp-new-title" class="admin-input" required placeholder="VD: Hội Thi Tìm Hiểu"></div>
                             <div class="input-group"><label>Tổng số câu hỏi <span style="color:red;">*</span></label><input type="number" id="inp-new-count" class="admin-input" required placeholder="VD: 20"></div>
                             <div class="input-group"><label>Thời gian làm bài (Phút) <span style="color:red;">*</span></label><input type="number" id="inp-new-time" class="admin-input" required placeholder="VD: 60"></div>
-                            <div class="input-group"><label>Giờ Mở (Bỏ trống nếu luôn mở)</label><input type="datetime-local" id="inp-new-start" class="admin-input" placeholder="VD: 2023-10-10T10:00"></div>
-                            <div class="input-group"><label>Giờ Đóng (Bỏ trống nếu không đóng)</label><input type="datetime-local" id="inp-new-end" class="admin-input" placeholder="VD: 2023-10-10T11:00"></div>
-                            <div class="input-group">
-                                <label>Trạng thái ban đầu</label>
-                                <select id="inp-new-status" class="admin-select">
-                                    <option value="test">Chạy Thử (Chỉ mình bạn xem)</option><option value="open">Mở thi</option><option value="closed" selected>Đóng</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Chế độ thi</label>
-                                <select id="inp-new-mode" class="admin-select"><option value="default">Truyền thống</option><option value="quizz">Đấu trường</option></select>
-                            </div>
+                            <div class="input-group"><label>Giờ Mở (Bỏ trống nếu luôn mở)</label><input type="datetime-local" id="inp-new-start" class="admin-input"></div>
+                            <div class="input-group"><label>Giờ Đóng (Bỏ trống nếu không đóng)</label><input type="datetime-local" id="inp-new-end" class="admin-input"></div>
+                            <div class="input-group"><label>Trạng thái ban đầu</label><select id="inp-new-status" class="admin-input"><option value="test">Chạy Thử (Chỉ mình bạn xem)</option><option value="open">Mở thi</option><option value="closed" selected>Đóng</option></select></div>
+                            <div class="input-group"><label>Chế độ thi</label><select id="inp-new-mode" class="admin-input"><option value="default">Truyền thống</option><option value="quizz">Đấu trường</option></select></div>
                         </div>
-                        <div class="input-group full" style="background: rgba(99, 102, 241, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed rgba(99, 102, 241, 0.4);">
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #4f46e5;">
+                        <div class="input-group" style="background: var(--hub-bg); padding: 20px; border-radius: 16px; border: 1px dashed var(--hub-color); margin: 20px 0;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: var(--hub-color); font-size: 15px;">
                                 <input type="checkbox" id="inp-new-is-school" style="width: 18px; height: 18px; cursor: pointer;"> 
                                 <span><i class="fa-solid fa-school-flag"></i> <strong>Giao diện Academic:</strong> Dùng từ "Sinh viên, Lớp, Khoa" thay cho "Định danh, Đơn vị, Tổ chức".</span>
                             </label>
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #ec4899;">
-                                <input type="checkbox" id="inp-new-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;"> 
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #ec4899; font-size: 15px;">
+                                <input type="checkbox" id="inp-new-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('div-new-giveaway-score').style.display = this.checked ? 'block' : 'none'"> 
                                 <span><i class="fa-solid fa-gift"></i> <strong>Chế độ Give Away:</strong> Tự động in và gửi vé điện tử khi đạt điểm chuẩn.</span>
                             </label>
-                            <div id="div-new-giveaway-score" style="display: none; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 10px; border: 1px dashed #ec4899; margin-bottom: 15px;">
-                                <label style="color: #ec4899; font-size: 13px; font-weight: 800;"><i class="fa-solid fa-bullseye"></i> Số điểm tối thiểu để nhận vé (VD: 80):</label>
+                            <div id="div-new-giveaway-score" style="display: none; background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 12px; border: 1px dashed #ec4899; margin-bottom: 15px;">
+                                <label style="color: #ec4899; font-size: 13.5px; font-weight: 800;"><i class="fa-solid fa-bullseye"></i> Số điểm tối thiểu để nhận vé (VD: 80):</label>
                                 <input type="number" id="inp-new-giveaway-score" class="admin-input" placeholder="Nhập điểm từ 0 đến 100..." value="80" style="margin-bottom: 0; border-color: #ec4899;">
                             </div>
                             
-                            <div class="form-grid" style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 15px;">
-                                <div class="input-group" style="margin-bottom:0;">
-                                    <label style="color: #475569; font-size: 13px;"><i class="fa-solid fa-id-card"></i> Yêu cầu Mã Định Danh / MSSV:</label>
-                                    <select id="inp-new-opt-mssv" class="admin-select" style="padding: 8px 12px; font-size: 13px;">
-                                        <option value="_mR">Bắt buộc nhập</option><option value="_mO">Cho phép bỏ qua (Optional)</option><option value="_mH">Ẩn hoàn toàn</option>
-                                    </select>
-                                </div>
-                                <div class="input-group" style="margin-bottom:0;">
-                                    <label style="color: #475569; font-size: 13px;"><i class="fa-solid fa-people-group"></i> Yêu cầu Đơn vị / Lớp:</label>
-                                    <select id="inp-new-opt-class" class="admin-select" style="padding: 8px 12px; font-size: 13px;">
-                                        <option value="_cR">Bắt buộc nhập</option><option value="_cO">Cho phép bỏ qua (Optional)</option><option value="_cH">Ẩn hoàn toàn</option>
-                                    </select>
-                                </div>
-                                <div class="input-group full" style="margin-bottom:0;">
-                                    <label style="color: #475569; font-size: 13px;"><i class="fa-solid fa-building"></i> Yêu cầu Tổ chức / Khoa:</label>
-                                    <select id="inp-new-opt-faculty" class="admin-select" style="padding: 8px 12px; font-size: 13px;">
-                                        <option value="_fR">Bắt buộc nhập</option><option value="_fO">Cho phép bỏ qua (Optional)</option><option value="_fH">Ẩn hoàn toàn</option>
-                                    </select>
-                                </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: var(--bg-glass-strong); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                                <div class="input-group" style="margin-bottom:0;"><label style="font-size: 13px;"><i class="fa-solid fa-id-card"></i> Yêu cầu Mã Định Danh / MSSV:</label><select id="inp-new-opt-mssv" class="admin-input" style="padding: 8px 12px; font-size: 13px; margin-bottom:0;"><option value="_mR">Bắt buộc nhập</option><option value="_mO">Cho phép bỏ qua (Optional)</option><option value="_mH">Ẩn hoàn toàn</option></select></div>
+                                <div class="input-group" style="margin-bottom:0;"><label style="font-size: 13px;"><i class="fa-solid fa-people-group"></i> Yêu cầu Đơn vị / Lớp:</label><select id="inp-new-opt-class" class="admin-input" style="padding: 8px 12px; font-size: 13px; margin-bottom:0;"><option value="_cR">Bắt buộc nhập</option><option value="_cO">Cho phép bỏ qua (Optional)</option><option value="_cH">Ẩn hoàn toàn</option></select></div>
+                                <div class="input-group" style="margin-bottom:0;"><label style="font-size: 13px;"><i class="fa-solid fa-building"></i> Yêu cầu Tổ chức / Khoa:</label><select id="inp-new-opt-faculty" class="admin-input" style="padding: 8px 12px; font-size: 13px; margin-bottom:0;"><option value="_fR">Bắt buộc nhập</option><option value="_fO">Cho phép bỏ qua (Optional)</option><option value="_fH">Ẩn hoàn toàn</option></select></div>
                             </div>
                         </div>
-                        <div class="input-group full"><label>Mô tả & Lời nhắc cho Sinh viên <span style="color:red;">*</span></label><textarea id="inp-new-desc" class="admin-textarea" required></textarea></div>
-                        <button type="submit" class="btn-admin btn-green" id="btn-submit-quiz">KHỞI TẠO KHÔNG GIAN <i class="fa-solid fa-rocket"></i></button>
+                        <div class="input-group"><label>Mô tả & Lời nhắc cho Sinh viên <span style="color:red;">*</span></label><textarea id="inp-new-desc" class="admin-textarea" required></textarea></div>
+                        <button type="submit" class="btn-large btn-green" id="btn-submit-quiz" style="width: 100%;">KHOR TẠO KHÔNG GIAN <i class="fa-solid fa-rocket"></i></button>
                     </form>
                 </div>
             </div>
 
             <div id="tab-editquiz" class="admin-tab">
-                <h1 class="admin-title">Cài Đặt Bài Thi</h1>
+                <h1 class="page-title">Cài Đặt Bài Thi</h1>
+                <p class="page-subtitle">Chỉnh sửa thông số, thời gian và chế độ bảo mật.</p>
                 <div class="admin-card">
                     <form id="edit-quiz-form">
-                        <div class="input-group full"><label>Chọn Bài Thi của bạn <span style="color:red;">*</span></label><select id="inp-edit-quiz-id" class="admin-select" onchange="fillEditQuizForm()" required><option value="">Đang tải...</option></select></div>
-                        <div class="form-grid">
+                        <div class="input-group"><label>Chọn Bài Thi của bạn <span style="color:red;">*</span></label><select id="inp-edit-quiz-id" class="admin-input" onchange="fillEditQuizForm()" required><option value="">Đang tải...</option></select></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div class="input-group"><label>Tên Bài Thi hiển thị <span style="color:red;">*</span></label><input type="text" id="inp-edit-title" class="admin-input" required></div>
                             <div class="input-group"><label>Tổng số câu hỏi <span style="color:red;">*</span></label><input type="number" id="inp-edit-count" class="admin-input" required></div>
                             <div class="input-group"><label>Thời gian làm bài (Phút) <span style="color:red;">*</span></label><input type="number" id="inp-edit-time" class="admin-input" required></div>
                             <div class="input-group"><label>Giờ Mở</label><input type="datetime-local" id="inp-edit-start" class="admin-input"></div>
                             <div class="input-group"><label>Giờ Đóng</label><input type="datetime-local" id="inp-edit-end" class="admin-input"></div>
-                            <div class="input-group"><label>Trạng thái</label><select id="inp-edit-status" class="admin-select"><option value="test">Chạy Thử</option><option value="open">Mở thi</option><option value="closed">Đóng</option></select></div>
-                            <div class="input-group"><label>Chế độ thi</label><select id="inp-edit-mode" class="admin-select"><option value="default">Truyền thống</option><option value="quizz">Đấu trường</option></select></div>
+                            <div class="input-group"><label>Trạng thái</label><select id="inp-edit-status" class="admin-input"><option value="test">Chạy Thử</option><option value="open">Mở thi</option><option value="closed">Đóng</option></select></div>
+                            <div class="input-group"><label>Chế độ thi</label><select id="inp-edit-mode" class="admin-input"><option value="default">Truyền thống</option><option value="quizz">Đấu trường</option></select></div>
                         </div>
-                        <div class="input-group full" style="background: rgba(99, 102, 241, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed rgba(99, 102, 241, 0.4);">
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #4f46e5;">
+                        <div class="input-group" style="background: var(--hub-bg); padding: 20px; border-radius: 16px; border: 1px dashed var(--hub-color); margin: 20px 0;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: var(--hub-color); font-size: 15px;">
                                 <input type="checkbox" id="inp-edit-is-school" style="width: 18px; height: 18px; cursor: pointer;"> 
                                 <span><i class="fa-solid fa-school-flag"></i> <strong>Giao diện Academic:</strong> Dùng từ "Sinh viên, Lớp, Khoa" thay cho "Định danh, Đơn vị, Tổ chức".</span>
                             </label>
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #ec4899;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 15px; color: #ec4899; font-size: 15px;">
                                 <input type="checkbox" id="inp-edit-is-giveaway" style="width: 18px; height: 18px; cursor: pointer;" onchange="document.getElementById('div-edit-giveaway-score').style.display = this.checked ? 'block' : 'none'"> 
                                 <span><i class="fa-solid fa-gift"></i> <strong>Chế độ Give Away:</strong> Tự động in và gửi vé điện tử khi đạt điểm chuẩn.</span>
                             </label>
-
-                            <div id="div-edit-giveaway-score" style="display: none; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 10px; border: 1px dashed #ec4899; margin-bottom: 15px;">
-                                <label style="color: #ec4899; font-size: 13px; font-weight: 800;"><i class="fa-solid fa-bullseye"></i> Số điểm tối thiểu để nhận vé (VD: 80):</label>
+                            <div id="div-edit-giveaway-score" style="display: none; background: rgba(236, 72, 153, 0.1); padding: 15px; border-radius: 12px; border: 1px dashed #ec4899; margin-bottom: 15px;">
+                                <label style="color: #ec4899; font-size: 13.5px; font-weight: 800;"><i class="fa-solid fa-bullseye"></i> Số điểm tối thiểu để nhận vé (VD: 80):</label>
                                 <input type="number" id="inp-edit-giveaway-score" class="admin-input" placeholder="Nhập điểm từ 0 đến 100..." style="margin-bottom: 0; border-color: #ec4899;">
                             </div>
                             
-                            <div class="form-grid" style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; gap: 15px;">
-                                <div class="input-group" style="margin-bottom:0;">
-                                    <label style="color: #475569; font-size: 13px;"><i class="fa-solid fa-id-card"></i> Yêu cầu Mã Định Danh / MSSV:</label>
-                                    <select id="inp-edit-opt-mssv" class="admin-select" style="padding: 8px 12px; font-size: 13px;">
-                                        <option value="_mR">Bắt buộc nhập</option><option value="_mO">Cho phép bỏ qua (Optional)</option><option value="_mH">Ẩn hoàn toàn</option>
-                                    </select>
-                                </div>
-                                <div class="input-group" style="margin-bottom:0;">
-                                    <label style="color: #475569; font-size: 13px;"><i class="fa-solid fa-people-group"></i> Yêu cầu Đơn vị / Lớp:</label>
-                                    <select id="inp-edit-opt-class" class="admin-select" style="padding: 8px 12px; font-size: 13px;">
-                                        <option value="_cR">Bắt buộc nhập</option><option value="_cO">Cho phép bỏ qua (Optional)</option><option value="_cH">Ẩn hoàn toàn</option>
-                                    </select>
-                                </div>
-                                <div class="input-group full" style="margin-bottom:0;">
-                                    <label style="color: #475569; font-size: 13px;"><i class="fa-solid fa-building"></i> Yêu cầu Tổ chức / Khoa:</label>
-                                    <select id="inp-edit-opt-faculty" class="admin-select" style="padding: 8px 12px; font-size: 13px;">
-                                        <option value="_fR">Bắt buộc nhập</option><option value="_fO">Cho phép bỏ qua (Optional)</option><option value="_fH">Ẩn hoàn toàn</option>
-                                    </select>
-                                </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: var(--bg-glass-strong); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                                <div class="input-group" style="margin-bottom:0;"><label style="font-size: 13px;"><i class="fa-solid fa-id-card"></i> Yêu cầu Mã Định Danh / MSSV:</label><select id="inp-edit-opt-mssv" class="admin-input" style="padding: 8px 12px; font-size: 13px; margin-bottom:0;"><option value="_mR">Bắt buộc nhập</option><option value="_mO">Cho phép bỏ qua (Optional)</option><option value="_mH">Ẩn hoàn toàn</option></select></div>
+                                <div class="input-group" style="margin-bottom:0;"><label style="font-size: 13px;"><i class="fa-solid fa-people-group"></i> Yêu cầu Đơn vị / Lớp:</label><select id="inp-edit-opt-class" class="admin-input" style="padding: 8px 12px; font-size: 13px; margin-bottom:0;"><option value="_cR">Bắt buộc nhập</option><option value="_cO">Cho phép bỏ qua (Optional)</option><option value="_cH">Ẩn hoàn toàn</option></select></div>
+                                <div class="input-group" style="margin-bottom:0;"><label style="font-size: 13px;"><i class="fa-solid fa-building"></i> Yêu cầu Tổ chức / Khoa:</label><select id="inp-edit-opt-faculty" class="admin-input" style="padding: 8px 12px; font-size: 13px; margin-bottom:0;"><option value="_fR">Bắt buộc nhập</option><option value="_fO">Cho phép bỏ qua (Optional)</option><option value="_fH">Ẩn hoàn toàn</option></select></div>
                             </div>
                         </div>
-                        <div class="input-group full"><label>Mô tả & Lời nhắc <span style="color:red;">*</span></label><textarea id="inp-edit-desc" class="admin-textarea" required></textarea></div>
-                        <div style="display: flex; gap: 15px; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px; margin-top: 20px;">
-                            <button type="button" id="btn-delete-quiz-action" class="btn-admin" style="display: none; padding: 10px 18px; font-weight: bold; border-radius: 10px; border: 2px solid #ef4444; background: transparent; color: #ef4444; transition: 0.3s; cursor: pointer; align-items: center; gap: 8px; white-space: nowrap; font-size: 13px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.05)'" onmouseout="this.style.background='transparent'">
+                        <div class="input-group"><label>Mô tả & Lời nhắc <span style="color:red;">*</span></label><textarea id="inp-edit-desc" class="admin-textarea" required></textarea></div>
+                        <div style="display: flex; gap: 15px; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px; flex-wrap: wrap;">
+                            <button type="button" id="btn-delete-quiz-action" class="btn-theme" style="display: none; padding: 12px 20px; font-weight: 800; border-radius: 12px; border: 2px solid #ef4444; color: #ef4444;" onclick="triggerDelete('quiz', document.getElementById('inp-edit-quiz-id').value, document.getElementById('inp-edit-title').value)">
                                 <i class="fa-solid fa-trash-can"></i> XÓA HỘI THI
                             </button>
                             
-                            <button type="submit" class="btn-admin btn-purple" id="btn-save-quiz-edit" style="justify-content: center; min-width: 150px; font-weight: 900; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);">
+                            <button type="submit" class="btn-large btn-purple" id="btn-save-quiz-edit" style="min-width: 200px; flex: 1;">
                                 LƯU CÀI ĐẶT <i class="fa-solid fa-floppy-disk"></i>
                             </button>
                         </div>
@@ -397,46 +234,49 @@
             </div>
 
             <div id="tab-add" class="admin-tab">
-                <h1 class="admin-title">Thêm Câu Hỏi Mới</h1>
+                <h1 class="page-title">Thêm Câu Hỏi Mới</h1>
+                <p class="page-subtitle">Soạn thảo đề thi và các phương án trắc nghiệm.</p>
                 <div class="admin-card">
                     <form id="add-question-form">
-                        <div class="input-group"><label>Chọn Bài Thi <span style="color:red;">*</span></label><select id="inp-quiz-id" class="admin-select" required><option value="">Đang tải...</option></select></div>
-                        <div class="input-group full"><label>Nội dung câu hỏi <span style="color:red;">*</span></label><textarea id="inp-question" class="admin-textarea" required></textarea></div>
-                        <div class="form-grid">
+                        <div class="input-group"><label>Chọn Bài Thi <span style="color:red;">*</span></label><select id="inp-quiz-id" class="admin-input" required><option value="">Đang tải...</option></select></div>
+                        <div class="input-group"><label>Nội dung câu hỏi <span style="color:red;">*</span></label><textarea id="inp-question" class="admin-textarea" required></textarea></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div class="input-group"><label><i class="fa-solid fa-check" style="color:#10b981;"></i> Đáp án ĐÚNG <span style="color:red;">*</span></label><input type="text" id="inp-correct" class="admin-input" style="border-color:#10b981;" required></div>
                             <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 1 <span style="color:red;">*</span></label><input type="text" id="inp-wrong1" class="admin-input" required></div>
                             <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 2 <span style="color:red;">*</span></label><input type="text" id="inp-wrong2" class="admin-input" required></div>
                             <div class="input-group"><label><i class="fa-solid fa-xmark" style="color:#ef4444;"></i> Đáp án SAI 3 <span style="color:red;">*</span></label><input type="text" id="inp-wrong3" class="admin-input" required></div>
                         </div>
-                        <div class="input-group full"><label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label><textarea id="inp-exp" class="admin-textarea"></textarea></div>
-                        <button type="submit" class="btn-admin" id="btn-submit-q">GHI VÀO DATA <i class="fa-solid fa-cloud-arrow-up"></i></button>
+                        <div class="input-group"><label><i class="fa-solid fa-lightbulb" style="color:#f59e0b;"></i> Lời Giải Thích</label><textarea id="inp-exp" class="admin-textarea"></textarea></div>
+                        <button type="submit" class="btn-large" id="btn-submit-q" style="width: 100%;">GHI VÀO DATA <i class="fa-solid fa-cloud-arrow-up"></i></button>
                     </form>
                 </div>
             </div>
 
             <div id="tab-quest" class="admin-tab">
-                <h1 class="admin-title">Kho Đề Của Tôi</h1>
-                <div class="admin-card" style="padding: 20px;"><div class="input-group" style="margin-bottom: 0;"><label>Lọc theo Bài Thi</label><select id="select-view-q" class="admin-select" onchange="loadQuestionsTable()"><option value="">Đang tải...</option></select></div></div>
-                <div class="admin-table-container">
-                    <table class="admin-table">
+                <h1 class="page-title">Kho Đề Của Tôi</h1>
+                <p class="page-subtitle">Quản lý và kiểm tra toàn bộ ngân hàng câu hỏi.</p>
+                <div class="admin-card" style="padding: 20px;"><div class="input-group" style="margin-bottom: 0;"><label>Lọc theo Bài Thi</label><select id="select-view-q" class="admin-input" style="margin-bottom:0;" onchange="loadQuestionsTable()"><option value="">Đang tải...</option></select></div></div>
+                <div class="table-container">
+                    <table class="user-table">
                         <thead><tr><th>STT</th><th style="width:30%;">Câu hỏi</th><th>Đáp án đúng</th><th>Các đáp án sai</th><th>Hành Động</th></tr></thead>
                         <tbody id="table-body-quest"><tr><td colspan="5" style="text-align:center;">Vui lòng chọn bài thi...</td></tr></tbody>
                     </table>
-                    <button class="btn-admin" style="background: #8b5cf6; color: white;" onclick="exportQuizQuestionsCSV()" title="Tải toàn bộ câu hỏi và đáp án về máy">
-                        <i class="fa-solid fa-file-arrow-down"></i> Tải Kho Đề
-                    </button>
                 </div>
+                <button class="btn-large btn-purple" style="margin-top: 20px; width: 100%;" onclick="exportQuizQuestionsCSV()" title="Tải toàn bộ câu hỏi và đáp án về máy">
+                    <i class="fa-solid fa-file-arrow-down"></i> TẢI KHO ĐỀ (CSV)
+                </button>
             </div>
 
             <div id="tab-result" class="admin-tab">
-                <h1 class="admin-title">Báo Cáo Sinh Viên</h1>
-                <div class="admin-card" style="padding: 20px; display: flex; gap: 15px; align-items: flex-end;">
-                    <div class="input-group" style="margin-bottom: 0; flex: 1;"><label>Lọc theo Bài Thi</label><select id="select-view-res" class="admin-select" onchange="loadResultsTable()"><option value="">Đang tải...</option></select></div>
-                    <button class="btn-admin btn-orange" onclick="sortResultsData()"><i class="fa-solid fa-sort-amount-down"></i> Sắp xếp</button>
-                    <button id="btn-download-results" class="btn-admin btn-green" onclick="exportCSVWithMHEntBrand()">Tải danh sách (CSV)</button>
+                <h1 class="page-title">Báo Cáo Sinh Viên</h1>
+                <p class="page-subtitle">Theo dõi điểm số, thời gian làm bài và xuất danh sách.</p>
+                <div class="admin-card" style="padding: 20px; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="input-group" style="margin-bottom: 0; flex: 1; min-width: 250px;"><label>Lọc theo Bài Thi</label><select id="select-view-res" class="admin-input" style="margin-bottom:0;" onchange="loadResultsTable()"><option value="">Đang tải...</option></select></div>
+                    <button class="btn-large" style="padding: 14px 20px;" onclick="sortResultsData()"><i class="fa-solid fa-sort-amount-down"></i> Sắp xếp</button>
+                    <button id="btn-download-results" class="btn-large btn-green" style="padding: 14px 20px;" onclick="exportCSVWithMHEntBrand()"><i class="fa-solid fa-file-csv"></i> Tải danh sách (CSV)</button>
                 </div>
-                <div class="admin-table-container">
-                    <table class="admin-table">
+                <div class="table-container">
+                    <table class="user-table">
                         <thead><tr><th>Họ Tên / MSSV</th><th>Lớp - Khoa</th><th>Số câu</th><th>Điểm</th><th>Thời gian</th><th>Tiến độ</th><th>Giờ nộp bài</th></tr></thead>
                         <tbody id="table-body-res"><tr><td colspan="7" style="text-align:center;">Vui lòng chọn bài thi...</td></tr></tbody>
                     </table>
@@ -446,14 +286,13 @@
         </main>
     </div>
 
+    <!-- KHU VỰC SCRIPT GIỮ NGUYÊN HOÀN TOÀN LOGIC CỦA CẬU -->
+    <script src="/mhent-ui.js"></script>
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ==========================================
-        // 1. KHỞI TẠO FIREBASE & SUPABASE
-        // ==========================================
         const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp(); const auth = getAuth(app); const db = getFirestore(app);
 
@@ -461,13 +300,9 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // BIẾN TOÀN CỤC CHUNG
         window.globalResultsData = []; window.globalQuestionsData = []; window.globalQuizList = []; window.currentExportData = []; window.currentQuizQuestions = [];
-        window.currentUserEmail = ""; window.isStudioMode = window.location.pathname.includes('studio');
+        window.currentUserEmail = ""; window.isStudioMode = true;
 
-        // ==========================================
-        // 2. UI CƠ BẢN & PHÂN QUYỀN
-        // ==========================================
         window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
         window.switchTab = function(tabName) { 
@@ -475,38 +310,25 @@
             document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active')); 
             document.getElementById('tab-' + tabName).classList.add('active'); 
             document.getElementById('menu-' + tabName).classList.add('active'); 
-            
-            // Cập nhật URL Hash mà không làm rác lịch sử trình duyệt (Nút Back)
             history.replaceState(null, null, '#' + tabName);
         };
 
-        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
-            // Khai báo các tab hợp lệ của MHEnt. Studio
             const validTabs = ['dash', 'create', 'editquiz', 'add', 'quest', 'result'];
-            
-            if (validTabs.includes(hash)) {
-                switchTab(hash);
-            } else {
-                // Nếu không có hash hoặc nhập sai hash thì mặc định về trang Tổng quan
-                switchTab('dash');
-            }
+            if (validTabs.includes(hash)) switchTab(hash); else switchTab('dash');
         });
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
                     const userSnap = await getDoc(doc(db, "users", user.uid));
                     let role = userSnap.exists() ? userSnap.data().role : "";
-                    
-                    // Logic bảo vệ: Admin vào được cả 2, Studio/Arena chỉ vào được Studio
-                    if (role.includes('admin') || (window.isStudioMode && role.includes('arena'))) {
+                    if (role.includes('admin') || role.includes('arena') || role.includes('creator')) {
                         window.currentUserEmail = user.email;
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
-                        
-                        // Nạp tên nếu ở Studio
-                        if(window.isStudioMode && document.getElementById('creator-name-title')) {
+                        if(document.getElementById('creator-name-title')) {
                             document.getElementById('creator-name-title').innerText = user.displayName || user.email.split('@')[0];
                             document.getElementById('creator-email-display').innerText = user.email;
                             document.getElementById('creator-email-display').style.display = 'inline';
@@ -518,38 +340,30 @@
         });
         function kickOut() { showPopup("⚠️ Khu vực cấm hoặc bạn chưa có quyền!", true); setTimeout(() => { window.location.href = '/arena/'; }, 2000); }
 
-        // ==========================================
-        // 3. QUẢN LÝ HỘI THI (CRUD BẰNG SUPABASE)
-        // ==========================================
         async function loadAllQuizzesIntoSelects() {
             try {
                 let query = supabase.schema('arena').from('quizzes').select('*').order('created_at', { ascending: false });
                 if (window.isStudioMode) query = query.eq('creator_email', window.currentUserEmail);
-                
                 const { data, error } = await query;
                 if (error) throw error;
-
                 window.globalQuizList = data;
                 let options = '<option value="" disabled selected>-- Chọn Hội thi --</option>';
                 data.forEach(q => { options += `<option value="${q.id}">[${q.id}] ${q.title}</option>`; });
-                
                 ['inp-quiz-id', 'select-view-q', 'select-view-res', 'select-view-dash', 'inp-edit-quiz-id'].forEach(id => {
                     let el = document.getElementById(id); if(el) el.innerHTML = options;
                 });
             } catch (e) { console.error("Lỗi tải hội thi:", e); }
         }
 
-        // TẠO HỘI THI MỚI
         document.getElementById('create-quiz-form').addEventListener('submit', async function(e) {
             e.preventDefault(); let btn = document.getElementById('btn-submit-quiz'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
             let mode = document.getElementById('inp-new-mode').value + (document.getElementById('inp-new-is-school').checked ? '_aca' : '') + document.getElementById('inp-new-opt-mssv').value + document.getElementById('inp-new-opt-class').value + document.getElementById('inp-new-opt-faculty').value;
-            
             let payload = { 
                 id: document.getElementById('inp-new-id').value.trim().toUpperCase(), title: document.getElementById('inp-new-title').value.trim(), 
                 description: document.getElementById('inp-new-desc').value.trim(), question_count: parseInt(document.getElementById('inp-new-count').value), 
                 time_limit: parseInt(document.getElementById('inp-new-time').value), status: document.getElementById('inp-new-status').value, mode: mode, 
                 start_time: document.getElementById('inp-new-start').value || null, end_time: document.getElementById('inp-new-end').value || null,
-                creator_email: window.currentUserEmail, is_verified: !window.isStudioMode, // Admin tạo thì tự động verified
+                creator_email: window.currentUserEmail, is_verified: false,
                 event_type: document.getElementById('inp-new-is-giveaway').checked ? 'giveaway' : null,
                 giveaway_score: document.getElementById('inp-new-is-giveaway').checked ? parseInt(document.getElementById('inp-new-giveaway-score').value) : null
             };
@@ -559,7 +373,6 @@
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
-        // ĐỔ DỮ LIỆU VÀO FORM SỬA
         window.fillEditQuizForm = function() {
             let qId = document.getElementById('inp-edit-quiz-id').value; let q = window.globalQuizList.find(x => x.id === qId);
             if(q) {
@@ -569,16 +382,12 @@
                 document.getElementById('inp-edit-opt-class').value = m.includes('_cH') ? '_cH' : (m.includes('_cO') ? '_cO' : '_cR');
                 document.getElementById('inp-edit-opt-faculty').value = m.includes('_fH') ? '_fH' : (m.includes('_fO') ? '_fO' : '_fR');
                 document.getElementById('inp-edit-mode').value = m.includes('quizz') ? 'quizz' : 'default';
-                
                 document.getElementById('inp-edit-title').value = q.title; document.getElementById('inp-edit-desc').value = q.description;
                 document.getElementById('inp-edit-count').value = q.question_count; document.getElementById('inp-edit-time').value = q.time_limit;
                 document.getElementById('inp-edit-status').value = q.status; 
-                
-                // Cắt đuôi giây thừa nếu có của Timestamp
                 document.getElementById('inp-edit-start').value = q.start_time ? q.start_time.substring(0, 16) : ""; 
                 document.getElementById('inp-edit-end').value = q.end_time ? q.end_time.substring(0, 16) : "";
                 document.getElementById('btn-delete-quiz-action').style.display = 'inline-flex';
-            
                 let isGiveaway = (q.event_type === 'giveaway');
                 document.getElementById('inp-edit-is-giveaway').checked = isGiveaway;
                 document.getElementById('div-edit-giveaway-score').style.display = isGiveaway ? 'block' : 'none';
@@ -586,12 +395,10 @@
             } else document.getElementById('btn-delete-quiz-action').style.display = 'none';
         }
 
-        // LƯU CẬP NHẬT HỘI THI
         document.getElementById('edit-quiz-form').addEventListener('submit', async function(e) {
             e.preventDefault(); let btn = document.getElementById('btn-save-quiz-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
             let qId = document.getElementById('inp-edit-quiz-id').value;
             let mode = document.getElementById('inp-edit-mode').value + (document.getElementById('inp-edit-is-school').checked ? '_aca' : '') + document.getElementById('inp-edit-opt-mssv').value + document.getElementById('inp-edit-opt-class').value + document.getElementById('inp-edit-opt-faculty').value;
-            
             let payload = { 
                 title: document.getElementById('inp-edit-title').value.trim(), description: document.getElementById('inp-edit-desc').value.trim(), 
                 question_count: parseInt(document.getElementById('inp-edit-count').value), time_limit: parseInt(document.getElementById('inp-edit-time').value), 
@@ -605,10 +412,6 @@
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
-        // ==========================================
-        // 4. QUẢN LÝ CÂU HỎI (SUPABASE)
-        // ==========================================
-        // THÊM CÂU HỎI
         document.getElementById('add-question-form').addEventListener('submit', async function(e) {
             e.preventDefault(); let btn = document.getElementById('btn-submit-q'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
             let payload = { 
@@ -618,45 +421,40 @@
                 explanation: document.getElementById('inp-exp').value.trim() 
             };
             const { error } = await supabase.schema('arena').from('questions').insert([payload]);
-            if(error) showPopup("Lỗi thêm câu hỏi!", true); else { showPopup("Đã thêm vào két sắt!"); document.getElementById('add-question-form').reset(); }
+            if(error) showPopup("Lỗi thêm câu hỏi!", true); else { showPopup("Đã thêm vào data!"); document.getElementById('add-question-form').reset(); }
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
-        // TẢI DANH SÁCH CÂU HỎI
         window.loadQuestionsTable = async function() {
             let qId = document.getElementById('select-view-q').value; let tbody = document.getElementById('table-body-quest'); if(!qId) return;
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
             const { data, error } = await supabase.schema('arena').from('questions').select('*').eq('quiz_id', qId).order('created_at', { ascending: true });
-            
             if (error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Lỗi kết nối máy chủ!</td></tr>'; return; }
-            
             window.globalQuestionsData = data; window.currentQuizQuestions = data;
             if(data.length > 0) {
                 let html = '';
                 data.forEach((q, idx) => {
                     let wrongs = [q.wrong_1, q.wrong_2, q.wrong_3].filter(w => w).map(w => `<span style="display:block; margin-bottom:4px; font-size:13px; color:#ef4444;">• ${w}</span>`).join('');
-                    html += `<tr><td style="text-align:center; font-weight:900; color:var(--hub-color);">${idx + 1}</td><td><div style="font-weight:800;">${q.question_text}</div>${q.explanation ? `<div style="font-size:12px; color:#10b981; margin-top:5px;"><i class="fa-solid fa-lightbulb"></i> ${q.explanation}</div>` : ''}</td><td><span class="badge green"><i class="fa-solid fa-check"></i> ${q.correct_answer}</span></td><td>${wrongs}</td><td><button class="btn-admin" style="padding: 8px 12px; font-size: 13px;" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Sửa</button> <button class="btn-admin" style="padding: 8px 12px; font-size: 13px; background: #fee2e2; color: #ef4444;" onclick="triggerDelete('question', '${q.id}', 'Câu số ${idx + 1}')"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+                    html += `<tr><td style="text-align:center; font-weight:900; color:var(--hub-color);">${idx + 1}</td><td><div style="font-weight:800;">${q.question_text}</div>${q.explanation ? `<div style="font-size:12px; color:#10b981; margin-top:5px;"><i class="fa-solid fa-lightbulb"></i> ${q.explanation}</div>` : ''}</td><td><span class="badge green"><i class="fa-solid fa-check"></i> ${q.correct_answer}</span></td><td>${wrongs}</td><td><button class="btn-edit" style="padding: 8px 12px; font-size: 13px;" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Sửa</button> <button class="btn-edit" style="padding: 8px 12px; font-size: 13px; background: #fee2e2; color: #ef4444;" onclick="triggerDelete('question', '${q.id}', 'Câu số ${idx + 1}')"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
                 });
                 tbody.innerHTML = html;
             } else tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Bài thi này chưa có câu hỏi nào!</td></tr>';
         }
 
-        // SỬA CÂU HỎI
         window.openEditModal = function(index) {
             let q = window.globalQuestionsData[index]; 
-            document.getElementById('edit-row-index').value = q.id; // LƯU ID CỦA SUPABASE CHỨ KHÔNG LƯU INDEX NỮA
+            document.getElementById('edit-row-index').value = q.id; 
             document.getElementById('edit-question').value = q.question_text; document.getElementById('edit-correct').value = q.correct_answer; 
             document.getElementById('edit-wrong1').value = q.wrong_1 || ""; document.getElementById('edit-wrong2').value = q.wrong_2 || ""; 
             document.getElementById('edit-wrong3').value = q.wrong_3 || ""; document.getElementById('edit-exp').value = q.explanation || "";
-            
             let modal = document.getElementById('edit-modal'); let box = document.getElementById('edit-box'); 
-            modal.style.display = 'flex'; modal.style.pointerEvents = 'auto'; setTimeout(() => { modal.style.opacity = '1'; box.style.transform = 'scale(1)'; }, 10);
+            modal.style.display = 'flex'; setTimeout(() => { modal.classList.add('active'); }, 10);
         }
-        window.closeEditModal = function() { let modal = document.getElementById('edit-modal'); let box = document.getElementById('edit-box'); modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; box.style.transform = 'scale(0.8)'; setTimeout(() => modal.style.display = 'none', 300); }
+        window.closeEditModal = function() { let modal = document.getElementById('edit-modal'); modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
 
         document.getElementById('edit-question-form').addEventListener('submit', async function(e) {
             e.preventDefault(); let btn = document.getElementById('btn-save-edit'); let oTxt = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
-            let qId = document.getElementById('edit-row-index').value; // Lấy ID của Supabase
+            let qId = document.getElementById('edit-row-index').value; 
             let payload = { 
                 question_text: document.getElementById('edit-question').value.trim(), correct_answer: document.getElementById('edit-correct').value.trim(), 
                 wrong_1: document.getElementById('edit-wrong1').value.trim(), wrong_2: document.getElementById('edit-wrong2').value.trim(), 
@@ -667,26 +465,18 @@
             btn.innerHTML = oTxt; btn.disabled = false;
         });
 
-        // ==========================================
-        // 5. KẾT QUẢ & DASHBOARD (SUPABASE)
-        // ==========================================
         window.loadResultsTable = async function(isDash = false) {
             let qId = isDash ? document.getElementById('select-view-dash').value : document.getElementById('select-view-res').value; 
             let tbody = document.getElementById('table-body-res'); if(!qId) return;
             if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</td></tr>';
-            
             const { data, error } = await supabase.schema('arena').from('results').select('*').eq('quiz_id', qId).order('score', { ascending: false });
-            
             if (error) { if(!isDash) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi tải điểm!</td></tr>'; return; }
-            
-            // Format lại dữ liệu
             let formattedData = data.map(d => ({
                 name: d.name, mssv: d.student_id, email: d.email, className: d.class_name, faculty: d.faculty, 
                 correct: d.correct_answers, score: d.score, timeStr: d.time_taken, progress: d.progress, 
-                startTime: d.started_at ? new Date(d.started_at).toLocaleString('vi-VN') : 'Không rõ', // 👉 THÊM DÒNG NÀY
+                startTime: d.started_at ? new Date(d.started_at).toLocaleString('vi-VN') : 'Không rõ', 
                 submitTime: new Date(d.submit_time).toLocaleString('vi-VN')
             }));
-
             window.currentExportData = formattedData; window.globalResultsData = formattedData;
             if(!isDash) renderResultsTable(formattedData); else calcDashboardStats(formattedData);
         }
@@ -696,9 +486,8 @@
             if(data.length > 0) { 
                 let html = ''; 
                 data.forEach(u => { 
-                    let pStyle = (u.progress === 'Hoàn thành') ? 'green' : 'orange'; 
-                    // 👉 Sửa dòng html += để thêm cột Thời gian bắt đầu:
-                    html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:#f1f5f9;">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${pStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;"><b>Bắt đầu:</b> ${u.startTime}<br><b>Nộp bài:</b> ${u.submitTime}</td></tr>`; 
+                    let pStyle = (u.progress === 'Hoàn thành') ? 'admin' : 'arena'; 
+                    html += `<tr><td><strong style="font-size:15px;">${u.name}</strong><br><span style="font-size:12px; color:#64748b;">${u.mssv} | ${u.email}</span></td><td><span class="badge" style="background:rgba(0,0,0,0.05);">${u.className}</span><br><span style="font-size:12px; color:#64748b;">${u.faculty}</span></td><td style="font-weight:900; color:#10b981;">${u.correct}</td><td><span style="font-size:20px; font-weight:900; color:var(--hub-color);">${u.score} đ</span></td><td style="color:#64748b; font-size:13px;">${u.timeStr}</td><td><span class="badge ${pStyle}">${u.progress}</span></td><td style="font-size:12px; color:#94a3b8;"><b>Bắt đầu:</b> ${u.startTime}<br><b>Nộp bài:</b> ${u.submitTime}</td></tr>`; 
                 }); 
                 tbody.innerHTML = html; 
             } else tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#ef4444;">Chưa có ai nộp bài!</td></tr>'; 
@@ -709,34 +498,26 @@
         window.openLivescore = function() { let qId = document.getElementById('select-view-dash').value; if(qId) window.open('/arena/livescore?id=' + qId, '_blank'); else showPopup("Chọn Bài thi trước!", true); }
         window.sortResultsData = function() { if(window.globalResultsData.length === 0) return; window.globalResultsData.sort((a, b) => { if (b.score !== a.score) return b.score - a.score; let pt = (str) => { let m = str.match(/(\d+)\s*phút/); let s = str.match(/(\d+)\s*giây/); return (m ? parseInt(m[1]) : 0) * 60 + (s ? parseInt(s[1]) : 0); }; let tA = pt(a.timeStr) || 999999; let tB = pt(b.timeStr) || 999999; if (tA !== tB) return tA - tB; return new Date(a.submitTime) - new Date(b.submitTime); }); renderResultsTable(window.globalResultsData); }
 
-        // ==========================================
-        // 6. XÓA DỮ LIỆU (SUPABASE)
-        // ==========================================
         let itemToDelete = { type: null, id: null };
         window.triggerDelete = function(type, id, name) {
             itemToDelete = { type: type, id: id };
             document.getElementById('delete-modal-text').innerHTML = `Cậu đang chuẩn bị xóa <b>${type === 'quiz' ? 'Hội thi' : 'Câu hỏi'} [${name}]</b>.<br>Dữ liệu bốc hơi <b>KHÔNG THỂ</b> khôi phục. Chắc chưa?`;
-            document.getElementById('delete-modal-overlay').style.display = 'flex';
+            document.getElementById('delete-modal-overlay').classList.add('show');
         };
 
         document.getElementById('btn-confirm-delete').addEventListener('click', async function() {
             const modal = document.getElementById('delete-modal-overlay'); const btn = this;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...'; btn.disabled = true;
-
             try {
                 let table = itemToDelete.type === 'quiz' ? 'quizzes' : 'questions';
                 const { error } = await supabase.schema('arena').from(table).delete().eq('id', itemToDelete.id);
                 if(error) throw error;
-                
                 showToast('Thành công', 'Đã dọn dẹp sạch sẽ!', 'success');
                 if (itemToDelete.type === 'quiz') loadAllQuizzesIntoSelects(); else loadQuestionsTable();
             } catch(e) { showToast('Lỗi', 'Không xóa được!', 'error'); } 
-            finally { btn.innerHTML = 'Xóa Bỏ'; btn.disabled = false; modal.style.display = 'none'; }
+            finally { btn.innerHTML = 'Xóa vĩnh viễn'; btn.disabled = false; modal.classList.remove('show'); }
         });
 
-        // ==========================================
-        // 7. CÁC TIỆN ÍCH UI (QR CODE & XUẤT CSV CỦA CẬU)
-        // ==========================================
         window.showQRCode = function() {
             let qId = document.getElementById('select-view-dash').value; if(!qId) return showPopup("Chọn Hội thi trước đã nha!", true);
             let quizLink = window.location.origin + "/arena/description?id=" + qId; let logoUrl = window.location.origin + "/assets/icon-web.png"; 
@@ -744,21 +525,16 @@
             document.getElementById('qr-image-color').src = `https://quickchart.io/qr?text=${encodeURIComponent(quizLink)}&size=500&margin=2&ecc=H&dark=ff9a55&centerImageUrl=${encodeURIComponent(logoUrl)}&centerImageBackground=ffffff&centerImageSize=0.2`;
             document.getElementById('qr-link-input').value = quizLink;
             let modal = document.getElementById('qr-popup'); let box = document.getElementById('qr-box');
-            modal.style.display = 'flex'; modal.style.pointerEvents = 'auto'; setTimeout(() => { modal.style.opacity = '1'; box.classList.add('pop-active'); }, 10);
+            modal.style.display = 'flex'; setTimeout(() => { modal.classList.add('active'); }, 10);
         }
-        window.closeQRCode = function() { let modal = document.getElementById('qr-popup'); let box = document.getElementById('qr-box'); modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; box.classList.remove('pop-active'); setTimeout(() => modal.style.display = 'none', 300); }
-        window.copyQuizLink = function(btn) { let copyText = document.getElementById("qr-link-input"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value); let originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã Copy!'; btn.style.background = '#10b981'; setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = '#3b82f6'; }, 2000); }
+        window.closeQRCode = function() { let modal = document.getElementById('qr-popup'); modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
+        window.copyQuizLink = function(btn) { let copyText = document.getElementById("qr-link-input"); copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value); let originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã Copy!'; btn.style.background = '#10b981'; setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = 'var(--hub-color)'; }, 2000); }
 
         window.exportCSVWithMHEntBrand = function() {
             const quizId = document.getElementById('select-view-res').value; const arr = window.currentExportData;
             if (!quizId || !arr || arr.length === 0) return showToast('Lỗi', 'Không có dữ liệu để tải!', 'error');
-            
-            // 👉 THÊM TIÊU ĐỀ "Thời Gian Bắt Đầu"
             let csv = "data:text/csv;charset=utf-8,\uFEFF👑 MHEnt. Arena - KẾT QUẢ\r\n© 2026 MHEnt. - All Rights Reserved.\r\nMã Hội Thi: " + quizId + "\r\n-----------------------\r\n\r\nThời Gian Bắt Đầu,Thời Gian Nộp,Họ Tên,Email,Mã SV,Lớp,Khoa,Số Câu Đúng,Điểm,Thời Gian Làm Bài,Tiến Độ\r\n";
-            
-            // 👉 THÊM BIẾN r.startTime VÀO MẢNG XUẤT DATA
             arr.forEach(r => csv += [`"${r.startTime}"`,`"${r.submitTime}"`,`"${r.name}"`,`"${r.email}"`,`"${r.mssv}"`,`"${r.className}"`,`"${r.faculty}"`,`"${r.correct}"`,`"${r.score}"`,`"${r.timeStr}"`,`"${r.progress}"`].join(",") + "\r\n");
-            
             let l = document.createElement("a"); l.href = encodeURI(csv); l.download = `KQ_${quizId}_MHEntArena.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l);
         };
         window.exportQuizQuestionsCSV = function() {
@@ -781,8 +557,5 @@
             } catch (e) { let img = document.getElementById(type === 'bw' ? 'qr-image-bw' : 'qr-image-color'); if(img && img.src) window.open(img.src, '_blank'); }
         };
     </script>
-    <script src="/mhent-ui.js"></script>
-    <script src="/check-token.js"></script>
-    <script type="module" src="/maintenance.js"></script>
 </body>
 </html>
