@@ -135,65 +135,73 @@
 }
 
 /* ==============================================================
-   2. BẢNG TRƯỢT ĐÁY NATIVE (BOTTOM SHEET MODALS)
+   2. HỆ THỐNG POPUP & MODAL MÀN HÌNH PHỤ TRÊN MOBILE (CENTERED POPUPS)
+   Tối ưu: Mọi màn hình phụ đều bật ra CHÍNH GIỮA màn hình, bo tròn đều 4 góc
    ============================================================== */
 @media screen and (max-width: 768px) {
-    /* Biến các Popup/Modal giữa màn hình thành Bảng trượt từ dưới lên */
+    /* 1. Ép lớp nền tối mờ (Overlay) luôn căn giữa các hộp thoại theo cả 2 trục */
     .modal-overlay,
     .mhent-ui-overlay,
-    .overlay {
-        align-items: flex-end !important; /* Ép hộp thoại xuống sát đáy */
-        padding: 0 !important;
+    .overlay,
+    #trailerModal {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
     }
 
+    /* 2. Định dạng lại toàn bộ Khung Popup: Nằm giữa, bo tròn đều 20px, kích thước chuẩn */
     .modal-box,
     .modal-content,
     .mhent-ui-box,
     .popup-box {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        border-radius: 28px 28px 0 0 !important; /* Chỉ bo tròn 2 góc trên */
-        padding: 30px 20px 40px 20px !important;
+        width: calc(100vw - 32px) !important;
+        max-width: 420px !important;
+        margin: auto !important;
+        border-radius: 22px !important; /* Bo tròn đều 4 góc cực đẹp */
+        padding: 24px 20px !important;
         max-height: 85vh !important;
         overflow-y: auto !important;
+        position: relative !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
         
-        /* Hiệu ứng trượt từ dưới lên (Bottom Sheet) */
-        transform: translateY(100%) !important;
-        opacity: 1 !important;
-        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-        
-        /* Thanh nắm kéo (Drag Handle) giả lập iOS ở đỉnh Modal */
-        position: relative;
+        /* Trạng thái mặc định trước khi bật: Thu nhỏ nhẹ tại tâm */
+        transform: scale(0.88) !important;
+        opacity: 0 !important;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
     }
 
-    /* Tạo thanh gạch ngang nhỏ ở đầu Modal */
+    /* 3. Tiễn bay thanh gạch kéo màu xám (Drag handle) vô duyên trên đỉnh Popup */
     .modal-box::before,
     .modal-content::before,
     .mhent-ui-box::before,
     .popup-box::before {
-        content: '';
-        position: absolute;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 40px;
-        height: 5px;
-        background: var(--border-color, rgba(203, 213, 225, 0.8));
-        border-radius: 10px;
+        display: none !important;
     }
 
-    /* Khi Modal kích hoạt -> Trượt vào vị trí 0 */
+    /* 4. Khi Popup kích hoạt -> Phóng to mượt mà tại tâm màn hình */
     .modal-overlay.active .modal-box,
     .modal-overlay.active .modal-content,
     .mhent-ui-overlay.show .mhent-ui-box,
     .overlay.active .popup-box {
-        transform: translateY(0) !important;
+        transform: scale(1) !important;
+        opacity: 1 !important;
     }
 
-    /* Khi đóng Modal -> Trượt ngược xuống đáy */
-    .mhent-ui-overlay.out .mhent-ui-box {
-        transform: translateY(100%) !important;
+    /* Khi đóng Popup -> Mờ và thu nhỏ lại */
+    .mhent-ui-overlay.out .mhent-ui-box,
+    .modal-overlay.out .modal-box,
+    .overlay.out .popup-box {
+        transform: scale(0.9) !important;
+        opacity: 0 !important;
+    }
+
+    /* 5. Ngoại lệ đặc biệt cho Trailer Phim: Cho phép rộng hơn để xem video 16:9 sướng mắt */
+    #trailerModal .modal-content {
+        max-width: 100% !important;
+        padding: 10px !important;
+        border-radius: 16px !important;
     }
 }
 
