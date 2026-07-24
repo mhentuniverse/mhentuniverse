@@ -174,10 +174,11 @@
         display: none !important;
     }
 
-    /* 4. ⚡ TRỊ LỖI JUMP CUT: Tạo hiệu ứng nảy (Pop/Zoom) mượt mà bằng @keyframes */
+    /* 4. ⚡ TRỊ LỖI JUMP CUT & TRỊ LỖI KẸT CẢM ỨNG IFRAME TRÊN MOBILE */
     @keyframes mobilePopupPop {
         0% { opacity: 0; transform: scale(0.75) translateY(20px); }
-        100% { opacity: 1; transform: scale(1) translateY(0); }
+        99% { opacity: 1; transform: scale(1) translateY(0); }
+        100% { opacity: 1; transform: none; } /* CHÌA KHÓA: Xóa sạch transform ở 100% để cảm ứng iframe không bị liệt! */
     }
 
     /* Khi Popup được kích hoạt -> Chạy hiệu ứng Pop nảy ra siêu mượt */
@@ -191,15 +192,7 @@
     #trailerModal[style*="display: flex"] .modal-content {
         animation: mobilePopupPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
         opacity: 1 !important;
-    }
-
-    /* Khi đóng Popup -> Mờ và thu nhỏ lại */
-    .mhent-ui-overlay.out .mhent-ui-box,
-    .modal-overlay.out .modal-box,
-    .overlay.out .popup-box {
-        transform: scale(0.9) !important;
-        opacity: 0 !important;
-        transition: all 0.25s ease !important;
+        pointer-events: auto !important;
     }
 
     /* 5. ⚡ TRỊ LỖI NÚT TẮT BỊ CẮT TRÊN TRAILER PHIM */
@@ -207,8 +200,7 @@
         max-width: 100% !important;
         padding: 10px !important;
         border-radius: 16px !important;
-        /* CHÌA KHÓA Ở ĐÂY: Tắt overflow-y: auto để nút tắt thò ra ngoài không bị chém mất góc! */
-        overflow: visible !important; 
+        overflow: visible !important; /* Cho phép nút tắt thò ra ngoài không bị chém mất góc! */
     }
 
     #trailerModal .close-btn {
@@ -218,6 +210,12 @@
         height: 34px !important;
         font-size: 18px !important;
         z-index: 99999 !important;
+    }
+
+    /* Đảm bảo iframe nhận trọn vẹn lực chạm ngón tay */
+    #trailerModal iframe {
+        pointer-events: auto !important;
+        touch-action: auto !important;
     }
 }
 
