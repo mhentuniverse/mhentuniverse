@@ -136,10 +136,10 @@
 
 /* ==============================================================
    2. HỆ THỐNG POPUP & MODAL MÀN HÌNH PHỤ TRÊN MOBILE (CENTERED POPUPS)
-   Tối ưu: Mọi màn hình phụ đều bật ra CHÍNH GIỮA màn hình, bo tròn đều 4 góc
+   Tối ưu: Mọi màn hình phụ đều bật ra CHÍNH GIỮA, bo tròn đều 4 góc, có hiệu ứng POP
    ============================================================== */
 @media screen and (max-width: 768px) {
-    /* 1. Ép lớp nền tối mờ (Overlay) luôn căn giữa các hộp thoại theo cả 2 trục */
+    /* 1. Ép lớp nền tối mờ (Overlay) luôn căn giữa hộp thoại theo cả 2 trục */
     .modal-overlay,
     .mhent-ui-overlay,
     .overlay,
@@ -150,7 +150,7 @@
         box-sizing: border-box !important;
     }
 
-    /* 2. Định dạng lại toàn bộ Khung Popup: Nằm giữa, bo tròn đều 22px, kích thước chuẩn */
+    /* 2. Định dạng lại toàn bộ Khung Popup: Nằm giữa, bo tròn đều 22px */
     .modal-box,
     .modal-content,
     .mhent-ui-box,
@@ -158,17 +158,12 @@
         width: calc(100vw - 32px) !important;
         max-width: 420px !important;
         margin: auto !important;
-        border-radius: 22px !important; /* Bo tròn đều 4 góc cực đẹp */
+        border-radius: 22px !important;
         padding: 24px 20px !important;
         max-height: 85vh !important;
         overflow-y: auto !important;
         position: relative !important;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
-        
-        /* Trạng thái mặc định trước khi bật: Thu nhỏ nhẹ tại tâm */
-        transform: scale(0.88) !important;
-        opacity: 0 !important;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
     }
 
     /* 3. Tiễn bay thanh gạch kéo màu xám (Drag handle) vô duyên trên đỉnh Popup */
@@ -179,8 +174,13 @@
         display: none !important;
     }
 
-    /* 4. ⚡ TRỊ LỖI TÀNG HÌNH TRAILER: Khi Popup được kích hoạt bằng class (.active / .show) 
-          HOẶC kích hoạt bằng style (display: flex / block) thì lập tức PHÓNG TO & HIỆN RA */
+    /* 4. ⚡ TRỊ LỖI JUMP CUT: Tạo hiệu ứng nảy (Pop/Zoom) mượt mà bằng @keyframes */
+    @keyframes mobilePopupPop {
+        0% { opacity: 0; transform: scale(0.75) translateY(20px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Khi Popup được kích hoạt -> Chạy hiệu ứng Pop nảy ra siêu mượt */
     .modal-overlay.active .modal-box,
     .modal-overlay.active .modal-content,
     .mhent-ui-overlay.show .mhent-ui-box,
@@ -189,7 +189,7 @@
     .modal[style*="display: flex"] .modal-content,
     #trailerModal[style*="display: block"] .modal-content,
     #trailerModal[style*="display: flex"] .modal-content {
-        transform: scale(1) !important;
+        animation: mobilePopupPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
         opacity: 1 !important;
     }
 
@@ -199,13 +199,25 @@
     .overlay.out .popup-box {
         transform: scale(0.9) !important;
         opacity: 0 !important;
+        transition: all 0.25s ease !important;
     }
 
-    /* 5. Ngoại lệ đặc biệt cho Trailer Phim: Cho phép rộng hơn để xem video 16:9 sướng mắt */
+    /* 5. ⚡ TRỊ LỖI NÚT TẮT BỊ CẮT TRÊN TRAILER PHIM */
     #trailerModal .modal-content {
         max-width: 100% !important;
         padding: 10px !important;
         border-radius: 16px !important;
+        /* CHÌA KHÓA Ở ĐÂY: Tắt overflow-y: auto để nút tắt thò ra ngoài không bị chém mất góc! */
+        overflow: visible !important; 
+    }
+
+    #trailerModal .close-btn {
+        top: -12px !important;
+        right: -12px !important;
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 18px !important;
+        z-index: 99999 !important;
     }
 }
 
