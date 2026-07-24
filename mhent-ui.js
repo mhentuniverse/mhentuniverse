@@ -239,8 +239,10 @@ const MHENT_UNIVERSES = {
         color: '#ff85a2',
         roleKey: 'cinema',
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+        // ⚡ BỔ SUNG THÔNG BÁO VÀO THẲNG TỪ ĐIỂN CỦA CINEMA:
         personalMenu: [
-            { title: 'Thư viện phim đã lưu', url: '/cinema/library', icon: 'fa-bookmark', color: '#ff85a2' }
+            { title: 'Thư viện phim đã lưu', url: '/cinema/library', icon: 'fa-bookmark', color: '#ff85a2' },
+            { title: 'Thông báo phim mới', url: '/cinema/notification', icon: 'fa-bell', color: '#ff85a2', badge: 'NEW' }
         ],
         studioUrl: '/cinema/studio',
         adminUrl: '/cinema/admin',
@@ -399,12 +401,14 @@ window.openSideDrawer = function() {
             </a>
         `;
 
-        // [2] Tính năng riêng theo từng Phân khu:
+        // [2] Tính năng riêng theo từng Phân khu (Tự động quét từ điển MHENT_UNIVERSES):
         if (currentUni && currentUni.personalMenu) {
             currentUni.personalMenu.forEach(item => {
+                let badgeHTML = item.badge ? `<span style="font-size: 10px; background: ${item.color}; color: white; padding: 2px 8px; border-radius: 10px; font-weight: 900; margin-left: auto; margin-right: 10px;">${item.badge}</span>` : '';
                 menuHTML += `
                     <a onclick="window.location.href='${item.url}'; closeSideDrawer();" class="drawer-item">
                         <div class="drawer-item-left"><i class="fa-solid ${item.icon}" style="color: ${item.color};"></i> <span>${item.title}</span></div>
+                        ${badgeHTML}
                         <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
                     </a>
                 `;
