@@ -1,0 +1,70 @@
+/* =======================================================
+   MHEnt. CINEMA THEME (THE CHERRY BLOSSOM EDITION - V1)
+   Tối ưu hóa: Glassmorphism, Gradient Hero & Tự động giãn Card
+   ======================================================= */
+
+:root { 
+    --hub-color: #ff85a2; 
+    --hub-bg: rgba(255, 133, 162, 0.15); 
+}
+
+/* 1. HIỆU ỨNG GRADIENT CHO HERO SECTION */
+.hero { 
+    background: linear-gradient(135deg, rgba(255, 133, 162, 0.2) 0%, rgba(255, 92, 138, 0.05) 100%); 
+    padding: 100px 5% 50px 5%; 
+    text-align: center; 
+    border-bottom: 1px solid var(--border-color); 
+}
+body.dark-mode .hero {
+    background: linear-gradient(135deg, rgba(255, 133, 162, 0.1) 0%, rgba(15, 23, 42, 1) 100%); 
+}
+
+.hero h1 { font-size: 38px; color: var(--text-primary); margin: 0 0 10px 0; font-weight: 900; }
+.hero h1 span { color: var(--hub-color); }
+.small-description { font-size: 15px; color: var(--text-secondary); margin: 0 0 35px 0; font-weight: 700; display: block; }
+
+/* 2. CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
+.app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
+.app-item:hover .app-icon svg { transform: scale(1.1); }
+body.dark-mode .app-icon svg { color: #e2e8f0; }
+
+/* 3. NÚT LỌC PHIM (FILTER BUTTONS) CHUẨN VECTOR */
+.filter-btn { 
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; 
+    padding: 8px 18px; border: 1px solid var(--hub-color); background: transparent; 
+    color: var(--hub-color); border-radius: 20px; font-weight: bold; cursor: pointer; 
+    transition: 0.3s; font-family: 'Nunito', sans-serif; font-size: 13.5px; 
+}
+.filter-btn svg { width: 16px; height: 16px; stroke-width: 2.2; }
+.filter-btn:hover { background: rgba(255, 133, 162, 0.1); transform: translateY(-2px); }
+.filter-btn.active { 
+    background: var(--hub-color); color: #fff; 
+    box-shadow: 0 4px 12px rgba(255, 133, 162, 0.4); border-color: var(--hub-color); 
+}
+
+/* 4. TỐI ƯU Ô TÌM KIẾM CHÍNH (LIVE SEARCH INPUT) */
+#search-box {
+    width: 100%; padding: 12px 45px; border-radius: 25px; 
+    border: 2px solid rgba(255, 133, 162, 0.3); outline: none; font-family: 'Nunito', sans-serif; 
+    font-size: 15px; box-sizing: border-box; background: var(--bg-glass); 
+    box-shadow: var(--shadow-soft); transition: 0.3s; color: var(--text-primary);
+}
+#search-box:focus { border-color: var(--hub-color); background: var(--bg-primary); box-shadow: 0 5px 20px rgba(255, 133, 162, 0.2); }
+
+/* --- DARK MODE OVERRIDES FOR CINEMA --- */
+body.dark-mode .filter-btn { border-color: var(--hub-color); color: var(--hub-color); }
+body.dark-mode .filter-btn.active { background: var(--hub-color); color: #0f172a; font-weight: 900; }
+body.dark-mode #search-box { background: rgba(30, 41, 59, 0.8) !important; border-color: rgba(255, 133, 162, 0.4) !important; color: #fff !important; }
+body.dark-mode #search-box:focus { border-color: var(--hub-color) !important; background: #0f172a !important; }
+
+/* 5. VÁ LỖI LỆCH KHUNG VÀ KHOẢNG CÁCH TRÊN MOBILE (<768px) */
+@media (max-width: 768px) {
+    .hero { padding: 90px 5% 30px 5%; }
+    .hero h1 { font-size: 28px; }
+    .dropdown-menu.app-switcher-menu {
+        width: 260px !important;
+        right: -60px !important; /* Đẩy lại vào giữa màn hình */
+    }
+    .app-switcher-container { margin-right: 8px !important; }
+    #bell-container { margin-right: 5px !important; }
+}
