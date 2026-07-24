@@ -526,3 +526,104 @@ body.dark-mode .notif-item.unread {
     .back-btn-wrapper { margin-top: 15px !important; }
     .btn-back { font-size: 13px !important; padding: 6px 14px !important; }
 }
+
+/* ==========================================================================
+   ⚡ ĐẶC TRỊ LỖI TRAILER BỊ NHÉT XÓ CỦA CINEMA (MODAL POPUP 16:9)
+   ========================================================================== */
+
+/* 1. Khung nền tối mờ bao phủ toàn bộ màn hình */
+#trailerModal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    z-index: 9999999 !important; /* Nổi lên trên tất cả, đè cả Navbar */
+    padding: 20px !important;
+    box-sizing: border-box !important;
+    
+    /* Bùa chú: Dù JS có bật bằng display: block hay flex thì vẫn ép thành flex để căn giữa! */
+    display: none; 
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Khi JavaScript bật modal lên */
+#trailerModal[style*="display: block"],
+#trailerModal[style*="display: flex"] {
+    display: flex !important;
+}
+
+/* 2. Hộp chứa video ở giữa màn hình */
+#trailerModal .modal-content {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 850px !important; /* Độ rộng chuẩn đẹp cho màn hình PC */
+    background: var(--bg-glass-strong, #1e293b) !important;
+    border: 1px solid var(--border-color, rgba(255, 133, 162, 0.4)) !important;
+    border-radius: 20px !important;
+    padding: 12px !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6) !important;
+    animation: zoomInTrailer 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Hiệu ứng nảy lướt ra cực mượt */
+@keyframes zoomInTrailer {
+    0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* 3. Khung Video chuẩn tỷ lệ vàng 16:9 của YouTube */
+#trailerModal iframe {
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important; /* Tự động tính chiều cao, không bao giờ bị méo */
+    border: none !important;
+    border-radius: 12px !important;
+    display: block !important;
+    background: #000 !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+}
+
+/* 4. Nút tắt (X) đỏ rực nổi bật ở góc trên phải */
+#trailerModal .close-btn {
+    position: absolute !important;
+    top: -15px !important;
+    right: -15px !important;
+    width: 38px !important;
+    height: 38px !important;
+    background: #ef4444 !important;
+    color: white !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+    border: 2px solid white !important;
+    transition: all 0.2s ease !important;
+    z-index: 10 !important;
+    line-height: 1 !important;
+}
+
+#trailerModal .close-btn:hover {
+    transform: scale(1.15) rotate(90deg) !important;
+    background: #dc2626 !important;
+}
+
+/* 5. Tối ưu cho điện thoại di động (< 768px) */
+@media screen and (max-width: 768px) {
+    #trailerModal { padding: 10px !important; }
+    #trailerModal .modal-content { padding: 8px !important; border-radius: 14px !important; }
+    #trailerModal .close-btn { 
+        top: -10px !important; 
+        right: -10px !important; 
+        width: 32px !important; 
+        height: 32px !important; 
+        font-size: 18px !important; 
+    }
+}
