@@ -174,33 +174,40 @@
         display: none !important;
     }
 
-    /* 4. ⚡ TRỊ LỖI JUMP CUT & TRỊ LỖI KẸT CẢM ỨNG IFRAME TRÊN MOBILE */
-    @keyframes mobilePopupPop {
-        0% { opacity: 0; transform: scale(0.75) translateY(20px); }
-        99% { opacity: 1; transform: scale(1) translateY(0); }
-        100% { opacity: 1; transform: none; } /* CHÌA KHÓA: Xóa sạch transform ở 100% để cảm ứng iframe không bị liệt! */
-    }
-
-    /* Khi Popup được kích hoạt -> Chạy hiệu ứng Pop nảy ra siêu mượt */
+    /* 4. CHỈ KHI POPUP ĐƯỢC KÍCH HOẠT THÌ MỚI PHÓNG TO & HIỆN RA */
     .modal-overlay.active .modal-box,
     .modal-overlay.active .modal-content,
     .mhent-ui-overlay.show .mhent-ui-box,
     .overlay.active .popup-box,
     .modal[style*="display: block"] .modal-content,
-    .modal[style*="display: flex"] .modal-content,
-    #trailerModal[style*="display: block"] .modal-content,
-    #trailerModal[style*="display: flex"] .modal-content {
-        animation: mobilePopupPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+    .modal[style*="display: flex"] .modal-content {
+        transform: scale(1) !important;
         opacity: 1 !important;
-        pointer-events: auto !important;
     }
 
-    /* 5. ⚡ TRỊ LỖI NÚT TẮT BỊ CẮT TRÊN TRAILER PHIM */
+    /* Khi đóng Popup -> Mờ và thu nhỏ lại */
+    .mhent-ui-overlay.out .mhent-ui-box,
+    .modal-overlay.out .modal-box,
+    .overlay.out .popup-box {
+        transform: scale(0.9) !important;
+        opacity: 0 !important;
+    }
+
+    /* 5. ⚡ TRỊ TRIỆT ĐỂ LỖI LIỆT NÚT PLAY & NÚT TẮT BỊ CẮT TRÊN TRAILER PHIM */
     #trailerModal .modal-content {
         max-width: 100% !important;
         padding: 10px !important;
         border-radius: 16px !important;
-        overflow: visible !important; /* Cho phép nút tắt thò ra ngoài không bị chém mất góc! */
+        overflow: visible !important; /* Giữ nguyên để nút tắt (X) không bị chém góc */
+        
+        /* CHÌA KHÓA VÀNG: Tắt toàn bộ scale/transform trên mobile để không bị lệch tọa độ cảm ứng ngón tay! */
+        transform: none !important;
+        animation: trailerFadeOnly 0.25s ease forwards !important;
+    }
+
+    @keyframes trailerFadeOnly {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
     #trailerModal .close-btn {
@@ -212,8 +219,10 @@
         z-index: 99999 !important;
     }
 
-    /* Đảm bảo iframe nhận trọn vẹn lực chạm ngón tay */
+    /* Ép khung video nhận trọn vẹn 100% lực chạm cảm ứng của ngón tay */
     #trailerModal iframe {
+        position: relative !important;
+        z-index: 50 !important;
         pointer-events: auto !important;
         touch-action: auto !important;
     }

@@ -209,7 +209,7 @@
         <div id="trailerModal" class="modal">
             <div class="modal-content">
                 <span class="close-btn" onclick="closeTrailer()">&times;</span>
-                <!-- Bổ sung bùa chú allow để YouTube mobile cho phép phát video qua cú chạm -->
+                <!-- Cấp phép allow và frameborder để YouTube Mobile cho phép chạm phát ngay trong hộp -->
                 <iframe id="trailerIframe" src="" title="Trailer Phim" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
             </div>
         </div>
@@ -415,15 +415,20 @@
                 }
             });
 
-            // HỆ THỐNG TRAILER (Đã nâng cấp tự động chuyển đổi link chuẩn Embed)
+            // HỆ THỐNG TRAILER (Đã nâng cấp tự động chuẩn hóa link Embed cho Mobile)
             var modal = document.getElementById('trailerModal');
             var iframe = document.getElementById('trailerIframe');
             window.openTrailer = function() { 
                 modal.style.display = 'flex'; 
-                // Tự động chuyển đổi link watch bình thường thành link embed chuẩn của YouTube nếu có
+                // Tự động chuyển đổi link watch bình thường thành link embed chuẩn của YouTube
                 let cleanUrl = window.currentTrailerLink || "";
                 if (cleanUrl.includes("watch?v=")) cleanUrl = cleanUrl.replace("watch?v=", "embed/");
                 else if (cleanUrl.includes("youtu.be/")) cleanUrl = cleanUrl.replace("youtu.be/", "www.youtube.com/embed/");
+                
+                // Thêm cờ playsinline=1 để điện thoại cho phép phát mượt ngay bên trong khung
+                if (!cleanUrl.includes("?")) cleanUrl += "?playsinline=1";
+                else if (!cleanUrl.includes("playsinline")) cleanUrl += "&playsinline=1";
+                
                 iframe.src = cleanUrl; 
             };
             window.closeTrailer = function() { modal.style.display = 'none'; iframe.src = ""; };
