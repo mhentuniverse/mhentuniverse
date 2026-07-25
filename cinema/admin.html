@@ -65,15 +65,19 @@
         /* MÀN BẢO VỆ CỬA */
         #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; }
 
+        /* NÚT HAMBURGER CHUYÊN DỤNG CHO MOBILE */
+        .btn-admin-menu { display: none; }
+
         /* RESPONSIVE CHO ADMIN */
         @media (max-width: 992px) {
             .admin-layout { flex-direction: column; padding-top: 70px; }
-            .admin-sidebar { width: 100%; position: relative; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; overflow-x: auto; white-space: nowrap; z-index: 5; -webkit-overflow-scrolling: touch; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-            .admin-sidebar > div:first-child { display: none; } 
-            .admin-menu-item { margin-bottom: 0; margin-right: 10px; flex-shrink: 0; padding: 10px 15px; }
             .admin-content { margin-left: 0; padding: 20px; }
             .form-grid { grid-template-columns: 1fr; gap: 15px; } 
             .admin-card { padding: 20px; }
+        }
+
+        @media (max-width: 768px) {
+            .btn-admin-menu { display: flex !important; border: none !important; font-size: 20px !important; color: var(--hub-color) !important; background: transparent !important; cursor: pointer; }
         }
 
         /* DARK MODE */
@@ -93,8 +97,11 @@
     </div>
 
     <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 1px solid rgba(233,69,96,0.15);">
-        <div class="nav-left">
-            <a onclick="window.location.href='/cinema'" style="cursor: pointer;">
+        <div class="nav-left" style="display: flex; align-items: center; gap: 12px;">
+            <!-- NÚT HAMBURGER CHUYÊN DỤNG TRÊN MOBILE -->
+            <button class="btn-theme btn-admin-menu" onclick="toggleAdminLeftDrawer()" title="Mở Menu Chức Năng"><i class="fa-solid fa-bars"></i></button>
+            
+            <a onclick="window.location.href='/cinema'" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
                 <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--hub-color);">
                 <span class="logo-name" style="color: var(--hub-color);">Admin - MHEnt. Cinema</span>
             </a>
@@ -110,12 +117,12 @@
     <div class="admin-layout">
         <aside class="admin-sidebar">
             <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Quản Trị Rạp Phim</div>
-            <a class="admin-menu-item active" id="menu-movie" onclick="switchTab('movie')"><i class="fa-solid fa-video"></i> Tạo Phim Mới</a>
-            <a class="admin-menu-item" id="menu-episode" onclick="switchTab('episode')"><i class="fa-solid fa-layer-group"></i> Đăng Tập Phim</a>
-            <a class="admin-menu-item" id="menu-edit" onclick="switchTab('edit')"><i class="fa-solid fa-pen-to-square"></i> Sửa Phim / Tập</a>
-            <a class="admin-menu-item" id="menu-approve" onclick="switchTab('approve')"><i class="fa-solid fa-clipboard-check"></i> Duyệt Phim</a>
-            <a class="admin-menu-item" id="menu-tag" onclick="switchTab('tag')"><i class="fa-solid fa-tags"></i> Quản Lý Kho Tag</a>
-            <a class="admin-menu-item" id="menu-report" onclick="switchTab('report')"><i class="fa-solid fa-triangle-exclamation"></i> Báo Lỗi Link</a>
+            <a class="admin-menu-item active" id="menu-movie" onclick="switchTab('movie')"><i class="fa-solid fa-video"></i> <span>Tạo Phim Mới</span></a>
+            <a class="admin-menu-item" id="menu-episode" onclick="switchTab('episode')"><i class="fa-solid fa-layer-group"></i> <span>Đăng Tập Phim</span></a>
+            <a class="admin-menu-item" id="menu-edit" onclick="switchTab('edit')"><i class="fa-solid fa-pen-to-square"></i> <span>Sửa Phim / Tập</span></a>
+            <a class="admin-menu-item" id="menu-approve" onclick="switchTab('approve')"><i class="fa-solid fa-clipboard-check"></i> <span>Duyệt Phim</span></a>
+            <a class="admin-menu-item" id="menu-tag" onclick="switchTab('tag')"><i class="fa-solid fa-tags"></i> <span>Quản Lý Kho Tag</span></a>
+            <a class="admin-menu-item" id="menu-report" onclick="switchTab('report')"><i class="fa-solid fa-triangle-exclamation"></i> <span>Báo Lỗi Link</span></a>
         </aside>
 
         <main class="admin-content">
@@ -364,20 +371,23 @@
             if(tabName === 'approve') loadPendingMovies();
             if(tabName === 'report') loadReports();
             
-            // Cập nhật URL Hash mà không làm rác lịch sử
             history.replaceState(null, null, '#' + tabName);
+
+            // ⚡ TỰ ĐỘNG ĐÓNG MENU TRƯỢT TRÁI KHI CHỌN TAB TRÊN ĐIỆN THOẠI
+            if (window.innerWidth <= 768) {
+                let sidebar = document.querySelector('.admin-sidebar');
+                if (sidebar && sidebar.classList.contains('show-mobile')) {
+                    if (typeof window.toggleAdminLeftDrawer === 'function') {
+                        window.toggleAdminLeftDrawer();
+                    }
+                }
+            }
         };
 
-        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
             const validTabs = ['movie', 'episode', 'edit', 'approve', 'tag', 'report'];
-            
-            if (validTabs.includes(hash)) {
-                switchTab(hash);
-            } else {
-                switchTab('movie');
-            }
+            if (validTabs.includes(hash)) switchTab(hash); else switchTab('movie');
         });
 
         // ==============================================
@@ -635,7 +645,6 @@
                 
                 if (html === '') { html = '<div style="text-align:center; padding:20px; color:#10b981; font-weight:800; font-size:16px;"><i class="fa-solid fa-shield-cat fa-2x" style="margin-bottom:10px;"></i><br>Hệ thống sạch bóng! Không có ai báo lỗi cả.</div>'; }
                 
-                // Cập nhật cho Dark Mode
                 if(document.body.classList.contains('dark-mode')) {
                     html = html.replace(/background: #fff;/g, "background: #1e293b;").replace(/color:#1e293b;/g, "color:#f8fafc;").replace(/border-color: #e2e8f0;/g, "border-color: #334155;");
                 }
@@ -695,7 +704,6 @@
                 });
                 if (html === '') html = '<div style="text-align:center; padding:20px; color:#10b981; font-weight:800; font-size:16px;"><i class="fa-solid fa-mug-hot fa-2x" style="margin-bottom:10px;"></i><br>Trống trơn! Hiện tại không có phim nào đợi duyệt. Nghỉ ngơi đi Giám đốc!</div>';
                 
-                // Cập nhật cho Dark Mode
                 if(document.body.classList.contains('dark-mode')) {
                     html = html.replace(/background: #fff;/g, "background: #1e293b;").replace(/color: #1e293b;/g, "color:#f8fafc;").replace(/border-color: #e2e8f0;/g, "border-color: #334155;").replace(/color:#475569;/g, "color:#94a3b8;");
                 }
@@ -735,7 +743,6 @@
     <input type="file" id="global-poster-input" accept="image/*" style="display: none;">
 
     <script>
-        // GIÁM ĐỐC NHỚ DÁN LINK APPS SCRIPT VÀO ĐÂY NHA!!!
         const ADMIN_GAS_URL = "https://script.google.com/macros/s/AKfycbw5GLP4H2cVVz836JU7rU5u2c6IJu2-0kkduFFkG1I0Ntd8LMJ-lZxS4QerHHjA3HSOtQ/exec";
         let currentPosterInputId = '';
         let currentPosterBtnId = '';
@@ -766,7 +773,6 @@
                 img.src = e.target.result;
                 img.onload = async function() {
                     const canvas = document.createElement('canvas');
-                    // Ép khung hình Poster (To hơn Avatar)
                     const MAX_WIDTH = 800;
                     const MAX_HEIGHT = 1200;
                     let width = img.width;
@@ -782,7 +788,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    const base64String = canvas.toDataURL('image/jpeg', 0.85); // Nén chất lượng 85%
+                    const base64String = canvas.toDataURL('image/jpeg', 0.85);
 
                     try {
                         const response = await fetch(ADMIN_GAS_URL, {
@@ -790,7 +796,7 @@
                             body: JSON.stringify({
                                 base64: base64String,
                                 fileName: `poster_${Date.now()}.jpg`,
-                                type: "poster" // ĐÁNH DẤU ĐÂY LÀ POSTER ĐỂ APPS SCRIPT BIẾT
+                                type: "poster" 
                             })
                         });
                         

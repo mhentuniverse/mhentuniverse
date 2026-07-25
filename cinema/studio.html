@@ -68,15 +68,19 @@
         .info-banner { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; font-weight: 700; line-height: 1.5; display: flex; align-items: flex-start; gap: 10px; }
         .info-banner i { font-size: 18px; margin-top: 2px; }
 
+        /* NÚT HAMBURGER CHUYÊN DỤNG CHO MOBILE */
+        .btn-admin-menu { display: none; }
+
         /* RESPONSIVE CHO STUDIO */
         @media (max-width: 992px) {
             .admin-layout { flex-direction: column; padding-top: 70px; }
-            .admin-sidebar { width: 100%; position: relative; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; overflow-x: auto; white-space: nowrap; z-index: 5; -webkit-overflow-scrolling: touch; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-            .admin-sidebar > div:first-child { display: none; } 
-            .admin-menu-item { margin-bottom: 0; margin-right: 10px; flex-shrink: 0; padding: 10px 15px; }
             .admin-content { margin-left: 0; padding: 20px; }
             .form-grid { grid-template-columns: 1fr; gap: 15px; } 
             .admin-card { padding: 20px; }
+        }
+
+        @media (max-width: 768px) {
+            .btn-admin-menu { display: flex !important; border: none !important; font-size: 20px !important; color: var(--hub-color) !important; background: transparent !important; cursor: pointer; }
         }
 
         /* DARK MODE */
@@ -97,8 +101,11 @@
     </div>
 
     <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 1px solid rgba(255,154,0,0.15);">
-        <div class="nav-left">
-            <a onclick="window.location.href='/cinema'" style="cursor: pointer;">
+        <div class="nav-left" style="display: flex; align-items: center; gap: 12px;">
+            <!-- NÚT HAMBURGER CHUYÊN DỤNG TRÊN MOBILE -->
+            <button class="btn-theme btn-admin-menu" onclick="toggleAdminLeftDrawer()" title="Mở Menu Chức Năng"><i class="fa-solid fa-bars"></i></button>
+            
+            <a onclick="window.location.href='/cinema'" style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
                 <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--hub-color);">
                 <span class="logo-name" style="color: var(--hub-color);">Studio - MHEnt. Cinema</span>
             </a>
@@ -114,10 +121,10 @@
     <div class="admin-layout">
         <aside class="admin-sidebar">
             <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Khu Vực Đối Tác</div>
-            <a class="admin-menu-item active" id="menu-episode" onclick="switchTab('episode')"><i class="fa-solid fa-layer-group"></i> Đăng Tập Nhanh</a>
-            <a class="admin-menu-item" id="menu-movie" onclick="switchTab('movie')"><i class="fa-solid fa-film"></i> Đề Xuất Phim</a>
-            <a class="admin-menu-item" id="menu-edit" onclick="switchTab('edit')"><i class="fa-solid fa-pen-to-square"></i> Sửa Tập Của Nhóm</a>
-            <a class="admin-menu-item" id="menu-tag" onclick="switchTab('tag')"><i class="fa-solid fa-tags"></i> Quản Lý Kho Tag</a>
+            <a class="admin-menu-item active" id="menu-episode" onclick="switchTab('episode')"><i class="fa-solid fa-layer-group"></i> <span>Đăng Tập Nhanh</span></a>
+            <a class="admin-menu-item" id="menu-movie" onclick="switchTab('movie')"><i class="fa-solid fa-film"></i> <span>Đề Xuất Phim</span></a>
+            <a class="admin-menu-item" id="menu-edit" onclick="switchTab('edit')"><i class="fa-solid fa-pen-to-square"></i> <span>Sửa Tập Của Nhóm</span></a>
+            <a class="admin-menu-item" id="menu-tag" onclick="switchTab('tag')"><i class="fa-solid fa-tags"></i> <span>Quản Lý Kho Tag</span></a>
         </aside>
 
         <main class="admin-content">
@@ -332,18 +339,22 @@
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('menu-' + tabName).classList.add('active');
             history.replaceState(null, null, '#' + tabName);
+
+            // ⚡ TỰ ĐỘNG ĐÓNG MENU TRƯỢT TRÁI KHI CHỌN TAB TRÊN ĐIỆN THOẠI
+            if (window.innerWidth <= 768) {
+                let sidebar = document.querySelector('.admin-sidebar');
+                if (sidebar && sidebar.classList.contains('show-mobile')) {
+                    if (typeof window.toggleAdminLeftDrawer === 'function') {
+                        window.toggleAdminLeftDrawer();
+                    }
+                }
+            }
         };
 
-        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
             const validTabs = ['episode', 'movie', 'edit', 'tag'];
-            
-            if (validTabs.includes(hash)) {
-                switchTab(hash);
-            } else {
-                switchTab('episode');
-            }
+            if (validTabs.includes(hash)) switchTab(hash); else switchTab('episode');
         });
 
         // ==============================================
