@@ -475,7 +475,7 @@ window.openSideDrawer = function() {
         // TỔNG HỢP THEO THỨ TỰ CHUẨN: Studio Bản Địa ➔ Admin Bản Địa ➔ Admin Hệ Thống Tối Cao
         if (studioButtonsHTML || localAdminButtonsHTML) {
             menuHTML += `<div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin: 15px 0 5px 10px; letter-spacing: 1px;">Khu Vực Sáng Tạo & Quản Trị</div>`;
-            menuHTML += studioButtonsHTML + localAdminButtonsHTM;
+            menuHTML += studioButtonsHTML + localAdminButtonsHTML;
             menuHTML += `<div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin: 15px 0 5px 10px; letter-spacing: 1px;">Khu Vực Điều Hành</div>`;
             menuHTML += rootAdminButtonHTML;
         }
