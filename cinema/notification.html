@@ -425,7 +425,6 @@ if (btnLogin) {
             // Tải dữ liệu user & Phim
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
-            const userData = userSnap.exists() ? userSnap.data() : {};
             const savedMovies = userData.savedMovies || [];
             
             // ☁️ KÉO TRÍ NHỚ TỪ MÂY XUỐNG RAM
@@ -449,32 +448,48 @@ if (btnLogin) {
 
             // 🚨 LOGIC PHÂN QUYỀN ĐA VŨ TRỤ V2.0 🚨
                     
-                    getDoc(userRef).then((docSnap) => {
-                        const adminBtn = document.getElementById('admin-panel-btn');
-                        const studioBtn = document.getElementById('studio-panel-btn');
-                        
-                        // Mặc định giấu cả 2 nút đi khi chưa biết là ai
-                        if (adminBtn) adminBtn.style.display = 'none';
-                        document.getElementById('admin-divider').style.display = 'none'; // Chỉ hiển thị khi có admin
-                        if (studioBtn) studioBtn.style.display = 'none';
-                        document.getElementById('studio-divider').style.display = 'none'; // Chỉ hiển thị khi có uploader
+            getDoc(userRef).then((docSnap) => {
+                const adminBtn = document.getElementById('admin-panel-btn');
+                const studioBtn = document.getElementById('studio-panel-btn');
+                
+                // Mặc định giấu cả 2 nút đi khi chưa biết là ai
+                if (adminBtn) adminBtn.style.display = 'none';
+                document.getElementById('admin-divider').style.display = 'none'; // Chỉ hiển thị khi có admin
+                if (studioBtn) studioBtn.style.display = 'none';
+                document.getElementById('studio-divider').style.display = 'none'; // Chỉ hiển thị khi có uploader
 
-                        if (docSnap.exists() && docSnap.data().role) {
-                            const userRole = docSnap.data().role; // Rút thẻ căn cước từ mây về
+                if (docSnap.exists() && docSnap.data().role) {
+                    const userRole = docSnap.data().role; // Rút thẻ căn cước từ mây về
 
-                            if (userRole.includes('admin')) {
-                                // Nếu là Chủ tịch -> Mở cửa Căn cứ Admin
-                                if (adminBtn) adminBtn.style.display = 'flex';
-                                document.getElementById('admin-divider').style.display = 'block';
-                                if (studioBtn) studioBtn.style.display = 'flex'; // Chủ tịch cũng có quyền vào Studio
-                                document.getElementById('studio-divider').style.display = 'block';
-                            } else if (userRole.includes('cinema')) {
-                                // Nếu là Đối tác Nhóm dịch -> Mở cửa Phòng Studio
-                                if (studioBtn) studioBtn.style.display = 'flex';
-                                document.getElementById('studio-divider').style.display = 'block';
-                            }
-                        }
-                    }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+                    if (userRole.includes('admin')) {
+                        // Nếu là Chủ tịch -> Mở cửa Căn cứ Admin
+                        if (adminBtn) adminBtn.style.display = 'flex';
+                        document.getElementById('admin-divider').style.display = 'block';
+                        if (studioBtn) studioBtn.style.display = 'flex'; // Chủ tịch cũng có quyền vào Studio
+                        document.getElementById('studio-divider').style.display = 'block';
+                    } else if (userRole.includes('cinema')) {
+                        // Nếu là Đối tác Nhóm dịch -> Mở cửa Phòng Studio
+                        if (studioBtn) studioBtn.style.display = 'flex';
+                        document.getElementById('studio-divider').style.display = 'block';
+                    }
+                }
+            }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+
+            const userData = docSnap.exists() ? docSnap.data() : {};
+            localStorage.setItem('mhent_user_role', userData.role || 'user');
+            localStorage.setItem('mhent_user_profile', JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || user.email.split('@')[0],
+                photoURL: user.photoURL || "/assets/avt-web.jpg",
+                role: userData.role || 'user',
+                teamCinema: userData.teamCinema || userData.teamName || '',
+                teamArena: userData.teamArena || userData.teamName || '',
+                teamManga: userData.teamManga || userData.teamName || '',
+                teamMusic: userData.teamMusic || userData.teamName || '',
+                teamNovel: userData.teamNovel || userData.teamName || '',
+                teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+            }));
         });
 
         // ☁️ HÀM IN TRANG (Chạy từ RAM nên cực mượt)

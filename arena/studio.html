@@ -340,6 +340,22 @@
                     } else kickOut();
                 } catch(e) { kickOut(); }
             } else kickOut();
+
+            const userData = docSnap.exists() ? docSnap.data() : {};
+            localStorage.setItem('mhent_user_role', userData.role || 'user');
+            localStorage.setItem('mhent_user_profile', JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || user.email.split('@')[0],
+                photoURL: user.photoURL || "/assets/avt-web.jpg",
+                role: userData.role || 'user',
+                teamCinema: userData.teamCinema || userData.teamName || '',
+                teamArena: userData.teamArena || userData.teamName || '',
+                teamManga: userData.teamManga || userData.teamName || '',
+                teamMusic: userData.teamMusic || userData.teamName || '',
+                teamNovel: userData.teamNovel || userData.teamName || '',
+                teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+            }));
         });
         function kickOut() { showPopup("⚠️ Khu vực cấm hoặc bạn chưa có quyền!", true); setTimeout(() => { window.location.href = '/arena/'; }, 2000); }
 
