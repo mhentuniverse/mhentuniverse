@@ -728,15 +728,32 @@ body.dark-mode .notif-item.unread {
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
         .spinner { animation: spin 1s linear infinite !important; }
 
+        /* CHÌA KHÓA VÀNG: border-radius: 50% biến cục gạch vuông thành vòng tròn hoàn hảo! */
+        .spinner, #loading-spinner, .mhent-buffering .spinner { 
+            width: 55px !important; 
+            height: 55px !important;
+            border-radius: 50% !important; /* <--- CHÍNH NÓ! Kẻ cứu rỗi hình tròn đây! */
+            border: 4px solid rgba(255, 133, 162, 0.2) !important; 
+            border-top-color: #ff85a2 !important; 
+            border-right-color: #ff85a2 !important; /* Thêm chút màu cạnh phải cho hiệu ứng sao băng */
+            box-shadow: 0 0 15px rgba(255, 133, 162, 0.4) !important; /* Thêm hào quang phát sáng cực sang */
+            animation: spin 0.75s linear infinite !important; /* Xoay nhanh và mượt hơn */
+            margin: 0 auto;
+        }
+
+        /* 2. MÀN HÌNH LOADING KHI MẠNG YẾU (NẰM TRONG VIDEO) */
         .mhent-buffering {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); z-index: 15; display: none; align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 15;
+            display: none; align-items: center; justify-content: center;
         }
-        .mhent-buffering .spinner { width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.2); border-top-color: #ff85a2; }
-
+        
         .mhent-btn { transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .mhent-btn:hover { color: #ff85a2; transform: scale(1.15) translateY(-2px); filter: drop-shadow(0 0 8px rgba(255,133,162,0.6)); }
         .mhent-btn:active { transform: scale(0.85); }
