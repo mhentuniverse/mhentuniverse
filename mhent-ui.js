@@ -264,7 +264,7 @@ const MHENT_UNIVERSES = {
     novel:  { name: 'Novel',  path: '#',       color: '#f43f5e', roleKey: 'novel', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>', personalMenu: [] }
 };
 
-// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V6.5 - PERFECT RBAC & TEAM BRANDING)
+// 2. HÀM MỞ MENU TRƯỢT NGANG (SIDE DRAWER V6.8 - PERFECT ROOT RBAC & AUTO SYNC)
 window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
@@ -274,7 +274,8 @@ window.openSideDrawer = function() {
     let cachedProfile = {};
     try { cachedProfile = JSON.parse(cachedProfileStr); } catch(e) { cachedProfile = {}; }
 
-    let userRole = cachedProfile.role || localStorage.getItem('mhent_user_role') || '';
+    // 👉 CHÌA KHÓA VÀNG: Đưa hết về chữ thường để chống lỗi phân biệt Hoa/Thường (Admin, Root Admin -> admin, root)
+    let userRole = (cachedProfile.role || localStorage.getItem('mhent_user_role') || '').toLowerCase();
     let currentPath = window.location.pathname;
 
     // [2] QUÉT THỰC TẾ TRÊN DOM
@@ -312,11 +313,16 @@ window.openSideDrawer = function() {
     let activeTeamName = "";
     let teamBadgeHTML = "";
 
+    // 👉 QUÉT QUYÈN ROOT ADMIN SIÊU NHẠY (Nhận diện mọi từ khóa: admin, root, boss, chủ tịch)
+    let isRootAdmin = currentPath.includes('/admin') || 
+                      userRole.includes('admin') || 
+                      userRole.includes('root') || 
+                      userRole.includes('chủ tịch') || 
+                      userRole.includes('boss') || 
+                      (window.currentUserRole && window.currentUserRole.toLowerCase().includes('admin'));
+
     // KHI ĐÃ ĐĂNG NHẬP -> XỬ LÝ QUYỀN LỰC VÀ NHÓM DỊCH ĐA VŨ TRỤ:
     if (!isLoggedOut) {
-        let isRootAdmin = currentPath.includes('/admin') || userRole.includes('admin') || (window.currentUserRole === 'admin');
-        
-        // Quét nghệ danh/tên nhóm theo phân khu đang đứng
         if (currentPath.includes('/cinema')) {
             activeTeamName = cachedProfile.teamCinema || cachedProfile.teamName || (document.getElementById('team-name')?.innerText !== "Đang tải..." ? document.getElementById('team-name')?.innerText : "");
         } else if (currentPath.includes('/arena')) {
@@ -350,7 +356,7 @@ window.openSideDrawer = function() {
         }
 
         if (isRootAdmin) {
-            userBadge = '👑 Root Admin Toàn Quyền';
+            userBadge = '👑 ADMIN';
         } else if (userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('teacher') || userRole.includes('creator') || userRole.includes('studio') || isProtectedPage) {
             userBadge = `🎬 Creator ${currentUni ? currentUni.name : 'MHEnt'}`;
         } else {
@@ -404,26 +410,20 @@ window.openSideDrawer = function() {
             </div>
         `;
 
-        // ⚡ KHU VỰC QUẢN TRỊ & STUDIO CHUẨN XÁC HOÀN TOÀN
+        // ⚡ KHU VỰC QUẢN TRỊ & STUDIO (ĐÃ XÓA LỆNH KHAI BÁO ĐÈ isRootAdmin GAY HỌA)
         let studioButtonsHTML = '';
         let adminButtonsHTML = '';
-        let isRootAdmin = userRole.includes('admin');
 
         Object.keys(MHENT_UNIVERSES).forEach(key => {
             let uni = MHENT_UNIVERSES[key];
             let isCurrentUni = (currentUni && currentUni === uni);
             
-            // QUY TẮC VÀNG:
-            // - Ở Đại Sảnh (isAtRoot): Chỉ vẽ những Studio/Admin mà user THỰC SỰ CÓ QUYỀN (Không vẽ openCreation Free).
-            // - Ở Phân khu (isCurrentUni): CHỈ VẼ Studio/Admin của đúng khu đó!
             if (isCurrentUni || isAtRoot) {
-                
                 // 1. KIỂM TRA & VẼ NÚT STUDIO
                 if (uni.studioUrl) {
                     let hasUniRole = userRole.includes(key) || (uni.roleKey && userRole.includes(uni.roleKey));
                     let hasGeneralStudioRole = userRole.includes('studio') || userRole.includes('creator') || userRole.includes('uploader');
                     
-                    // Cho phép hiển thị nếu: Là Root Admin HOẶC có quyền riêng của khu đó HOẶC (Đang đứng trong khu đó VÀ có quyền chung/khu mở tự do)
                     let canAccessStudio = isRootAdmin || hasUniRole || (isCurrentUni && (hasGeneralStudioRole || uni.openCreation === true));
 
                     if (canAccessStudio) {
@@ -524,6 +524,48 @@ window.openSideDrawer = function() {
     document.body.appendChild(overlay);
     setTimeout(() => overlay.classList.add('show'), 10);
 };
+
+// ==========================================================================
+// ⚡ RADAR TỰ ĐỘNG ĐỒNG BỘ FIRESTORE TRÊN MỌI TRANG (NEVER FORGET ROLE AGAIN!)
+// ==========================================================================
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(async () => {
+        try {
+            const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js");
+            const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
+            const { getApps } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js");
+            
+            if (getApps().length > 0) {
+                const auth = getAuth();
+                const db = getFirestore();
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        try {
+                            const userSnap = await getDoc(doc(db, "users", user.uid));
+                            if (userSnap.exists()) {
+                                const uData = userSnap.data();
+                                localStorage.setItem('mhent_user_role', uData.role || 'user');
+                                localStorage.setItem('mhent_user_profile', JSON.stringify({
+                                    uid: user.uid,
+                                    email: user.email,
+                                    displayName: user.displayName || user.email.split('@')[0],
+                                    photoURL: user.photoURL || "/assets/avt-web.jpg",
+                                    role: uData.role || 'user',
+                                    teamCinema: uData.teamCinema || uData.teamName || '',
+                                    teamArena: uData.teamArena || uData.teamName || '',
+                                    teamManga: uData.teamManga || uData.teamName || '',
+                                    teamMusic: uData.teamMusic || uData.teamName || '',
+                                    teamNovel: uData.teamNovel || uData.teamName || '',
+                                    teamEdu: uData.teamEdu || uData.teamTeach || uData.teamName || ''
+                                }));
+                            }
+                        } catch(e) {}
+                    }
+                });
+            }
+        } catch(e) {}
+    }, 500);
+});
 
 // 3. HÀM ĐÓNG MENU TRƯỢT NGANG
 window.closeSideDrawer = function() {
