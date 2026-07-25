@@ -410,11 +410,11 @@ window.openSideDrawer = function() {
             </div>
         `;
 
-        // (4) ⚡ KHU VỰC QUẢN TRỊ & STUDIO (LOCAL SCOPE + ROOT MASTER ADMIN)
+        // (4) ⚡ KHU VỰC QUẢN TRỊ & STUDIO (STUDIO BẢN ĐỊA -> ADMIN BẢN ĐỊA -> ROOT ADMIN CUỐI CÙNG)
         let studioButtonsHTML = '';
-        let adminButtonsHTML = '';
+        let localAdminButtonsHTML = '';
+        let rootAdminButtonHTML = '';
         
-        // Nhận diện Root Admin tối cao (Quét siêu nhạy mọi từ khóa)
         let isRootAdmin = currentPath.includes('/admin') || 
                           userRole.includes('admin') || 
                           userRole.includes('root') || 
@@ -422,23 +422,13 @@ window.openSideDrawer = function() {
                           userRole.includes('boss') || 
                           (window.currentUserRole && window.currentUserRole.toLowerCase().includes('admin'));
 
-        // 1. NÚT ROOT ADMIN: Nếu là Root Admin, LUÔN HIỆN nút vào Đài Chỉ Huy Tối Cao (/admin) dù đang ở bất kỳ đâu!
-        if (isRootAdmin) {
-            adminButtonsHTML += `
-                <a onclick="window.location.href='/admin'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
-                    <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>Admin Hệ Thống</span></div>
-                    <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ROOT</span>
-                </a>
-            `;
-        }
-
-        // 2. NÚT BẢN ĐỊA: CHỈ VẼ Studio và Admin riêng của Phân Khu khi user ĐANG THỰC SỰ ĐỨNG TRONG PHÂN KHU ĐÓ (isCurrentUni = true)
+        // 1. QUÉT NÚT BẢN ĐỊA (Chỉ vẽ của Phân khu đang đứng)
         Object.keys(MHENT_UNIVERSES).forEach(key => {
             let uni = MHENT_UNIVERSES[key];
             let isCurrentUni = (currentUni && currentUni === uni);
             
             if (isCurrentUni) {
-                // Vẽ nút Studio của Phân khu hiện tại
+                // Vẽ nút Studio của phân khu
                 if (uni.studioUrl) {
                     let hasUniRole = userRole.includes(key) || (uni.roleKey && userRole.includes(uni.roleKey));
                     let hasGeneralStudioRole = userRole.includes('studio') || userRole.includes('creator') || userRole.includes('uploader') || userRole.includes('teacher');
@@ -457,11 +447,11 @@ window.openSideDrawer = function() {
                     }
                 }
 
-                // Vẽ nút Admin riêng của Phân khu hiện tại (nếu khác đường dẫn /admin tối cao)
+                // Vẽ nút Admin riêng của phân khu (Khác /admin tối cao)
                 if (uni.adminUrl && uni.adminUrl !== '/admin') {
                     let canAccessAdmin = isRootAdmin || userRole.includes('admin_' + key) || (uni.roleKey && userRole.includes('admin_' + uni.roleKey));
                     if (canAccessAdmin) {
-                        adminButtonsHTML += `
+                        localAdminButtonsHTML += `
                             <a onclick="window.location.href='${uni.adminUrl}'; closeSideDrawer();" class="drawer-item" style="color: #3b82f6;">
                                 <div class="drawer-item-left"><i class="fa-solid fa-shield-halved" style="color: #3b82f6;"></i> <span>${uni.adminLabel || ('Admin ' + uni.name)}</span></div>
                                 <span style="font-size: 10px; background: rgba(59,130,246,0.2); color: #3b82f6; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ADMIN</span>
@@ -472,9 +462,22 @@ window.openSideDrawer = function() {
             }
         });
 
+        // 2. NÚT ROOT ADMIN: Đặt ở vị trí cuối cùng trong danh sách Quản trị!
+        if (isRootAdmin) {
+            rootAdminButtonHTML = `
+                <a onclick="window.location.href='/admin'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
+                    <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>Admin Hệ Thống</span></div>
+                    <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ROOT</span>
+                </a>
+            `;
+        }
+
+        // TỔNG HỢP THEO THỨ TỰ CHUẨN: Studio Bản Địa ➔ Admin Bản Địa ➔ Admin Hệ Thống Tối Cao
         if (studioButtonsHTML || adminButtonsHTML) {
             menuHTML += `<div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin: 15px 0 5px 10px; letter-spacing: 1px;">Khu Vực Sáng Tạo & Quản Trị</div>`;
             menuHTML += studioButtonsHTML + adminButtonsHTML;
+            menuHTML += `<div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin: 15px 0 5px 10px; letter-spacing: 1px;">Khu Vực Điều Hành</div>`;
+            menuHTML += rootAdminButtonHTML;
         }
         
         menuHTML += `
