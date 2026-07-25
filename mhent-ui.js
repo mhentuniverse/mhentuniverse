@@ -476,6 +476,8 @@ window.openSideDrawer = function() {
         if (studioButtonsHTML || localAdminButtonsHTML) {
             menuHTML += `<div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin: 15px 0 5px 10px; letter-spacing: 1px;">Khu Vực Sáng Tạo & Quản Trị</div>`;
             menuHTML += studioButtonsHTML + localAdminButtonsHTML;
+        }
+        if (rootAdminButtonHTML) {
             menuHTML += `<div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin: 15px 0 5px 10px; letter-spacing: 1px;">Khu Vực Điều Hành</div>`;
             menuHTML += rootAdminButtonHTML;
         }
