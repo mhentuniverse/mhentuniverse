@@ -12,6 +12,8 @@
         <link rel="stylesheet" href="/style.css">
         <link rel="stylesheet" href="/game/game-theme.css"> 
         <link rel="stylesheet" href="/mhent-ui.css">
+        <!-- BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE -->
+        <link rel="stylesheet" href="/mhent-mobile.css">
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         
@@ -19,7 +21,7 @@
             :root { --hub-color: #10b981; --hub-bg: rgba(16, 185, 129, 0.1); }
         </style>
     </head>
-    <body>
+    <body class="theme-game gradient-bg">
         <nav class="navbar">
             <div class="nav-left">
                 <a onclick="window.location.href='/game'" style="cursor: pointer;">
@@ -250,7 +252,29 @@
                         avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
                         avtElement.style.display = 'block'; 
                     }        
+                    
+                    // ⚡ BỔ SUNG TRÍ NHỚ ĐA VŨ TRỤ (FIRESTORE PROFILE CACHING)
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", user.uid));
+                        const userData = userSnap.exists() ? userSnap.data() : {};
+                        localStorage.setItem('mhent_user_role', userData.role || 'user');
+                        localStorage.setItem('mhent_user_profile', JSON.stringify({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName || finalName,
+                            photoURL: user.photoURL || "/assets/avt-web.jpg",
+                            role: userData.role || 'user',
+                            teamCinema: userData.teamCinema || userData.teamName || '',
+                            teamArena: userData.teamArena || userData.teamName || '',
+                            teamManga: userData.teamManga || userData.teamName || '',
+                            teamMusic: userData.teamMusic || userData.teamName || '',
+                            teamNovel: userData.teamNovel || userData.teamName || '',
+                            teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+                        }));
+                    } catch(e) { console.error("Lỗi nạp cache profile:", e); }
                 } else {
+                    localStorage.setItem('mhent_user_role', 'guest');
+                    localStorage.removeItem('mhent_user_profile');
                     if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                     if(btnTheme) btnTheme.style.display = 'flex'; 
                     if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
