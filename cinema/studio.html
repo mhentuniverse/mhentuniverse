@@ -304,7 +304,7 @@
         };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
-        // --- 🚨 KIỂM TRA QUYỀN LỰC ĐỐI TÁC ---
+        // --- 🚨 KIỂM TRA QUYỀN LỰC ĐỐI TÁC (ĐÃ MỞ KHÓA THEO SCHEMA ĐA VŨ TRỤ) ---
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.redirectToLogin();
@@ -312,13 +312,17 @@
                 try {
                     const userRef = doc(db, "users", user.uid);
                     const docSnap = await getDoc(userRef);
-                    if (!docSnap.exists() || (docSnap.data().role !== 'cinema' && docSnap.data().role !== 'admin')) {
-                        showPopup("Khu vực cấm! Cậu chưa phải là Đối tác được cấp phép nha ❌", true);
+                    let userRole = docSnap.exists() ? (docSnap.data().role || "") : "";
+                    
+                    // Nâng cấp: Kiểm tra xem trường role có chứa từ khóa 'cinema' hoặc 'admin' không (ví dụ: "arena / cinema")
+                    if (!userRole.includes('cinema') && !userRole.includes('admin')) {
+                        showPopup("Khu vực cấm! Cậu chưa được cấp quyền Đối tác ở phân khu Cinema nha ❌", true);
                         setTimeout(() => { window.location.href = '/cinema/'; }, 2000);
                     } else {
-                        if (docSnap.data().teamName) {
-                            window.myTeamName = docSnap.data().teamName;
-                        }
+                        // ⚡ Nâng cấp: Ưu tiên đọc trường teamCinema theo đúng schema, nếu trống mới tìm teamName
+                        let myTeam = docSnap.data().teamCinema || docSnap.data().teamName || "MHEnt. Subtitle";
+                        window.myTeamName = myTeam;
+                        
                         document.getElementById('team-name').innerText = window.myTeamName;
                         if(document.getElementById('edit-team-badge')) document.getElementById('edit-team-badge').innerText = `[${window.myTeamName}]`;
 
