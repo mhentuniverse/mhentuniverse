@@ -307,7 +307,11 @@ window.openSideDrawer = function() {
     }
 
     // [3] XÁC ĐỊNH VŨ TRỤ HIỆN TẠI VÀ TÊN NHÓM (TEAM NAME)
-    let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => MHENT_UNIVERSES[key].path !== '#' && currentPath.startsWith(MHENT_UNIVERSES[key].path));
+    // Dùng .includes() thay cho .startsWith() để chống lỗi khi test offline trên máy cá nhân (file://C:/...):
+    let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => {
+        let p = MHENT_UNIVERSES[key].path;
+        return p !== '#' && p !== '' && currentPath.includes(p);
+    });
     let currentUni = activeUniKey ? MHENT_UNIVERSES[activeUniKey] : null;
 
     let userName = "Khách thăm quan";
@@ -415,54 +419,63 @@ window.openSideDrawer = function() {
             </div>
         `;
 
-        // (4) ⚡ KHU VỰC QUẢN TRỊ & STUDIO (CHỈ HIỆN CỦA PHÂN KHU ĐANG ĐỨNG - LOCAL SCOPE!)
+        // (4) ⚡ KHU VỰC QUẢN TRỊ & STUDIO TỰ ĐỘNG HÓA (LOCAL SCOPE + BROAD RBAC)
         let studioButtonsHTML = '';
         let adminButtonsHTML = '';
         let isRootAdmin = userRole.includes('admin');
 
-        // CHÌA KHÓA VÀNG: Chỉ quét và hiển thị chức năng của đúng phân khu hiện tại (currentUni)
-        if (currentUni) {
-            // 1. Nút Studio của phân khu đang đứng
-            if (currentUni.studioUrl) {
-                // Quyền truy cập: Root Admin HOẶC có role trùng roleKey HOẶC phân khu mở cho tất cả user (openCreation = true)
-                let canAccessStudio = isRootAdmin || (currentUni.roleKey && userRole.includes(currentUni.roleKey)) || currentUni.openCreation === true;
+        Object.keys(MHENT_UNIVERSES).forEach(key => {
+            let uni = MHENT_UNIVERSES[key];
+            
+            // CHÌA KHÓA VÀNG: 
+            // - Nếu đang ở trong một phân khu (currentUni có giá trị): CHỈ xét vẽ nút cho đúng phân khu đó!
+            // - Nếu đang ở Đại Sảnh (currentUni = null): Xét vẽ cho tất cả các phân khu mà user có quyền.
+            if (!currentUni || currentUni === uni) {
                 
-                if (canAccessStudio) {
-                    let badgeText = currentUni.openCreation ? "FREE" : "CREATOR";
-                    let badgeBg = currentUni.openCreation ? "#10b98122" : `${currentUni.color}22`;
-                    let badgeColor = currentUni.openCreation ? "#10b981" : currentUni.color;
+                // 1. KIỂM TRA & VẼ NÚT STUDIO
+                if (uni.studioUrl) {
+                    // Quyền vào Studio: Root Admin HOẶC role chứa tên phân khu ('cinema', 'arena'...) HOẶC roleKey HOẶC role chung ('studio', 'creator'...) HOẶC phân khu mở tự do (openCreation)
+                    let hasRole = userRole.includes(key) || 
+                                  (uni.roleKey && userRole.includes(uni.roleKey)) || 
+                                  userRole.includes('studio') || 
+                                  userRole.includes('creator') || 
+                                  userRole.includes('uploader') ||
+                                  userRole.includes('teacher');
 
-                    studioButtonsHTML += `
-                        <a onclick="window.location.href='${currentUni.studioUrl}'; closeSideDrawer();" class="drawer-item" style="color: ${currentUni.color};">
-                            <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: ${currentUni.color};"></i> <span>${currentUni.studioLabel || ('Studio ' + currentUni.name)}</span></div>
-                            <span style="font-size: 10px; background: ${badgeBg}; color: ${badgeColor}; padding: 2px 8px; border-radius: 10px; font-weight: 900;">${badgeText}</span>
-                        </a>
-                    `;
+                    if (isRootAdmin || hasRole || uni.openCreation === true) {
+                        let badgeText = uni.openCreation ? "FREE" : "CREATOR";
+                        let badgeBg = uni.openCreation ? "#10b98122" : `${uni.color}22`;
+                        let badgeColor = uni.openCreation ? "#10b981" : uni.color;
+
+                        studioButtonsHTML += `
+                            <a onclick="window.location.href='${uni.studioUrl}'; closeSideDrawer();" class="drawer-item" style="color: ${uni.color};">
+                                <div class="drawer-item-left"><i class="fa-solid fa-wand-magic-sparkles" style="color: ${uni.color};"></i> <span>${uni.studioLabel || ('Studio ' + uni.name)}</span></div>
+                                <span style="font-size: 10px; background: ${badgeBg}; color: ${badgeColor}; padding: 2px 8px; border-radius: 10px; font-weight: 900;">${badgeText}</span>
+                            </a>
+                        `;
+                    }
+                }
+
+                // 2. KIỂM TRA & VẼ NÚT ADMIN
+                if (uni.adminUrl) {
+                    let canAccessAdmin = isRootAdmin || userRole.includes('admin_' + key) || userRole.includes('admin_' + uni.roleKey);
+                    if (canAccessAdmin) {
+                        adminButtonsHTML += `
+                            <a onclick="window.location.href='${uni.adminUrl}'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
+                                <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>${uni.adminLabel || ('Admin ' + uni.name)}</span></div>
+                                <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ROOT</span>
+                            </a>
+                        `;
+                    }
                 }
             }
+        });
 
-            // 2. Nút Admin của phân khu đang đứng
-            if (currentUni.adminUrl) {
-                // Quyền truy cập Admin: Root Admin HOẶC có role admin của riêng phân khu đó
-                let canAccessAdmin = isRootAdmin || userRole.includes('admin_' + currentUni.roleKey);
-                
-                if (canAccessAdmin) {
-                    adminButtonsHTML += `
-                        <a onclick="window.location.href='${currentUni.adminUrl}'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
-                            <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>${currentUni.adminLabel || ('Admin ' + currentUni.name)}</span></div>
-                            <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ROOT</span>
-                        </a>
-                    `;
-                }
-            }
-        }
-
-        // Nếu có nút của phân khu hiện tại thì mới vẽ tiêu đề "Khu Vực Sáng Tạo & Quản Trị"
         if (studioButtonsHTML || adminButtonsHTML) {
             menuHTML += `<div style="font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin: 15px 0 5px 10px; letter-spacing: 1px;">Khu Vực Sáng Tạo & Quản Trị</div>`;
             menuHTML += studioButtonsHTML + adminButtonsHTML;
         }
-
+        
         // (5) Cài đặt chung
         menuHTML += `
             <div style="height: 1px; background: var(--border-color); margin: 10px 5px;"></div>
