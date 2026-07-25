@@ -10,8 +10,14 @@
     <meta name="theme-color" content="#ff85a2">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
+    
+    <!-- HỆ THỐNG CSS CHỨC NĂNG & GIAO DIỆN CHUNG -->
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/mhent-ui.css">
+    <link rel="stylesheet" href="/mhent-mobile.css">
+    <!-- CSS CHUYÊN DỤNG CỦA PHÂN KHU CINEMA -->
+    <link rel="stylesheet" href="/cinema/cinema-theme.css">
+    
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -58,20 +64,14 @@
         /* MÀN BẢO VỆ CỬA */
         #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; text-align: center; }
 
-        /* CUSTOM POPUP */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.7); backdrop-filter: blur(5px); z-index: 99999; display: none; align-items: center; justify-content: center; opacity: 1; transition: 0.3s; }
-        .popup-box { background: #fff; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; transform: scale(1); transition: 0.3s; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-        .pop-active { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-
         /* INFO BANNER */
         .info-banner { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; font-weight: 700; line-height: 1.5; display: flex; align-items: flex-start; gap: 10px; }
         .info-banner i { font-size: 18px; margin-top: 2px; }
 
-        /* RESPONSIVE CHUẨN ĐÉT */
+        /* RESPONSIVE CHO STUDIO */
         @media (max-width: 992px) {
             .admin-layout { flex-direction: column; padding-top: 70px; }
-            .admin-sidebar { width: 100%; position: relative; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; overflow-x: auto; white-space: nowrap; z-index: 5; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
+            .admin-sidebar { width: 100%; position: relative; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 15px 20px; display: flex; overflow-x: auto; white-space: nowrap; z-index: 5; -webkit-overflow-scrolling: touch; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
             .admin-sidebar > div:first-child { display: none; } 
             .admin-menu-item { margin-bottom: 0; margin-right: 10px; flex-shrink: 0; padding: 10px 15px; }
             .admin-content { margin-left: 0; padding: 20px; }
@@ -80,7 +80,7 @@
         }
 
         /* DARK MODE */
-        body.dark-mode .admin-sidebar, body.dark-mode .admin-card, body.dark-mode .popup-box { background: #1e293b; border-color: #334155; }
+        body.dark-mode .admin-sidebar, body.dark-mode .admin-card { background: #1e293b; border-color: #334155; }
         body.dark-mode .admin-title, body.dark-mode .input-group label { color: #f8fafc; }
         body.dark-mode .admin-menu-item:hover { background: #334155; }
         body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; color-scheme: dark; }
@@ -88,24 +88,12 @@
         body.dark-mode .tag-btn.selected { background: rgba(255, 154, 0, 0.2); color: var(--hub-color); border-color: var(--hub-color); }
     </style>
 </head>
-<body class="gradient-bg">
+<body class="theme-cinema gradient-bg">
 
     <div id="security-shield">
         <i class="fa-solid fa-wand-magic-sparkles fa-beat fa-4x" style="color: var(--hub-color); margin-bottom: 20px;"></i>
         <h2 style="font-weight: 900;">ĐANG NẠP KHÔNG GIAN SÁNG TẠO...</h2>
         <p style="color: #94a3b8;">Chỉ dành cho Đối tác (Uploader) được cấp phép!</p>
-    </div>
-
-    <div id="confirm-popup" class="modal-overlay" style="z-index: 10001;">
-        <div class="popup-box" style="border: 2px solid #ef4444;">
-            <div style="font-size: 45px; margin-bottom:15px;">❓</div>
-            <h2 style="margin-top:0; margin-bottom: 10px; font-weight: 900; color: #ef4444;">Xác nhận</h2>
-            <p id="confirm-message" style="color:#64748b; font-weight:700; margin-bottom:20px;">Cậu chắc chắn muốn làm điều này chứ?</p>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-admin" style="background: #94a3b8; flex: 1;" onclick="closeConfirmPopup()">Hủy</button>
-                <button id="btn-confirm-yes" class="btn-admin btn-red" style="flex: 1;">Chắc chắn</button>
-            </div>
-        </div>
     </div>
 
     <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 1px solid rgba(255,154,0,0.15);">
@@ -119,7 +107,7 @@
             <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
                 <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
-            <button class="btn-theme" onclick="window.location.href='/cinema'" style="border:none;"><i class="fa-solid fa-house"></i></button>
+            <button class="btn-theme" onclick="window.location.href='/cinema'" style="border:none;" title="Về Rạp Phim"><i class="fa-solid fa-house"></i></button>
         </div>
     </nav>
 
@@ -268,7 +256,7 @@
                         </div>
                     </div>
                     <div class="input-group" style="margin-top: 30px;">
-                        <label>Các Tag hiện có trong Rạp:</label>
+                        <label>Các Tag đang có trong Kho:</label>
                         <div class="tag-picker" id="global-tag-list">
                             <span style="color:#888;">Đang tải kho tag...</span>
                         </div>
@@ -281,7 +269,7 @@
 
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, arrayUnion, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -300,8 +288,8 @@
 
         import { logAdminAction } from '/logger.js';
         
-        window.currentTeamName = "Khách vãng lai";
-
+        window.myTeamName = "MHEnt. Subtitle";
+        
         // --- CHẾ ĐỘ DARK MODE CƠ BẢN ---
         window.toggleDarkMode = function() { 
             document.body.classList.toggle('dark-mode'); 
@@ -309,116 +297,100 @@
         };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
-        // --- 🚨 KIỂM TRA QUYỀN UPLOADER ---
+        // --- 🚨 KIỂM TRA QUYỀN LỰC ĐỐI TÁC ---
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = '/cinema/'; } 
-            else {
+            if (!user) {
+                window.redirectToLogin();
+            } else {
                 try {
                     const userRef = doc(db, "users", user.uid);
                     const docSnap = await getDoc(userRef);
-                    if (!docSnap.exists() || (docSnap.data().role.includes('cinema') !== true && docSnap.data().role.includes('admin') !== true)) {
-                        showPopup("Khu vực cấm! Cậu không phải Đối tác!", true);
+                    if (!docSnap.exists() || (docSnap.data().role !== 'cinema' && docSnap.data().role !== 'admin')) {
+                        showPopup("Khu vực cấm! Cậu chưa phải là Đối tác được cấp phép nha ❌", true);
                         setTimeout(() => { window.location.href = '/cinema/'; }, 2000);
                     } else {
-                        window.currentTeamName = docSnap.data().teamName || "MHEnt. Subtitle";
-                        document.getElementById('team-name').innerText = window.currentTeamName;
+                        if (docSnap.data().teamName) {
+                            window.myTeamName = docSnap.data().teamName;
+                        }
+                        document.getElementById('team-name').innerText = window.myTeamName;
+                        if(document.getElementById('edit-team-badge')) document.getElementById('edit-team-badge').innerText = `[${window.myTeamName}]`;
+
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
-                        loadMovies();
                     }
-                } catch (error) { 
-                    showPopup("Lỗi khi tải thông tin người dùng!", true); 
+                } catch (error) {
+                    showPopup("Lỗi kết nối vệ tinh an ninh!", true);
                     setTimeout(() => { window.location.href = '/cinema/'; }, 2000);
                 }
             }
         });
 
-        // --- LOGIC CHUYỂN TAB ---
+        // --- LOGIC CHUYỂN TAB ARENA STYLE ---
         window.switchTab = function(tabName) {
             document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('menu-' + tabName).classList.add('active');
-            
-            // Cập nhật URL Hash mà không làm rác lịch sử
             history.replaceState(null, null, '#' + tabName);
         };
 
         // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
-            // Các tab hợp lệ của Studio Cinema
             const validTabs = ['episode', 'movie', 'edit', 'tag'];
             
             if (validTabs.includes(hash)) {
                 switchTab(hash);
             } else {
-                // Studio thì tab ưu tiên mặc định là Đăng Tập
                 switchTab('episode');
             }
         });
 
-        // --- TẢI DANH SÁCH PHIM ---
-        async function loadMovies() {
-            const epSelect = document.getElementById('ep-movie-id');
-            const editSelect = document.getElementById('edit-movie-id');
-            document.getElementById('edit-team-badge').innerText = window.currentTeamName;
-
-            try {
-                const querySnapshot = await getDocs(collection(db, "movies"));
-                let html = '<option value="">-- Chọn phim --</option>';
-                querySnapshot.forEach((doc) => { html += `<option value="${doc.id}">${doc.data().title}</option>`; });
-                if(epSelect) epSelect.innerHTML = html;
-                if(editSelect) editSelect.innerHTML = html;
-            } catch (error) { console.error(error); }
-        }
-
-        // ==========================================
-        // CHỨC NĂNG 1: ĐĂNG TẬP NHANH
+        // ==============================================
+        // 1. ĐĂNG TẬP SIÊU TỐC
         // ==========================================
         document.getElementById('btn-add-episode').addEventListener('click', async () => {
             const epMovieId = document.getElementById('ep-movie-id').value;
-            const rawTitle = document.getElementById('ep-title').value.trim();
+            if(!epMovieId) return showPopup("❌ Cậu chưa chọn phim kìa!", true);
             
-            if(!epMovieId || !rawTitle) return showPopup("Điền thiếu thông tin kìa!", true);
+            let rawTitle = document.getElementById('ep-title').value.trim();
+            if(!rawTitle) return showPopup("❌ Cậu chưa nhập tên tập phim!", true);
 
-            const finalTitle = `${rawTitle} [${window.currentTeamName}]`;
+            let finalTitle = `${rawTitle} [${window.myTeamName}]`;
+            
             try {
                 await updateDoc(doc(db, "movies", epMovieId), {
                     episodes: arrayUnion({
                         title: finalTitle,
-                        linkSuper: document.getElementById('ep-super').value.trim(),
+                        linkSuper: document.getElementById('ep-super').value.trim(), 
                         linkVIP: document.getElementById('ep-vip').value.trim(),
                         linkDuPhong: document.getElementById('ep-dp1').value.trim(),
-                        linkDuPhong2: document.getElementById('ep-dp2').value.trim()
+                        linkDuPhong2: document.getElementById('ep-dp2').value.trim(),
+                        teamName: window.myTeamName,
+                        uploaderId: auth.currentUser.uid
                     }),
                     updatedAt: Date.now() 
                 });
+                showPopup("🎉 Đăng tập lên Rạp thành công! Sinh viên đã có thể xem ngay!");
+                logAdminAction(`[${window.myTeamName}] đã đăng: ${finalTitle}`, "Cinema Studio");
                 
-                showPopup("Đăng tập thành công! Link đã hiển thị lên Rạp."); 
-                logAdminAction(`Đã đăng tập mới: ${finalTitle}`, "Cinema");
-                
-                document.getElementById('ep-title').value = '';
-                document.getElementById('ep-super').value = '';
-                document.getElementById('ep-vip').value = '';
-                document.getElementById('ep-dp1').value = '';
-                document.getElementById('ep-dp2').value = '';
+                document.getElementById('ep-title').value = ''; document.getElementById('ep-super').value = ''; document.getElementById('ep-vip').value = ''; document.getElementById('ep-dp1').value = ''; document.getElementById('ep-dp2').value = '';
             } catch (error) { showPopup("Lỗi: " + error.message, true); } 
         });
 
-        // ==========================================
-        // CHỨC NĂNG 2: ĐỀ XUẤT PHIM
+        // ==============================================
+        // 2. ĐỀ XUẤT PHIM MỚI
         // ==========================================
         document.getElementById('btn-suggest-movie').addEventListener('click', async () => {
             const movieId = document.getElementById('input-id').value.trim();
-            if(!movieId) return showPopup("Phải nhập ID phim!", true);
+            if(!movieId) return showPopup("❌ Nhập ID phim cậu ơi!", true);
 
             let selectedTags = [];
             document.querySelectorAll('#create-tag-picker .tag-btn.selected').forEach(btn => selectedTags.push(btn.innerText));
             let customTag = document.getElementById('input-custom-tag').value.trim();
             if (customTag) selectedTags.push(customTag);
             document.getElementById('input-tag').value = selectedTags.join(' / ');
-
+            
             try {
                 await setDoc(doc(db, "pending_movies", movieId), {
                     type: document.getElementById('input-type').value,
@@ -426,52 +398,58 @@
                     title: document.getElementById('input-title').value.trim(),
                     altTitle: document.getElementById('input-alttitle').value.trim().replace(/\n/g, "<br>"),
                     tag: document.getElementById('input-tag').value.trim(),
-                    poster: document.getElementById('input-poster').value.trim(),
+                    poster: document.getElementById('edit-poster').value.trim(),
                     trailer: document.getElementById('input-trailer').value.trim(),
                     desc: document.getElementById('input-desc').value.trim().replace(/\n/g, "<br>"),
-                    episodes: [], 
-                    updatedAt: Date.now(),
-                    teamName: window.currentTeamName
+                    episodes: [],
+                    teamName: window.myTeamName,
+                    uploaderId: auth.currentUser.uid,
+                    createdAt: Date.now() 
                 });
+                showPopup("📩 Đã gửi đề xuất! Admin Lam Chi sẽ duyệt phim của cậu sớm nhất nha!");
+                logAdminAction(`[${window.myTeamName}] đã đề xuất phim: ${document.getElementById('input-title').value.trim()}`, "Cinema Studio");
                 
-                showPopup("Đã gửi đề xuất phim thành công! Vui lòng chờ Admin duyệt nhé!"); 
-                logAdminAction(`Đã gửi đề xuất phim: ${document.getElementById('input-title').value.trim()}`, "Cinema");
-                
-                document.getElementById('input-id').value = ''; document.getElementById('input-title').value = ''; document.getElementById('input-alttitle').value = ''; document.getElementById('input-custom-tag').value = ''; document.getElementById('input-poster').value = ''; document.getElementById('input-trailer').value = ''; document.getElementById('input-desc').value = ''; document.getElementById('input-type').selectedIndex = 0; document.getElementById('input-status').selectedIndex = 0;
+                document.getElementById('input-id').value = ''; document.getElementById('input-title').value = ''; document.getElementById('input-alttitle').value = ''; document.getElementById('input-tag').value = ''; document.getElementById('input-custom-tag').value = ''; document.getElementById('edit-poster').value = ''; document.getElementById('input-trailer').value = ''; document.getElementById('input-desc').value = ''; document.getElementById('input-type').selectedIndex = 0; document.getElementById('input-status').selectedIndex = 0;
                 document.querySelectorAll('#create-tag-picker .tag-btn').forEach(btn => btn.classList.remove('selected'));
             } catch (error) { showPopup("Lỗi: " + error.message, true); } 
         });
 
-        // ==========================================
-        // CHỨC NĂNG 3: SỬA TẬP CỦA NHÓM
+        // ==============================================
+        // 3. SỬA TẬP PHIM CỦA CHÍNH MÌNH
         // ==========================================
         window.fetchMyEpisodesToEdit = async function() {
             const movieId = document.getElementById('edit-movie-id').value;
             const sectionEp = document.getElementById('edit-episode-section');
-            const epSelect = document.getElementById('edit-ep-index');
-            
             if(!movieId) { sectionEp.style.display = 'none'; return; }
             
             try {
                 const docSnap = await getDoc(doc(db, "movies", movieId));
                 if (docSnap.exists()) {
                     window.currentEditMovieData = docSnap.data();
-                    const eps = window.currentEditMovieData.episodes || [];
+                    const data = window.currentEditMovieData;
+                    const epSelect = document.getElementById('edit-ep-index');
+                    epSelect.innerHTML = '<option value="">-- Chọn tập để sửa --</option>';
                     
-                    epSelect.innerHTML = '<option value="">-- Chọn tập --</option>';
                     let countMyEps = 0;
-
-                    eps.forEach((ep, index) => {
-                        if (ep.title.includes(`[${window.currentTeamName}]`)) {
-                            const opt = document.createElement('option');
-                            opt.value = index; opt.textContent = ep.title;
-                            epSelect.appendChild(opt);
-                            countMyEps++;
+                    if(data.episodes && data.episodes.length > 0) {
+                        data.episodes.forEach((ep, index) => {
+                            if (ep.title.includes(`[${window.myTeamName}]`) || ep.teamName === window.myTeamName) {
+                                const opt = document.createElement('option');
+                                opt.value = index; opt.textContent = ep.title;
+                                epSelect.appendChild(opt);
+                                countMyEps++;
+                            }
+                        });
+                        if(countMyEps > 0) {
+                            sectionEp.style.display = 'block'; 
+                        } else {
+                            sectionEp.style.display = 'none';
+                            showPopup(`Phim này chưa có tập nào do Nhóm [${window.myTeamName}] đăng cả!`, true);
                         }
-                    });
-
-                    if (countMyEps > 0) { sectionEp.style.display = 'block'; } 
-                    else { sectionEp.style.display = 'none'; showPopup(`Nhóm của cậu chưa đăng tập nào trong bộ phim này!`, true); }
+                    } else {
+                        sectionEp.style.display = 'none';
+                        showPopup("Phim này chưa có tập nào!", true);
+                    }
                 }
             } catch (error) { showPopup("Lỗi tải dữ liệu!", true); }
         };
@@ -483,10 +461,10 @@
                 return;
             }
             const epData = window.currentEditMovieData.episodes[index];
-            let shortTitle = epData.title.split('[')[0].trim();
+            let cleanTitle = epData.title.replace(` [${window.myTeamName}]`, '').trim();
             
-            document.getElementById('edit-ep-title').value = shortTitle || '';
-            document.getElementById('edit-ep-super').value = epData.linkSuper || '';
+            document.getElementById('edit-ep-title').value = cleanTitle || '';
+            document.getElementById('edit-ep-super').value = epData.linkSuper || ''; 
             document.getElementById('edit-ep-vip').value = epData.linkVIP || '';
             document.getElementById('edit-ep-dp1').value = epData.linkDuPhong || '';
             document.getElementById('edit-ep-dp2').value = epData.linkDuPhong2 || '';
@@ -495,73 +473,89 @@
         document.getElementById('btn-update-episode').addEventListener('click', async () => {
             const movieId = document.getElementById('edit-movie-id').value;
             const index = document.getElementById('edit-ep-index').value;
-            if(!movieId || index === "") return showPopup("Chưa chọn tập để sửa!", true);
+            if(!movieId || index === "") return showPopup("Chưa chọn tập!", true);
             
-            const rawTitle = document.getElementById('edit-ep-title').value.trim();
-            if(!rawTitle) return showPopup("Không được để trống Tên tập!", true);
+            let rawTitle = document.getElementById('edit-ep-title').value.trim();
+            if(!rawTitle) return showPopup("❌ Cậu chưa nhập tên tập phim!", true);
 
-            const finalTitle = `${rawTitle} [${window.currentTeamName}]`;
-
+            let finalTitle = `${rawTitle} [${window.myTeamName}]`;
+            
             try {
                 window.currentEditMovieData.episodes[index] = {
                     title: finalTitle,
-                    linkSuper: document.getElementById('edit-ep-super').value.trim(),
+                    linkSuper: document.getElementById('edit-ep-super').value.trim(), 
                     linkVIP: document.getElementById('edit-ep-vip').value.trim(),
                     linkDuPhong: document.getElementById('edit-ep-dp1').value.trim(),
-                    linkDuPhong2: document.getElementById('edit-ep-dp2').value.trim()
+                    linkDuPhong2: document.getElementById('edit-ep-dp2').value.trim(),
+                    teamName: window.myTeamName,
+                    uploaderId: auth.currentUser.uid
                 };
                 
                 await updateDoc(doc(db, "movies", movieId), { episodes: window.currentEditMovieData.episodes, updatedAt: Date.now() });
-                
-                showPopup("Đã lưu thay đổi thành công!"); 
-                logAdminAction(`Đã cập nhật tập phim: ${finalTitle}`, "Cinema");
-                document.getElementById('edit-movie-id').selectedIndex = 0; 
-                document.getElementById('edit-episode-section').style.display = 'none'; 
-                
-            } catch (error) { showPopup("Lỗi cập nhật!", true); }
+                showPopup("🎉 Đã cập nhật xong link Tập phim!");
+                logAdminAction(`[${window.myTeamName}] đã cập nhật tập: ${finalTitle}`, "Cinema Studio");
+            } catch (error) { showPopup("Lỗi cập nhật tập!", true); }
         });
 
         // ==========================================
-        // CHỨC NĂNG 4: KHO TAG MỞ
+        // QUẢN LÝ KHO TAG
         // ==========================================
-        window.globalTags = ["Phép thuật", "Hành động"]; 
+        window.globalTags = ["Phép thuật", "Hành động", "Đời thường", "Hài hước", "Học đường", "Tình cảm", "Idol", "Movie"];
 
         window.loadGlobalTags = async function() {
             try {
                 const tagSnap = await getDoc(doc(db, "system", "tags"));
-                if (tagSnap.exists() && tagSnap.data().list) { window.globalTags = tagSnap.data().list; }
+                if (tagSnap.exists() && tagSnap.data().list) { window.globalTags = tagSnap.data().list; } 
+                else { await setDoc(doc(db, "system", "tags"), { list: window.globalTags }); }
                 window.renderTagPickers();
             } catch(e) { console.error(e); }
         };
 
         window.renderTagPickers = function() {
-            const selectHTML = window.globalTags.map(tag => `<div class="tag-btn" onclick="this.classList.toggle('selected')">${tag}</div>`).join('');
-            const listHTML = window.globalTags.map(tag => `<div class="tag-btn">${tag}</div>`).join('');
-            document.getElementById('create-tag-picker').innerHTML = selectHTML;
-            document.getElementById('global-tag-list').innerHTML = listHTML;
+            const tagHTML = window.globalTags.map(tag => `<div class="tag-btn" onclick="this.classList.toggle('selected')">${tag}</div>`).join('');
+            const viewHTML = window.globalTags.map(tag => `<div class="tag-btn" style="cursor:default;">${tag}</div>`).join('');
+            
+            const createPicker = document.getElementById('create-tag-picker');
+            const globalList = document.getElementById('global-tag-list');
+            
+            if(createPicker) createPicker.innerHTML = tagHTML;
+            if(globalList) globalList.innerHTML = viewHTML;
         };
 
         window.addNewGlobalTag = async function() {
-            const input = document.getElementById('new-global-tag');
-            const newTag = input.value.trim();
-            if(!newTag || window.globalTags.includes(newTag)) return showPopup("Tag bị rỗng hoặc đã tồn tại!", true);
-            
+            const input = document.getElementById('new-global-tag'); const newTag = input.value.trim();
+            if(!newTag) return;
+            if(window.globalTags.includes(newTag)) { showPopup("Tag này đã có trong kho rồi cậu ơi!", true); return; }
             window.globalTags.push(newTag);
             try {
                 await setDoc(doc(db, "system", "tags"), { list: window.globalTags }, {merge: true});
-                input.value = ''; window.renderTagPickers();
-                showPopup("Đã thêm Tag mới vào kho chung!"); 
-                logAdminAction(`Đã thêm tag mới: ${newTag}`, "Cinema");
-            } catch(e) { showPopup("Lỗi mạng!", true); }
+                input.value = ''; window.renderTagPickers(); showPopup("Đã thêm Tag mới vào kho!");
+                logAdminAction(`[${window.myTeamName}] đã thêm tag mới: ${newTag}`, "Cinema Studio");
+            } catch(e) { showPopup("Lỗi lưu Tag lên mây!", true); }
+        };
+        window.loadGlobalTags();
+
+        // ==========================================
+        // TẢI DANH SÁCH PHIM TỪ MÂY
+        // ==========================================
+        window.loadMovies = async function() {
+            const epSelect = document.getElementById('ep-movie-id'); const editSelect = document.getElementById('edit-movie-id');
+            try {
+                const querySnapshot = await getDocs(collection(db, "movies"));
+                let optionsHTML = '<option value="">-- Chọn phim --</option>';
+                querySnapshot.forEach((docSnap) => { optionsHTML += `<option value="${docSnap.id}">${docSnap.data().title}</option>`; });
+                if (epSelect) epSelect.innerHTML = optionsHTML; if (editSelect) editSelect.innerHTML = optionsHTML;
+            } catch (error) {
+                if (epSelect) epSelect.innerHTML = '<option value="">❌ Lỗi vệ tinh!</option>'; if (editSelect) editSelect.innerHTML = '<option value="">❌ Lỗi vệ tinh!</option>';
+            }
         };
 
-        window.loadGlobalTags();
+        window.loadMovies();
     </script>
 
     <input type="file" id="global-poster-input" accept="image/*" style="display: none;">
 
     <script>
-        // GIÁM ĐỐC NHỚ DÁN LINK APPS SCRIPT VÀO ĐÂY NHA!!!
         const ADMIN_GAS_URL = "https://script.google.com/macros/s/AKfycbw5GLP4H2cVVz836JU7rU5u2c6IJu2-0kkduFFkG1I0Ntd8LMJ-lZxS4QerHHjA3HSOtQ/exec";
         let currentPosterInputId = '';
         let currentPosterBtnId = '';
@@ -592,7 +586,6 @@
                 img.src = e.target.result;
                 img.onload = async function() {
                     const canvas = document.createElement('canvas');
-                    // Ép khung hình Poster (To hơn Avatar)
                     const MAX_WIDTH = 800;
                     const MAX_HEIGHT = 1200;
                     let width = img.width;
@@ -608,7 +601,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    const base64String = canvas.toDataURL('image/jpeg', 0.85); // Nén chất lượng 85%
+                    const base64String = canvas.toDataURL('image/jpeg', 0.85);
 
                     try {
                         const response = await fetch(ADMIN_GAS_URL, {
@@ -616,7 +609,7 @@
                             body: JSON.stringify({
                                 base64: base64String,
                                 fileName: `poster_${Date.now()}.jpg`,
-                                type: "poster" // ĐÁNH DẤU ĐÂY LÀ POSTER ĐỂ APPS SCRIPT BIẾT
+                                type: "poster" 
                             })
                         });
                         
@@ -625,7 +618,7 @@
                             const posterUrl = `https://lh3.googleusercontent.com/u/0/d/${result.fileId}`;
                             document.getElementById(currentPosterInputId).value = posterUrl;
                             showPopup('Đã tải Poster lên hệ thống Mây!');
-                            logAdminAction(`Đã tải poster mới lên Mây: ${posterUrl}`, "Cinema");
+                            logAdminAction(`[${window.myTeamName}] đã tải poster: ${posterUrl}`, "Cinema Studio");
                         } else {
                             showPopup('Lỗi: ' + result.message, true);
                         }
@@ -642,6 +635,5 @@
     </script>
     <script src="/mhent-ui.js"></script>
     <script src="/check-token.js"></script>
-    <script type="module" src="/maintenance.js"></script>
 </body>
 </html>
