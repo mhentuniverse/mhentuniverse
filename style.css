@@ -82,7 +82,7 @@ body.theme-admin { --theme-accent: #2563eb; }
 html, body { 
     overflow-x: hidden !important; 
     width: 100%; 
-    height: 100%; /* Thêm height 100% để footer bám đáy */
+    /* height: 100%;  <--- XÓA BÉNG DÒNG NÀY ĐI NHÉ CẬU! */
     position: relative;
     margin: 0; /* Ép margin 0 cho toàn trang */
     padding: 0; /* Ép padding 0 cho toàn trang */
@@ -95,12 +95,14 @@ body {
     background-color: var(--bg-primary); 
     color: var(--text-primary); 
     font-size: 15px; line-height: 1.5; 
-    animation: fadeInPage 0.35s ease-in-out forwards; 
-    transition: background-color 0.4s ease, color 0.4s ease; 
-    /* Dời padding-top xuống thẻ container bên trong thay vì body */
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100vh; /* Chỉ giữ lại min-height để body tự do co giãn */
+}
+
+/* Ép tất cả thẻ main tự động giãn chiều cao để đẩy Footer xuống sát đáy màn hình */
+main, .movie-section, .watch-container, .desc-container, .full-notif-container {
+    flex: 1 0 auto !important;
 }
 
 @keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
