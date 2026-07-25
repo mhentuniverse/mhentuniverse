@@ -410,23 +410,40 @@ window.openSideDrawer = function() {
             </div>
         `;
 
-        // ⚡ KHU VỰC QUẢN TRỊ & STUDIO (ĐÃ XÓA LỆNH KHAI BÁO ĐÈ isRootAdmin GAY HỌA)
+        // (4) ⚡ KHU VỰC QUẢN TRỊ & STUDIO (LOCAL SCOPE + ROOT MASTER ADMIN)
         let studioButtonsHTML = '';
         let adminButtonsHTML = '';
+        
+        // Nhận diện Root Admin tối cao (Quét siêu nhạy mọi từ khóa)
+        let isRootAdmin = currentPath.includes('/admin') || 
+                          userRole.includes('admin') || 
+                          userRole.includes('root') || 
+                          userRole.includes('chủ tịch') || 
+                          userRole.includes('boss') || 
+                          (window.currentUserRole && window.currentUserRole.toLowerCase().includes('admin'));
 
+        // 1. NÚT ROOT ADMIN: Nếu là Root Admin, LUÔN HIỆN nút vào Đài Chỉ Huy Tối Cao (/admin) dù đang ở bất kỳ đâu!
+        if (isRootAdmin) {
+            adminButtonsHTML += `
+                <a onclick="window.location.href='/admin'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
+                    <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>Admin Hệ Thống</span></div>
+                    <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ROOT</span>
+                </a>
+            `;
+        }
+
+        // 2. NÚT BẢN ĐỊA: CHỈ VẼ Studio và Admin riêng của Phân Khu khi user ĐANG THỰC SỰ ĐỨNG TRONG PHÂN KHU ĐÓ (isCurrentUni = true)
         Object.keys(MHENT_UNIVERSES).forEach(key => {
             let uni = MHENT_UNIVERSES[key];
             let isCurrentUni = (currentUni && currentUni === uni);
             
-            if (isCurrentUni || isAtRoot) {
-                // 1. KIỂM TRA & VẼ NÚT STUDIO
+            if (isCurrentUni) {
+                // Vẽ nút Studio của Phân khu hiện tại
                 if (uni.studioUrl) {
                     let hasUniRole = userRole.includes(key) || (uni.roleKey && userRole.includes(uni.roleKey));
-                    let hasGeneralStudioRole = userRole.includes('studio') || userRole.includes('creator') || userRole.includes('uploader');
+                    let hasGeneralStudioRole = userRole.includes('studio') || userRole.includes('creator') || userRole.includes('uploader') || userRole.includes('teacher');
                     
-                    let canAccessStudio = isRootAdmin || hasUniRole || (isCurrentUni && (hasGeneralStudioRole || uni.openCreation === true));
-
-                    if (canAccessStudio) {
+                    if (isRootAdmin || hasUniRole || hasGeneralStudioRole || uni.openCreation === true) {
                         let badgeText = uni.openCreation ? "FREE" : "CREATOR";
                         let badgeBg = uni.openCreation ? "#10b98122" : `${uni.color}22`;
                         let badgeColor = uni.openCreation ? "#10b981" : uni.color;
@@ -440,14 +457,14 @@ window.openSideDrawer = function() {
                     }
                 }
 
-                // 2. KIỂM TRA & VẼ NÚT ADMIN
-                if (uni.adminUrl) {
+                // Vẽ nút Admin riêng của Phân khu hiện tại (nếu khác đường dẫn /admin tối cao)
+                if (uni.adminUrl && uni.adminUrl !== '/admin') {
                     let canAccessAdmin = isRootAdmin || userRole.includes('admin_' + key) || (uni.roleKey && userRole.includes('admin_' + uni.roleKey));
                     if (canAccessAdmin) {
                         adminButtonsHTML += `
-                            <a onclick="window.location.href='${uni.adminUrl}'; closeSideDrawer();" class="drawer-item" style="color: #10b981;">
-                                <div class="drawer-item-left"><i class="fa-solid fa-user-shield" style="color: #10b981;"></i> <span>${uni.adminLabel || ('Admin ' + uni.name)}</span></div>
-                                <span style="font-size: 10px; background: rgba(16,185,129,0.2); color: #10b981; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ROOT</span>
+                            <a onclick="window.location.href='${uni.adminUrl}'; closeSideDrawer();" class="drawer-item" style="color: #3b82f6;">
+                                <div class="drawer-item-left"><i class="fa-solid fa-shield-halved" style="color: #3b82f6;"></i> <span>${uni.adminLabel || ('Admin ' + uni.name)}</span></div>
+                                <span style="font-size: 10px; background: rgba(59,130,246,0.2); color: #3b82f6; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ADMIN</span>
                             </a>
                         `;
                     }
