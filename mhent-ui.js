@@ -346,7 +346,7 @@ window.openSideDrawer = function() {
         } else if (cachedProfile.email && cachedProfile.email !== "") {
             userName = cachedProfile.email.split('@')[0];
         } else {
-            userName = isRootAdmin ? "Giám đốc Lam Chi" : "Creator MHEnt";
+            userName = isRootAdmin ? "Giám đốc" : "Creator MHEnt";
         }
 
         if (avtEl && avtEl.getAttribute('src') && avtEl.getAttribute('src').trim() !== "" && !avtEl.src.includes('index.html')) {
