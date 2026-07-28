@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="canonical" href="https://www.mhentuniverse.com/tools/inventory/" />
-        <title>Trạm Kiểm Tồn - MHEnt. Tools</title>
+        <title>Trạm Kiểm Kiện - MHEnt. Tools</title>
         <link rel="manifest" href="/manifest.json">
         <meta name="theme-color" content="#10b981">
         <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
@@ -12,26 +12,22 @@
         <link rel="stylesheet" href="/style.css">
         <link rel="stylesheet" href="/tools/tools-theme.css"> 
         <link rel="stylesheet" href="/mhent-ui.css">
+        <!-- ⚡ BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE -->
+        <link rel="stylesheet" href="/mhent-mobile.css">
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         
         <style>
-            /* ÉP TONE MÀU CHỦ ĐẠO LÀ XANH LÁ CÂY (INVENTORY) */
             :root { --hub-color: #10b981; --hub-bg: rgba(16, 185, 129, 0.1); --hub-hover: #059669; }
-
             .hero { background: linear-gradient(135deg, #a7f3d0 0%, #34d399 56%, #10b981 100%); padding: 70px 5%; text-align: center; }
             .hero h1 { font-size: 38px; color: #1e293b; margin: 0 0 10px 0; font-weight: 900;}
             .hero h1 span { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
             .small-description { font-size: 15px; color: #064e3b; margin: 0 0 35px 0; font-weight: 800; display: block; }
-
             .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
             .app-item:hover .app-icon svg { transform: scale(1.1); }
             body.dark-mode .app-icon svg { color: #e2e8f0; }
-
             .btn-primary { background: #1e293b; border-color: #1e293b; color: white; padding: 12px 25px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; }
             .btn-primary:hover { background: #0f172a; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-
-            /* GIAO DIỆN PRESET CARDS (Kế thừa từ Feature Card) */
             .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 40px; }
             .feature-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); cursor: pointer; transition: 0.4s; border: 2px solid #f1f5f9; display: flex; align-items: center; gap: 20px; text-align: left;}
             .feature-card:hover { transform: translateY(-5px); border-color: var(--hub-color); box-shadow: 0 15px 35px var(--hub-bg); }
@@ -43,18 +39,12 @@
             body.dark-mode .feature-card { background: #1e293b; border-color: #334155; }
             body.dark-mode .feature-title { color: #f8fafc; }
             body.dark-mode .feature-desc { color: #94a3b8; }
-
-            /* ==========================================
-               📱 TỐI ƯU RIÊNG CHO MÀN HÌNH ĐIỆN THOẠI 
-               ========================================== */
+            
             @media (max-width: 600px) {
-                /* Thu nhỏ Banner */
-                .hero { padding: 50px 5% 40px 5%; }
+                .hero { padding: 50px 5% 40px 5%; margin-top: 55px; }
                 .hero h1 { font-size: 28px; }
-                
-                /* Ép thẻ Preset full 100% màn hình điện thoại */
-                .grid-container { grid-template-columns: 1fr; gap: 15px; }
-                .preset-card { padding: 20px 15px; }
+                .feature-grid { grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
+                .feature-card { padding: 20px 15px; }
                 .feature-title { font-size: 18px; }
             }
         </style>
@@ -102,21 +92,20 @@
         </nav>
 
         <header class="hero">
-            <h1>Trạm Quản Lý <span>Kiểm Tồn</span> 📦</h1>
-            <p class="small-description">Không gian riêng để quản lý các Preset tồn kho của cậu.</p>
+            <h1>Trạm Quản Lý <span>Kiểm Kiện</span> 📦</h1>
+            <p class="small-description">Không gian làm việc riêng biệt, lưu trữ các Preset kiểm kê hàng hóa cho từng dự án của cậu.</p>
             <button class="btn-primary" onclick="createEmptyPreset()">
                 <i class="fa-solid fa-plus"></i> Tạo Preset Mới
             </button>
         </header>
 
         <main id="tools-section" class="movie-section" style="padding-top: 40px; min-height: 40vh;">
-            <h2 class="section-title" style="border-bottom-color: var(--hub-color); display: inline-flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-folder-open" style="color: var(--hub-color);"></i> Các bộ kiểm tồn của cậu
+            <h2 class="section-title" style="border-bottom: 3px solid var(--hub-color); display: inline-flex; align-items: center; gap: 10px; padding-bottom: 8px; font-size: 26px; font-weight: 900;">
+                <i class="fa-solid fa-folder-open" style="color: var(--hub-color);"></i> Các Preset Của Cậu
             </h2>
-            
             <div class="feature-grid" id="preset-list">
                 <p style="color: #64748b; width: 100%; text-align: center; font-weight: 700;">
-                    <i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu từ mây...
+                    <i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách...
                 </p>
             </div>
         </main>
@@ -153,21 +142,19 @@
         <script type="module">
             import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
             import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+            import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
             import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-            // SẾP NHỚ THAY KEY LẠI NHA
-            const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
-            const supabase = createClient(supabaseUrl, supabaseKey);
-
-            const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+            const supabase = createClient('https://ctzkgchjheirxwejctvl.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0');
+            const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse" };
             const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
             const auth = getAuth(app);
+            const db = getFirestore(app);
 
-            // Giao diện (Darkmode, Logout...)
             const btnLogin = document.getElementById('btn-login');
             if (btnLogin) btnLogin.addEventListener('click', () => { window.redirectToLogin('/tools/inventory'); });
             document.getElementById('btn-logout').addEventListener('click', async () => { await signOut(auth); window.location.reload(); }); 
+
             window.toggleAccount = function() { document.getElementById('dropdown-account').classList.toggle('show'); };
             window.toggleDarkMode = function() {
                 document.body.classList.toggle('dark-mode');
@@ -176,16 +163,38 @@
             if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
             let currentUserUid = null;
-
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUserUid = user.uid;
                     document.getElementById('btn-login').style.display = 'none';
                     document.getElementById('user-profile').style.display = 'flex';
-                    document.getElementById('user-name').innerText = user.displayName || "Khách";
+                    let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                    document.getElementById('user-name').innerText = finalName;
                     if(user.photoURL) document.getElementById('user-avatar').src = user.photoURL;
                     fetchPresets(); 
+
+                    // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN()
+                    getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+                        const userData = uSnap.exists() ? uSnap.data() : {};
+                        const userRole = userData.role || 'user';
+                        localStorage.setItem('mhent_user_role', userRole);
+                        localStorage.setItem('mhent_user_profile', JSON.stringify({
+                            uid: user.uid, email: user.email,
+                            displayName: user.displayName || finalName,
+                            photoURL: user.photoURL || "/assets/avt-web.jpg",
+                            role: userRole,
+                            teamCinema: userData.teamCinema || userData.teamName || '',
+                            teamArena: userData.teamArena || userData.teamName || '',
+                            teamManga: userData.teamManga || userData.teamName || '',
+                            teamMusic: userData.teamMusic || userData.teamName || '',
+                            teamNovel: userData.teamNovel || userData.teamName || '',
+                            teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+                        }));
+                    }).catch(e => console.log("Lỗi nạp cache profile:", e));
+
                 } else {
+                    localStorage.setItem('mhent_user_role', 'guest');
+                    localStorage.removeItem('mhent_user_profile');
                     document.getElementById('btn-login').style.display = 'flex';
                     document.getElementById('user-profile').style.display = 'none';
                     document.getElementById('preset-list').innerHTML = `<p style="color: #ef4444; width: 100%; text-align: center; font-weight: 700;">Vui lòng đăng nhập để sử dụng công cụ này!</p>`;
@@ -194,22 +203,15 @@
 
             async function fetchPresets() {
                 const container = document.getElementById('preset-list');
-    
-                // 1. GỌI POPUP Ở ĐÂY
-                window.showTypingPopup("Đang tải dữ liệu từ mây..."); 
-
+                window.showTypingPopup("Đang tải danh sách...");
                 try {
                     const { data, error } = await supabase.from('inventory_presets').select('id, name, created_at').eq('user_id', currentUserUid).order('created_at', { ascending: false });
                     if (error) throw error;
-                    
-                    // 2. TẮT POPUP NẾU TẢI THÀNH CÔNG
                     window.hideTypingPopup(); 
-
                     if (data.length === 0) {
-                        container.innerHTML = `<p style="color: #64748b; width: 100%; text-align: center;">Chưa có bộ kiểm tồn nào. Tạo ngay đi sếp!</p>`;
+                        container.innerHTML = `<p style="color: #64748b; width: 100%; text-align: center;">Chưa có Preset nào. Hãy tạo ngay một cái nhé!</p>`;
                         return;
                     }
-
                     let html = '';
                     data.forEach(preset => {
                         let dateStr = new Date(preset.created_at).toLocaleDateString('vi-VN');
@@ -218,7 +220,6 @@
                                 <div onclick="window.location.href='inventory.html?id=${preset.id}&edit=true'" style="position: absolute; top: 15px; right: 15px; color: #94a3b8; cursor: pointer; padding: 10px; transition: 0.2s;" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#94a3b8'" title="Chỉnh sửa danh sách">
                                     <i class="fa-solid fa-gear fa-lg"></i>
                                 </div>
-
                                 <div style="display: flex; gap: 20px; align-items: center; width: 100%;" onclick="window.location.href='inventory.html?id=${preset.id}'">
                                     <div class="feature-icon"><i class="fa-solid fa-clipboard-list"></i></div>
                                     <div>
@@ -231,39 +232,26 @@
                     });
                     container.innerHTML = html;
                 } catch (error) {
-                    // 3. TẮT POPUP NẾU BỊ LỖI
                     window.hideTypingPopup(); 
                     showToast("Lỗi Database", "Không thể kết nối Supabase!", "error");
                 }
             }
 
-            // TẠO PRESET MỚI VÀ CHUYỂN THẲNG QUA EDIT MODE
             window.createEmptyPreset = async function() {
-                if (!currentUserUid) return showToast("Lỗi", "Cậu cần đăng nhập trước!", "error");
-                
-                // Gọi Popup Mới thay cho Prompt mặc định
+                if (!currentUserUid) return showToast("Lỗi", "Cậu phải đăng nhập trước!", "error");
                 window.showInputPopup(
-                    "Tạo Trạm Kiểm Tồn Mới 📦", 
-                    "Nhập tên (VD: Quản lý Kho sự kiện)...", 
-                    "Tạo ngay", 
+                    "Tạo Trạm Kiểm Kiện Mới 📦",
+                    "Nhập tên Preset (VD: Quản Lý Kho Sân Khấu)...",
+                    "Tạo Ngay",
                     async function(name) {
-                        // Callback này sẽ chạy khi sếp gõ tên xong và bấm nút "Tạo ngay"
                         if (!name || name.trim() === "") return;
-
                         window.showTypingPopup("Đang khởi tạo không gian...");
-
                         try {
-                            const { data, error } = await supabase.from('inventory_presets').insert([
-                                { user_id: currentUserUid, name: name, items: [] } 
-                            ]).select(); 
-
+                            const { data, error } = await supabase.from('inventory_presets').insert([{ user_id: currentUserUid, name: name, items: [] }]).select();
                             if (error) throw error;
-                            
                             let newId = data[0].id;
-                            
                             window.hideTypingPopup();
                             window.location.href = `inventory.html?id=${newId}&edit=true`;
-
                         } catch (error) {
                             window.hideTypingPopup();
                             showToast("Lỗi", "Tạo Preset thất bại!", "error");

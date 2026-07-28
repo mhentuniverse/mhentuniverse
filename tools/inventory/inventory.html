@@ -8,201 +8,194 @@
         <meta name="theme-color" content="#10b981">
         <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
+        
         <link rel="stylesheet" href="/style.css">
+        <!-- ⚡ BỔ SUNG ADMIN CORE & KHIÊN MOBILE -->
+        <link rel="stylesheet" href="/mhent-admin.css">
         <link rel="stylesheet" href="/tools/tools-theme.css"> 
         <link rel="stylesheet" href="/mhent-ui.css">
+        <link rel="stylesheet" href="/mhent-mobile.css">
+        
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         
         <style>
             :root { --hub-color: #10b981; --hub-bg: rgba(16, 185, 129, 0.1); }
             
-            /* SỬA LỖI FLEXBOX ÉP FOOTER XUỐNG ĐÁY */
-            body { 
-                font-family: 'Nunito', sans-serif; margin: 0; background: #f8fafc; color: #1e293b;
-                display: flex; flex-direction: column; min-height: 100vh; /* Kéo giãn body 100% màn hình */
-            }
-
-            .main-wrapper {
-                flex: 1; /* Cục nam châm đẩy footer xuống */
-                padding-top: 70px; /* Né cái Navbar fixed ở trên ra */
-                display: flex; flex-direction: column;
-            }
-
-            .tool-container { 
-                width: 100%; max-width: 720px; margin: 0 auto; padding: 0 20px 40px 20px; 
-                flex: 1; /* Cho phép nội dung co giãn tự do */
-            }
-
-            /* SỬA LỖI HEADER BỊ LẸM */
-            .tool-header { 
-                position: sticky; top: 70px; background: rgba(255, 255, 255, 0.95); 
-                backdrop-filter: blur(10px); z-index: 90; padding: 15px 0; 
-                border-bottom: 2px solid #f1f5f9; margin-bottom: 20px;
-            }
-            body.dark-mode .tool-header { background: rgba(15, 23, 42, 0.95); border-color: #334155;}
-            .preset-title { font-size: 20px; color: var(--hub-color); font-weight: 900; margin: 0; text-align: center; }
+            body { font-family: 'Nunito', sans-serif !important; margin: 0; background: #f8fafc; color: #1e293b; display: flex; flex-direction: column; min-height: 100vh; }
+            body.dark-mode { background: #0f172a; color: #f8fafc; }
             
-            .nav-tabs { display: flex; flex-wrap: nowrap; gap: 10px; overflow-x: auto; padding-top: 15px; scrollbar-width: none; justify-content: center;}
-            .nav-tabs::-webkit-scrollbar { display: none; }
-            .tab-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 24px; font-weight: 800; white-space: nowrap; text-decoration: none; font-size: 14px; transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;}
-            .tab-btn:hover { transform: translateY(-1px); background: var(--hub-color); color: #fff; border-color: var(--hub-color); }
-            body.dark-mode .tab-btn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
-
-            .category-title { font-size: 18px; color: var(--hub-color); margin: 30px 0 15px 0; border-bottom: 2px dashed #cbd5e1; padding-bottom: 5px; font-weight: 900;}
+            /* ⚡ CẤU TRÚC ADMIN LAYOUT CHUYÊN DỤNG */
+            .admin-layout { display: flex; min-height: 100vh; padding-top: 55px; }
+            .admin-sidebar { width: 260px; background: var(--bg-glass-strong, rgba(255,255,255,0.98)); border-right: 1px solid var(--border-color, #e2e8f0); padding: 25px 15px; position: fixed; height: calc(100vh - 55px); overflow-y: auto; z-index: 50; box-sizing: border-box; transition: transform 0.3s ease; }
+            body.dark-mode .admin-sidebar { background: var(--bg-glass-strong, rgba(15,23,42,0.98)); border-right-color: #334155; }
+            .admin-content { flex: 1; margin-left: 260px; padding: 30px 20px 100px 20px; box-sizing: border-box; min-width: 0; max-width: 900px; margin-right: auto; }
+            
+            .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 12px; color: #64748b; font-weight: 800; text-decoration: none; font-size: 14.5px; transition: 0.2s; margin-bottom: 4px; cursor: pointer; }
+            .admin-menu-item:hover { background: var(--hub-bg); color: var(--hub-color); transform: translateX(4px); }
+            body.dark-mode .admin-menu-item { color: #cbd5e1; }
+            body.dark-mode .admin-menu-item:hover { color: var(--hub-color); }
+            
+            /* HEADER TRONG PHÒNG */
+            .tool-header-panel { background: var(--bg-glass, rgba(255,255,255,0.85)); backdrop-filter: blur(12px); border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+            body.dark-mode .tool-header-panel { background: rgba(30,41,59,0.85); border-color: #334155; }
+            .preset-title { font-size: 22px; color: var(--hub-color); font-weight: 900; margin: 0; }
+            
+            .category-title { font-size: 18px; color: var(--hub-color); margin: 35px 0 15px 0; border-bottom: 2px dashed #cbd5e1; padding-bottom: 6px; font-weight: 900; scroll-margin-top: 80px; }
             body.dark-mode .category-title { border-color: #334155; }
             
-            .item-card { background: #fff; border-radius: 18px; padding: 18px 22px; margin-bottom: 18px; border: 2px solid #f1f5f9; display: flex; flex-direction: column; gap: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease;}
-            .item-card:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
-            body.dark-mode .item-card { background: #111827; border-color: #334155; }
+            .item-card { background: #fff; border-radius: 18px; padding: 18px 22px; margin-bottom: 15px; border: 2px solid #f1f5f9; display: flex; flex-direction: column; gap: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease;}
+            .item-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-color: rgba(16,185,129,0.3); }
+            body.dark-mode .item-card { background: #1e293b; border-color: #334155; }
+            body.dark-mode .item-card:hover { border-color: var(--hub-color); }
             
-            .item-header { display: flex; justify-content: space-between; align-items: center; }
-            .item-name { font-weight: 900; font-size: 16px; color: #1e293b;}
-            body.dark-mode .item-name { color: #f8fafc; }
-            .item-unit { font-size: 12px; background: var(--hub-bg); color: var(--hub-color); padding: 4px 10px; border-radius: 8px; font-weight: 800;}
-
-            .input-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-            .input-box { flex: 1; min-width: 145px; display: flex; flex-direction: column; }
-            .input-box label { font-size: 12px; color: #64748b; margin-bottom: 5px; font-weight: 800;}
-            .input-box input { background: #f8fafc; border: 2px solid #e2e8f0; color: #1e293b; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 900; outline: none; text-align: center; }
-            .input-box input:focus { border-color: var(--hub-color); background: #fff;}
-            body.dark-mode .input-box input { background: #0f172a; border-color: #334155; color: #fff;}
-
-            .result-box { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 8px; padding: 10px; text-align: center; font-weight: 900; font-size: 18px; color: #10b981; min-width: 80px; display: flex; flex-direction: column; justify-content: center; }
-            .result-box.empty { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
-            .revenue-panel { background: rgba(15, 23, 42, 0.95); border-color: rgba(255, 255, 255, 0.12); color: #f8fafc; font-weight: 700; padding: 18px 20px; border-radius: 16px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08); }
-            .revenue-panel small { display: block; font-size: 13px; color: rgba(255,255,255,0.72); margin-top: 6px; }
-
             .item-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-            .item-name { font-weight: 900; font-size: 18px; color: #1e293b; }
+            .item-name { font-weight: 900; font-size: 17px; color: #1e293b; }
             body.dark-mode .item-name { color: #f8fafc; }
             .item-unit { font-size: 12px; background: var(--hub-bg); color: var(--hub-color); padding: 6px 12px; border-radius: 999px; font-weight: 800;}
-
-            /* SỬA LỖI FOOTER VÀ BOTTOM BAR */
-            footer { margin-bottom: 80px; width: 100%; } /* Chừa 80px cho thanh Bottom Bar không đè lên Footer */
             
-            .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; z-index: 100; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.05);}
-            body.dark-mode .bottom-bar { background: rgba(15, 23, 42, 0.95); border-color: #334155; }
+            .input-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+            .input-box { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
+            .input-box label { font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 800;}
+            .input-box input { background: #f8fafc; border: 2px solid #e2e8f0; color: #1e293b; padding: 12px; border-radius: 10px; font-size: 16px; font-weight: 900; outline: none; text-align: center; font-family: 'Nunito', sans-serif; transition: 0.2s; }
+            .input-box input:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+            body.dark-mode .input-box input { background: #0f172a; border-color: #334155; color: #fff;}
+            body.dark-mode .input-box input:focus { background: #1e293b; }
             
-            .btn-action { flex: 1; max-width: 300px; padding: 14px; border: none; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
-            .btn-report { background: var(--hub-color); color: white; }
-            .btn-back { background: #f1f5f9; border: 2px solid #cbd5e1; color: #475569; }
-            body.dark-mode .btn-back { background: #1e293b; border-color: #475569; color: #cbd5e1;}
+            .result-box { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 10px; padding: 10px; text-align: center; font-weight: 900; font-size: 17px; color: #10b981; min-width: 90px; display: flex; flex-direction: column; justify-content: center; }
+            .result-box.empty { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
+            
+            .revenue-panel { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.12); color: #f8fafc; font-weight: 700; padding: 18px 20px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); text-align: center; margin-top: 25px; }
+            .revenue-panel small { display: block; font-size: 13px; color: rgba(255,255,255,0.72); margin-top: 6px; }
+            
+            /* BOTTOM BAR ĐƯỢC CHUẨN HÓA VỚI ADMIN SIDEBAR */
+            .bottom-bar { position: fixed; bottom: 0; left: 260px; width: calc(100% - 260px); height: 75px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 12px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 12px; z-index: 100; justify-content: center; align-items: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); box-sizing: border-box; }
+            body.dark-mode .bottom-bar { background: rgba(15, 23, 42, 0.95); border-top-color: #334155; }
+            
+            .btn-action { flex: 1; max-width: 300px; padding: 14px; border: none; border-radius: 12px; font-weight: 900; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Nunito', sans-serif; transition: 0.2s;}
+            .btn-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
+            .btn-report { background: var(--hub-color); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+            .btn-back-tool { background: #f1f5f9; border: 2px solid #cbd5e1; color: #475569; }
+            body.dark-mode .btn-back-tool { background: #334155; border-color: #475569; color: #f8fafc;}
             .btn-copy { background: #3b82f6; color: white; }
-
-            .review-area { background: #fff; padding: 20px; border-radius: 16px; border: 2px solid #e2e8f0; font-family: monospace; white-space: pre-wrap; font-size: 14px; line-height: 1.6; margin-bottom: 20px;}
+            
+            .review-area { background: #fff; padding: 25px; border-radius: 16px; border: 2px solid #e2e8f0; font-family: 'Courier New', monospace; white-space: pre-wrap; font-size: 14.5px; line-height: 1.7; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);}
             body.dark-mode .review-area { background: #1e293b; border-color: #334155; color: #f8fafc;}
-
-            .edit-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin-top: 20px; }
-            body.dark-mode .edit-box { background: #0f172a; border-color: #334155; }
-            .edit-input-field { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; outline: none;}
-            body.dark-mode .edit-input-field { background: #1e293b; border-color: #475569; color: #fff;}
-            .edit-row { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #e2e8f0; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; font-weight: 800;}
+            
+            .edit-box { background: #fff; padding: 25px; border-radius: 18px; border: 2px dashed #cbd5e1; margin-top: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
+            body.dark-mode .edit-box { background: #1e293b; border-color: #475569; }
+            .edit-input-field { width: 100%; padding: 12px 15px; margin-bottom: 12px; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px; outline: none; box-sizing: border-box; transition: 0.2s;}
+            .edit-input-field:focus { border-color: var(--hub-color); }
+            body.dark-mode .edit-input-field { background: #0f172a; border-color: #475569; color: #fff;}
+            
+            .edit-row { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #e2e8f0; padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; font-weight: 800; transition: 0.2s;}
             body.dark-mode .edit-row { background: #1e293b; border-color: #334155; color: #f8fafc;}
             .btn-delete { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold;}
-        
-            /* ==========================================
-               📱 TỐI ƯU RIÊNG CHO MÀN HÌNH ĐIỆN THOẠI 
-               ========================================== */
-            @media (max-width: 600px) {
-                /* 1. Nới rộng không gian hai bên lề */
-                .tool-container { padding: 0 15px 40px 15px; margin-top: 15px; }
-                
-                /* 2. Ép thanh Tab Menu vuốt từ trái sang (tự nhiên hơn trên mobile) */
-                .nav-tabs { justify-content: flex-start; padding-bottom: 10px; }
-                
-                /* 3. Phép thuật ô nhập liệu: 
-                   Tổng & Bì nằm ngang (50-50), Ô Kết Quả rớt xuống dưới to đùng */
-                .input-group { flex-wrap: wrap; }
-                .input-box { min-width: 45%; } 
-                .result-box { width: 100%; margin-top: 5px; padding: 12px; font-size: 20px; }
 
-                /* 4. Màn hình Edit: Ép các ô (Đơn vị, Cảnh báo) xếp dọc xuống */
-                .edit-box div[style*="flex"] { flex-direction: column !important; gap: 10px !important; }
-                .edit-box input { width: 100% !important; margin-bottom: 0; }
-                
-                /* 5. Ép nút Bottom Bar nhỏ lại xíu để không bị văng chữ */
-                .bottom-bar { padding: 12px 10px; height: 75px; }
-                .btn-action { font-size: 14px; padding: 12px 5px; }
+            /* --- RESPONSIVE CHO ĐIỆN THOẠI (< 768px) --- */
+            @media (max-width: 768px) {
+                .admin-sidebar { transform: translateX(-100%); width: 280px; box-shadow: none; }
+                .admin-sidebar.show-mobile { transform: translateX(0); box-shadow: 15px 0 35px rgba(0,0,0,0.3); }
+                .admin-content { margin-left: 0; padding: 20px 15px 100px 15px; }
+                .bottom-bar { left: 0; width: 100%; padding: 10px 15px; height: 70px; }
+                .btn-action { font-size: 14px; padding: 12px; }
+                .input-group { flex-direction: column; align-items: stretch; gap: 10px; }
+                .input-box { min-width: 100%; }
+                .result-box { width: 100%; padding: 12px; }
             }
         </style>
     </head>
-    <body>
-        <nav class="navbar">
-            <div class="nav-left">
-                <a onclick="window.location.href='/tools/inventory'" style="cursor: pointer;">
-                    <img src="/assets/avt-web.jpg" alt="Avatar" class="avt-img" style="border-color: var(--hub-color);">
-                    <span class="logo-name" style="color: var(--hub-color);">Phòng Làm Việc</span>
+    <body class="dark-mode">
+        <nav class="navbar" style="position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; height: 55px;">
+            <div class="nav-left" style="display: flex; align-items: center; gap: 10px;">
+                <!-- ⚡ NÚT MỞ SIDEBAR TRÊN ĐIỆN THOẠI -->
+                <button class="btn-theme" onclick="toggleAdminLeftDrawer()" title="Danh mục kiểm kê" style="width: 36px; height: 36px; border-radius: 10px; font-size: 16px; display: inline-flex; justify-content: center; align-items: center;" id="btn-mobile-sidebar">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                <a onclick="window.location.href='/tools/inventory'" style="cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                    <img src="/assets/avt-web.jpg" alt="Avatar" class="avt-img" style="width: 30px; height: 30px; border-color: var(--hub-color);">
+                    <span class="logo-name" style="color: var(--hub-color); font-size: 17px;">Phòng Làm Việc</span>
                 </a>
             </div>
             <div class="nav-right">
-                <button class="btn-theme" onclick="toggleDarkMode()"><svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+                <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" style="width: 36px; height: 36px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
             </div>
         </nav>
 
-        <!-- BAO BỌC TOÀN BỘ NỘI DUNG VÀO THẺ MAIN ĐỂ ÉP FOOTER XUỐNG -->
-        <main class="main-wrapper">
-            <div class="tool-header">
-                <h1 class="preset-title" id="preset-title"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp dữ liệu...</h1>
-                <div class="nav-tabs" id="view-tabs" style="display: none;"></div>
-            </div>
+        <div class="admin-layout">
+            <!-- ⚡ SIDEBAR ĐIỀU HÀNH DANH MỤC KIỂM ĐẾM -->
+            <aside class="admin-sidebar" id="inventory-sidebar">
+                <div id="sidebar-nav-list">
+                    <div style="font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; margin: 5px 0 15px 12px; letter-spacing: 1px;">ĐANG TẢI MỤC LỤC...</div>
+                </div>
+            </aside>
 
-            <div id="view-input" class="tool-container">
-                <div id="inventory-list"></div>
-                <div id="revenue-panel" class="result-box" style="display:none; margin-top: 20px; max-width: 420px; margin-left: auto; margin-right: auto;"></div>
-            </div>
-
-            <div id="view-review" class="tool-container" style="display: none;">
-                <h2 style="color: #3b82f6; margin-bottom: 15px; font-weight: 900; text-align: center;"><i class="fa-solid fa-magnifying-glass"></i> Kiểm Tra Báo Cáo</h2>
-                <div class="review-area" id="reportText"></div>
-            </div>
-
-            <div id="view-edit" class="tool-container" style="display: none;">
-                <div style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: 800; border: 1px solid #bfdbfe;">
-                    <i class="fa-solid fa-pen-ruler"></i> Chế độ chỉnh sửa cấu hình danh sách món.
+            <!-- ⚡ KHUNG LÀM VIỆC CHÍNH -->
+            <main class="admin-content">
+                <div class="tool-header-panel">
+                    <h1 class="preset-title" id="preset-title"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp dữ liệu...</h1>
+                    <div style="font-size: 13px; color: #64748b; font-weight: 800;"><i class="fa-solid fa-layer-group"></i> Chọn danh mục bên trái để cuộn nhanh</div>
                 </div>
 
-                <div id="edit-list-render"></div>
+                <div id="view-input">
+                    <div id="inventory-list"></div>
+                    <div id="revenue-panel" class="revenue-panel" style="display:none; max-width: 460px; margin: 30px auto 0 auto;"></div>
+                </div>
 
-                <div class="edit-box">
-                    <h3 id="add-item-title" style="color: #334155; margin-top: 0; margin-bottom: 15px; font-weight: 900;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
-                    <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
-                    <input type="text" id="new_name" class="edit-input-field" placeholder="Tên món (VD: Trà Olong)">
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị (Bịch, Kg...)" style="flex: 1;">
-                        <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi < ?" style="flex: 1;">
+                <div id="view-review" style="display: none;">
+                    <h2 style="color: #3b82f6; margin-bottom: 15px; font-weight: 900; text-align: center;"><i class="fa-solid fa-magnifying-glass"></i> Kiểm Tra Báo Cáo</h2>
+                    <div class="review-area" id="reportText"></div>
+                </div>
+
+                <div id="view-edit" style="display: none;">
+                    <div style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 16px 20px; border-radius: 14px; margin-bottom: 20px; font-weight: 800; border: 1px solid #bfdbfe; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-pen-ruler fa-lg"></i> <span>Chỉnh sửa danh sách kiểm kiện hàng hóa</span>
                     </div>
                     
-                    <!-- ĐÃ SỬA: Thêm hiệu ứng xổ ra ô nhập số bì -->
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #64748b; margin-bottom: 5px; cursor: pointer;">
-                        <input type="checkbox" id="new_tare" style="width: 18px; height: 18px;" onchange="document.getElementById('tare_input_wrapper').style.display = this.checked ? 'block' : 'none'"> Món này có Trừ Bì (Vỏ hộp)
-                    </label>
-                    <div id="tare_input_wrapper" style="display: none; margin-bottom: 15px;">
-                        <input type="number" step="0.01" id="new_tare_weight" class="edit-input-field" placeholder="Nhập số kg vỏ mặc định (VD: 0.2)">
+                    <div id="edit-list-render"></div>
+                    
+                    <div class="edit-box">
+                        <h3 id="add-item-title" style="color: var(--hub-color); margin-top: 0; margin-bottom: 18px; font-weight: 900; font-size: 18px;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
+                        <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
+                        <input type="text" id="new_name" class="edit-input-field" placeholder="Tên Món (VD: Trà Olong)">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị (Bị, Kg...)" style="flex: 1;">
+                            <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi <= ?" style="flex: 1;">
+                        </div>
+                        
+                        <label style="display: flex; align-items: center; gap: 10px; font-weight: 800; color: #64748b; margin: 12px 0 8px 0; cursor: pointer;">
+                            <input type="checkbox" id="new_tare" style="width: 18px; height: 18px; accent-color: var(--hub-color);" onchange="document.getElementById('tare_input_wrapper').style.display = this.checked ? 'block' : 'none'"> Bật tính năng trừ bì (vỏ thùng/hộp)
+                        </label>
+                        <div id="tare_input_wrapper" style="display: none; margin-bottom: 15px;">
+                            <input type="number" step="0.01" id="new_tare_weight" class="edit-input-field" placeholder="Nhập kg vỏ thùng/hộp (VD: 0.2)">
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 5px;">
+                            <input type="number" step="1" min="1" id="new_multiplier" class="edit-input-field" placeholder="Hệ số quy đổi (VD: 1 bịch = 50 cái)" style="flex: 1;">
+                            <input type="number" step="0.01" min="0" id="new_price" class="edit-input-field" placeholder="Đơn giá (VD: 25000)" style="flex: 1;">
+                        </div>
+                        <p style="font-size: 13px; color:#64748b; margin: 4px 0 18px 0;"><i class="fa-solid fa-info-circle"></i> Hệ thống sẽ tự động tính doanh thu ước tính dựa trên đơn giá.</p>
+                        
+                        <button id="add-item-button" class="btn-action" style="width: 100%; max-width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Thêm vào danh sách</button>
+                        <button id="cancel-edit-button" class="btn-action btn-back-tool" type="button" style="width: 100%; max-width: 100%; margin-top: 10px; display: none;" onclick="cancelEdit()">Hủy chỉnh sửa</button>
                     </div>
-                    <input type="number" step="1" min="1" id="new_multiplier" class="edit-input-field" placeholder="Hệ số quy đổi (VD: 1 bịch = 50 cái)">
-                    <input type="number" step="0.01" min="0" id="new_price" class="edit-input-field" placeholder="Giá/đơn vị (VD: 25000)">
-                    <p style="font-size: 13px; color:#64748b; margin:0 0 15px 0;">Nếu có giá đơn vị, hệ thống sẽ ước tính doanh thu tạm.</p>
-
-                    <button id="add-item-button" class="btn-action" style="width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Đưa vào danh sách</button>
-                    <button id="cancel-edit-button" class="btn-action btn-back" type="button" style="width: 100%; margin-top: 10px; display: none; background: #e2e8f0; color: #475569;" onclick="cancelEdit()">Hủy sửa</button>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
 
-        <!-- CÁC THANH BOTTOM BAR CHỨA NÚT -->
+        <!-- CÁC THANH BOTTOM BAR CHUYÊN DỤNG -->
         <div class="bottom-bar" id="bar-input" style="display: none;">
             <button class="btn-action btn-report" onclick="chotSoLieu()"><i class="fa-solid fa-check-double"></i> CHỐT SỐ LIỆU</button>
         </div>
-
         <div class="bottom-bar" id="bar-review" style="display: none;">
-            <button class="btn-action btn-back" onclick="quayLaiSua()"><i class="fa-solid fa-arrow-left"></i> Sửa Lại</button>
+            <button class="btn-action btn-back-tool" onclick="quayLaiSua()"><i class="fa-solid fa-arrow-left"></i> Sửa lại</button>
             <button class="btn-action btn-copy" onclick="copyReport()"><i class="fa-solid fa-copy"></i> Copy Báo Cáo</button>
         </div>
-
         <div class="bottom-bar" id="bar-edit" style="display: none;">
-            <button class="btn-action btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-xmark"></i> Thoát</button>
-            <button class="btn-action btn-report" style="background: #3b82f6;" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU TRÊN MÂY</button>
+            <button class="btn-action btn-back-tool" onclick="window.location.href='index.html'"><i class="fa-solid fa-xmark"></i> Thoát</button>
+            <button class="btn-action btn-report" style="background: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.3);" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU TRÊN MÂY</button>
         </div>
 
         <footer>
@@ -236,7 +229,6 @@
         <script src="/mhent-ui.js"></script>
         <script type="module">
             import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
             const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
             const supabase = createClient(supabaseUrl, supabaseKey);
@@ -247,6 +239,31 @@
             };
             if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
+            // ⚡ HÀM MỞ SIDEBAR TRÊN ĐIỆN THOẠI
+            window.toggleAdminLeftDrawer = function() {
+                const sidebar = document.getElementById('inventory-sidebar');
+                if (!sidebar) return;
+                let overlay = document.getElementById('admin-left-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'admin-left-overlay';
+                    overlay.className = 'mhent-drawer-overlay';
+                    overlay.onclick = function() { window.toggleAdminLeftDrawer(); };
+                    document.body.appendChild(overlay);
+                }
+                if (sidebar.classList.contains('show-mobile')) {
+                    sidebar.classList.remove('show-mobile');
+                    overlay.classList.remove('show');
+                    setTimeout(() => overlay.style.display = 'none', 300);
+                } else {
+                    overlay.style.display = 'block';
+                    setTimeout(() => {
+                        sidebar.classList.add('show-mobile');
+                        overlay.classList.add('show');
+                    }, 10);
+                }
+            };
+
             const urlParams = new URLSearchParams(window.location.search);
             const presetId = urlParams.get('id');
             const isEditMode = urlParams.get('edit') === 'true'; 
@@ -255,39 +272,69 @@
             let currentEditIndex = null;
 
             async function loadData() {
-                if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID.", true);
-
-                window.showTypingPopup("Đang nạp dữ liệu cấu hình...");
-
+                if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID Preset.", true);
+                window.showTypingPopup("Đang nạp dữ liệu...");
                 try {
                     const { data, error } = await supabase.from('inventory_presets').select('*').eq('id', presetId).single();
                     if (error) throw error;
-
                     currentData = data.items || [];
-                    window.hideTypingPopup();
+                    window.hideTypingPopup(); 
                     
                     if (isEditMode) {
-                        document.getElementById('preset-title').innerHTML = `<i class="fa-solid fa-gear"></i> Chỉnh sửa: ` + data.name;
+                        document.getElementById('preset-title').innerHTML = `<i class="fa-solid fa-gear"></i> Chỉnh sửa Preset: ` + data.name;
                         showEditMode();
                     } else {
                         document.getElementById('preset-title').innerText = data.name;
                         if (currentData.length === 0) {
                             document.getElementById('inventory-list').innerHTML = `
-                                <div style="text-align: center; padding: 40px 20px; color: #64748b;">
-                                    <i class="fa-solid fa-box-open fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
-                                    <h3>Chưa có dữ liệu danh sách!</h3>
-                                    <button class="btn-action btn-report" style="margin: 20px auto;" onclick="window.location.href='?id=${presetId}&edit=true'">Thiết lập ngay ⚙️</button>
+                                <div style="text-align: center; padding: 60px 20px; color: #64748b;">
+                                    <i class="fa-solid fa-box-open fa-3x" style="margin-bottom: 18px; opacity: 0.5;"></i>
+                                    <h3 style="font-weight: 900;">Chưa có danh sách kiểm kiện!</h3>
+                                    <button class="btn-action btn-report" style="margin: 20px auto 0 auto; width: fit-content; padding: 12px 25px;" onclick="window.location.href='?id=${presetId}&edit=true'">Thiết lập ngay</button>
                                 </div>`;
+                            renderSidebarNav([]);
                         } else {
                             renderInputList();
-                            document.getElementById('view-tabs').style.display = 'flex';
                             document.getElementById('bar-input').style.display = 'flex';
                         }
                     }
                 } catch (error) {
                     window.hideTypingPopup();
-                    showPopup("Lỗi Database", "Không thể lấy dữ liệu!", true);
+                    showPopup("Lỗi Database", "Không thể tải dữ liệu!", true);
                 }
+            }
+
+            // ⚡ THUẬT TOÁN VẼ SIDEBAR MỤC LỤC TỰ ĐỘNG
+            function renderSidebarNav(categories) {
+                const sidebarContainer = document.getElementById('sidebar-nav-list');
+                let html = `
+                    <div style="font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; margin: 5px 0 15px 12px; letter-spacing: 1px;">DANH MỤC KIỂM ĐẾM</div>
+                `;
+                if (categories && categories.length > 0) {
+                    categories.forEach(cat => {
+                        html += `
+                            <a href="#${cat.id}" class="admin-menu-item" onclick="if(window.innerWidth<=768) toggleAdminLeftDrawer();">
+                                <i class="fa-solid fa-folder-tree" style="color: var(--hub-color);"></i>
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cat.name}</span>
+                            </a>
+                        `;
+                    });
+                } else {
+                    html += `<div style="font-size: 13px; color: #64748b; padding: 0 12px 15px 12px; font-style: italic;">Chưa có danh mục nào</div>`;
+                }
+                html += `
+                    <div style="height: 1px; background: var(--border-color, #334155); margin: 15px 10px;"></div>
+                    <div style="font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; margin: 10px 0 15px 12px; letter-spacing: 1px;">CÔNG CỤ & CÀI ĐẶT</div>
+                    <a href="?id=${presetId}&edit=true" class="admin-menu-item" style="color: #3b82f6;">
+                        <i class="fa-solid fa-gear" style="color: #3b82f6;"></i>
+                        <span>Chỉnh Sửa Preset</span>
+                    </a>
+                    <a href="index.html" class="admin-menu-item" style="color: #ef4444;">
+                        <i class="fa-solid fa-door-open" style="color: #ef4444;"></i>
+                        <span>Thoát Về Sảnh</span>
+                    </a>
+                `;
+                sidebarContainer.innerHTML = html;
             }
 
             function showEditMode() {
@@ -295,27 +342,27 @@
                 document.getElementById('bar-input').style.display = 'none';
                 document.getElementById('view-edit').style.display = 'block';
                 document.getElementById('bar-edit').style.display = 'flex';
+                renderSidebarNav([]); // Trong mode sửa thì hiện sidebar cơ bản
                 renderEditList();
             }
 
             window.renderEditList = function() {
                 const container = document.getElementById('edit-list-render');
                 if (currentData.length === 0) {
-                    container.innerHTML = `<p style="text-align:center; color:#64748b;">Danh sách đang trống. Hãy thêm món ở dưới nha.</p>`;
+                    container.innerHTML = `<p style="text-align:center; color:#64748b; font-weight: 700; padding: 20px;">Danh sách đang trống. Hãy thêm món mới bên dưới nha.</p>`;
                     return;
                 }
-
                 let html = '';
                 currentData.forEach((item, index) => {
                     html += `
                         <div class="edit-row">
                             <div>
-                                <div style="color: var(--hub-color); font-size: 12px;">${item.catName}</div>
-                                <div>${item.name} <span style="font-size:11px; opacity:0.6;">(${item.unit})</span></div>
+                                <div style="color: var(--hub-color); font-size: 12px; font-weight: 900;">${item.catName}</div>
+                                <div style="font-size: 16px;">${item.name} <span style="font-size:12px; opacity:0.7;">(${item.unit})</span></div>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button class="btn-action" style="background: #f59e0b; color: white; padding: 8px 12px;" onclick="startEditItem(${index})"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn-delete" onclick="removeItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                                <button class="btn-action" style="background: #f59e0b; color: white; padding: 8px 14px; width: auto;" onclick="startEditItem(${index})"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-delete" style="padding: 8px 14px;" onclick="removeItem(${index})"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     `;
@@ -350,72 +397,52 @@
                 document.getElementById('new_tare').checked = false;
                 document.getElementById('tare_input_wrapper').style.display = 'none';
                 document.getElementById('new_tare_weight').value = '';
+                document.getElementById('new_multiplier').value = '';
+                document.getElementById('new_price').value = '';
                 document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-plus"></i> Thêm Món Mới';
-                document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Đưa vào danh sách';
+                document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Thêm vào danh sách';
                 document.getElementById('cancel-edit-button').style.display = 'none';
             }
 
             window.addNewItem = function() {
-                let cat = document.getElementById('new_cat').value;
-                let name = document.getElementById('new_name').value;
-                let unit = document.getElementById('new_unit').value;
+                let cat = document.getElementById('new_cat').value.trim();
+                let name = document.getElementById('new_name').value.trim();
+                let unit = document.getElementById('new_unit').value.trim();
                 let warn = document.getElementById('new_warn').value;
                 let tare = document.getElementById('new_tare').checked;
-                let tareWeight = document.getElementById('new_tare_weight').value; // Bắt số liệu trừ bì
-
+                let tareWeight = document.getElementById('new_tare_weight').value;
+                
                 if(!cat || !name || !unit || !warn) {
                     showToast('Cảnh báo', 'Cậu nhập thiếu thông tin rồi!', 'error');
                     return;
                 }
-
                 let catId = 'cat_' + cat.replace(/\s+/g, '-').toLowerCase();
                 let warnValue = parseFloat(warn);
                 let multiplier = parseFloat(document.getElementById('new_multiplier').value);
                 let pricePerUnit = parseFloat(document.getElementById('new_price').value);
-
+                
                 if (currentEditIndex !== null) {
                     const item = currentData[currentEditIndex];
-                    item.cat = catId;
-                    item.catName = cat;
-                    item.name = name;
-                    item.unit = unit;
-                    item.hasTare = tare;
-                    item.warnAt = warnValue;
+                    item.cat = catId; item.catName = cat; item.name = name; item.unit = unit;
+                    item.hasTare = tare; item.warnAt = warnValue;
                     item.defaultTare = tare ? parseFloat(tareWeight || 0) : 0;
                     item.multiplier = multiplier > 0 ? multiplier : undefined;
                     item.pricePerUnit = pricePerUnit > 0 ? pricePerUnit : undefined;
                     currentEditIndex = null;
-                    showToast('Đã lưu', name, 'success');
+                    showToast('Đã cập nhật', name, 'success');
                 } else {
                     let itemId = 'item_' + Date.now();
                     currentData.push({
-                        id: itemId,
-                        cat: catId,
-                        catName: cat,
-                        name: name,
-                        unit: unit,
-                        hasTare: tare,
-                        warnAt: warnValue,
-                        defaultTare: tare ? parseFloat(tareWeight || 0) : 0, // Lưu thẳng số bì lên Database
+                        id: itemId, cat: catId, catName: cat, name: name, unit: unit,
+                        hasTare: tare, warnAt: warnValue,
+                        defaultTare: tare ? parseFloat(tareWeight || 0) : 0,
                         multiplier: multiplier > 0 ? multiplier : undefined,
                         pricePerUnit: pricePerUnit > 0 ? pricePerUnit : undefined
                     });
                     showToast('Đã thêm', name, 'success');
                 }
-
-                document.getElementById('new_cat').value = '';
-                document.getElementById('new_name').value = '';
-                document.getElementById('new_unit').value = '';
-                document.getElementById('new_warn').value = '';
-                document.getElementById('new_tare').checked = false;
-                document.getElementById('new_tare_weight').value = '';
-                document.getElementById('new_multiplier').value = '';
-                document.getElementById('new_price').value = '';
-                document.getElementById('tare_input_wrapper').style.display = 'none';
-                document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-plus"></i> Thêm Món Mới';
-                document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Đưa vào danh sách';
-                document.getElementById('cancel-edit-button').style.display = 'none';
                 
+                cancelEdit(); // Reset form sạch sẽ
                 renderEditList();
             }
 
@@ -425,11 +452,10 @@
             }
 
             window.savePresetToSupabase = async function() {
-                window.showTypingPopup("Đang nén dữ liệu đẩy lên mây...");
+                window.showTypingPopup("Đang lưu lên mây...");
                 try {
                     const { error } = await supabase.from('inventory_presets').update({ items: currentData }).eq('id', presetId);
                     if(error) throw error;
-                    
                     window.hideTypingPopup();
                     showPopup('Xong!', 'Danh sách đã được cập nhật an toàn trên mây.');
                     setTimeout(() => { window.location.href = `?id=${presetId}`; }, 1500);
@@ -441,22 +467,23 @@
 
             function renderInputList() {
                 const container = document.getElementById('inventory-list');
-                const tabsContainer = document.getElementById('view-tabs');
-                let htmlContent = ''; let tabsHtml = ''; let categories = [];
+                let htmlContent = ''; 
+                let categories = [];
+                let sidebarCats = [];
 
                 currentData.forEach(item => {
                     if (item.catName && !categories.includes(item.cat)) {
                         categories.push(item.cat);
-                        tabsHtml += `<a href="#${item.cat}" class="tab-btn">${item.catName.split('.')[0]}</a>`;
+                        sidebarCats.push({ id: item.cat, name: item.catName });
+                        htmlContent += `<h2 class="category-title" id="${item.cat}">${item.catName}</h2>`;
                     }
-                    if (item.catName) htmlContent += `<h2 class="category-title" id="${item.cat}">${item.catName}</h2>`;
                     
                     let savedTare = localStorage.getItem('tare_' + item.id);
-                    if (savedTare === null) {
-                        savedTare = item.defaultTare || '';
-                    }
-                    let grossLabel = item.multiplier ? 'Số bịch' : 'Tổng Cân';
-                    let priceInfo = item.pricePerUnit ? `<div style="font-size:14px; color:#475569; margin-top:8px;">Đơn giá: ${formatCurrency(item.pricePerUnit)} / ${item.unit}</div>` : '';
+                    if (savedTare === null) savedTare = item.defaultTare || '';
+                    
+                    let grossLabel = item.multiplier ? 'Số Lượng Sạch' : 'Tổng Kiểm Đếm';
+                    let priceInfo = item.pricePerUnit ? `<div style="font-size:13.5px; color:#64748b; margin-top:8px; font-weight:800;">Đơn giá: ${formatCurrency(item.pricePerUnit)} / ${item.unit}</div>` : '';
+                    
                     htmlContent += `
                         <div class="item-card">
                             <div class="item-header">
@@ -470,7 +497,7 @@
                                 </div>
                                 ${item.hasTare ? `
                                 <div class="input-box">
-                                    <label>Trừ bì</label>
+                                    <label>Trừ Bì</label>
                                     <input type="number" step="0.01" id="tare_${item.id}" value="${savedTare}" oninput="window.saveTare('${item.id}'); window.calculate('${item.id}')" placeholder="0">
                                 </div>` : ''}
                                 <div class="result-box empty" id="result_${item.id}">--</div>
@@ -479,17 +506,14 @@
                         </div>
                     `;
                 });
-                tabsHtml += `<a href="?id=${presetId}&edit=true" class="tab-btn" style="border-color: #3b82f6; color: #3b82f6;"><i class="fa-solid fa-gear"></i> Sửa</a>`;
-                tabsHtml += `<a href="index.html" class="tab-btn" style="border-color: #ef4444; color: #ef4444;"><i class="fa-solid fa-door-open"></i> Thoát</a>`;
                 
-                tabsContainer.innerHTML = tabsHtml;
+                renderSidebarNav(sidebarCats); // ⚡ VẼ SIDEBAR MỤC LỤC
                 container.innerHTML = htmlContent;
             }
 
             window.saveTare = function(id) { localStorage.setItem('tare_' + id, document.getElementById('tare_' + id).value); }
-
             window.formatCurrency = function(value) {
-                if (typeof value !== 'number' || Number.isNaN(value)) return '0 ₫';
+                if (typeof value !== 'number' || Number.isNaN(value)) return '0 đ';
                 return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
             }
 
@@ -497,9 +521,7 @@
                 const grossEl = document.getElementById('gross_' + item.id);
                 if (!grossEl || grossEl.value === '') return null;
                 let total = parseFloat(grossEl.value || 0);
-                if (item.multiplier && item.multiplier > 0) {
-                    total = total * item.multiplier;
-                }
+                if (item.multiplier && item.multiplier > 0) total = total * item.multiplier;
                 const tareEl = document.getElementById('tare_' + item.id);
                 if (tareEl) total -= parseFloat(tareEl.value || 0);
                 return Math.round(total * 1000) / 1000;
@@ -514,8 +536,8 @@
                 });
                 const panel = document.getElementById('revenue-panel');
                 if (totalRevenue > 0) {
-                    panel.style.display = 'flex';
-                    panel.innerHTML = `DOANH THU DỰ KIẾN: ${formatCurrency(Math.round(totalRevenue))}<small>(Ước tính dựa trên giá mỗi đơn vị)</small>`;
+                    panel.style.display = 'block';
+                    panel.innerHTML = `DOANH THU ƯỚC TÍNH: <span style="color:#10b981; font-size: 20px;">${formatCurrency(Math.round(totalRevenue))}</span><small>(Tính tự động dựa trên đơn giá)</small>`;
                 } else {
                     panel.style.display = 'none';
                 }
@@ -547,36 +569,31 @@
             }
 
             window.chotSoLieu = function() {
-                let txt = `📅 BÁO CÁO TỒN KHO - ${new Date().toLocaleString('vi-VN')}\n--------------------------------\n\n`;
+                let txt = `BÁO CÁO KIỂM KHO - ${new Date().toLocaleString('vi-VN')}\n--------------------------------\n\n`;
                 let outOfStock = [], lowStock = [], fullList = [];
                 let totalRevenue = 0;
-
                 currentData.forEach(item => {
                     const net = window.getNetValue(item);
                     if (net === null) return;
                     if (item.pricePerUnit) totalRevenue += net * item.pricePerUnit;
                     fullList.push(`- ${item.name}: ${net} ${item.unit}${item.pricePerUnit ? ` | ${formatCurrency(Math.round(net * item.pricePerUnit))}` : ''}`);
-                    if (net <= 0) outOfStock.push(`❌ ${item.name}`);
-                    else if (net <= item.warnAt) lowStock.push(`⚠️ ${item.name} (Còn: ${net})`);
+                    if (net <= 0) outOfStock.push(`  ❌ ${item.name}`);
+                    else if (net <= item.warnAt) lowStock.push(`  ⚠️ ${item.name} (Còn: ${net} ${item.unit})`);
                 });
-
                 if (outOfStock.length > 0 || lowStock.length > 0) {
-                    txt += `🚨 CẦN CHÚ Ý:\n`;
-                    if (outOfStock.length > 0) txt += `\n🔴 HẾT HÀNG:\n` + outOfStock.join('\n') + '\n';
-                    if (lowStock.length > 0) txt += `\n🟡 SẮP HẾT:\n` + lowStock.join('\n') + '\n';
+                    txt += `📌 CẢNH BÁO NHẬP HÀNG:\n`;
+                    if (outOfStock.length > 0) txt += `\n❌ HẾT HÀNG / TRỐNG:\n` + outOfStock.join('\n') + '\n';
+                    if (lowStock.length > 0) txt += `\n⚠️ SẮP HẾT (CẦN NHẬP):\n` + lowStock.join('\n') + '\n';
                     txt += `--------------------------------\n\n`;
                 }
-
                 if (totalRevenue > 0) {
-                    txt += `💰 DOANH THU DỰ KIẾN: ${formatCurrency(Math.round(totalRevenue))}\n--------------------------------\n\n`;
+                    txt += `💰 DOANH THU ƯỚC TÍNH: ${formatCurrency(Math.round(totalRevenue))}\n--------------------------------\n\n`;
                 }
-
-                txt += `📋 DANH SÁCH CHÉP SỔ:\n` + fullList.join('\n');
+                txt += `📋 DANH SÁCH CHI TIẾT:\n` + fullList.join('\n');
+                
                 document.getElementById('reportText').innerText = txt;
-
                 document.getElementById('view-input').style.display = 'none';
                 document.getElementById('bar-input').style.display = 'none';
-                document.getElementById('view-tabs').style.display = 'none';
                 document.getElementById('view-review').style.display = 'block';
                 document.getElementById('bar-review').style.display = 'flex';
                 window.scrollTo(0, 0);
@@ -587,7 +604,6 @@
                 document.getElementById('bar-review').style.display = 'none';
                 document.getElementById('view-input').style.display = 'block';
                 document.getElementById('bar-input').style.display = 'flex';
-                document.getElementById('view-tabs').style.display = 'flex';
             }
 
             window.copyReport = function() {
