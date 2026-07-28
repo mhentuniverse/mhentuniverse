@@ -10,9 +10,14 @@
     <meta name="theme-color" content="#0ea5e9">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
+    
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="teach-theme.css">
+    <link rel="stylesheet" href="/mhent-admin.css">
     <link rel="stylesheet" href="/mhent-ui.css">
+    <!-- ⚡ BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE -->
+    <link rel="stylesheet" href="/mhent-mobile.css">
+    
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -21,12 +26,12 @@
         body.dark-mode { background: #0f172a; color: #fff; }
 
         .admin-layout { display: flex; min-height: 100vh; padding-top: 70px; }
-        .admin-sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto; z-index: 10; }
-        .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
+        .admin-sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto; z-index: 10; transition: transform 0.3s ease; }
+        .admin-menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 5px; text-decoration: none; }
         .admin-menu-item:hover { background: #f1f5f9; color: var(--hub-color); }
         .admin-menu-item.active { background: var(--hub-bg); color: var(--hub-color); box-shadow: 0 4px 10px rgba(14,165,233,0.15); }
         
-        .admin-content { flex: 1; margin-left: 260px; padding: 40px; max-width: 100%; box-sizing: border-box; overflow-x: hidden; }
+        .admin-content { flex: 1; margin-left: 260px; padding: 40px; max-width: 100%; box-sizing: border-box; overflow-x: hidden; transition: margin-left 0.3s ease; }
         .admin-title { font-size: 28px; font-weight: 900; color: #1e293b; margin: 0 0 30px 0; }
         
         .admin-tab { display: none; animation: fadeIn 0.3s ease; }
@@ -50,7 +55,6 @@
         body.dark-mode .admin-title, body.dark-mode .input-group label { color: #f8fafc; }
         body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
 
-        /* CSS cho hàng nhập liệu Baamboozle */
         .baam-q-row, .baam-s-row { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
         .baam-s-row { flex-direction: row; align-items: center; }
         body.dark-mode .baam-q-row, body.dark-mode .baam-s-row { background: #1e293b; border-color: #334155; }
@@ -76,13 +80,21 @@
         .q-btn.active { background: var(--hub-color); border-color: var(--hub-color); color: white; }
         .q-btn.solved { background: #10b981; border-color: #059669; opacity: 0.5; text-decoration: line-through; color: white;}
 
-        /* 🔥 CSS CHO CLOUD PANEL */
         .cloud-sync-panel { background: rgba(14, 165, 233, 0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px dashed #0ea5e9; }
         body.dark-mode .cloud-sync-panel { background: rgba(14, 165, 233, 0.1); border-color: #0ea5e9; }
         
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.95); z-index: 100000; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(5px); }
         .modal-content { background: #1e293b; border: 3px solid #0ea5e9; padding: 30px; border-radius: 20px; max-width: 800px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popIn 0.3s ease; }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* ⚡ RESPONSIVE CHO SIDEBAR TRÊN MOBILE */
+        @media screen and (max-width: 768px) {
+            .admin-sidebar { transform: translateX(-100%); width: 280px; box-shadow: none; z-index: 1000001; }
+            .admin-sidebar.show-mobile { transform: translateX(0); box-shadow: 15px 0 35px rgba(0,0,0,0.4); }
+            .admin-content { margin-left: 0 !important; padding: 20px 15px 100px 15px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .mirror-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body class="gradient-bg">
@@ -107,9 +119,13 @@
         </div>
     </div>
 
-    <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 1px solid var(--hub-bg);">
-        <div class="nav-left">
-            <a onclick="window.location.href='/teach'" style="cursor: pointer;">
+    <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 1px solid var(--hub-bg); height: 70px;">
+        <div class="nav-left" style="display: flex; align-items: center; gap: 12px;">
+            <!-- ⚡ NÚT MỞ SIDEBAR TRÊN ĐIỆN THOẠI -->
+            <button class="btn-theme" onclick="toggleAdminLeftDrawer()" title="Danh mục công cụ" style="width: 38px; height: 38px; border-radius: 10px; font-size: 16px; display: inline-flex; justify-content: center; align-items: center; border: none; color: var(--hub-color);" id="btn-mobile-sidebar">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+            <a onclick="window.location.href='/teach'" style="cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none;">
                 <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--hub-color);">
                 <span class="logo-name" style="color: var(--hub-color);">Admin - MHEnt. Edu</span>
             </a>
@@ -125,16 +141,16 @@
     </nav>
 
     <div class="admin-layout">
-        <aside class="admin-sidebar">
+        <aside class="admin-sidebar" id="edu-sidebar">
             <div style="font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; padding-left: 20px;">Công cụ giảng dạy</div>
-            <a class="admin-menu-item active" id="menu-vocab" onclick="switchAdminTab('vocab')"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</a>
-            <a class="admin-menu-item" id="menu-baam" onclick="switchAdminTab('baam')"><i class="fa-solid fa-gift"></i> Hộp Quà Nhân Phẩm</a>
-            <a class="admin-menu-item" id="menu-spin" onclick="switchAdminTab('spin')"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Định Mệnh</a>
-            <a class="admin-menu-item" id="menu-tug" onclick="switchAdminTab('tug')"><i class="fa-solid fa-people-pulling"></i> Kéo Co Từ Vựng</a>
-            <a class="admin-menu-item" id="menu-bomb" onclick="switchAdminTab('bomb')"><i class="fa-solid fa-bomb"></i> Bom Hẹn Giờ</a>
-            <a class="admin-menu-item" id="menu-blast" onclick="switchAdminTab('blast')"><i class="fa-solid fa-cubes"></i> Blast Block</a>
-            <a class="admin-menu-item" id="menu-unscram" onclick="switchAdminTab('unscram')"><i class="fa-solid fa-hurricane"></i> Word Tornado</a>
-            <a class="admin-menu-item" id="menu-racing" onclick="switchAdminTab('racing')"><i class="fa-solid fa-flag-checkered"></i> Đua Xe Flashcard</a>
+            <a class="admin-menu-item active" id="menu-vocab" onclick="switchAdminTab('vocab'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-language"></i> Đấu Trường Từ Vựng</a>
+            <a class="admin-menu-item" id="menu-baam" onclick="switchAdminTab('baam'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-gift"></i> Hộp Quà Nhân Phẩm</a>
+            <a class="admin-menu-item" id="menu-spin" onclick="switchAdminTab('spin'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-dharmachakra"></i> Vòng Quay Định Mệnh</a>
+            <a class="admin-menu-item" id="menu-tug" onclick="switchAdminTab('tug'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-people-pulling"></i> Kéo Co Từ Vựng</a>
+            <a class="admin-menu-item" id="menu-bomb" onclick="switchAdminTab('bomb'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-bomb"></i> Bom Hẹn Giờ</a>
+            <a class="admin-menu-item" id="menu-blast" onclick="switchAdminTab('blast'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-cubes"></i> Blast Block</a>
+            <a class="admin-menu-item" id="menu-unscram" onclick="switchAdminTab('unscram'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-hurricane"></i> Word Tornado</a>
+            <a class="admin-menu-item" id="menu-racing" onclick="switchAdminTab('racing'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-flag-checkered"></i> Đua Xe Flashcard</a>
         </aside>
 
         <main class="admin-content">
@@ -142,22 +158,22 @@
                 <h1 class="admin-title">Đấu Trường Từ Vựng</h1>
                 <div class="admin-card">
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('vocab')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-vocab" style="flex: 2;" onchange="loadSelectedGame('vocab')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-vocab" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('vocab')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-vocab" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
                                 ------
                             </div>
-                            <input type="text" class="admin-input cloud-data-name-vocab" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Bài 1 - Tiếng Anh)...">
+                            <input type="text" class="admin-input cloud-data-name-vocab" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Bài 1 - Tiếng Anh)...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('vocab', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('vocab', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('vocab')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('vocab')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('vocab', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('vocab', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('vocab')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('vocab')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -228,22 +244,22 @@
                 <h1 class="admin-title">Hộp Quà Nhân Phẩm (Quiz)</h1>
                 <div class="admin-card">
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('baam')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-baam" style="flex: 2;" onchange="loadSelectedGame('baam')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-baam" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('baam')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-baam" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
                                 ------
                             </div>
-                            <input type="text" class="admin-input cloud-data-name-baam" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Unit 10 Quiz)...">
+                            <input type="text" class="admin-input cloud-data-name-baam" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Unit 10 Quiz)...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('baam', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('baam', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('baam')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('baam')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('baam', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('baam', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('baam')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('baam')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -277,23 +293,22 @@
                 <h1 class="admin-title">Vòng Quay Định Mệnh</h1>
                 <div class="admin-card">
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('spin')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-spin" style="flex: 2;" onchange="loadSelectedGame('spin')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-spin" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('spin')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-spin" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
                                 ------
                             </div>
-
-                            <input type="text" class="admin-input cloud-data-name-spin" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Danh sách Lớp 12A1)...">
+                            <input type="text" class="admin-input cloud-data-name-spin" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Danh sách Lớp 12A1)...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('spin', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('spin', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('spin')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('spin')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('spin', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('spin', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('spin')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('spin')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -329,23 +344,22 @@
                 <h1 class="admin-title">Đại Chiến Kéo Co (Q&A Version)</h1>
                 <div class="admin-card">
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('tug')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-tug" style="flex: 2;" onchange="loadSelectedGame('tug')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-tug" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('tug')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-tug" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
                                 ------
                             </div>
-
-                            <input type="text" class="admin-input cloud-data-name-tug" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Bộ Kéo co Tiếng Anh)...">
+                            <input type="text" class="admin-input cloud-data-name-tug" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Bộ Kéo co Tiếng Anh)...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('tug', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('tug', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('tug')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('tug')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('tug', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('tug', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('tug')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('tug')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -375,23 +389,22 @@
                 <h1 class="admin-title">Time Bomb</h1>
                 <div class="admin-card">
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('bomb')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-bomb" style="flex: 2;" onchange="loadSelectedGame('bomb')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-bomb" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('bomb')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-bomb" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
                                 ------
                             </div>
-
-                            <input type="text" class="admin-input cloud-data-name-bomb" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Bom Flashcard bài 5)...">
+                            <input type="text" class="admin-input cloud-data-name-bomb" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Bom Flashcard bài 5)...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('bomb', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('bomb', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('bomb')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('bomb')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('bomb', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('bomb', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('bomb')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('bomb')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -436,30 +449,30 @@
                 <h1 class="admin-title" style="color: #3f7e14;"><i class="fa-solid fa-cubes"></i> Blast Block: Minecraft Edition</h1>
                 <div class="admin-card">
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('blast')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-blast" style="flex: 2;" onchange="loadSelectedGame('blast')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-blast" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('blast')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-blast" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">
                                 ------
                             </div>
-                            <input type="text" class="admin-input cloud-data-name-blast" style="flex: 2;" placeholder="Nhập tên để lưu (VD: Map Minecraft bài 10)...">
+                            <input type="text" class="admin-input cloud-data-name-blast" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Map Minecraft bài 10)...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('blast', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('blast', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('blast')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('blast')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('blast', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('blast', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('blast')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('blast')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                        <button class="btn-admin" onclick="window.open('/teach/blast', '_blank')" style="background: #3f7e14; flex: 1;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="btn-admin" onclick="window.open('/teach/blast', '_blank')" style="background: #3f7e14; flex: 1; min-width: 200px;">
                             <i class="fa-solid fa-desktop"></i> MỞ THẾ GIỚI BLAST BLOCK
                         </button>
-                        <button class="btn-admin" onclick="addBlastRow()" style="background: #8b5cf6;">
+                        <button class="btn-admin" onclick="addBlastRow()" style="background: #8b5cf6; min-width: 180px;">
                             <i class="fa-solid fa-plus"></i> THÊM KHỐI MỚI
                         </button>
                     </div>
@@ -491,20 +504,20 @@
                 <h1 class="admin-title" style="color: #0ea5e9;"><i class="fa-solid fa-hurricane"></i> Word Tornado</h1>
                 <div class="admin-card">
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('unscram')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-unscram" style="flex: 2;" onchange="loadSelectedGame('unscram')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-unscram" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('unscram')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-unscram" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">------</div>
-                            <input type="text" class="admin-input cloud-data-name-unscram" style="flex: 2;" placeholder="Nhập tên giáo án...">
+                            <input type="text" class="admin-input cloud-data-name-unscram" style="flex: 2; min-width: 200px;" placeholder="Nhập tên giáo án...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('unscram', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('unscram', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('unscram')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('unscram')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('unscram', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('unscram', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('unscram')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('unscram')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -551,20 +564,20 @@
                 <div class="admin-card" id="racing-setup">
                     
                     <div class="cloud-sync-panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
                             <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('racing')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <select class="admin-select cloud-selector-racing" style="flex: 2;" onchange="loadSelectedGame('racing')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-racing" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('racing')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
                             <div id="display-id-racing" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">------</div>
-                            <input type="text" class="admin-input cloud-data-name-racing" style="flex: 2;" placeholder="Nhập tên giáo án (VD: Đua xe Ôn tập)...">
+                            <input type="text" class="admin-input cloud-data-name-racing" style="flex: 2; min-width: 200px;" placeholder="Nhập tên giáo án (VD: Đua xe Ôn tập)...">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1;" onclick="saveToCloud('racing', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1;" onclick="saveToCloud('racing', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1;" onclick="deleteFromCloud('racing')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1;" onclick="copyDirectLink('racing')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('racing', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('racing', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('racing')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('racing')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -576,9 +589,9 @@
                     
                     <table id="racing-table" style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
                         <tr style="background: #e2e8f0;">
-                            <th style="padding: 10px; text-align: left;">Câu hỏi</th>
-                            <th style="padding: 10px; text-align: left;">Đáp án</th>
-                            <th style="padding: 10px; width: 50px;">Xóa</th>
+                            <th style="padding: 10px; text-align: left; color: #1e293b;">Câu hỏi</th>
+                            <th style="padding: 10px; text-align: left; color: #1e293b;">Đáp án</th>
+                            <th style="padding: 10px; width: 50px; color: #1e293b;">Xóa</th>
                         </tr>
                     </table>
                     
@@ -586,7 +599,7 @@
                         <i class="fa-solid fa-plus"></i> Thêm câu hỏi
                     </button>
 
-                    <button class="btn-admin" style="width: 100%; background: #ef4444;" onclick="syncRacing()">
+                    <button class="btn-admin" style="width: 100%; background: #ef4444; padding: 15px;" onclick="syncRacing()">
                         <i class="fa-solid fa-flag"></i> XUẤT PHÁT ĐƯỜNG ĐUA
                     </button>
                 </div>
@@ -604,30 +617,66 @@
         window.db = getFirestore(app);
         window.auth = getAuth(app);
 
-        import { logAdminAction } from '/logger.js';
+        // ⚡ NÚT MỞ SIDEBAR TRÊN ĐIỆN THOẠI
+        window.toggleAdminLeftDrawer = function() {
+            const sidebar = document.querySelector('.admin-sidebar');
+            if (!sidebar) return;
+            let overlay = document.getElementById('admin-left-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'admin-left-overlay';
+                overlay.className = 'mhent-drawer-overlay';
+                overlay.onclick = function() { window.toggleAdminLeftDrawer(); };
+                document.body.appendChild(overlay);
+            }
+            if (sidebar.classList.contains('show-mobile')) {
+                sidebar.classList.remove('show-mobile');
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.style.display = 'none', 300);
+            } else {
+                overlay.style.display = 'block';
+                setTimeout(() => {
+                    sidebar.classList.add('show-mobile');
+                    overlay.classList.add('show');
+                }, 10);
+            }
+        };
 
+        // ⚡ THAY THẾ AN TOÀN BÊN TRONG .THEN() VÀ MỞ CỔNG CREATOR/TEACHER
         onAuthStateChanged(auth, async (user) => {
             if (!user) window.redirectToLogin();
             else {
-                try {
-                    const docSnap = await getDoc(doc(db, "users", user.uid));
-                    const role = docSnap.exists() ? docSnap.data().role : 'user';
-
+                getDoc(doc(db, "users", user.uid)).then((docSnap) => {
+                    const userData = docSnap.exists() ? docSnap.data() : {};
+                    const role = userData.role || 'user';
                     window.currentUserRole = role;
 
-                    if (role !== 'admin' && role !== 'teacher') { showPopup("Khu vực cấm!", true); setTimeout(()=>window.location.href = '/', 2000); } 
-                    else { 
+                    localStorage.setItem('mhent_user_role', role);
+                    localStorage.setItem('mhent_user_profile', JSON.stringify({
+                        uid: user.uid, email: user.email,
+                        displayName: user.displayName || user.email.split('@')[0],
+                        photoURL: user.photoURL || "/assets/avt-web.jpg",
+                        role: role,
+                        teamCinema: userData.teamCinema || userData.teamName || '',
+                        teamArena: userData.teamArena || userData.teamName || '',
+                        teamManga: userData.teamManga || userData.teamName || '',
+                        teamMusic: userData.teamMusic || userData.teamName || '',
+                        teamNovel: userData.teamNovel || userData.teamName || '',
+                        teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+                    }));
+
+                    if (!role.includes('admin') && !role.includes('teacher') && !role.includes('creator') && !role.includes('edu') && !role.includes('teach')) { 
+                        showPopup("Khu vực cấm!", true); setTimeout(()=>window.location.href = '/', 2000); 
+                    } else { 
                         document.getElementById('security-shield').style.opacity = '0'; 
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); 
                         
-                        // ☁️ LOAD TẤT CẢ GAME TỪ ĐÁM MÂY KHI VỪA VÀO
                         ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing'].forEach(t => loadCloudGames(t));
                     }
-                } catch (error) { window.location.href = '/teach'; }
+                }).catch(e => { window.location.href = '/teach'; });
             }
         });
         
-            // LOGIC CHỨC NĂNG CƠ BẢN GIỮ NGUYÊN
         window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
@@ -636,22 +685,14 @@
             document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
             document.getElementById('menu-' + tabName).classList.add('active');
-            
-            // Cập nhật URL Hash mà không làm rác lịch sử trình duyệt (Nút Back)
             history.replaceState(null, null, '#' + tabName);
         };
 
-        // Tự động mở đúng tab khi load/F5 lại trang dựa trên Hash URL
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
             const validTabs = ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing'];
-            
-            if (validTabs.includes(hash)) {
-                switchAdminTab(hash);
-            } else {
-                // Nếu không có hash hoặc nhập sai hash thì mặc định về trang đầu
-                switchAdminTab('vocab');
-            }
+            if (validTabs.includes(hash)) switchAdminTab(hash);
+            else switchAdminTab('vocab');
         });
 
         for(let i=0; i<4; i++) addTableRow();
@@ -696,11 +737,6 @@
         }
         window.addTableRow = addTableRow;
 
-        // =========================================================
-        // 🚀 BỘ TỔNG TƯ LỆNH - CÁC HÀM BẮN DỮ LIỆU SANG MÁY CHIẾU
-        // =========================================================
-
-        // 1. TỪ VỰNG (VOCAB)
         window.adminSyncData = function() {
             let list = [];
             if (activeInputMode === 'table') {
@@ -721,8 +757,6 @@
             document.getElementById('control-station').style.display = 'block';
             renderAdminQuestionList(); renderMirrorGrid();
             showToast("Thành công!", "Đã đẩy dữ liệu Từ vựng sang máy chiếu!" + (autoReveal ? " (Chế độ tự động)" : ""), "success");
-            logAdminAction(`Đồng bộ ${list.length} từ vựng sang máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}; Tự động: ${autoReveal}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
-            logAdminAction(`Đồng bộ ${list.length} từ vựng sang máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
         function renderAdminQuestionList() {
@@ -768,7 +802,6 @@
             showToast('Đã trộn', 'Đã cập nhật lại thứ tự trên màn chiếu', 'success');
         };
 
-        // 2. VÒNG QUAY ĐỊNH MỆNH (SPIN)
         window.syncSpinner = function() {
             const items = document.getElementById('spin-items').value.trim().split('\n').map(i => i.trim()).filter(i => i !== "");
             if(items.length === 0) return showToast("Lỗi", "Nhập ít nhất 1 tên nhé!", "error");
@@ -777,10 +810,8 @@
             let orderArray = isRigged ? rawOrder.split(',').map(n => parseInt(n.trim()) - 1).filter(n => !isNaN(n) && n >= 0 && n < items.length) : [];
             localStorage.setItem('mhent_spin_cmd', JSON.stringify({ action: 'SYNC', payload: { items, isRigged, riggedOrder: orderArray }, rand: Math.random() }));
             showToast("Thành công!", `Đã gửi ${items.length} thành viên sang Vòng quay!`, "success");
-            logAdminAction(`Đồng bộ ${items.length} thành viên sang Vòng quay (Chế độ: ${document.getElementById('spin-mode').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
-        // 3. HỘP QUÀ NHÂN PHẨM (BAAMBOOZLE)
         window.syncBaamboozle = function() {
             const teamCount = parseInt(document.getElementById('baam-teams').value) || 2;
             let cards = [];
@@ -802,10 +833,8 @@
             if(cards.length < 2) return showToast("Lỗi", "Vui lòng tạo ít nhất 2 thẻ hợp lệ!", "error");
             localStorage.setItem('mhent_baam_cmd', JSON.stringify({ action: 'SYNC', payload: { teams: teamCount, cards: cards.sort(() => 0.5 - Math.random()) }, rand: Math.random() }));
             showToast("Tuyệt vời!", `Đã xuất xưởng ${cards.length} Thẻ bài sang Máy chiếu!`, "success");
-            logAdminAction(`Đồng bộ ${cards.length} thẻ bài sang Máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
-        // 4. KÉO CO (TUG)
         window.syncTugOfWar = function() {
             let qaList = [];
             document.getElementById('tug-items').value.trim().split('\n').filter(l => l.trim() !== "").forEach(line => {
@@ -814,17 +843,15 @@
             if (qaList.length === 0) return showToast("Lỗi", "Vui lòng nhập ít nhất 1 câu hỏi kéo co!", "error");
             localStorage.setItem('mhent_tug_cmd', JSON.stringify({ action: 'SYNC', payload: { questions: qaList, winningPoints: parseInt(document.getElementById('tug-win-n').value) || 5 }, rand: Math.random() }));
             showToast("Thành công", `Đã gửi ${qaList.length} câu hỏi sang Tiền tuyến!`, "success");
-            logAdminAction(`Đồng bộ ${qaList.length} câu hỏi kéo co sang Máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
-        // 5. BOM HẸN GIỜ (BOMB)
         window.syncBombGame = function() {
             let qList = [];
             document.getElementById('bomb-questions').value.trim().split('\n').forEach(line => {
                 if (line.trim() !== "") {
                     const parts = line.split('|');
                     if (parts.length >= 2) qList.push({ q: parts[0].trim(), a: parts[1].trim() });
-                    else qList.push({ q: line.trim(), a: "" }); // Lỡ giáo viên quên nhập đáp án
+                    else qList.push({ q: line.trim(), a: "" }); 
                 }
             });
 
@@ -837,10 +864,8 @@
             };
             localStorage.setItem('mhent_bomb_cmd', JSON.stringify({ action: 'SYNC', payload: payload, rand: Math.random() }));
             showToast("Thành công", "Đã gửi cấu hình sang Máy chiếu Bom!", "success");
-            logAdminAction(`Đồng bộ ${qList.length} câu hỏi Bom sang Máy chiếu (Chế độ: ${document.getElementById('bomb-mode').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
-        // 6. BLAST BLOCK V2
         window.syncBlastBlockV2 = function() {
             let questions = [];
             document.querySelectorAll('.blast-row').forEach(row => {
@@ -854,10 +879,8 @@
             if(questions.length === 0) return showToast("Lỗi", "Cậu chưa nhập câu hỏi nào!", "error");
             localStorage.setItem('mhent_blast_cmd', JSON.stringify({ action: 'SYNC', payload: { questions }, rand: Math.random() }));
             showToast("Thành công", `Đã xây dựng ${questions.length} khối Minecraft!`, "success");
-            logAdminAction(`Đồng bộ ${questions.length} khối Blast Block sang Máy chiếu; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
-        // 7. WORD TORNADO (UNSCRAMBLE)
         window.syncUnscramble = function() {
             const payload = window.getGamePayload('unscram');
             if (!payload) return;
@@ -867,24 +890,18 @@
             } else {
                 showToast("Tuyệt vời!", `Đã gửi ${payload.sentences.length} câu bão táp sang Máy chiếu!`, "success");
             }
-            logAdminAction(`Đồng bộ Unscramble (${payload.mode}) sang Máy chiếu; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
-        function sendCmd(action, payload) { localStorage.setItem('mhent_edu_cmd', JSON.stringify({ action, payload, rand: Math.random() })); }
-
-        // ==========================================
-        // 🔥 UPDATE: BAAMBOOZLE CÓ NÚT TÌM ẢNH
-        // ==========================================
         window.addBaamQuestionRow = function(q="", img="", o1="", o2="", o3="", o4="", ans=0, pts=10) {
             const container = document.getElementById('baam-q-rows');
             const row = document.createElement('div');
             row.className = 'baam-q-row';
             row.innerHTML = `
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" class="admin-input q-text" placeholder="Nội dung Câu hỏi..." style="flex: 2;" value="${q}">
-                    <input type="text" class="admin-input q-img" placeholder="Link Ảnh/GIF (Tùy chọn)" style="flex: 1.5;" value="${img}">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" class="admin-input q-text" placeholder="Nội dung Câu hỏi..." style="flex: 2; min-width: 150px;" value="${q}">
+                    <input type="text" class="admin-input q-img" placeholder="Link Ảnh/GIF (Tùy chọn)" style="flex: 1.5; min-width: 150px;" value="${img}">
                     <button class="btn-admin" style="background: #0ea5e9; padding: 0 15px;" onclick="openImageSearch(this)" title="Tìm ảnh siêu tốc"><i class="fa-solid fa-image"></i></button>
-                    <input type="number" class="admin-input q-points" placeholder="Điểm" style="flex: 0.5;" value="${pts}" title="Điểm thưởng">
+                    <input type="number" class="admin-input q-points" placeholder="Điểm" style="flex: 0.5; min-width: 80px;" value="${pts}" title="Điểm thưởng">
                     <button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -892,7 +909,7 @@
                     <input type="text" class="admin-input q-opt" placeholder="Đáp án 2" style="flex: 1; min-width: 120px;" value="${o2}">
                     <input type="text" class="admin-input q-opt" placeholder="Đáp án 3 (Tùy chọn)" style="flex: 1; min-width: 120px;" value="${o3}">
                     <input type="text" class="admin-input q-opt" placeholder="Đáp án 4 (Tùy chọn)" style="flex: 1; min-width: 120px;" value="${o4}">
-                    <select class="admin-select q-correct" style="flex: 1; min-width: 100px; background: #8b5cf6; color: white; border: none;">
+                    <select class="admin-select q-correct" style="flex: 1; min-width: 120px; background: #8b5cf6; color: white; border: none;">
                         <option value="0" ${ans === 0 ? 'selected' : ''}>Đúng: Đáp án 1</option>
                         <option value="1" ${ans === 1 ? 'selected' : ''}>Đúng: Đáp án 2</option>
                         <option value="2" ${ans === 2 ? 'selected' : ''}>Đúng: Đáp án 3</option>
@@ -908,54 +925,19 @@
             const row = document.createElement('div');
             row.className = 'baam-s-row';
             row.innerHTML = `
-                <input type="text" class="admin-input s-text" placeholder="Nội dung thẻ (VD: Mất lượt, trừ 10 điểm!)" style="flex: 3;" value="${text}">
-                <input type="number" class="admin-input s-points" placeholder="Điểm (+/-)" style="flex: 1;" value="${pts}">
+                <input type="text" class="admin-input s-text" placeholder="Nội dung thẻ (VD: Mất lượt, trừ 10 điểm!)" style="flex: 3; min-width: 150px;" value="${text}">
+                <input type="number" class="admin-input s-points" placeholder="Điểm (+/-)" style="flex: 1; min-width: 80px;" value="${pts}">
                 <button style="background:none; border:none; color:#ef4444; font-size: 20px; cursor:pointer;" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
             `;
             container.appendChild(row);
         };
 
-        window.syncBaamboozle = function() {
-            const teamCount = parseInt(document.getElementById('baam-teams').value) || 2;
-            let parsedCards = [];
-            document.querySelectorAll('.baam-q-row').forEach(row => {
-                let qText = row.querySelector('.q-text').value.trim();
-                let imgText = row.querySelector('.q-img').value.trim();
-                let points = parseInt(row.querySelector('.q-points').value) || 10;
-                let optInputs = row.querySelectorAll('.q-opt');
-                let correctIndex = parseInt(row.querySelector('.q-correct').value);
-                let options = [];
-                optInputs.forEach(input => { if(input.value.trim() !== '') options.push(input.value.trim()); });
-                
-                if(qText && options.length >= 2) {
-                    if (correctIndex >= options.length) correctIndex = options.length - 1;
-                    parsedCards.push({ type: 'question', text: qText, img: imgText, options: options, correct: correctIndex, points: points });
-                }
-            });
-
-            document.querySelectorAll('.baam-s-row').forEach(row => {
-                let sText = row.querySelector('.s-text').value.trim();
-                let sPoints = parseInt(row.querySelector('.s-points').value) || 0;
-                if(sText) parsedCards.push({ type: 'special', text: sText, points: sPoints });
-            });
-
-            if(parsedCards.length < 2) return showToast("Lỗi", "Vui lòng tạo ít nhất 2 thẻ hợp lệ!", "error");
-            parsedCards = parsedCards.sort(() => 0.5 - Math.random());
-            localStorage.setItem('mhent_baam_cmd', JSON.stringify({ action: 'SYNC', payload: { teams: teamCount, cards: parsedCards }, rand: Math.random() }));
-            showToast("Tuyệt vời!", `Đã xuất xưởng ${parsedCards.length} Thẻ bài sang Máy chiếu!`, "success");
-            logAdminAction(`Đồng bộ ${parsedCards.length} thẻ bài sang Máy chiếu (Chế độ: ${document.getElementById('mode-select').value}; Số lần sai tối đa: ${document.getElementById('strike-input').value}); Teacher: ${document.getElementById('teacher-name').value}, Education`);
-        }
-
-        // Tạo sẵn 2 câu hỏi mẫu
         addBaamQuestionRow("1 + 1 bằng mấy?", "", "1", "2", "", "", 1, 5);
         addBaamSpecialRow("Fan tặng bạn Lightstick!", 20);
 
-        // ==========================================
-        // 🔮 LOGIC TÌM ẢNH TỪ API TENOR
-        // ==========================================
         window.currentImageTarget = null;
         window.openImageSearch = function(btnElement) {
-            window.currentImageTarget = btnElement.previousElementSibling; // Lấy đúng ô input nằm trước nút bấm
+            window.currentImageTarget = btnElement.previousElementSibling; 
             document.getElementById('image-search-modal').style.display = 'flex';
             document.getElementById('img-search-results').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8; font-weight: bold; padding: 40px;">Nhập từ khóa (Ví dụ: cat, happy, dance) và bấm Tìm kiếm nhé!</div>';
         };
@@ -967,7 +949,6 @@
             resDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #0ea5e9; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-3x"></i></div>';
             
             try {
-                // Sử dụng API của Tenor GIF (Miễn phí)
                 const res = await fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&key=LIVDSRZULELA&limit=12`);
                 const data = await res.json();
                 if(data.results && data.results.length > 0) {
@@ -994,13 +975,8 @@
             showToast('Thành công', 'Đã gắn ảnh xịn xò vào câu hỏi!', 'success');
         };
 
-
-        // ==========================================
-        // ☁️ HỆ THỐNG ĐÁM MÂY (APPS SCRIPT)
-        // ==========================================
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
-
-        window.cloudState = { vocab: [], baam: [], spin: [], tug: [], bomb: [], blast: [], unscram: [] };
+        window.cloudState = { vocab: [], baam: [], spin: [], tug: [], bomb: [], blast: [], unscram: [], racing: [] };
 
         window.loadCloudGames = async function(gameType) {
             if(!window.auth || !window.auth.currentUser) return;
@@ -1016,8 +992,6 @@
                 if(result.success) {
                     window.cloudState[gameType] = result.games || [];
                     updateCloudDropdown(gameType);
-                    
-                    // Nếu bấm nút Tải Lại trực tiếp -> Dọn ô nhập và báo Toast
                     if (window.event && window.event.type === 'click') {
                         document.querySelector(`.cloud-data-name-${gameType}`).value = '';
                         showToast('Đồng bộ', 'Đã tải dữ liệu mới nhất từ Đám mây!', 'info');
@@ -1038,7 +1012,6 @@
             });
         };
 
-        // GOM DỮ LIỆU TỪ UI THÀNH JSON
         window.getGamePayload = function(gameType) {
             if(gameType === 'vocab') {
                 let list = [];
@@ -1123,63 +1096,47 @@
                 });
                 return { questions: questions };
             }
-            // 🔥 THÊM LOGIC CỦA WORD TORNADO VÀO ĐÂY
             if(gameType === 'unscram') {
                 const mode = window.unscramMode || 'sentence';
                 if (mode === 'columns') {
                     const rawPairs = document.getElementById('unscram-pair-lines').value.trim().split('\n');
                     const pairs = rawPairs.map((line, index) => {
                         const parts = line.split('|');
-                        return {
-                            left: parts[0] ? parts[0].trim() : '',
-                            right: parts[1] ? parts[1].trim() : ''
-                        };
+                        return { left: parts[0] ? parts[0].trim() : '', right: parts[1] ? parts[1].trim() : '' };
                     }).filter(pair => pair.left && pair.right);
-                    if (pairs.length === 0) {
-                        showToast("Lỗi", "Nhập ít nhất 1 cặp từ hợp lệ (từ1 | từ2)", "error");
-                        return null;
-                    }
+                    if (pairs.length === 0) { showToast("Lỗi", "Nhập ít nhất 1 cặp từ hợp lệ (từ1 | từ2)", "error"); return null; }
                     const leftColor = document.getElementById('unscram-color-left').value || '#ef4444';
                     const rightColor = document.getElementById('unscram-color-right').value || '#38bdf8';
                     return { mode: 'columns', pairs: pairs, columnColors: { left: leftColor, right: rightColor } };
                 }
                 const text = document.getElementById('unscram-sentences').value;
                 const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
-                if (sentences.length === 0) {
-                    showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error");
-                    return null;
-                }
+                if (sentences.length === 0) { showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error"); return null; }
                 return { mode: 'sentence', sentences: sentences };
             }
-            // 🔥 LOGIC CỦA F1 RACING
             if(gameType === 'racing') {
                 let questions = [];
                 const rows = document.querySelectorAll('#racing-table tr');
                 rows.forEach((row, index) => {
-                    if(index === 0) return; // Bỏ qua dòng tiêu đề
+                    if(index === 0) return; 
                     const q = row.querySelector('.racing-q').value.trim();
                     const a = row.querySelector('.racing-a').value.trim();
                     if(q) questions.push({ q, a });
                 });
-
-                if (questions.length === 0) {
-                    showToast("Lỗi", "Bảng chưa có câu hỏi nào thì lưu làm gì nè sếp!", "error");
-                    return null;
-                }
+                if (questions.length === 0) { showToast("Lỗi", "Bảng chưa có câu hỏi nào thì lưu làm gì nè sếp!", "error"); return null; }
                 return { questions: questions };
             }
         };
 
-        // ĐẨY JSON TỪ MÂY XUỐNG UI
         window.loadSelectedGame = function(gameType) {
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
             const rowId = selector.value;
             const nameInput = document.querySelector(`.cloud-data-name-${gameType}`);
-            const idDisplay = document.getElementById(`display-id-${gameType}`); // Bắt lấy cái ô hiển thị ID
+            const idDisplay = document.getElementById(`display-id-${gameType}`); 
 
             if(!rowId) { 
                 nameInput.value = ''; 
-                if(idDisplay) idDisplay.innerText = '------'; // Nếu chưa chọn gì thì hiện dấu gạch
+                if(idDisplay) idDisplay.innerText = '------'; 
                 return; 
             }
 
@@ -1187,7 +1144,7 @@
             if(!game) return;
 
             nameInput.value = game.dataName;
-            if(idDisplay) idDisplay.innerText = game.rowId; // Bắn mã ID ra màn hình
+            if(idDisplay) idDisplay.innerText = game.rowId; 
 
             const data = game.gameData;
 
@@ -1229,7 +1186,7 @@
             if(gameType === 'bomb') {
                 document.getElementById('bomb-questions').value = (data.questions || []).map(item => {
                     if (typeof item === 'object') return `${item.q}${item.a ? ' | ' + item.a : ''}`;
-                    return item; // Đảm bảo tương thích với dữ liệu cũ chưa có đáp án
+                    return item; 
                 }).join('\n');
                 document.getElementById('bomb-time').value = data.time || 30;
                 document.getElementById('bomb-teams').value = data.teams || 2;
@@ -1242,7 +1199,6 @@
                     addBlastRow(q.q, q.a, q.type, (q.options || []).join(', '), false); 
                 });
             }
-            // 🔥 THÊM LOGIC LOAD WORD TORNADO TỪ MÂY XUỐNG
             if(gameType === 'unscram') {
                 const mode = data.mode || 'sentence';
                 window.switchUnscramMode(mode);
@@ -1254,18 +1210,11 @@
                     document.getElementById('unscram-sentences').value = (data.sentences || []).join('\n');
                 }
             }
-            
-            showToast('Tải thành công', 'Dữ liệu đã được nạp xuống bảng điều khiển!', 'success');
-            logAdminAction(`Tải dữ liệu ${gameType} từ Đám mây; Teacher: ${document.getElementById('teacher-name').value}, Education`);
-        
-            // 🔥 LOGIC TẢI DỮ LIỆU XUỐNG F1 RACING
             if(gameType === 'racing') {
                 const tbody = document.querySelector('#racing-table tbody') || document.getElementById('racing-table');
-                // Xóa hết các dòng cũ (chừa lại dòng tiêu đề ở index 0)
                 const rows = tbody.querySelectorAll('tr');
                 rows.forEach((row, index) => { if(index > 0) row.remove(); });
 
-                // Nạp data từ Mây vào bảng
                 (data.questions || []).forEach(item => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
@@ -1276,9 +1225,10 @@
                     tbody.appendChild(tr);
                 });
             }
+            
+            showToast('Tải thành công', 'Dữ liệu đã được nạp xuống bảng điều khiển!', 'success');
         };
 
-        // LƯU LÊN MÂY
         window.saveToCloud = async function(gameType, isNew = false) {
             if(!window.auth.currentUser) return showToast('Lỗi', 'Cậu cần đăng nhập!', 'error');
             const nameInput = document.querySelector(`.cloud-data-name-${gameType}`);
@@ -1296,7 +1246,6 @@
             let gameData = getGamePayload(gameType);
             if(!gameData) return;
 
-            // FIX TRÁNH CRASH JS
             const e = window.event;
             const btn = e ? (e.currentTarget || e.target.closest('button')) : null;
             let originalHtml = '';
@@ -1314,15 +1263,12 @@
                 const result = await res.json();
                 if(result.success) {
                     showToast('Thành công', isNew ? 'Tạo bộ dữ liệu trên Đám mây thành công!' : 'Đã cập nhật dữ liệu!', 'success');
-                    logAdminAction(`Lưu dữ liệu ${gameType} lên Đám mây; Teacher: ${document.getElementById('teacher-name').value}, Education`);
-                    
-                    // Tải lại list mới và TỰ ĐỘNG CHỌN CÁI VỪA LƯU
                     const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
                     const loadResult = await loadRes.json();
                     if(loadResult.success) {
                         window.cloudState[gameType] = loadResult.games || [];
                         updateCloudDropdown(gameType);
-                        selector.value = result.rowId; // Chọn ngay lập tức
+                        selector.value = result.rowId; 
                     }
                 }
             } catch(e) { showToast('Lỗi', 'Lỗi kết nối mạng!', 'error'); }
@@ -1330,16 +1276,13 @@
             if(btn) { btn.innerHTML = originalHtml; btn.disabled = false; }
         };
 
-        // XÓA KHỎI MÂY
         window.deleteFromCloud = function(gameType) {
             if(!window.auth.currentUser) return;
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
             const rowId = selector.value;
             if(!rowId) return showToast('Lỗi', 'Cậu chưa chọn bộ dữ liệu để xóa!', 'error');
 
-            // GỌI BẢNG XÁC NHẬN XỊN XÒ TỪ MHEnt UI
             showConfirmPopup("Cảnh báo chà bá!", "Cậu có chắc chắn muốn xóa bộ dữ liệu này khỏi Két Sắt vĩnh viễn không?", async function() {
-                
                 showToast('Đang xử lý', 'Hệ thống đang tiến hành xóa...', 'info');
 
                 try {
@@ -1351,10 +1294,8 @@
                     
                     if(result.success) {
                         showToast('Thành công', 'Đã xóa bộ dữ liệu!', 'success');
-                        logAdminAction(`Xóa dữ liệu ${gameType} khỏi Đám mây; Teacher: ${document.getElementById('teacher-name').value}, Education`);
                         document.querySelector(`.cloud-data-name-${gameType}`).value = '';
                         
-                        // Cập nhật lại dropdown cho sạch sẽ
                         const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
                         const loadResult = await loadRes.json();
                         if(loadResult.success) {
@@ -1366,7 +1307,6 @@
             });
         };
 
-        // KÉO CÁC HÀM CŨ XUỐNG DƯỚI CÙNG ĐỂ KHÔNG BỊ LỖI SCOPE
         window.addBlastRow = function(q="", a="", type="fill", options="", reverse=false) {
             const tbody = document.getElementById('blast-table-body');
             const row = document.createElement('tr');
@@ -1400,8 +1340,7 @@
             let questions = [];
             document.querySelectorAll('.blast-row').forEach(row => {
                 const type = row.querySelector('.blast-type').value;
-                let q = row.querySelector('.blast-q').value.trim();
-                let a = row.querySelector('.blast-a').value.trim();
+                let q = row.querySelector('.blast-q').value.trim(), a = row.querySelector('.blast-a').value.trim();
                 const opts = row.querySelector('.blast-opt').value.split(',').map(s => s.trim()).filter(s => s !== "");
                 const rev = row.querySelector('.blast-rev').checked;
                 if(type === 'memory' && rev) { [q, a] = [a, q]; }
@@ -1414,24 +1353,15 @@
 
         addBlastRow();
 
-        // 🔗 HÀM LẤY LINK TRỰC TIẾP CHÈN VÀO GIÁO ÁN
         window.copyDirectLink = function(gameType) {
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
             const rowId = selector.value;
-            
-            if(!rowId) {
-                showToast('Lỗi', 'Cậu phải chọn một bộ dữ liệu từ danh sách trước đã!', 'error');
-                return;
-            }
-            
+            if(!rowId) return showToast('Lỗi', 'Cậu phải chọn một bộ dữ liệu từ danh sách trước đã!', 'error');
             const link = `${window.location.origin}/teach/${gameType}?id=${rowId}`;
             navigator.clipboard.writeText(link);
             showToast('Thành công!', 'Đã copy Link. Cậu có thể dán thẳng vào giáo án rồi đó!', 'success');
-            logAdminAction(`Copy Link trực tiếp của ${gameType} (ID: ${rowId}) vào clipboard; Teacher: ${document.getElementById('teacher-name').value}, Education`);
         };
 
-        // --- MODULE RACING F1 ---
-        // Phải gán vào window để HTML onclick gọi được
         window.addRacingRow = function() {
             const tbody = document.querySelector('#racing-table tbody') || document.getElementById('racing-table');
             const tr = document.createElement('tr');
@@ -1443,7 +1373,6 @@
             tbody.appendChild(tr);
         };
 
-        // Thêm sẵn 2 dòng cho đẹp khi vừa load trang
         document.addEventListener("DOMContentLoaded", () => {
             window.addRacingRow(); 
             window.addRacingRow();
@@ -1453,18 +1382,13 @@
             let questions = [];
             const rows = document.querySelectorAll('#racing-table tr');
             rows.forEach((row, index) => {
-                if(index === 0) return; // Bỏ qua header
+                if(index === 0) return; 
                 const q = row.querySelector('.racing-q').value.trim();
                 const a = row.querySelector('.racing-a').value.trim();
                 if(q) questions.push({ q, a });
             });
-
             if (questions.length === 0) return showToast("Lỗi", "Nhập ít nhất 1 câu nha sếp!", "error");
-
-            // Bắn lệnh qua Game
             localStorage.setItem('mhent_racing_cmd', JSON.stringify({ action: 'SYNC', payload: { questions: questions }, rand: Math.random() }));
-            
-            document.getElementById('racing-control-station').style.display = 'block';
             showToast("Thành công", "Cờ xuất phát đã phất!", "success");
         };
 

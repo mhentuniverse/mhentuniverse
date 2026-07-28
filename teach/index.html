@@ -9,52 +9,22 @@
         <meta name="theme-color" content="#0ea5e9">
         <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
+        
+        <!-- HỆ THỐNG CSS CHỨC NĂNG & GIAO DIỆN CHUNG -->
         <link rel="stylesheet" href="/style.css">
         <link rel="stylesheet" href="/teach/teach-theme.css"> 
         <link rel="stylesheet" href="/mhent-ui.css">
+        <!-- ⚡ BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE & BOTTOM NAV -->
+        <link rel="stylesheet" href="/mhent-mobile.css">
+        
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         
         <style>
-            /* ÉP TONE MÀU CHỦ ĐẠO LÀ XANH EDU */
-            :root { --hub-color: #0ea5e9; --hub-bg: rgba(14, 165, 233, 0.1); }
-
-            .hero { background: linear-gradient(135deg, #c0e2f1 0%, #97d9f8 100%); padding: 70px 5%; text-align: center; }
-            .hero h1 { font-size: 38px; color: #1e293b; margin: 0 0 10px 0; font-weight: 900;}
-            .hero h1 span { color: var(--hub-color); }
-            .small-description { font-size: 15px; color: #64748b; margin: 0 0 35px 0; font-weight: 700; display: block; }
-
-            /* CHỈNH LẠI ICON SVG TRONG BẢNG APP SWITCHER */
-            .app-icon svg { width: 26px; height: 26px; stroke-width: 1.5; transition: 0.3s; }
-            .app-item:hover .app-icon svg { transform: scale(1.1); }
-            body.dark-mode .app-icon svg { color: #e2e8f0; }
-
-            .btn-primary { background: var(--hub-color); border-color: var(--hub-color); color: white; padding: 12px 25px; border-radius: 8px; font-weight: 700; transition: background 0.3s, border-color 0.3s; transition: all 0.3s ease; }
-            .btn-primary:hover { background: var(--hub-hover); border-color: var(--hub-hover); }
-
-
-            /* VÁ LỖI LỆCH KHUNG TRÊN MOBILE */
-            @media (max-width: 768px) {
-                .dropdown-menu.app-switcher-menu { width: 260px !important; right: -60px !important; }
-                .app-switcher-container { margin-right: 8px !important; }
-            }
-
-            /* --- GIAO DIỆN TOOL CARDS DÀNH RIÊNG CHO EDU --- */
-            .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px; }
-            .tool-card { background: #fff; border-radius: 20px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); text-align: center; cursor: pointer; transition: 0.4s; border: 2px solid #f1f5f9; display: flex; flex-direction: column; align-items: center; }
-            .tool-card:hover { transform: translateY(-10px); border-color: var(--hub-color); box-shadow: 0 20px 40px var(--hub-bg); }
-            .tool-icon-wrapper { width: 80px; height: 80px; border-radius: 50%; background: var(--hub-bg); color: var(--hub-color); display: flex; align-items: center; justify-content: center; font-size: 35px; margin-bottom: 25px; transition: 0.4s; }
-            .tool-card:hover .tool-icon-wrapper { background: var(--hub-color); color: white; transform: rotate(10deg) scale(1.1); }
-            .tool-title { font-size: 24px; font-weight: 900; color: #1e293b; margin: 0 0 15px 0; }
-            .tool-desc { color: #64748b; font-size: 15px; font-weight: 700; margin: 0; line-height: 1.6; }
-            
-            /* DARK MODE CHO TOOL CARDS */
-            body.dark-mode .tool-card { background: #1e293b; border-color: #334155; }
-            body.dark-mode .tool-title { color: #f8fafc; }
-            body.dark-mode .tool-desc { color: #94a3b8; }
+            :root { --hub-color: #0ea5e9; --hub-bg: rgba(14, 165, 233, 0.12); }
         </style>
     </head>
-    <body>
+    <body class="theme-edu gradient-bg">
         <nav class="navbar">
             <div class="nav-left">
                 <a onclick="window.location.href='/teach'" style="cursor: pointer;">
@@ -166,8 +136,8 @@
             <a onclick="window.location.href='/teach#tools-section'" class="btn-primary" style="cursor: pointer; background: var(--hub-color); border-color: var(--hub-color);">Khám phá công cụ 🚀</a>
         </header>
 
-        <main id="tools-section" class="movie-section" style="padding-top: 40px;">
-            <h2 class="section-title" style="border-bottom-color: var(--hub-color); display: inline-flex; align-items: center; gap: 10px;">
+        <main id="tools-section" class="movie-section" style="padding-top: 40px; max-width: 1400px; width: 92%; margin: 0 auto;">
+            <h2 class="section-title" style="border-bottom: 3px solid var(--hub-color); display: inline-flex; align-items: center; gap: 10px; padding-bottom: 8px; font-size: 26px; font-weight: 900;">
                 <i class="fa-solid fa-toolbox" style="color: var(--hub-color);"></i> Danh sách Công cụ
             </h2>
             
@@ -256,18 +226,15 @@
             const auth = getAuth(app);
             const db = getFirestore(app);
 
-            // ==========================================
-            // UI TOGGLES
-            // ==========================================
             const btnLogin = document.getElementById('btn-login');
             const btnLogout = document.getElementById('btn-logout');
 
             if (btnLogin) {
-                btnLogin.addEventListener('click', () => {
+                btnLogin.addEventListener('click', () => { 
                     if (navigator.userAgent.includes('Electron')) {
                         window.openChrome('https://mhentuniverse.vercel.app/login.html?source=app');
                     } else {
-                        window.redirectToLogin('/teach');
+                        window.redirectToLogin('/teach'); 
                     }
                 });
             }
@@ -304,9 +271,6 @@
             };
             if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
-            // ==========================================
-            // XỬ LÝ AUTH & HIỂN THỊ NÚT ADMIN
-            // ==========================================
             onAuthStateChanged(auth, async (user) => {
                 const btnTheme = document.getElementById('btn-theme-toggle'); 
                 if (user) {
@@ -322,40 +286,48 @@
                         avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
                         avtElement.style.display = 'block'; 
                     }        
+                    
+                    // ⚡ THAY THẾ AN TOÀN BÊN TRONG .THEN() ĐỂ LƯU TRÍ NHỚ ĐA VŨ TRỤ
+                    getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+                        const userData = uSnap.exists() ? uSnap.data() : {};
+                        const userRole = userData.role || 'user';
+
+                        if (userRole.includes('admin') || userRole.includes('teacher')) {
+                            const adminBtn = document.getElementById('admin-panel-btn');
+                            if (adminBtn) adminBtn.style.display = 'flex';
+                            if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
+                        }
+
+                        localStorage.setItem('mhent_user_role', userRole);
+                        localStorage.setItem('mhent_user_profile', JSON.stringify({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName || finalName,
+                            photoURL: user.photoURL || "/assets/avt-web.jpg",
+                            role: userRole,
+                            teamCinema: userData.teamCinema || userData.teamName || '',
+                            teamArena: userData.teamArena || userData.teamName || '',
+                            teamManga: userData.teamManga || userData.teamName || '',
+                            teamMusic: userData.teamMusic || userData.teamName || '',
+                            teamNovel: userData.teamNovel || userData.teamName || '',
+                            teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+                        }));
+                    }).catch(e => console.log("Lỗi nạp cache profile:", e));
+
                 } else {
+                    localStorage.setItem('mhent_user_role', 'guest');
+                    localStorage.removeItem('mhent_user_profile');
                     if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                     if(btnTheme) btnTheme.style.display = 'flex'; 
                     if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
-                }
-
-                // KIỂM TRA QUYỀN ĐỂ HIỆN NÚT VÀO ADMIN PANEL CỦA EDU
-                const userRef = doc(db, "users", user?.uid || 'guest');
-                if(user) {
-                    getDoc(userRef).then((docSnap) => {
-                        const adminBtn = document.getElementById('admin-panel-btn');
-                        if (adminBtn) adminBtn.style.display = 'none';
-                        document.getElementById('admin-divider').style.display = 'none';
-
-                        if (docSnap.exists() && docSnap.data().role) {
-                            const userRole = docSnap.data().role; 
-                            if (userRole.includes('admin') || userRole.includes('teacher')) {
-                                if (adminBtn) adminBtn.style.display = 'flex';
-                                document.getElementById('admin-divider').style.display = 'block';
-                            } 
-                        }
-                    }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
                 }
             });
             
             if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
             window.scrollTo(0, 0);
-
-            
         </script>
         <script src="/mhent-ui.js"></script>
         <script src="/check-token.js"></script>
         <script type="module" src="/maintenance.js"></script>
     </body>
 </html>
-
-
