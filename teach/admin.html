@@ -38,7 +38,7 @@
         .admin-tab.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .admin-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        .admin-card { background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 30px; box-sizing: border-box; width: 100%; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; font-weight: 800; color: #475569; margin-bottom: 8px; font-size: 14px; }
@@ -46,7 +46,7 @@
         .admin-input:focus, .admin-select:focus, .admin-textarea:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 4px 12px rgba(14,165,233,0.1); }
         .admin-textarea { resize: vertical; min-height: 100px; }
         
-        .btn-admin { background: var(--hub-color); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-admin { background: var(--hub-color); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; box-sizing: border-box; }
         .btn-admin:hover { background: #0284c7; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(14,165,233,0.3); }
 
         #security-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: 0.5s; }
@@ -55,45 +55,60 @@
         body.dark-mode .admin-title, body.dark-mode .input-group label { color: #f8fafc; }
         body.dark-mode .admin-input, body.dark-mode .admin-select, body.dark-mode .admin-textarea { background: #0f172a; border-color: #334155; color: white; }
 
-        .baam-q-row, .baam-s-row { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
+        .baam-q-row, .baam-s-row { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; width: 100%; }
         .baam-s-row { flex-direction: row; align-items: center; }
         body.dark-mode .baam-q-row, body.dark-mode .baam-s-row { background: #1e293b; border-color: #334155; }
 
-        .input-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { background: #f1f5f9; color: #64748b; border: 2px solid transparent; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .input-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn { background: #f1f5f9; color: #64748b; border: 2px solid transparent; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; flex: 1; min-width: 140px; text-align: center; }
         .tab-btn.active { background: var(--hub-bg); color: var(--hub-color); border-color: var(--hub-color); }
         body.dark-mode .tab-btn { background: #334155; color: #94a3b8; }
         body.dark-mode .tab-btn.active { background: var(--hub-bg); color: var(--hub-color); }
-        .row-input { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .row-input { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; box-sizing: border-box; width: 100%; }
         
-        .mirror-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .mirror-card { background: #f1f5f9; border: 2px solid #e2e8f0; padding: 15px 10px; border-radius: 8px; font-size: 16px; font-weight: 800; color: #1e293b; cursor: pointer; text-align: center; user-select: none; transition: 0.2s; }
+        .mirror-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; width: 100%; box-sizing: border-box; }
+        .mirror-card { background: #f1f5f9; border: 2px solid #e2e8f0; padding: 15px 10px; border-radius: 8px; font-size: 16px; font-weight: 800; color: #1e293b; cursor: pointer; text-align: center; user-select: none; transition: 0.2s; word-break: break-word; }
         body.dark-mode .mirror-card { background: #334155; border-color: #475569; color: white; }
         .mirror-card:hover { border-color: var(--hub-color); }
         .mirror-card.correct { background: #10b981 !important; border-color: #059669 !important; color: white; }
         .mirror-card.incorrect { background: #ef4444 !important; border-color: #b91c1c !important; opacity: 0.5; color: white;}
         
-        #admin-question-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
-        .q-btn { background: #f8fafc; color: #1e293b; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; font-family: inherit; }
+        #admin-question-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px; width: 100%; box-sizing: border-box; }
+        .q-btn { background: #f8fafc; color: #1e293b; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: 700; text-align: left; transition: 0.2s; font-family: inherit; width: 100%; box-sizing: border-box; word-break: break-word; }
         body.dark-mode .q-btn { background: #334155; border-color: #475569; color: white; }
         .q-btn:hover { border-color: var(--hub-color); }
         .q-btn.active { background: var(--hub-color); border-color: var(--hub-color); color: white; }
         .q-btn.solved { background: #10b981; border-color: #059669; opacity: 0.5; text-decoration: line-through; color: white;}
 
-        .cloud-sync-panel { background: rgba(14, 165, 233, 0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px dashed #0ea5e9; }
+        .cloud-sync-panel { background: rgba(14, 165, 233, 0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px dashed #0ea5e9; box-sizing: border-box; width: 100%; }
         body.dark-mode .cloud-sync-panel { background: rgba(14, 165, 233, 0.1); border-color: #0ea5e9; }
         
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.95); z-index: 100000; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(5px); }
-        .modal-content { background: #1e293b; border: 3px solid #0ea5e9; padding: 30px; border-radius: 20px; max-width: 800px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popIn 0.3s ease; }
+        .modal-content { background: #1e293b; border: 3px solid #0ea5e9; padding: 30px; border-radius: 20px; max-width: 800px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popIn 0.3s ease; box-sizing: border-box; }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* ⚡ RESPONSIVE CHO SIDEBAR TRÊN MOBILE */
+        /* ⚡ RESPONSIVE CHO SIDEBAR VÀ LAYOUT TRÊN MOBILE (< 768px) */
         @media screen and (max-width: 768px) {
             .admin-sidebar { transform: translateX(-100%); width: 280px; box-shadow: none; z-index: 1000001; }
             .admin-sidebar.show-mobile { transform: translateX(0); box-shadow: 15px 0 35px rgba(0,0,0,0.4); }
-            .admin-content { margin-left: 0 !important; padding: 20px 15px 100px 15px; }
-            .form-grid { grid-template-columns: 1fr; }
-            .mirror-grid { grid-template-columns: repeat(2, 1fr); }
+            .admin-content { margin-left: 0 !important; padding: 20px 12px 100px 12px !important; }
+            .admin-card { padding: 20px 15px !important; }
+            .form-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+            .mirror-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+            .mirror-card { padding: 10px 8px !important; font-size: 14px !important; }
+            
+            /* Sửa khu vực Chọn Câu Hỏi & Bảng Mô Phỏng không bị ép sang ngang */
+            #control-station .form-grid > div {
+                border-left: none !important;
+                padding-left: 0 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            #control-station .form-grid {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 25px !important;
+            }
         }
     </style>
 </head>
@@ -110,18 +125,17 @@
                 <h3 style="color: white; margin: 0; font-size: 24px;"><i class="fa-solid fa-images"></i> Kho Ảnh / GIF Siêu Tốc</h3>
                 <span style="color: #ef4444; font-size: 28px; cursor: pointer;" onclick="document.getElementById('image-search-modal').style.display='none'"><i class="fa-solid fa-xmark"></i></span>
             </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="img-search-input" class="admin-input" placeholder="Gõ từ khóa (Tiếng Anh sẽ ra nhiều hình xịn hơn)..." style="flex: 1;" onkeypress="if(event.key === 'Enter') executeImageSearch()">
-                <button class="btn-admin" onclick="executeImageSearch()"><i class="fa-solid fa-magnifying-glass"></i> Tìm</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <input type="text" id="img-search-input" class="admin-input" placeholder="Gõ từ khóa (Tiếng Anh ra nhiều hình xịn hơn)..." style="flex: 1; min-width: 200px;" onkeypress="if(event.key === 'Enter') executeImageSearch()">
+                <button class="btn-admin" onclick="executeImageSearch()" style="min-width: 100px;"><i class="fa-solid fa-magnifying-glass"></i> Tìm</button>
             </div>
-            <div id="img-search-results" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto;">
+            <div id="img-search-results" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; max-height: 400px; overflow-y: auto;">
             </div>
         </div>
     </div>
 
     <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; border-bottom: 1px solid var(--hub-bg); height: 70px;">
         <div class="nav-left" style="display: flex; align-items: center; gap: 12px;">
-            <!-- ⚡ NÚT MỞ SIDEBAR TRÊN ĐIỆN THOẠI -->
             <button class="btn-theme" onclick="toggleAdminLeftDrawer()" title="Danh mục công cụ" style="width: 38px; height: 38px; border-radius: 10px; font-size: 16px; display: inline-flex; justify-content: center; align-items: center; border: none; color: var(--hub-color);" id="btn-mobile-sidebar">
                 <i class="fa-solid fa-bars-staggered"></i>
             </button>
@@ -170,10 +184,10 @@
                             <input type="text" class="admin-input cloud-data-name-vocab" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Bài 1 - Tiếng Anh)...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('vocab', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('vocab', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('vocab')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('vocab')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('vocab', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('vocab', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('vocab')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('vocab')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -220,7 +234,7 @@
                 <div class="admin-card" id="control-station" style="display: none; border-top: 5px solid var(--hub-color);">
                     <div style="background: var(--hub-bg); color: var(--hub-color); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                         <div style="font-size: 13px; font-weight: 800; text-transform: uppercase;">Giáo viên hãy đọc to câu này:</div>
-                        <div id="admin-reading-meaning" style="font-size: 26px; font-weight: 900; margin-top: 5px;">Chưa chọn câu hỏi</div>
+                        <div id="admin-reading-meaning" style="font-size: clamp(20px, 4vw, 26px); font-weight: 900; margin-top: 5px; word-break: break-word;">Chưa chọn câu hỏi</div>
                     </div>
                     <div class="form-grid" style="align-items: start;">
                         <div>
@@ -229,7 +243,7 @@
                             <div id="admin-question-list"></div>
                         </div>
                         <div style="border-left: 2px dashed #e2e8f0; padding-left: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                                 <h3 style="margin:0;">Bảng Mô Phỏng</h3>
                                 <button class="btn-admin" style="background: #f59e0b; padding: 8px 15px; font-size: 13px;" onclick="adminShuffle()"><i class="fa-solid fa-shuffle"></i> Trộn</button>
                             </div>
@@ -256,10 +270,10 @@
                             <input type="text" class="admin-input cloud-data-name-baam" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Unit 10 Quiz)...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('baam', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('baam', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('baam')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('baam')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('baam', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('baam', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('baam')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('baam')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -305,10 +319,10 @@
                             <input type="text" class="admin-input cloud-data-name-spin" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Danh sách Lớp 12A1)...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('spin', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('spin', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('spin')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('spin')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('spin', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('spin', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('spin')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('spin')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -356,10 +370,10 @@
                             <input type="text" class="admin-input cloud-data-name-tug" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Bộ Kéo co Tiếng Anh)...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('tug', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('tug', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('tug')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('tug')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('tug', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('tug', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('tug')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('tug')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -401,10 +415,10 @@
                             <input type="text" class="admin-input cloud-data-name-bomb" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Bom Flashcard bài 5)...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('bomb', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('bomb', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('bomb')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('bomb')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('bomb', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('bomb', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('bomb')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('bomb')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -461,10 +475,10 @@
                             <input type="text" class="admin-input cloud-data-name-blast" style="flex: 2; min-width: 200px;" placeholder="Nhập tên để lưu (VD: Map Minecraft bài 10)...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('blast', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('blast', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('blast')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('blast')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('blast', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('blast', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('blast')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('blast')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -514,10 +528,10 @@
                             <input type="text" class="admin-input cloud-data-name-unscram" style="flex: 2; min-width: 200px;" placeholder="Nhập tên giáo án...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('unscram', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('unscram', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('unscram')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('unscram')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('unscram', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('unscram', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('unscram')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('unscram')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -574,10 +588,10 @@
                             <input type="text" class="admin-input cloud-data-name-racing" style="flex: 2; min-width: 200px;" placeholder="Nhập tên giáo án (VD: Đua xe Ôn tập)...">
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 150px;" onclick="saveToCloud('racing', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
-                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 150px;" onclick="saveToCloud('racing', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
-                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 150px;" onclick="deleteFromCloud('racing')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
-                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 150px;" onclick="copyDirectLink('racing')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('racing', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('racing', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('racing')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('racing')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
                         </div>
                     </div>
 
@@ -1347,7 +1361,7 @@
                 if(q && a) { questions.push({ q, a, type, options: opts }); }
             });
             if(questions.length === 0) return showToast("Lỗi", "Cậu chưa nhập câu hỏi nào!", "error");
-            localStorage.setItem('mhent_blast_cmd', JSON.stringify({ action: 'SYNC', payload: { questions, rand: Math.random() } }));
+            localStorage.setItem('mhent_blast_cmd', JSON.stringify({ action: 'SYNC', payload: { questions }, rand: Math.random() }));
             showToast("Thành công", `Đã xây dựng ${questions.length} khối Minecraft!`, "success");
         };
 
