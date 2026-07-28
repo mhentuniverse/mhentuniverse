@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/music/music-theme.css">
     <link rel="stylesheet" href="/mhent-ui.css">
+    <!-- ⚡ BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE & BOTTOM NAV -->
+    <link rel="stylesheet" href="/mhent-mobile.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -28,32 +30,30 @@
         }
 
         :root { --hub-color: #c084fc; --hub-bg: rgba(192, 132, 252, 0.15); }
-        .logo-name { color: var(--hub-color) !important; }
-        .nav-links a:hover { color: var(--hub-color) !important; }
-        .avt-img, .user-avatar { border-color: var(--hub-color) !important; }
-        .btn-theme { border-color: var(--hub-color) !important; color: var(--hub-color) !important; }
-        .btn-theme:hover { background: var(--hub-bg) !important; }
-        .menu-toggle svg { stroke: var(--hub-color) !important; }
-        .dropdown-menu { border-color: rgba(192, 132, 252, 0.3) !important; }
-        .dropdown-menu::before { border-top-color: rgba(192, 132, 252, 0.3) !important; border-left-color: rgba(192, 132, 252, 0.3) !important; }
-        .dropdown-item:hover { color: var(--hub-color) !important; }
-        .dropdown-item::before { background: var(--hub-color) !important; }
-        #btn-logout:hover { color: #ff4d4d !important; } 
 
-        .music-page-container { padding: 40px 20px; max-width: 1100px; margin: 0 auto; animation: fadeIn 0.8s ease-out; min-height: 75vh; }
-        .music-header { text-align: center; margin-bottom: 40px; }
+        /* ⚡ ĐẨY TRẠM NHẠC XUỐNG DƯỚI ĐỂ NÉ NAVBAR CỐ ĐỊNH */
+        .music-page-container { 
+            padding: 20px 20px 60px 20px; 
+            max-width: 1100px; 
+            margin: 75px auto 0 auto; 
+            animation: fadeIn 0.8s ease-out; 
+            min-height: 75vh; 
+            box-sizing: border-box;
+        }
+        
+        .music-header { text-align: center; margin-bottom: 35px; }
         .music-header h1 { color: #c084fc; margin-bottom: 5px; font-size: 32px; font-weight: 900;}
         .music-subtitle { color: #64748b; font-weight: 800; letter-spacing: 1px; font-size: 15px;}
         
         .music-loader {
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
-            padding: 15px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            padding: 12px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             border: 1px solid rgba(192, 132, 252, 0.3);
-            display: flex; gap: 10px; margin-bottom: 40px; align-items: center; max-width: 800px; margin-left: auto; margin-right: auto;
+            display: flex; gap: 10px; margin-bottom: 35px; align-items: center; max-width: 800px; margin-left: auto; margin-right: auto;
         }
         .music-input { 
             flex: 1; padding: 12px 20px; border-radius: 50px; 
-            border: 2px solid transparent; font-size: 15px; outline: none; background: #f8fafc; font-weight: 600;
+            border: 2px solid transparent; font-size: 15px; outline: none; background: #f8fafc; font-weight: 600; color: #1e293b;
         }
         .music-input:focus { border-color: #c084fc; background: #fff; }
         
@@ -62,18 +62,20 @@
             padding: 12px 25px; border-radius: 50px; font-weight: 900; font-size: 15px; cursor: pointer;
             transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;
         }
-        .btn-music-load:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(192, 132, 252, 0.4); }
+        .btn-music-load:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(192, 132, 252, 0.4); }
 
         .music-main-layout {
-            display: flex; gap: 40px; align-items: stretch;
+            display: flex; gap: 35px; align-items: stretch;
             background: rgba(255, 255, 255, 0.5); padding: 30px;
             border-radius: 30px; border: 1px solid rgba(192, 132, 252, 0.2);
+            box-sizing: border-box;
         }
 
         .player-section {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: #fff; padding: 40px 20px; border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; min-width: 0; overflow: hidden;
+            border: 1px solid rgba(192, 132, 252, 0.15);
         }
 
         #youtube-player-hidden { 
@@ -84,13 +86,13 @@
         /* LỚP PHỦ KẾT NỐI ÂM THANH (STATIC SYNC BUTTON) */
         .join-audio-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.85); backdrop-filter: blur(5px);
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center;
             border-radius: 20px; z-index: 50; transition: opacity 0.3s;
         }
-        body.dark-mode .join-audio-overlay { background: rgba(30,41,59,0.85); }
+        body.dark-mode .join-audio-overlay { background: rgba(15, 23, 42, 0.88); }
         .btn-join-audio {
-            background: #c084fc; color: white; border: none; padding: 14px 30px;
+            background: #c084fc; color: white; border: none; padding: 16px 35px;
             border-radius: 50px; font-weight: 900; font-size: 16px; cursor: pointer;
             box-shadow: 0 8px 25px rgba(192, 132, 252, 0.5); transition: 0.3s; display: flex; align-items: center; gap: 10px;
         }
@@ -136,7 +138,7 @@
         .progress-bar-thumb { position: absolute; right: -6px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; background: #fff; border: 2px solid #c084fc; border-radius: 50%; opacity: 0; transition: opacity 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .progress-bar-container:hover .progress-bar-thumb { opacity: 1; }
 
-        .dj-controls { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 25px; background: #f8fafc; border-radius: 50px; border: 1px solid #e2e8f0; z-index: 10; }
+        .dj-controls { display: flex; justify-content: center; align-items: center; gap: 18px; padding: 15px 25px; background: #f8fafc; border-radius: 50px; border: 1px solid #e2e8f0; z-index: 10; flex-wrap: wrap;}
         .control-btn { background: transparent; border: none; color: #94a3b8; font-size: 18px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
         .control-btn:hover { background: rgba(192, 132, 252, 0.1); color: #c084fc; transform: scale(1.1); }
         .control-btn.active { color: #c084fc; background: rgba(192, 132, 252, 0.15); }
@@ -177,18 +179,16 @@
 
         #sync-status-icon { position: absolute; top: 20px; right: 20px; font-size: 18px; color: #10b981;}
 
-        /* ===============================================
-           GIAO DIỆN LỜI BÀI HÁT (LYRIC PANEL)
-           =============================================== */
+        /* GIAO DIỆN LỜI BÀI HÁT (LYRIC PANEL) */
         .lyric-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
             z-index: 40; border-radius: 20px; display: flex; flex-direction: column;
             padding: 25px; box-sizing: border-box;
             opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(30px);
         }
         .lyric-overlay.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-        body.dark-mode .lyric-overlay { background: rgba(15, 23, 42, 0.85); }
+        body.dark-mode .lyric-overlay { background: rgba(15, 23, 42, 0.92); }
         
         .lyric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px dashed rgba(192, 132, 252, 0.3); padding-bottom: 15px;}
         .lyric-header h3 { margin: 0; color: var(--hub-color); font-weight: 900; font-size: 20px; display: flex; align-items: center; gap: 8px;}
@@ -209,7 +209,7 @@
         body.dark-mode .lyric-edit-input:focus { background: #0f172a; }
 
         @media (max-width: 900px) {
-            .music-page-container { padding: 20px 15px; }
+            .music-page-container { padding: 15px 15px 50px 15px; margin-top: 55px; }
             .music-loader { padding: 10px; flex-direction: column; border-radius: 20px; gap: 10px;}
             .music-input { width: 100%; box-sizing: border-box;}
             .btn-music-load { width: 100%; }
@@ -217,19 +217,15 @@
             .player-section { padding: 30px 15px; }
             .vinyl-record { width: 200px; height: 200px; margin-bottom: 20px;}
             .vinyl-center { width: 100px; height: 100px; }
-            .dj-controls { gap: 10px; padding: 10px 15px; width: 100%; box-sizing: border-box;}
+            .dj-controls { gap: 10px; padding: 12px 15px; width: 100%; box-sizing: border-box;}
             .queue-section { padding: 15px;}
             .queue-list { max-height: 350px;}
         }
 
         /* DARK MODE */
-        body.dark-mode .gradient-bg { background: linear-gradient(180deg, #111 0%, #000 100%) !important; }
-        body.dark-mode .navbar { background: rgba(0, 0, 0, 0.9) !important; border-bottom: 1px solid rgba(192, 132, 252, 0.2) !important; }
-        body.dark-mode .nav-links a { color: #e2e8f0 !important; }
-        body.dark-mode .logo-name { color: white !important; }
-        body.dark-mode .user-name { color: #c084fc !important; }
+        body.dark-mode .gradient-bg { background: linear-gradient(180deg, #0f172a 0%, #050505 100%) !important; }
         body.dark-mode .music-subtitle { color: #94a3b8; }
-        body.dark-mode .music-loader { background: rgba(30, 41, 59, 0.9); border-color: rgba(192, 132, 252, 0.2); }
+        body.dark-mode .music-loader { background: rgba(30, 41, 59, 0.85); border-color: rgba(192, 132, 252, 0.2); }
         body.dark-mode .music-input { background: #0f172a; border-color: #334155; color: white; }
         body.dark-mode .btn-music-load { color: white !important; background: linear-gradient(135deg, #c084fc, #a855f7) !important; }
         body.dark-mode .music-main-layout { background: rgba(15, 23, 42, 0.5); border-color: rgba(192, 132, 252, 0.1); }
@@ -245,46 +241,13 @@
         body.dark-mode .queue-item.active { background: rgba(192, 132, 252, 0.15); border-color: #c084fc; }
         body.dark-mode .queue-item.active .queue-song-title { color: #c084fc; }
         body.dark-mode .empty-queue-msg { color: #64748b; }
-        body.dark-mode .dropdown-menu { background: rgba(30, 41, 59, 0.95) !important; border-color: rgba(192, 132, 252, 0.3) !important; }
-        body.dark-mode .dropdown-menu::before { background: #1e293b !important; border-color: rgba(192, 132, 252, 0.3) !important; }
-        body.dark-mode .dropdown-item { color: #e2e8f0 !important; }
         body.dark-mode .progress-bar-container { background: #334155; }
         body.dark-mode .time-text { color: #94a3b8; }
         body.dark-mode .btn-remove-item { color: #64748b; }
         body.dark-mode .btn-remove-item:hover { background: #ff4d4d; color: white; }
-
-        /* ===============================================
-           HIỆU ỨNG ANIMATION (POP-IN, MENU & QUEUE)
-           =============================================== */
-        /* Hiệu ứng Dropdown Menu trượt mượt mà */
-        .dropdown-menu { 
-            display: none; opacity: 0; transform: translateY(15px); 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; 
-        }
-        .dropdown-menu.show { 
-            display: block; opacity: 1; transform: translateY(0); 
-        }
-        
-        /* Hiệu ứng nảy Pop-in cho toàn bộ khung Music Room */
-        @keyframes popInRoom { 
-            0% { transform: scale(0.9); opacity: 0; } 
-            70% { transform: scale(1.02); opacity: 1; } 
-            100% { transform: scale(1); opacity: 1; } 
-        }
-        .music-page-container { animation: popInRoom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
-        /* Hiệu ứng bay vào cho từng bài hát trong Hàng chờ (Queue) */
-        .queue-item { animation: fadeInRight 0.4s ease forwards; opacity: 0; transform: translateX(20px); }
-        @keyframes fadeInRight { to { opacity: 1; transform: translateX(0); } }
-        /* Delay nhẹ tạo hiệu ứng gợn sóng */
-        .queue-item:nth-child(1) { animation-delay: 0.1s; }
-        .queue-item:nth-child(2) { animation-delay: 0.2s; }
-        .queue-item:nth-child(3) { animation-delay: 0.3s; }
-        .queue-item:nth-child(4) { animation-delay: 0.4s; }
-        .queue-item:nth-child(n+5) { animation-delay: 0.5s; }
     </style>
 </head>
-<body class="gradient-bg">
+<body class="theme-music gradient-bg">
 
     <nav class="navbar">
         <div class="nav-left">
@@ -373,7 +336,7 @@
 
     <main class="music-page-container">
         <section class="music-header">
-            <h1>Secret Music Room</h1>
+            <h1>Secret Music Room 🎧</h1>
             <p class="music-subtitle">Cùng chung nhịp đập, dẫu ở cách xa</p>
         </section>
 
@@ -490,7 +453,9 @@
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        // ⚡ BỔ SUNG NHẬP KÉP CẢ REALTIME DB LẪN FIRESTORE
         import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // ==========================================
         // CẤU HÌNH FIREBASE
@@ -508,19 +473,17 @@
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const db = getDatabase(app);
+        const firestore = getFirestore(app); // 👉 Cổng quét Thẻ căn cước Creator
 
-        // UI & AUTH (Giữ nguyên)
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
 
-if (btnLogin) {
+        if (btnLogin) {
             btnLogin.addEventListener('click', () => {
                 if (navigator.userAgent.includes('Electron')) {
-                    // NẾU LÀ APP: Gọi 'Điệp viên' (preload.js) để mở Chrome ở ngoài
                     window.openChrome('https://mhentuniverse.vercel.app/login.html?source=app');
                 } else {
-                    // NẾU LÀ WEB: Chuyển trang bình thường (Vẫn giữ clean url /login của cậu)
-                    window.redirectToLogin();
+                    window.redirectToLogin('/music/room');
                 }
             });
         }
@@ -573,8 +536,7 @@ if (btnLogin) {
 
         if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
 
-        onAuthStateChanged(auth, (user) => {
-            const btnTheme = document.getElementById('btn-theme-toggle'); 
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
@@ -588,16 +550,36 @@ if (btnLogin) {
                     avtElement.style.display = 'block'; 
                 }
 
-                // Tối ưu hóa: Đại sảnh không cần check quyền Admin/Uploader nữa vì đã xóa nút rồi, giúp web load nhanh hơn!
+                // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN() (Bảo vệ quyền Creator/Admin)
+                getDoc(doc(firestore, "users", user.uid)).then((uSnap) => {
+                    const userData = uSnap.exists() ? uSnap.data() : {};
+                    const userRole = userData.role || 'user';
+                    localStorage.setItem('mhent_user_role', userRole);
+                    localStorage.setItem('mhent_user_profile', JSON.stringify({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || finalName,
+                        photoURL: user.photoURL || "/assets/avt-web.jpg",
+                        role: userRole,
+                        teamCinema: userData.teamCinema || userData.teamName || '',
+                        teamArena: userData.teamArena || userData.teamName || '',
+                        teamManga: userData.teamManga || userData.teamName || '',
+                        teamMusic: userData.teamMusic || userData.teamName || '',
+                        teamNovel: userData.teamNovel || userData.teamName || '',
+                        teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+                    }));
+                }).catch(e => console.log("Lỗi nạp cache profile:", e));
 
             } else {
+                localStorage.setItem('mhent_user_role', 'guest');
+                localStorage.removeItem('mhent_user_profile');
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
         });
 
         // ==========================================
-        // YOUTUBE & FIREBASE DJ LOGIC (V17)
+        // YOUTUBE & FIREBASE DJ LOGIC (V17 PRO)
         // ==========================================
         const roomRef = ref(db, 'system/music_room');
         let player = null;
@@ -616,20 +598,19 @@ if (btnLogin) {
             });
         };
 
-        // 🔥 SAU KHI GÀI BẪY XONG MỚI GỌI YOUTUBE API TỚI
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        // KẾT NỐI ÂM THANH STATIC (Chìa khóa mở khóa Trình duyệt cấm Auto-play)
+        // KẾT NỐI ÂM THANH STATIC (Mở khóa Trình duyệt cấm Auto-play)
         document.getElementById('btn-join-audio').addEventListener('click', () => {
             document.getElementById('join-audio-overlay').style.opacity = '0';
             setTimeout(() => document.getElementById('join-audio-overlay').style.display = 'none', 300);
             
             if (isPlayerReady && player.playVideo) {
-                player.playVideo(); // Ép Youtube mở khóa âm thanh
-                syncPlayer(currentRoomData); // Bắt nhịp với Firebase liền
+                player.playVideo(); 
+                syncPlayer(currentRoomData); 
             }
         });
 
@@ -685,7 +666,6 @@ if (btnLogin) {
             }
         }
 
-        // GỬI LÊN FIREBASE (TRÙM CUỐI: Local không được tự ý sửa, mọi thứ đều xin phép DB)
         function broadcastToFirebase(dataToMerge) {
             let finalData = { ...currentRoomData, ...dataToMerge };
             finalData.timestamp = serverTimestamp();
@@ -703,11 +683,9 @@ if (btnLogin) {
             const percent = (e.clientX - rect.left) / rect.width;
             const seekTime = total * percent;
 
-            // Báo Firebase thời gian mới để kéo cả phòng đi theo
             broadcastToFirebase({ time: seekTime, state: 1 }); 
         });
 
-        // YOUTUBE NÓI CHUYỆN VỚI WEB
         function onPlayerStateChange(event) {
             const playBtn = document.getElementById('btn-play-pause');
             const vinyl = document.getElementById('vinyl-disc');
@@ -719,7 +697,6 @@ if (btnLogin) {
                 playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
                 vinyl.classList.add('playing');
 
-                // Lắng nghe Tên bài hát Youtube trả về
                 if(player.getVideoData && player.getVideoData().title) {
                     const title = player.getVideoData().title;
                     const vidId = player.getVideoData().video_id;
@@ -727,17 +704,15 @@ if (btnLogin) {
                     document.getElementById('current-song-artist').innerText = currentRoomData.type === 'yt_playlist' ? "Đang phát từ Playlist" : (player.getVideoData().author || "YouTube Music");
                     updateVinylCover(vidId, currentRoomData.type === 'yt_playlist' && !vidId);
 
-                    // Vá tên cho Custom Queue
                     if (currentRoomData.type === 'custom_queue') {
                         let q = currentRoomData.customQueue || [];
                         if (q[currentRoomData.index] && (q[currentRoomData.index].title === "Đang tải bài hát..." || q[currentRoomData.index].title === "Đang tải...")) {
                             q[currentRoomData.index].title = title;
-                            broadcastToFirebase({ customQueue: q, title: title }); // Xin Firebase sửa tên lại cho đẹp
+                            broadcastToFirebase({ customQueue: q, title: title }); 
                         }
                     }
                 }
                 
-                // Youtube tự động chuyển bài Playlist -> Báo DB để cập nhật index
                 if (currentRoomData.type === 'yt_playlist') {
                     let actualIdx = player.getPlaylistIndex();
                     if (actualIdx !== undefined && actualIdx !== currentRoomData.index) {
@@ -749,7 +724,6 @@ if (btnLogin) {
                 playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
                 vinyl.classList.remove('playing');
 
-                // Custom Queue tự động chuyển bài khi hát xong -> Báo DB
                 if (event.data === YT.PlayerState.ENDED && currentRoomData.type === 'custom_queue') {
                     let q = currentRoomData.customQueue || [];
                     let nextIndex = currentRoomData.index + 1;
@@ -758,11 +732,10 @@ if (btnLogin) {
                     } else if (currentRoomData.isLoop && q.length > 0) {
                         broadcastToFirebase({ ytId: q[0].id, index: 0, time: 0, state: 1, title: q[0].title });
                     } else {
-                        broadcastToFirebase({ state: 2, time: 0 }); // Dừng lại ở giây số 0
+                        broadcastToFirebase({ state: 2, time: 0 }); 
                     }
                 }
                 
-                // Video đơn khi kết thúc -> Báo DB (Lặp hoặc Dừng)
                 if (event.data === YT.PlayerState.ENDED && currentRoomData.type === 'video') {
                      if (currentRoomData.isLoop) broadcastToFirebase({ time: 0, state: 1 });
                      else broadcastToFirebase({ state: 2, time: 0 });
@@ -776,7 +749,6 @@ if (btnLogin) {
         onValue(roomRef, (snapshot) => {
             currentRoomData = snapshot.exists() ? snapshot.val() : { type: 'none' };
             
-            // Xóa cái nút "Kết nối âm thanh" nếu phòng đang rỗng tuếch
             if (currentRoomData.type === 'none') {
                 document.getElementById('join-audio-overlay').style.display = 'none';
             }
@@ -807,12 +779,10 @@ if (btnLogin) {
 
             let isChangingTrack = false;
 
-            // KIỂM TRA ĐỔI BÀI
             if (data.ytId !== localState.ytId || data.type !== localState.type) {
                 isChangingTrack = true;
                 localState.type = data.type; localState.ytId = data.ytId; localState.index = data.index;
                 
-                // MỌI MỆNH LỆNH LOAD ĐỀU PHẢI ĐI KÈM THỜI GIAN EXPECTED (Cỗ máy thời gian)
                 let elapsed = (Date.now() - (data.timestamp || Date.now())) / 1000;
                 if (elapsed < 0 || elapsed > 86400) elapsed = 0; 
                 let expectedTime = data.time + (data.state === 1 ? elapsed : 0);
@@ -831,7 +801,6 @@ if (btnLogin) {
                 player.playVideoAt(data.index);
             }
 
-            // ĐỒNG BỘ THỜI GIAN & PLAY/PAUSE (BẢO VỆ CHẶT CHẼ)
             if (!isChangingTrack) {
                 let elapsed = (Date.now() - (data.timestamp || Date.now())) / 1000;
                 if (elapsed < 0 || elapsed > 86400) elapsed = 0; 
@@ -847,7 +816,6 @@ if (btnLogin) {
                 }
             }
 
-            // ÉP TRẠNG THÁI LUÔN KHỚP VỚI DB
             if (data.state === 1) {
                 if (player.getPlayerState() !== 1) player.playVideo();
             } else if (data.state === 2) {
@@ -867,6 +835,15 @@ if (btnLogin) {
             player.setShuffle(data.isShuffle || false);
 
             document.getElementById('sync-status-icon').innerHTML = '<i class="fa-solid fa-check-double" style="color:#10b981;"></i>';
+            
+            // Xử lý đồng bộ Lời bài hát
+            if (data.lyrics_id === data.ytId && data.lyrics_text) {
+                document.getElementById('lyric-text').innerText = data.lyrics_text;
+                document.getElementById('lyric-edit-input').value = data.lyrics_text;
+            } else {
+                document.getElementById('lyric-text').innerText = "Chưa có lời bài hát.\nBấm 'Thêm / Sửa Lời' để đóng góp cho phòng nhé!";
+                document.getElementById('lyric-edit-input').value = "";
+            }
         }
 
         // ===============================================
@@ -916,16 +893,13 @@ if (btnLogin) {
         // NÚT BẤM GIAO DIỆN -> XIN PHÉP FIREBASE
         // ===============================================
         
-        // XÓA TỪNG BÀI 
         window.removeCustomIndex = function(e, indexToRemove) {
             e.stopPropagation(); 
             if (currentRoomData.type !== 'custom_queue') return;
             let q = currentRoomData.customQueue || [];
             if (q.length === 0) return;
 
-            q.splice(indexToRemove, 1); // Cắt bài bị xóa
-
-            // 🛠️ VÁ LỖI: LẤY THỜI GIAN THỰC ĐỂ KHÔNG BỊ RESET BÀI ĐANG HÁT
+            q.splice(indexToRemove, 1); 
             let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
 
             if (q.length === 0) {
@@ -959,21 +933,17 @@ if (btnLogin) {
             }
         };
 
-        // XÓA HẾT CẢ PHÒNG
         document.getElementById('btn-clear-queue').addEventListener('click', () => {
             broadcastToFirebase({ type: 'none', ytId: '', title: 'Chưa có bài hát nào', state: -1, time: 0, isLoop: false, isShuffle: false, customQueue: [] });
             showToast('Thông báo', 'Đã dọn dẹp sạch sẽ!', 'info');
         });
 
-        // NẠP BÀI HÁT / NỐI ĐUÔI
         document.getElementById('btn-start-sync').addEventListener('click', () => {
             let urlInput = document.getElementById('yt-url-input').value.trim();
             if(!urlInput) return;
             const parsed = parseUrl(urlInput);
 
             let q = currentRoomData.customQueue ? [...currentRoomData.customQueue] : [];
-            
-            // 🛠️ VÁ LỖI: LẤY THỜI GIAN THỰC TẠI THỜI ĐIỂM BẤM NÚT THÊM NHẠC
             let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
 
             if(parsed.playlistId) {
@@ -994,7 +964,6 @@ if (btnLogin) {
                     broadcastToFirebase({ type: 'custom_queue', ytId: parsed.videoId, customQueue: q, index: 0, time: 0, state: 1, title: 'Đang tải...' });
                     showToast('Đang phát', 'Đã nạp Bài Hát vào Trạm!', 'success');
                 } else {
-                    // GIỮ NGUYÊN THỜI GIAN THỰC, CHỈ BƠM LIST MỚI LÊN
                     broadcastToFirebase({ customQueue: q, time: currentTime });
                     showToast('Đã thêm', 'Bài hát đã được nối đuôi vào hàng chờ!', 'success');
                 }
@@ -1071,7 +1040,6 @@ if (btnLogin) {
             }
         });
 
-        // 🛠️ VÁ LỖI: GIỮ NGUYÊN THỜI GIAN KHI BẬT/TẮT LOOP & SHUFFLE
         document.getElementById('btn-loop').addEventListener('click', () => {
             let currentTime = (isPlayerReady && player.getCurrentTime) ? player.getCurrentTime() : currentRoomData.time;
             broadcastToFirebase({ isLoop: !currentRoomData.isLoop, time: currentTime });
@@ -1089,7 +1057,6 @@ if (btnLogin) {
         });
         document.getElementById('btn-close-lyric').addEventListener('click', () => {
             document.getElementById('lyric-overlay').classList.remove('show');
-            // Đóng bảng thì tự động Reset về màn hình xem
             document.getElementById('lyric-content').style.display = 'block';
             document.getElementById('lyric-edit-input').style.display = 'none';
             document.getElementById('btn-edit-lyric').style.display = 'block';
@@ -1110,7 +1077,6 @@ if (btnLogin) {
                 showToast('Chưa có nhạc', 'Hãy bật 1 bài hát trước khi lưu lời nhé!', 'error');
                 return;
             }
-            // Lưu lên Firebase: Nội dung lời + ID của bài hát hiện tại
             broadcastToFirebase({ lyrics_text: text, lyrics_id: currentRoomData.ytId });
             showToast('Thành công', 'Đã lưu lời bài hát cho mọi người!', 'success');
             
@@ -1119,22 +1085,6 @@ if (btnLogin) {
             document.getElementById('btn-edit-lyric').style.display = 'block';
             document.getElementById('btn-save-lyric').style.display = 'none';
         });
-
-        // 🛠️ VÁ VÀO HÀM SYNC CHÍNH (Đồng bộ lời bài hát với Firebase theo thời gian thực)
-        // Lưu lại hàm syncPlayer cũ và ghi đè thêm tính năng Lyric vào cuối
-        const originalSyncPlayer = syncPlayer;
-        syncPlayer = function(data) {
-            originalSyncPlayer(data); // Chạy lệnh đồng bộ nhạc gốc
-            
-            // Xử lý đồng bộ Lời bài hát
-            if (data.lyrics_id === data.ytId && data.lyrics_text) {
-                document.getElementById('lyric-text').innerText = data.lyrics_text;
-                document.getElementById('lyric-edit-input').value = data.lyrics_text;
-            } else {
-                document.getElementById('lyric-text').innerText = "Chưa có lời bài hát.\nBấm 'Thêm / Sửa Lời' để đóng góp cho phòng nhé!";
-                document.getElementById('lyric-edit-input').value = "";
-            }
-        };
     </script>
     <script src="/mhent-ui.js"></script>
     <script src="/check-token.js"></script>
