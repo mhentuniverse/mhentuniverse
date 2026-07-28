@@ -259,7 +259,18 @@ const MHENT_UNIVERSES = {
         openCreation: false
     },
     manga:  { name: 'Manga',  path: '#',       color: '#ec4899', roleKey: 'manga', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>', personalMenu: [], openCreation: false },
-    game:   { name: 'Game',   path: '/game',   color: '#10b981', roleKey: 'game', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>', personalMenu: [] },
+    game: { 
+        name: 'Game', path: '/game', color: '#10b981', roleKey: 'game', 
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="15.5" cy="8.5" r="1.5"></circle><circle cx="8.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg>', 
+        personalMenu: [],
+        // 👉 NÂNG CẤP: Dùng mảng adminMenus để chứa không giới hạn các trạm chỉ huy sub-sub-folder:
+        adminMenus: [
+            { title: 'Admin Cờ Vua', url: '/game/chess/admin', icon: 'fa-chess', roleKey: 'chess' },
+            { title: 'Admin Cờ Tướng', url: '/game/xiangqi/admin', icon: 'fa-chess-knight', roleKey: 'xiangqi' }
+            // Sau này làm Caro hay Uno, cậu chỉ cần thêm 1 dòng vào đây là xong!
+        ],
+        openCreation: false 
+    },
     music:  { name: 'Music',  path: '#',       color: '#8b5cf6', roleKey: 'music', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>', personalMenu: [] },
     novel:  { name: 'Novel',  path: '#',       color: '#f43f5e', roleKey: 'novel', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>', personalMenu: [] }
 };
@@ -448,9 +459,27 @@ window.openSideDrawer = function() {
                 }
 
                 // Vẽ nút Admin riêng của phân khu (Khác /admin tối cao)
-                if (uni.adminUrl && uni.adminUrl !== '/admin') {
-                    let canAccessAdmin = isRootAdmin || userRole.includes('admin_' + key) || (uni.roleKey && userRole.includes('admin_' + uni.roleKey));
-                    if (canAccessAdmin) {
+                let canAccessUniAdmin = isRootAdmin || userRole.includes('admin_' + key) || (uni.roleKey && userRole.includes('admin_' + uni.roleKey)) || userRole.includes('game');
+                
+                // 👉 TRƯỜNG HỢP 1: Nếu phân khu có nhiều Sub-Admin (Mảng adminMenus như Vũ trụ Game)
+                if (Array.isArray(uni.adminMenus)) {
+                    uni.adminMenus.forEach(subAdmin => {
+                        // Kiểm tra quyền: Chủ tịch hoặc có quyền chung của Vũ trụ Game, HOẶC có quyền riêng của từng môn (ví dụ: role 'chess')
+                        let canAccessSub = canAccessUniAdmin || (subAdmin.roleKey && (userRole.includes(subAdmin.roleKey) || userRole.includes('admin_' + subAdmin.roleKey)));
+                        
+                        if (canAccessSub) {
+                            localAdminButtonsHTML += `
+                                <a onclick="window.location.href='${subAdmin.url}'; closeSideDrawer();" class="drawer-item" style="color: #3b82f6;">
+                                    <div class="drawer-item-left"><i class="fa-solid ${subAdmin.icon || 'fa-shield-halved'}" style="color: #3b82f6;"></i> <span>${subAdmin.title}</span></div>
+                                    <span style="font-size: 10px; background: rgba(59,130,246,0.2); color: #3b82f6; padding: 2px 8px; border-radius: 10px; font-weight: 900;">ADMIN</span>
+                                </a>
+                            `;
+                        }
+                    });
+                } 
+                // 👉 TRƯỜNG HỢP 2: Nếu chỉ có 1 Admin duy nhất dạng chuỗi (Như Cinema, Arena, Edu)
+                else if (uni.adminUrl && uni.adminUrl !== '/admin') {
+                    if (canAccessUniAdmin) {
                         localAdminButtonsHTML += `
                             <a onclick="window.location.href='${uni.adminUrl}'; closeSideDrawer();" class="drawer-item" style="color: #3b82f6;">
                                 <div class="drawer-item-left"><i class="fa-solid fa-shield-halved" style="color: #3b82f6;"></i> <span>${uni.adminLabel || ('Admin ' + uni.name)}</span></div>
