@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/game/game-theme.css"> 
     <link rel="stylesheet" href="/mhent-ui.css">
+    <!-- ⚡ BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE & BOTTOM NAV -->
+    <link rel="stylesheet" href="/mhent-mobile.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -181,7 +183,7 @@
 
     <div class="back-btn-wrapper">
         <a onclick="window.location.href='/game'" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" class="btn-back">
-            <i class="fa-solid fa-arrow-left"></i> Quay lại Trang Chủ
+            <i class="fa-solid fa-arrow-left"></i> Quay lại Trang Chủ Game
         </a>
     </div>
 
@@ -268,9 +270,9 @@
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-        // 👉 DỮ LIỆU ĐÃ ĐƯỢC TẬP TRUNG TẠI DATA.JS (Cậu nhớ nhúng data.js vào nhé)
         const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
         const supabase = createClient(supabaseUrl, supabaseKey);
@@ -278,6 +280,7 @@
         const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         let currentUser = null; 
 
@@ -323,8 +326,38 @@
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
                 document.getElementById('user-name').innerText = user.displayName || "Khách";
                 document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+
+                // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN()
+                getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+                    const userData = uSnap.exists() ? uSnap.data() : {};
+                    const userRole = userData.role || 'user';
+
+                    if (userRole.includes('admin') || userRole.includes('game')) {
+                        const adminBtn = document.getElementById('admin-panel-btn');
+                        if (adminBtn) adminBtn.style.display = 'flex';
+                        if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
+                    }
+
+                    localStorage.setItem('mhent_user_role', userRole);
+                    localStorage.setItem('mhent_user_profile', JSON.stringify({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || user.email.split('@')[0],
+                        photoURL: user.photoURL || "/assets/avt-web.jpg",
+                        role: userRole,
+                        teamCinema: userData.teamCinema || userData.teamName || '',
+                        teamArena: userData.teamArena || userData.teamName || '',
+                        teamManga: userData.teamManga || userData.teamName || '',
+                        teamMusic: userData.teamMusic || userData.teamName || '',
+                        teamNovel: userData.teamNovel || userData.teamName || '',
+                        teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+                    }));
+                }).catch(e => console.log("Lỗi nạp cache profile:", e));
+
             } else {
                 currentUser = null; 
+                localStorage.setItem('mhent_user_role', 'guest');
+                localStorage.removeItem('mhent_user_profile');
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
@@ -369,7 +402,6 @@
             try {
                 const { data: room } = await supabase.from('chess_rooms').select('*').eq('id', roomId).single();
                 if (room) {
-                    // Cứ có phòng là đẩy thẳng vào play.html, để play.html tự lo việc xếp ghế (Host/Guest/Spectator)
                     window.location.href = `/game/chess/play?id=${roomId}`;
                 } else {
                     showToast("Lỗi", "Mã phòng không tồn tại!", "error");
@@ -378,7 +410,6 @@
                 showToast("Lỗi", "Đường truyền gián đoạn!", "error"); 
             }
         };
-        // LƯU Ý: Với Cờ Tướng thì sếp nhớ đổi chữ 'chess_rooms' thành 'xiangqi_rooms' và link '/game/xiangqi/play' nhé!
 
         function listenForRooms() { supabase.channel('public:chess_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'chess_rooms' }, loadLiveRooms).subscribe(); }
 

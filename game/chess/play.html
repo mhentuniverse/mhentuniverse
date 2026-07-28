@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/game/game-theme.css"> 
     <link rel="stylesheet" href="/mhent-ui.css">
+    <!-- ⚡ BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE & BOTTOM NAV -->
+    <link rel="stylesheet" href="/mhent-mobile.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -117,6 +119,7 @@
 
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
         const SB_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
@@ -126,22 +129,23 @@
         const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('id');
         let currentUser = null; let myRole = null; let isCountingDown = false; let roomData = null; 
         let myTimeLeft = 0; let oppTimeLeft = 0; let localTimer = null; let breakTimer = null; let myBreaksLeft = null;
         let selectedSquare = null;
-        // 👉 HÀM ẨN/HIỆN MÀN HÌNH ĐẾM NGƯỢC
+
         window.toggleReviewBoard = function(isReviewing) {
             const breakOverlay = document.getElementById('set-break-overlay');
             const returnOverlay = document.getElementById('review-return-overlay');
             if (isReviewing) {
-                if(breakOverlay) breakOverlay.style.display = 'none'; // Giấu màn hình to
-                if(returnOverlay) returnOverlay.style.display = 'flex'; // Hiện cục nhỏ xíu ở dưới
+                if(breakOverlay) breakOverlay.style.display = 'none';
+                if(returnOverlay) returnOverlay.style.display = 'flex';
             } else {
-                if(breakOverlay) breakOverlay.style.display = 'flex'; // Hiện lại màn to
-                if(returnOverlay) returnOverlay.style.display = 'none'; // Giấu cục nhỏ đi
+                if(breakOverlay) breakOverlay.style.display = 'flex';
+                if(returnOverlay) returnOverlay.style.display = 'none';
             }
         };
 
@@ -157,7 +161,34 @@
         if (!roomId) window.location.href = '/game/chess'; 
         else document.getElementById('display-room-id').innerText = roomId;
 
-        onAuthStateChanged(auth, (user) => { if (user) { currentUser = user; connectToRoom(); } else window.redirectToLogin(); });
+        onAuthStateChanged(auth, async (user) => { 
+            if (user) { 
+                currentUser = user; connectToRoom(); 
+                // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN()
+                getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+                    const userData = uSnap.exists() ? uSnap.data() : {};
+                    const userRole = userData.role || 'user';
+                    localStorage.setItem('mhent_user_role', userRole);
+                    localStorage.setItem('mhent_user_profile', JSON.stringify({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || user.email.split('@')[0],
+                        photoURL: user.photoURL || "/assets/avt-web.jpg",
+                        role: userRole,
+                        teamCinema: userData.teamCinema || userData.teamName || '',
+                        teamArena: userData.teamArena || userData.teamName || '',
+                        teamManga: userData.teamManga || userData.teamName || '',
+                        teamMusic: userData.teamMusic || userData.teamName || '',
+                        teamNovel: userData.teamNovel || userData.teamName || '',
+                        teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+                    }));
+                }).catch(e => console.log("Lỗi nạp cache profile:", e));
+            } else { 
+                localStorage.setItem('mhent_user_role', 'guest');
+                localStorage.removeItem('mhent_user_profile');
+                window.redirectToLogin(); 
+            } 
+        });
 
         async function connectToRoom() {
             const { data: room, error } = await supabase.from('chess_rooms').select('*').eq('id', roomId).single();
@@ -248,9 +279,6 @@
                 let safeTimeLimit = (data.settings && data.settings.timeLimit) ? data.settings.timeLimit : 10;
                 let bH = (data.timer_host !== undefined && data.timer_host !== null) ? data.timer_host : safeTimeLimit * 60;
                 let bG = (data.timer_guest !== undefined && data.timer_guest !== null) ? data.timer_guest : safeTimeLimit * 60;
-                /*let elapsed = 0;
-                if (data.last_time_update) elapsed = Math.max(0, Math.floor((new Date().getTime() - new Date(data.last_time_update).getTime()) / 1000));
-                if (data.turn === 'white') bH -= elapsed; else bG -= elapsed;*/
 
                 myTimeLeft = (myRole === 'host' || myRole === 'spectator') ? bH : bG;
                 oppTimeLeft = (myRole === 'host' || myRole === 'spectator') ? bG : bH; 
@@ -294,26 +322,22 @@
                     else { const myColor = myRole === 'host' ? 'white' : 'black'; if (data.winner === myColor) { titleEl.innerText = "THẮNG VÁN NÀY!"; titleEl.style.color = "#10b981"; } else { titleEl.innerText = "THUA VÁN NÀY!"; titleEl.style.color = "#ef4444"; } }
                 }
                 let breakEnd = new Date(data.set_break_ends_at).getTime(); if(window.breakTimer) clearInterval(window.breakTimer);
-                // 👉 ĐOẠN ĐẾM NGƯỢC 30S CẬP NHẬT LẠI:
                 window.breakTimer = setInterval(async () => {
                     let now = new Date().getTime();
                     let distance = Math.floor((breakEnd - now) / 1000);
                     
                     const countEl = document.getElementById('set-countdown');
-                    const reviewCountEl = document.getElementById('review-countdown'); // 👉 Dò cái số nhỏ xíu
+                    const reviewCountEl = document.getElementById('review-countdown'); 
                     
                     if (distance > 0) {
                         if(countEl) countEl.innerText = distance;
-                        if(reviewCountEl) reviewCountEl.innerText = distance; // Bơm số vào cục nhỏ
+                        if(reviewCountEl) reviewCountEl.innerText = distance; 
                     } else {
                         clearInterval(window.breakTimer);
                         if(setBreakUI) setBreakUI.style.display = 'none';
-                        
-                        // 👉 VÀO VÁN MỚI THÌ GIẤU LUÔN NÚT XEM LẠI ĐI
                         const returnOverlay = document.getElementById('review-return-overlay');
                         if(returnOverlay) returnOverlay.style.display = 'none';
                         
-                        // Hết 30s, Host lật bàn cờ...
                         if (roomData.host_id === currentUser.uid) {
                             game.reset(); 
                             await supabase.from('chess_rooms').update({ 
@@ -426,14 +450,11 @@
             boardEl.innerHTML = ''; 
             const board = game.board(); 
             
-            // Lấy danh sách các nước đi có thể đi từ ô đang chọn
             let validMoves = [];
             if (selectedSquare) {
-                // game.moves() trả về danh sách nước đi hợp lệ
                 validMoves = game.moves({ square: selectedSquare, verbose: true }).map(m => m.to);
             }
 
-            // Dò tìm vị trí Vua nếu đang bị chiếu
             let checkSquare = null;
             if (game.in_check()) {
                 const turnColor = game.turn();
@@ -458,18 +479,14 @@
                     
                     squareEl.onclick = () => handleSquareClick(squareCoord);
                     
-                    // 👉 Gắn màu đang chọn
                     if (selectedSquare === squareCoord) squareEl.classList.add('selected');
-                    // 👉 TÔ MÀU NƯỚC ĐI VỪA XONG
                     const lastMove = (roomData && roomData.move_log && roomData.move_log.length > 0) ? roomData.move_log[roomData.move_log.length - 1] : null;
                     if (lastMove && lastMove.from && lastMove.to) {
                         if (squareCoord === lastMove.from || squareCoord === lastMove.to) {
                             squareEl.classList.add('last-move');
                         }
                     }
-                    // 👉 Gắn màu Vua bị chiếu
                     if (checkSquare === squareCoord) squareEl.classList.add('in-check');
-                    // 👉 Gắn chấm khả dụng
                     if (validMoves.includes(squareCoord)) {
                         squareEl.classList.add('valid-move');
                         if (squareData) squareEl.classList.add('has-enemy');
@@ -497,7 +514,6 @@
                 const move = game.move({ from: selectedSquare, to: coords, promotion: 'q' });
                 if (move) {
                     moveSound.play().catch(e=>{}); const nextTurn = game.turn() === 'w' ? 'white' : 'black'; const newFen = game.fen();
-                    // 👉 LƯU THÊM TỌA ĐỘ VÀO DB ĐỂ VẼ HIỆU ỨNG LAST MOVE
                     const updatedMoveLog = [...(Array.isArray(roomData.move_log) ? roomData.move_log : []), { turn: turnColor, notation: move.san, from: move.from, to: move.to }];
                     if (game.game_over()) {
                         let winnerColor = 'draw'; if (game.in_checkmate()) winnerColor = turnColor;
