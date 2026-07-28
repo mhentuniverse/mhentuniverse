@@ -254,8 +254,8 @@ const MHENT_UNIVERSES = {
     teach: {
         name: 'Edu', path: '/teach', color: '#0ea5e9', roleKey: 'teacher',
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>',
-        personalMenu: [], studioUrl: '/teach/studio', adminUrl: '/teach/admin',
-        adminLabel: 'Admin Edu', studioLabel: 'Studio Edu',
+        personalMenu: [], adminUrl: '/teach/admin',
+        adminLabel: 'Admin Edu',
         openCreation: false
     },
     manga:  { name: 'Manga',  path: '#',       color: '#ec4899', roleKey: 'manga', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>', personalMenu: [], openCreation: false },
