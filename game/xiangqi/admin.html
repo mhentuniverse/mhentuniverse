@@ -11,14 +11,17 @@
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/mhent-admin.css">
     <link rel="stylesheet" href="/game/game-theme.css"> 
     <link rel="stylesheet" href="/mhent-ui.css">
+    <!-- ⚡ KHIÊN BẢO VỆ GIAO DIỆN MOBILE & BOTTOM NAV -->
+    <link rel="stylesheet" href="/mhent-mobile.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --hub-color: #ef4444; --hub-bg: rgba(239, 68, 68, 0.1); }
+        :root { --hub-color: #ef4444; --hub-bg: rgba(239, 68, 68, 0.1); --theme-accent: #ef4444; }
         body { font-family: 'Nunito', sans-serif !important; background: #0f172a; color: #f8fafc; margin: 0; padding: 0; }
         .admin-layout { display: flex; min-height: 100vh; padding-top: 70px; }
         .admin-sidebar { width: 260px; background: #1e293b; border-right: 1px solid #334155; padding: 30px 20px; position: fixed; height: calc(100vh - 70px); overflow-y: auto; z-index: 10; box-sizing: border-box; }
@@ -48,6 +51,9 @@
             <a href="/game/xiangqi" style="display: flex; align-items: center; gap: 10px; color: white; text-decoration: none; font-weight: 900;">
                 <img src="/assets/avt-web.jpg" style="width: 30px; height: 30px; border-radius: 50%;"> MHEnt. Xiangqi Admin
             </a>
+        </div>
+        <div>
+            <button class="btn-admin" style="background: rgba(255,255,255,0.1); padding: 8px 15px; font-size: 13.5px;" onclick="window.location.href='/game/xiangqi'"><i class="fa-solid fa-arrow-left"></i> Về Sảnh Cờ Tướng</button>
         </div>
     </nav>
 
@@ -185,7 +191,7 @@
                 id: roomId, host_id: "ADMIN_PENDING", admin_locked: document.getElementById('special-status').value === 'locked',
                 status: 'waiting', target_wins: parseInt(document.getElementById('special-target-wins').value),
                 score_host: 0, score_guest: 0, host_ready: false, guest_ready: false, 
-                turn: 'red', // 👉 ĐỎ ĐI TRƯỚC
+                turn: 'red',
                 note: document.getElementById('special-note').value.trim() || null,
                 settings: { timeLimit, increment, breakCount, breakTime }
             }]);
@@ -274,10 +280,16 @@
         onAuthStateChanged(auth, async (user) => {
             if (!user) return window.redirectToLogin();
             const snap = await getDoc(doc(db, "users", user.uid));
-            if (snap.exists() && snap.data().role?.includes('admin')) {
+            const role = snap.exists() ? (snap.data().role || '') : '';
+            
+            // ⚡ VÁ LỖI QUYÈN HAN: MỞ CỔNG CHO CÁC ROLE ADMIN, GAME, XIANGQI, CREATOR
+            if (role.includes('admin') || role.includes('game') || role.includes('xiangqi') || role.includes('creator')) {
                 fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList();
                 supabase.channel('admin_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'xiangqi_rooms' }, () => { fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList(); }).subscribe();
-            } else { showPopup("Không có quyền!", true); setTimeout(() => window.location.href = '/game/xiangqi', 2000); }
+            } else { 
+                showPopup("Không có quyền!", true); 
+                setTimeout(() => window.location.href = '/game/xiangqi', 2000); 
+            }
         });
 
         async function fetchRooms() { const { data } = await supabase.from('xiangqi_rooms').select('*').order('created_at', { ascending: false }); roomsData = data || []; renderRooms(); }

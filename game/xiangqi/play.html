@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/game/game-theme.css"> 
     <link rel="stylesheet" href="/mhent-ui.css">
+    <!-- ⚡ KHIÊN BẢO VỆ GIAO DIỆN MOBILE & BOTTOM NAV -->
+    <link rel="stylesheet" href="/mhent-mobile.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -51,6 +53,14 @@
         .room-id { background: #334155; color: #cbd5e1; padding: 5px 12px; border-radius: 8px; font-weight: 900; font-size: 14px; letter-spacing: 2px; }
         .match-status { font-weight: 800; color: #10b981; font-size: 14px; display: flex; align-items: center; gap: 5px; }
         .match-status.waiting { color: #f59e0b; }
+        
+        /* ⚡ NÚT RỜI BÀN CHUYÊN DỤNG */
+        .btn-leave-room {
+            background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444;
+            padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 13.5px;
+            cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-leave-room:hover { background: #ef4444; color: white; }
 
         /* KHU VỰC CHƠI CHÍNH (LAYOUT 3 CỘT THEO BẢN VẼ) */
         .battle-arena {
@@ -153,15 +163,13 @@
         }
         .side-header { background: rgba(0,0,0,0.2); padding: 12px; font-weight: 900; border-bottom: 2px solid #334155; text-align: center; color: var(--xiangqi-color); text-transform: uppercase; font-size: 14px;}
         .move-log-box { 
-            max-height: 250px; /* Sếp có thể tự chỉnh số này cho vừa với layout (VD: 250px, 300px) */
-            overflow-y: auto;  /* Bật thanh cuộn dọc */
+            max-height: 250px; 
+            overflow-y: auto;  
             padding-right: 5px;
-            /* Làm thanh cuộn tàng hình bớt cho đẹp */
             scrollbar-width: thin;
             scrollbar-color: #10b981 transparent;
         }
 
-        /* Làm đẹp thanh cuộn cho hệ máy Chrome/Edge/Safari */
         .move-log-box::-webkit-scrollbar { width: 6px; }
         .move-log-box::-webkit-scrollbar-track { background: transparent; }
         .move-log-box::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
@@ -178,18 +186,13 @@
             justify-content: center;
             align-items: center;
             flex: 1;
-            min-height: 0; /* Quan trọng: Cho phép cột ở giữa tự do co giãn */
+            min-height: 0; 
         }
         .xiangqi-board-container {
-            /* KHÓA CHẾT TỶ LỆ 9:10 (Tuyệt đối không cho méo) */
             aspect-ratio: 9 / 10; 
-            
-            /* THUẬT TOÁN AUTO-SIZE: Phình to nhất có thể, nhưng hễ đụng viền là dừng! */
             width: min(100%, calc(80vh * 0.9)); 
             max-width: 550px; 
-            
-            flex-shrink: 0; /* CẤM flexbox bóp méo bàn cờ */
-            
+            flex-shrink: 0; 
             background: var(--board-wood);
             border: 5px solid #8b5a2b;
             border-radius: 8px;
@@ -224,18 +227,14 @@
             color: #cbd5e1;
             line-height: 1.5;
         }
-        /* RESPONSIVE CHO ĐIỆN THOẠI (XẾP DỌC LẠI) */
         @media (max-width: 1024px) {
             body { overflow: auto; } 
             .battle-arena { display: flex; flex-direction: column; gap: 20px; padding: 15px;}
-            .center-panel { order: -1; } /* Bàn cờ đẩy lên đầu tiên */
+            .center-panel { order: -1; } 
             .xiangqi-board-container { aspect-ratio: 9/10; height: auto; max-width: 95vw; }
             .side-section { min-height: 250px; }
         }
 
-        /* ========================================== */
-        /* BÀN CỜ VẼ BẰNG SVG & QUÂN CỜ CHUẨN         */
-        /* ========================================== */
         #xiangqi-board {
             width: calc(100% - 40px); height: calc(100% - 40px); position: relative;
             background-size: 100% 100%;
@@ -255,18 +254,14 @@
         }
         .xq-spot:hover { background: rgba(255, 255, 255, 0.2); }
         .xq-spot.selected .xq-piece { border-color: #10b981; box-shadow: 0 0 20px #10b981; transform: scale(1.15) translateY(-3px); }
-        /* HIỆU ỨNG NƯỚC ĐI CUỐI CÙNG */
-        /* 1. Tô màu nền cho ô xuất phát (ô trống) */
         .xq-spot.last-move {
             background: rgba(253, 17, 17, 0.6);
             border-radius: 50%;
         }
-        
-        /* 2. Đổi viền và phát sáng cho quân cờ ở ô đích (quân vừa đi) */
         .xq-spot.last-move .xq-piece {
             border-color: #f54d0b !important;
             box-shadow: 0 0 15px rgba(253, 17, 17, 0.7), inset 0 -3px 5px rgba(0,0,0,0.2) !important;
-            transform: scale(1.05); /* Cho nó to lên một xíu cho nổi bật */
+            transform: scale(1.05); 
         }
 
         .xq-piece { 
@@ -278,20 +273,17 @@
         .xq-piece.red { color: #dc2626; border-color: #dc2626; text-shadow: 0 1px 1px rgba(220, 38, 38, 0.3);}
         .xq-piece.black { color: #1e293b; border-color: #1e293b; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);}
 
-        /* Hiệu ứng chấm xanh cho các ô có thể đi */
         .xq-spot.valid-move::after {
             content: ''; position: absolute; width: 16px; height: 16px;
             background: rgba(16, 185, 129, 0.7); border-radius: 50%;
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); pointer-events: none;
         }
-        /* Nếu ô có thể đi mà có quân địch, hiện cái viền đỏ dọa nạt xíu */
         .xq-spot.valid-move.has-enemy::after {
             width: 38px; height: 38px; background: transparent;
             border: 3px dashed #ef4444; border-radius: 50%;
             box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
         }
 
-        /* Hiệu ứng Tướng bị chiếu: Hiện viền đỏ chớp nháy dọa nạt xíu */
         .xq-spot.in-check::after {
             content: ''; position: absolute; width: 38px; height: 38px;
             background: transparent; border: 4px dashed #ef4444; border-radius: 50%;
@@ -300,23 +292,17 @@
         }
         @keyframes pulse-red { 0% { opacity: 0.5; } 100% { opacity: 1; transform: scale(1.1); } }
     
-        /* ========================================== */
-        /* GIAO DIỆN CHUỖI TRẬN (BEST OF X)           */
-        /* ========================================== */
-        /* Bảng chấm điểm Penalty */
         .score-tracker { display: flex; gap: 5px; margin-top: 6px; }
         .score-dot { width: 12px; height: 12px; border-radius: 50%; background: #334155; border: 1px solid #0f172a; transition: 0.3s; }
         .score-dot.won { background: #10b981; box-shadow: 0 0 8px #10b981; border-color: #10b981; }
         .score-dot.lost { background: #ef4444; box-shadow: 0 0 8px #ef4444; border-color: #ef4444; }
 
-        /* Màn hình nghỉ 30s giữa các ván */
         #set-break-overlay {
             display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
             z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
         .set-result-title { font-size: 3.5rem; font-weight: 900; margin: 0; text-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .set-countdown-text { font-size: 8rem; font-weight: 900; color: #10b981; margin: 10px 0; font-family: monospace; text-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
-
     </style>
 </head>
 <body class="dark-mode game-play-page">
@@ -328,7 +314,12 @@
                 <i class="fa-solid fa-satellite-dish fa-beat"></i> Đang tải...
             </span>
         </div>
-        </header>
+        
+        <!-- ⚡ VÁ LỖI MẮC KỆT: NÚT RỜI BÀN ĐƯỢC GẮN NGAY TRÊN HEADER -->
+        <div>
+            <button class="btn-leave-room" onclick="confirmLeave()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Rời Bàn</button>
+        </div>
+    </header>
 
     <main class="battle-arena">
         
