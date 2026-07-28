@@ -96,9 +96,23 @@
             @media (max-width: 768px) {
                 .admin-sidebar { transform: translateX(-100%); width: 280px; box-shadow: none; }
                 .admin-sidebar.show-mobile { transform: translateX(0); box-shadow: 15px 0 35px rgba(0,0,0,0.3); }
-                .admin-content { margin-left: 0; padding: 20px 15px 100px 15px; }
-                .bottom-bar { left: 0; width: 100%; padding: 10px 15px; height: 70px; }
-                .btn-action { font-size: 14px; padding: 12px; }
+                
+                /* Chừa khoảng trống 100px ở đáy để nút không bao giờ bị Bottom Nav của app che mất */
+                .admin-content { margin-left: 0; padding: 20px 15px 100px 15px !important; }
+                
+                /* ⚡ PHÉP THUẬT Ở ĐÂY: Biến Bottom Bar cố định thành Nút bấm bình thường ở cuối trang! */
+                .bottom-bar { 
+                    position: static !important; /* Ngắt bay lơ lửng, trở về làm khối bình thường */
+                    width: 100% !important; 
+                    height: auto !important;
+                    padding: 25px 0 10px 0 !important; 
+                    background: transparent !important; /* Xóa nền kính mờ */
+                    border-top: none !important; /* Xóa đường viền đỉnh */
+                    box-shadow: none !important; /* Xóa bóng đổ */
+                    margin-top: 10px;
+                }
+                
+                .btn-action { font-size: 15px; padding: 14px; width: 100%; max-width: 100% !important; }
                 .input-group { flex-direction: column; align-items: stretch; gap: 10px; }
                 .input-box { min-width: 100%; }
                 .result-box { width: 100%; padding: 12px; }
@@ -182,21 +196,22 @@
                         <button id="cancel-edit-button" class="btn-action btn-back-tool" type="button" style="width: 100%; max-width: 100%; margin-top: 10px; display: none;" onclick="cancelEdit()">Hủy chỉnh sửa</button>
                     </div>
                 </div>
-            </main>
-        </div>
 
-        <!-- CÁC THANH BOTTOM BAR CHUYÊN DỤNG -->
-        <div class="bottom-bar" id="bar-input" style="display: none;">
-            <button class="btn-action btn-report" onclick="chotSoLieu()"><i class="fa-solid fa-check-double"></i> CHỐT SỐ LIỆU</button>
-        </div>
-        <div class="bottom-bar" id="bar-review" style="display: none;">
-            <button class="btn-action btn-back-tool" onclick="quayLaiSua()"><i class="fa-solid fa-arrow-left"></i> Sửa lại</button>
-            <button class="btn-action btn-copy" onclick="copyReport()"><i class="fa-solid fa-copy"></i> Copy Báo Cáo</button>
-        </div>
-        <div class="bottom-bar" id="bar-edit" style="display: none;">
-            <button class="btn-action btn-back-tool" onclick="window.location.href='index.html'"><i class="fa-solid fa-xmark"></i> Thoát</button>
-            <button class="btn-action btn-report" style="background: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.3);" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU TRÊN MÂY</button>
-        </div>
+        <!-- ⚡ BƯỚC 1: DÁN 3 THANH BOTTOM BAR VÀO ĐÂY (NGAY TRƯỚC </main>) -->
+                <div class="bottom-bar" id="bar-input" style="display: none;">
+                    <button class="btn-action btn-report" onclick="chotSoLieu()"><i class="fa-solid fa-check-double"></i> CHỐT SỐ LIỆU</button>
+                </div>
+                <div class="bottom-bar" id="bar-review" style="display: none;">
+                    <button class="btn-action btn-back-tool" onclick="quayLaiSua()"><i class="fa-solid fa-arrow-left"></i> Sửa lại</button>
+                    <button class="btn-action btn-copy" onclick="copyReport()"><i class="fa-solid fa-copy"></i> Copy Báo Cáo</button>
+                </div>
+                <div class="bottom-bar" id="bar-edit" style="display: none;">
+                    <button class="btn-action btn-back-tool" onclick="window.location.href='index.html'"><i class="fa-solid fa-xmark"></i> Thoát</button>
+                    <button class="btn-action btn-report" style="background: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.3);" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU TRÊN MÂY</button>
+                </div>
+
+            </main> <!-- Thẻ đóng main của cậu -->
+        </div> <!-- Thẻ đóng admin-layout -->
 
         <footer>
         <div class="footer-bottom">
