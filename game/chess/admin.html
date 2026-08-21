@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -16,11 +16,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
     
     <!-- ⚡ GỌI HỆ THỐNG CSS CHÍNH, ADMIN CORE & KHIÊN MOBILE -->
-    <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/mhent-admin.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/mhent-admin.css">
     <link rel="stylesheet" href="/game/game-theme.css"> 
-    <link rel="stylesheet" href="/mhent-ui.css">
-    <link rel="stylesheet" href="/mhent-mobile.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link rel="stylesheet" href="/css/mhent-mobile.css">
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -68,6 +68,7 @@
             .form-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="/js/config.js"></script>
 </head>
 <body>
     <nav class="navbar" style="position: fixed; width: 100%; z-index: 1000; box-sizing: border-box; background: #0f172a; border-bottom: 1px solid #334155; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -169,19 +170,18 @@
             </div>
         </main>
     </div>
-
-    <script src="/mhent-ui.js"></script>
+    <script src="/js/mhent-ui.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-        const SB_URL = "https://ctzkgchjheirxwejctvl.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0";
+        const SB_URL = window.supabaseUrl;
+        const SB_KEY = window.supabaseKey;
         const supabase = createClient(SB_URL, SB_KEY);
 
-        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+        const firebaseConfig = window.firebaseConfig;
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);

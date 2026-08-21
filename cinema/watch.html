@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -15,9 +15,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
     
     <!-- HỆ THỐNG CSS CHỨC NĂNG & GIAO DIỆN CHUNG -->
-    <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/mhent-ui.css">
-    <link rel="stylesheet" href="/mhent-mobile.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link rel="stylesheet" href="/css/mhent-mobile.css">
     <!-- CSS CHUYÊN DỤNG CỦA PHÂN KHU CINEMA -->
     <link rel="stylesheet" href="/cinema/cinema-theme.css">
     
@@ -150,6 +150,7 @@
         .mhent-btn:hover { color: #ff85a2; transform: scale(1.15) translateY(-2px); filter: drop-shadow(0 0 8px rgba(255,133,162,0.6)); }
         .mhent-btn:active { transform: scale(0.85); }
     </style>
+    <script src="/js/config.js"></script>
 </head>
 <body class="theme-cinema gradient-bg">
     <div id="cinema-overlay" class="cinema-overlay" onclick="toggleCinemaMode()"></div>
@@ -471,15 +472,7 @@
         import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-            authDomain: "mhentuniverse.firebaseapp.com",
-            projectId: "mhentuniverse",
-            storageBucket: "mhentuniverse.firebasestorage.app",
-            messagingSenderId: "377044322952",
-            appId: "1:377044322952:web:d657d1b0806d37d9246d3d",
-            measurementId: "G-YE217QW296"
-        };
+        const firebaseConfig = window.firebaseConfig;
 
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
@@ -1210,9 +1203,9 @@
     <script>
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').then((registration) => { console.log('🚀 PWA Khởi động thành công!'); }).catch((error) => { console.log('❌ Lỗi khởi động PWA: ', error); }); }); }
     </script>
-    <script src="/mhent-ui.js"></script>
-    <script src="/bot-shield.js"></script>
-    <script src="/check-token.js"></script>
-    <script type="module" src="/maintenance.js"></script>
+    <script src="/js/mhent-ui.js"></script>
+    <script src="/js/bot-shield.js"></script>
+    <script src="/js/check-token.js"></script>
+    <script type="module" src="/js/maintenance.js"></script>
 </body>
 </html>

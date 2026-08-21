@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -14,10 +14,10 @@
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
     
-    <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/mhent-ui.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
     <link rel="stylesheet" href="/arena/arena-theme.css">
-    <link rel="stylesheet" href="/mhent-mobile.css">
+    <link rel="stylesheet" href="/css/mhent-mobile.css">
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -147,6 +147,7 @@
             .sidebar-panel { padding: 15px; }
         }
     </style>
+    <script src="/js/config.js"></script>
 </head>
 <body class="theme-arena gradient-bg">
 
@@ -192,7 +193,7 @@
     </div>
 
     <!-- Gọi mhent-ui.js TRƯỚC khối module để đảm bảo các hàm như showTypingPopup được nạp vào window -->
-    <script src="/mhent-ui.js"></script>
+    <script src="/js/mhent-ui.js"></script>
 
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -200,8 +201,8 @@
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // 1. KHORE TẠO CĂN CỨ SUPABASE
-        const SUPABASE_URL = 'https://ctzkgchjheirxwejctvl.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
+        const SUPABASE_URL = window.supabaseUrl;
+        const SUPABASE_KEY = window.supabaseKey;
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'arena' } });
 
         if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
@@ -421,7 +422,7 @@
                 const ctx = canvas.getContext('2d');
                 const img = new Image();
                 img.crossOrigin = "Anonymous"; 
-                img.src = '/assets/PrizeTicket_Blank.png'; 
+                img.src = '/assets/prize-ticket-blank.png'; 
 
                 img.onload = () => {
                     canvas.width = img.width; canvas.height = img.height;
@@ -432,7 +433,7 @@
                     ctx.fillText(ticketCode, 300, 310);
                     canvas.toBlob((blob) => resolve(blob), 'image/png');
                 };
-                img.onerror = (err) => reject(new Error("PrizeTicket_Blank.png không tồn tại trong /assets/"));
+                img.onerror = (err) => reject(new Error("prize-ticket-blank.png không tồn tại trong /assets/"));
             });
         }
 
@@ -519,7 +520,7 @@
 
         initQuiz();
     </script>
-    <script src="/check-token.js"></script>
-    <script type="module" src="/maintenance.js"></script>
+    <script src="/js/check-token.js"></script>
+    <script type="module" src="/js/maintenance.js"></script>
 </body>
 </html>

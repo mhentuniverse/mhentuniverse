@@ -3,15 +3,7 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { getFirestore, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk",
-    authDomain: "mhentuniverse.firebaseapp.com",
-    projectId: "mhentuniverse",
-    storageBucket: "mhentuniverse.firebasestorage.app",
-    messagingSenderId: "377044322952",
-    appId: "1:377044322952:web:d657d1b0806d37d9246d3d"
-};
-
+const firebaseConfig = window.firebaseConfig || (window.MHENT_CONFIG && window.MHENT_CONFIG.FIREBASE);
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp(); 
 const db = getFirestore(app);
 const auth = getAuth(app);

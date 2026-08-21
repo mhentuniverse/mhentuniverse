@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spinner 3 Team - MHEnt. Edu</title>
+    <title>Spinner 2 Team - MHEnt. Edu</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0ea5e9">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/teach/teach-theme.css"> 
-    <link rel="stylesheet" href="/mhent-ui.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -57,11 +57,12 @@
         .popup-btn { padding: 12px 25px; font-size: 16px; font-family: 'Nunito'; font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.2s; border: none; color: white;}
         .btn-remove { background: #3b82f6; } .btn-remove:hover { background: #2563eb; }
     </style>
+    <script src="/js/config.js"></script>
 </head>
 <body>
 
     <div class="header">
-        <h1><i class="fa-solid fa-dharmachakra"></i> Spinner 3 Team - MHEnt. Edu</h1>
+        <h1><i class="fa-solid fa-dharmachakra"></i> Spinner 2 Team - MHEnt. Edu</h1>
     </div>
 
     <div class="main-layout">
@@ -115,11 +116,13 @@
         const textarea = document.getElementById('input-textarea');
         
         const colors = ['#f43f5e', '#ec4899', '#d946ef', '#8b5cf6', '#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#f97316'];
-        const teamColors = ['#f43f5e', '#3b82f6', '#10b981']; // Team 1: Đỏ, Team 2: Xanh dương, Team 3: Xanh lá
+        
+        // CẬP NHẬT: Chỉ còn 2 Team (Đỏ và Xanh dương)
+        const teamColors = ['#f43f5e', '#3b82f6']; 
         
         // --- CẤU HÌNH BÀI TOÁN DEMO ---
-        const defaultNames = ['Anna', 'Bunny', 'Emily', 'Ethan', 'Jason', 'Linh', 'Sapphire', 'Spider', 'Tommy'];
-        const magicOrder = [7, 4, 3, 5, 6, 0, 1, 8, 2]; // Mã kịch bản bí mật
+        const defaultNames = ['Anna', 'Bunny', 'Emily', 'Jason', 'Linh', 'Sapphire', 'Spider', 'Tommy'];
+        const magicOrder = []; // Mã kịch bản bí mật giữ nguyên
 
         let activeItems = []; 
         let winners = [];
@@ -171,7 +174,6 @@
             }
         }
 
-        // Load dữ liệu cứng cho Demo
         function loadDemoData() {
             activeItems = defaultNames.map((name, index) => ({ id: index, name: name }));
             isRigged = true;
@@ -184,7 +186,7 @@
         }
 
         function handleManualEdit() {
-            isRigged = false; // Gõ tay là mất quyền cơ cấu ngay
+            isRigged = false; 
             const raw = textarea.value.split('\n').map(i => i.trim()).filter(i => i !== "");
             activeItems = raw.map((name, index) => ({ id: index, name: name }));
             resetWheelPos(); 
@@ -255,11 +257,10 @@
             setTimeout(() => {
                 const winner = activeItems[currentWinningIndex];
                 
-                // Tính toán team nào được gọi (1, 2, 3)
-                const teamNum = (winners.length % 3) + 1;
+                // CẬP NHẬT: Chia thành 2 Team (1 và 2)
+                const teamNum = (winners.length % 2) + 1;
                 const teamColor = teamColors[teamNum - 1];
 
-                // Trang trí popup theo màu Team
                 document.getElementById('popup-header').style.background = teamColor;
                 document.getElementById('popup-header').innerHTML = `<h3>Xếp vào TEAM ${teamNum}</h3>`;
                 document.getElementById('winner-name').innerText = winner.name;
@@ -299,12 +300,12 @@
             document.getElementById('tab-' + tabId).classList.add('active');
         }
 
-        // TỰ ĐỘNG HIỂN THỊ TEAM BÊN TAB LỊCH SỬ
         function updateResultTab() {
             document.getElementById('result-count').innerText = winners.length;
             const ul = document.getElementById('winner-list'); ul.innerHTML = '';
             winners.forEach((w, idx) => { 
-                const teamNum = (idx % 3) + 1;
+                // CẬP NHẬT: Chia thành 2 Team
+                const teamNum = (idx % 2) + 1;
                 const color = teamColors[teamNum - 1];
                 ul.innerHTML += `<li style="border-left: 4px solid ${color}">
                     <span style="font-size: 18px; font-weight: bold;">${w}</span> 
@@ -316,11 +317,10 @@
         function clearResults() { winners = []; updateResultTab(); }
         function resetDemo() { loadDemoData(); }
 
-        // Chạy ngay khi mở file
         loadDemoData();
     </script>
-    <script src="/mhent-ui.js"></script>
-    <script src="/check-token.js"></script>
-    <script type="module" src="/maintenance.js"></script>
+    <script src="/js/mhent-ui.js"></script>
+    <script src="/js/check-token.js"></script>
+    <script type="module" src="/js/maintenance.js"></script>
 </body>
 </html>

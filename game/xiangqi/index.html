@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -13,11 +13,11 @@
     <meta name="theme-color" content="#ef4444">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/game/game-theme.css"> 
-    <link rel="stylesheet" href="/mhent-ui.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
     <!-- ⚡ BỔ SUNG KHIÊN BẢO VỆ GIAO DIỆN MOBILE & BOTTOM NAV -->
-    <link rel="stylesheet" href="/mhent-mobile.css">
+    <link rel="stylesheet" href="/css/mhent-mobile.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -90,6 +90,7 @@
         .setting-select { width: 100%; padding: 12px 15px; border-radius: 12px; background: #0f172a; border: 2px solid #334155; color: white; font-size: 15px; font-weight: 700; outline: none; transition: 0.3s; font-family: 'Nunito', sans-serif; cursor: pointer; }
         .setting-select:focus { border-color: var(--xiangqi-color); box-shadow: 0 0 0 4px var(--xiangqi-bg); }
     </style>
+    <script src="/js/config.js"></script>
 </head>
 <body class="dark-mode">
     
@@ -307,11 +308,9 @@
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-        const supabaseUrl = 'https://ctzkgchjheirxwejctvl.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0';
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const supabase = createClient(window.supabaseUrl, window.supabaseKey);
 
-        const firebaseConfig = { apiKey: "AIzaSyDKDAAnmeqWFRqUZWTVa--m5-cORyHCoUk", authDomain: "mhentuniverse.firebaseapp.com", projectId: "mhentuniverse", storageBucket: "mhentuniverse.firebasestorage.app", messagingSenderId: "377044322952", appId: "1:377044322952:web:d657d1b0806d37d9246d3d" };
+        const firebaseConfig = window.firebaseConfig;
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -469,6 +468,6 @@
         };
         setTimeout(() => loadLiveRooms(), 500);
     </script>
-    <script src="/mhent-ui.js"></script>
+    <script src="/js/mhent-ui.js"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const serve = require('electron-serve');
 const path = require('path');
 
-const loadURL = (serve.default || serve)({ directory: __dirname });
+const loadURL = (serve.default || serve)({ directory: path.join(__dirname, '..') });
 let mainWindow;
 
 if (process.defaultApp) {
