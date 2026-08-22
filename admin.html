@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -389,31 +389,28 @@
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.redirectToLogin(); }
-            else {
-                try {
-                    const docSnap = await getDoc(doc(db, "users", user.uid));
-                    if (!docSnap.exists() || !docSnap.data().role.includes('admin')) {
-                        showPopup("Cảnh báo: Cậu không phải Giám đốc! Trục xuất ngay lập tức!");
-                        window.location.href = '/';
-                    } else {
-                        document.getElementById('security-shield').style.opacity = '0';
-                        setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
-                        loadAllUsers();
-                        loadAuditLogs();
-                        loadSystemStatus();
-                        updateDashboardStats();
-                        loadMailHistory();
-                    }
-                } catch (error) { 
-                    showPopup("Lỗi kết nối máy chủ an ninh!"); 
-                    window.location.href = '/'; 
-                }
+            if (!user) { 
+                window.redirectToLogin(); 
+                return;
             }
+            try {
+                const docSnap = await getDoc(doc(db, "users", user.uid));
+                const userData = docSnap.exists() ? docSnap.data() : {};
+                const userRole = userData.role || '';
 
-            // ⚡ THAY THẾ CỤC BỊ LỖI BẰNG ĐOẠN NÀY (Tự kéo data từ mây về, không phụ thuộc vào docSnap cũ nữa):
-            getDoc(doc(db, "users", user.uid)).then((uSnap) => {
-                const userData = uSnap.exists() ? uSnap.data() : {};
+                if (!userRole.includes('admin')) {
+                    showPopup("Cảnh báo: Cậu không phải Giám đốc! Trục xuất ngay lập tức!");
+                    window.location.href = '/';
+                } else {
+                    document.getElementById('security-shield').style.opacity = '0';
+                    setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
+                    loadAllUsers();
+                    loadAuditLogs();
+                    loadSystemStatus();
+                    updateDashboardStats();
+                    loadMailHistory();
+                }
+
                 localStorage.setItem('mhent_user_role', userData.role || 'user');
                 localStorage.setItem('mhent_user_profile', JSON.stringify({
                     uid: user.uid,
@@ -428,7 +425,11 @@
                     teamNovel: userData.teamNovel || userData.teamName || '',
                     teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
                 }));
-            }).catch(e => console.log("Lỗi lưu cache profile:", e));
+            } catch (error) { 
+                console.error("Lỗi xác thực Root Admin:", error);
+                showPopup("Lỗi kết nối máy chủ an ninh!"); 
+                window.location.href = '/'; 
+            }
         });
 
         async function loadAllUsers() {
