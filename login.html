@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -22,6 +22,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/js/config.js"></script>
+    <style>
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            animation: fadeInOverlay 0.25s ease-out;
+        }
+
+        .spinner-loader {
+            width: 52px;
+            height: 52px;
+            border: 4px solid rgba(255, 133, 162, 0.2);
+            border-top: 4px solid var(--theme-accent, #ff85a2);
+            border-radius: 50%;
+            animation: spinLoader 0.8s linear infinite;
+            box-shadow: 0 0 25px rgba(255, 133, 162, 0.35);
+        }
+
+        @keyframes spinLoader {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
 </head>
 <body class="theme-cinema gradient-bg">
 
@@ -127,7 +167,7 @@
 
     <div id="loading-overlay" class="popup-overlay" style="display: none; z-index: 10000;">
         <div class="spinner-loader"></div>
-        <h2 style="color: var(--theme-accent); margin-top: 20px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Đang kết nối mây...</h2>
+        <h2 id="loading-text" style="color: var(--theme-accent); margin-top: 20px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); text-align: center; max-width: 90%; font-size: 20px;">Đang kết nối mây...</h2>
     </div>
 
     <!-- KHUNG ĐĂNG NHẬP (Đã gọi class từ style.css) -->
@@ -189,7 +229,7 @@
 
             <div class="auth-divider">Hoặc</div>
             
-            <button id="btn-login-google" class="btn-google">
+            <button id="btn-login-google" class="btn-google" type="button">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width: 20px;">
                 Tiếp tục với Google
             </button>
@@ -238,16 +278,53 @@
     </footer>
 
     <script type="module">
-        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithPopup, 
+            signInWithRedirect, 
+            getRedirectResult, 
+            GoogleAuthProvider, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            sendPasswordResetEmail,
+            onAuthStateChanged,
+            RecaptchaVerifier 
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = window.firebaseConfig;
 
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
         const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
+
+        // HÀM HIỂN THỊ LOADING OVERLAY VỚI NỘI DUNG TÙY CHỌN
+        function showLoading(message = "Đang kết nối mây...") {
+            const loadingScreen = document.getElementById('loading-overlay');
+            const loadingText = document.getElementById('loading-text');
+            if (loadingText) loadingText.innerText = message;
+            if (loadingScreen) loadingScreen.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            const loadingScreen = document.getElementById('loading-overlay');
+            if (loadingScreen) loadingScreen.style.display = 'none';
+        }
+
+        // KIỂM TRA MÔI TRƯỜNG THIẾT BỊ (Mobile, Tablet, In-App WebView: Zalo, FB, TikTok, Messenger...)
+        function isMobileOrInApp() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+            const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+            const isInApp = /FBAN|FBAV|Instagram|Line|Zalo|Snapchat|MicroMessenger|TikTok|musical_ly|Twitter|Telegram/i.test(ua);
+            const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 768);
+            return isMobileUA || isInApp || isTouch;
+        }
 
         // CHUYỂN TAB THÔNG MINH KÈM DỊCH CHUYỂN RECAPTCHA
         window.switchTab = function(tabName) {
@@ -259,32 +336,56 @@
             if(tabName === 'login') {
                 document.getElementById('btn-tab-login').classList.add('active');
                 document.getElementById('tab-login').classList.add('active');
-                document.getElementById('recap-holder-login').appendChild(recapBox);
+                if (recapBox && document.getElementById('recap-holder-login')) {
+                    document.getElementById('recap-holder-login').appendChild(recapBox);
+                }
             } else {
                 document.getElementById('btn-tab-register').classList.add('active');
                 document.getElementById('tab-register').classList.add('active');
-                document.getElementById('recap-holder-register').appendChild(recapBox);
+                if (recapBox && document.getElementById('recap-holder-register')) {
+                    document.getElementById('recap-holder-register').appendChild(recapBox);
+                }
             }
         };
 
         // ==========================================
-        // ÁO GIÁP BẢO VỆ (RECAPTCHA CHECKBOX)
+        // ÁO GIÁP BẢO VỆ (RECAPTCHA CHECKBOX - AN TOÀN)
         // ==========================================
         auth.languageCode = 'vi';
         
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-main-box', {
-            'size': 'normal',
-            'callback': (response) => {
-                document.getElementById('btn-login-email').disabled = false;
-                document.getElementById('btn-register-email').disabled = false;
-            },
-            'expired-callback': () => {
-                document.getElementById('btn-login-email').disabled = true;
-                document.getElementById('btn-register-email').disabled = true;
-                showPopup("Phiên bảo mật đã hết hạn. Vui lòng tích lại!", true);
-            }
-        });
-        window.recaptchaVerifier.render();
+        try {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-main-box', {
+                'size': 'normal',
+                'callback': (response) => {
+                    const btnLogin = document.getElementById('btn-login-email');
+                    const btnReg = document.getElementById('btn-register-email');
+                    if (btnLogin) btnLogin.disabled = false;
+                    if (btnReg) btnReg.disabled = false;
+                },
+                'expired-callback': () => {
+                    const btnLogin = document.getElementById('btn-login-email');
+                    const btnReg = document.getElementById('btn-register-email');
+                    if (btnLogin) btnLogin.disabled = true;
+                    if (btnReg) btnReg.disabled = true;
+                    if (typeof showPopup === 'function') {
+                        showPopup("Phiên bảo mật đã hết hạn. Vui lòng tích lại!", true);
+                    }
+                }
+            });
+            window.recaptchaVerifier.render().catch((err) => {
+                console.warn("reCAPTCHA render warning:", err);
+                const btnLogin = document.getElementById('btn-login-email');
+                const btnReg = document.getElementById('btn-register-email');
+                if (btnLogin) btnLogin.disabled = false;
+                if (btnReg) btnReg.disabled = false;
+            });
+        } catch (e) {
+            console.warn("reCAPTCHA init error:", e);
+            const btnLogin = document.getElementById('btn-login-email');
+            const btnReg = document.getElementById('btn-register-email');
+            if (btnLogin) btnLogin.disabled = false;
+            if (btnReg) btnReg.disabled = false;
+        }
 
         function getSafeRedirectPath(target) {
             if (!target) return '';
@@ -300,7 +401,7 @@
 
         function getReturnPath() {
             const urlParams = new URLSearchParams(window.location.search);
-            const explicitRedirect = urlParams.get('redirect');
+            const explicitRedirect = urlParams.get('redirect') || sessionStorage.getItem('mhent_login_redirect');
             if (explicitRedirect) return explicitRedirect;
 
             const referrerRedirect = getSafeRedirectPath(document.referrer);
@@ -308,181 +409,328 @@
         }
 
         // BỘ NÃO ĐIỀU HƯỚNG THÔNG MINH
+        let isHandlingSuccess = false;
         async function handleLoginSuccess(user) {
+            if (isHandlingSuccess) return;
+            isHandlingSuccess = true;
+
             try {
-                // 🚀 ĐƯỜNG QUYỀN MỚI: KIỂM TRA XEM CÓ PHẢI APP YÊU CẦU KHÔNG
-                const urlParams = new URLSearchParams(window.location.search);
-                
-                if (urlParams.get('source') === 'app') {
-                    // Lấy token chuẩn xác
-                    const token = await user.getIdToken(); 
-                    
-                    // Link gọi App
-                    const deepLink = `mhent://auth?uid=${user.uid}&token=${token}`;
-                    
-                    // Hiện bảng xanh siêu to khổng lồ chà bá
-                    document.body.innerHTML = `
-                        <div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#ff85a2; color:white; font-family:Nunito, sans-serif; text-align:center; flex-direction:column;">
-                            <h1 style="font-size: 80px; margin: 0;">✅</h1>
-                            <h1>🎉 Đăng nhập thành công!</h1>
-                            <p>Hệ thống đang tự động mở lại App MHEnt Universe...</p>
-                            <p><i>(Cậu có thể đóng tab trình duyệt này lại rồi đó nha)</i></p>
-                        </div>
-                    `;
-
-                    // ⏱️ BÍ QUYẾT Ở ĐÂY: Chờ 1 giây (1000ms) để Web kịp hiển thị bảng màu hồng rồi mới bắn link
-                    setTimeout(() => {
-                        window.location.href = deepLink;
-                    }, 1000);
-
-                    return; // Chốt chặn: Dừng hàm lại ở đây, không cho chạy tiếp xuống dưới!
-                }
-
-                // 🌐 NẾU LÀ ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG
+                // Kiểm tra và khởi tạo dữ liệu Mây nếu là tài khoản mới
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
 
-                const returnPath = getReturnPath();
+                if (!userSnap.exists()) {
+                    await setDoc(userRef, { 
+                        email: user.email || "", 
+                        displayName: user.displayName || "",
+                        photoURL: user.photoURL || "",
+                        role: "user", 
+                        createdAt: new Date().toISOString(),
+                        isProfileSetup: false
+                    }, { merge: true });
+                }
+
+                // 🚀 KIỂM TRA XEM CÓ PHẢI APP YÊU CẦU KHÔNG
+                const urlParams = new URLSearchParams(window.location.search);
+                const source = urlParams.get('source') || sessionStorage.getItem('mhent_login_source');
                 
-                if (userSnap.exists() && userSnap.data().isProfileSetup) {
-                    // ✅ TRƯỜNG HỢP ĐÃ CÓ HỒ SƠ: Trả về trang cũ hoặc về Hub
-                    showPopup('Đang kết nối cổng không gian...', false);
+                // Dọn dẹp session tạm
+                sessionStorage.removeItem('mhent_login_redirect');
+                sessionStorage.removeItem('mhent_login_source');
+                sessionStorage.removeItem('mhent_auth_pending_redirect');
+
+                if (source === 'app') {
+                    const token = await user.getIdToken(); 
+                    const deepLink = `mhent://auth?uid=${user.uid}&token=${token}`;
+                    
+                    document.body.innerHTML = `
+                        <div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#ff85a2; color:white; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:20px; box-sizing:border-box;">
+                            <h1 style="font-size: 80px; margin: 0;">✅</h1>
+                            <h1 style="margin-top:10px;">🎉 Đăng nhập thành công!</h1>
+                            <p style="font-size:16px;">Hệ thống đang tự động mở lại App MHEnt Universe...</p>
+                            <p style="opacity:0.9;"><i>(Cậu có thể đóng tab trình duyệt này lại rồi đó nha)</i></p>
+                        </div>
+                    `;
+
                     setTimeout(() => {
-                        window.location.href = returnPath ? returnPath : '/';
-                    }, 1500);
+                        window.location.href = deepLink;
+                    }, 1000);
+                    return;
+                }
+
+                // 🌐 NẾU LÀ ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG
+                const returnPath = getReturnPath();
+                const isProfileReady = userSnap.exists() ? userSnap.data().isProfileSetup : false;
+                
+                if (isProfileReady) {
+                    // ✅ ĐÃ CÓ HỒ SƠ: Trả về trang cũ hoặc về Hub
+                    if (typeof showPopup === 'function') {
+                        showPopup('Đang kết nối cổng không gian...', false);
+                    }
+                    setTimeout(() => {
+                        window.location.href = returnPath || '/';
+                    }, 1200);
                 } else {
-                    // 🆕 TRƯỜNG HỢP USER MỚI (CHƯA SETUP PROFILE): Đẩy đi làm hồ sơ
-                    showPopup('Chào mừng tiểu hành tinh mới! Đang chuyển hướng thiết lập hồ sơ...', false);
+                    // 🆕 USER MỚI: Đẩy đi làm hồ sơ
+                    if (typeof showPopup === 'function') {
+                        showPopup('Chào mừng tiểu hành tinh mới! Đang chuyển hướng thiết lập hồ sơ...', false);
+                    }
                     setTimeout(() => {
-                        // 👉 Thêm ?setup=true làm cờ mặc định cho user mới
                         let profileUrl = '/profile.html?setup=true'; 
-                        
-                        if (returnPath) {
-                            // Vì đã có ?setup=true ở trước rồi, nên chỗ này phải dùng dấu & để nối thêm redirect
+                        if (returnPath && returnPath !== '/') {
                             profileUrl += '&redirect=' + encodeURIComponent(returnPath);
                         }
                         window.location.href = profileUrl;
-                    }, 1500);
+                    }, 1200);
                 }
             } catch (error) { 
-                console.error(error);
+                console.error("Lỗi điều hướng đăng nhập:", error);
                 window.location.href = '/'; 
             }
         }
 
         // ==========================================
-        // XỬ LÝ 3 NÚT ĐĂNG NHẬP / ĐĂNG KÝ
+        // XỬ LÝ KẾT QUẢ TRẢ VỀ TỪ REDIRECT GOOGLE
         // ==========================================
+        async function checkRedirectAuthResult() {
+            const isPendingRedirect = sessionStorage.getItem('mhent_auth_pending_redirect') === 'true';
+            if (isPendingRedirect) {
+                showLoading("Đang xác thực tài khoản Google...");
+            }
 
-        // Lệnh Đăng nhập Google ĐÃ FIX (Chỉ còn 1 lệnh duy nhất)
-        document.getElementById('btn-login-google').addEventListener('click', async () => {
-            const loadingScreen = document.getElementById('loading-overlay');
-            loadingScreen.style.display = 'flex';
-            
+            try {
+                const result = await getRedirectResult(auth);
+                if (result && result.user) {
+                    showLoading("Đang khởi tạo Hộ chiếu...");
+                    await handleLoginSuccess(result.user);
+                    return true;
+                } else {
+                    if (isPendingRedirect) {
+                        sessionStorage.removeItem('mhent_auth_pending_redirect');
+                        hideLoading();
+                    }
+                }
+            } catch (error) {
+                sessionStorage.removeItem('mhent_auth_pending_redirect');
+                hideLoading();
+                console.error("Lỗi nhận kết quả Google Redirect:", error);
+
+                if (error.code === 'auth/unauthorized-domain') {
+                    showPopup('Tên miền hiện tại chưa được cấp phép trong Firebase Auth (auth/unauthorized-domain). Vui lòng cấu hình Authorized Domains trên Firebase Console!', true);
+                } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    showPopup('Không thể đăng nhập Google: ' + (error.message || 'Lỗi xác thực'), true);
+                }
+            }
+            return false;
+        }
+
+        // Chạy kiểm tra kết quả Redirect ngay khi mở trang
+        checkRedirectAuthResult();
+
+        // Lưới an toàn: Bắt sự kiện nếu Auth State đã đổi do phiên Redirect hoàn tất
+        onAuthStateChanged(auth, async (user) => {
+            if (user && sessionStorage.getItem('mhent_auth_pending_redirect') === 'true') {
+                showLoading("Đang chuyển hướng vào hệ thống...");
+                await handleLoginSuccess(user);
+            }
+        });
+
+        // ==========================================
+        // XỬ LÝ ĐĂNG NHẬP GOOGLE (HYBRID REDIRECT + POPUP)
+        // ==========================================
+        async function executeGoogleLogin() {
+            // Lưu lại thông tin đích đến vào sessionStorage trước khi chuyển trang
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectParam = urlParams.get('redirect');
+            const sourceParam = urlParams.get('source');
+            if (redirectParam) sessionStorage.setItem('mhent_login_redirect', redirectParam);
+            if (sourceParam) sessionStorage.setItem('mhent_login_source', sourceParam);
+
+            // 1. TRÊN ĐIỆN THOẠI & WEBVIEW: Dùng Redirect 100% để không bị chặn
+            if (isMobileOrInApp()) {
+                try {
+                    sessionStorage.setItem('mhent_auth_pending_redirect', 'true');
+                    showLoading("Đang chuyển hướng sang Google...");
+                    await signInWithRedirect(auth, provider);
+                } catch (error) {
+                    sessionStorage.removeItem('mhent_auth_pending_redirect');
+                    hideLoading();
+                    console.error("Lỗi chuyển hướng Google (Mobile):", error);
+                    
+                    if (error.code === 'auth/unauthorized-domain') {
+                        showPopup('Tên miền web chưa được thêm vào mục Authorized Domains của Firebase!', true);
+                    } else {
+                        showPopup('Không thể chuyển hướng đăng nhập: ' + (error.message || 'Lỗi mạng'), true);
+                    }
+                }
+                return;
+            }
+
+            // 2. TRÊN MÁY TÍNH: Thử Popup trước, tự động Fallback sang Redirect nếu bị chặn
+            showLoading("Đang mở cổng Google...");
             try {
                 const result = await signInWithPopup(auth, provider);
-                
-                // Kiểm tra và khởi tạo dữ liệu Mây nếu là tài khoản mới
-                const userRef = doc(db, "users", result.user.uid);
-                const docSnap = await getDoc(userRef);
-                
-                if (!docSnap.exists()) {
-                    await setDoc(userRef, { 
-                        email: result.user.email, 
-                        role: "user", 
-                        createdAt: new Date().toISOString(),
-                        isProfileSetup: false
-                    }, { merge: true }); // Dùng merge để an toàn tuyệt đối
-                }
-                
-                loadingScreen.style.display = 'none';
+                showLoading("Đang đồng bộ dữ liệu...");
                 await handleLoginSuccess(result.user);
-                
-            } catch (error) { 
-                loadingScreen.style.display = 'none';
-                console.error("Google Auth Error:", error);
-                
-                // Bỏ qua nếu người dùng tự ý bấm tắt cửa sổ đăng nhập Google
-                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    showPopup('Có lỗi xảy ra hoặc cậu đã hủy đăng nhập!', true); 
+            } catch (error) {
+                console.warn("Google Popup thất bại hoặc bị chặn, chuyển sang chế độ Redirect:", error.code, error.message);
+
+                const shouldFallback = [
+                    'auth/popup-blocked',
+                    'auth/cancelled-popup-request',
+                    'auth/operation-not-supported-in-this-environment',
+                    'auth/internal-error',
+                    'auth/network-request-failed'
+                ].includes(error.code) || (error.code === 'auth/popup-closed-by-user' && !navigator.cookieEnabled);
+
+                if (shouldFallback) {
+                    try {
+                        sessionStorage.setItem('mhent_auth_pending_redirect', 'true');
+                        showLoading("Đang chuyển hướng sang Google...");
+                        await signInWithRedirect(auth, provider);
+                        return;
+                    } catch (redirError) {
+                        sessionStorage.removeItem('mhent_auth_pending_redirect');
+                        hideLoading();
+                        console.error("Lỗi Fallback Redirect (Desktop):", redirError);
+                        showPopup('Không thể chuyển hướng đăng nhập Google!', true);
+                        return;
+                    }
+                }
+
+                hideLoading();
+                if (error.code === 'auth/unauthorized-domain') {
+                    showPopup('Tên miền web chưa được thêm vào mục Authorized Domains của Firebase!', true);
+                } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    showPopup('Đăng nhập Google thất bại: ' + (error.message || 'Lỗi xác thực'), true);
                 }
             }
-        });
+        }
 
-        // Lệnh Đăng nhập Email
-        document.getElementById('btn-login-email').addEventListener('click', async () => {
-            const email = document.getElementById('login-email').value.trim(); 
-            const pass = document.getElementById('login-password').value.trim();
-            if(!email || !pass) return showPopup('Điền đủ Email và Mật khẩu nhé!', true);
-            
-            const loadingScreen = document.getElementById('loading-overlay');
-            loadingScreen.style.display = 'flex';
-
-            try {
-                const cred = await signInWithEmailAndPassword(auth, email, pass);
-                loadingScreen.style.display = 'none';
-                await handleLoginSuccess(cred.user);
-            } catch (error) { 
-                loadingScreen.style.display = 'none';
-                window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
-                document.getElementById('btn-login-email').disabled = true;
-                document.getElementById('btn-register-email').disabled = true;
-                showPopup('Sai email hoặc mật khẩu rùi!', true); 
-            }
-        });
-
-        // Lệnh Đăng ký Email
-        document.getElementById('btn-register-email').addEventListener('click', async () => {
-            const email = document.getElementById('reg-email').value.trim(); 
-            const pass = document.getElementById('reg-password').value.trim();
-            const confirmPass = document.getElementById('reg-confirm-password').value.trim();
-
-            if(!email || !pass || !confirmPass) return showPopup('Điền đủ thông tin nhé!', true);
-            if(pass.length < 6) return showPopup('Mật khẩu ít nhất 6 ký tự nha!', true);
-            if(pass !== confirmPass) return showPopup('Hai mật khẩu không khớp nhau rùi!', true);
-
-            const loadingScreen = document.getElementById('loading-overlay');
-            loadingScreen.style.display = 'flex';
-
-            try {
-                const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                
-                await setDoc(doc(db, "users", cred.user.uid), {
-                    email: email, role: "user", createdAt: new Date().toISOString(), isProfileSetup: false
-                });
-                
-                loadingScreen.style.display = 'none';
-                await handleLoginSuccess(cred.user);
-            } catch (error) {
-                loadingScreen.style.display = 'none';
-                window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
-                document.getElementById('btn-login-email').disabled = true;
-                document.getElementById('btn-register-email').disabled = true;
-                
-                if(error.code === 'auth/email-already-in-use') showPopup('Email này đã được đăng ký rồi!', true);
-                else showPopup('Lỗi tạo tài khoản!', true);
-            }
-        });
+        const btnGoogle = document.getElementById('btn-login-google');
+        if (btnGoogle) {
+            btnGoogle.addEventListener('click', executeGoogleLogin);
+        }
 
         // ==========================================
-        // HÀM BẬT/TẮT HIỂN THỊ MẬT KHẨU (Tương thích Dark/Light Mode)
+        // XỬ LÝ ĐĂNG NHẬP / ĐĂNG KÝ EMAIL
+        // ==========================================
+        const btnLoginEmail = document.getElementById('btn-login-email');
+        if (btnLoginEmail) {
+            btnLoginEmail.addEventListener('click', async () => {
+                const email = document.getElementById('login-email').value.trim(); 
+                const pass = document.getElementById('login-password').value.trim();
+                if(!email || !pass) return showPopup('Điền đủ Email và Mật khẩu nhé!', true);
+                
+                showLoading("Đang kiểm tra thông tin...");
+
+                try {
+                    const cred = await signInWithEmailAndPassword(auth, email, pass);
+                    showLoading("Đăng nhập thành công, đang vào...");
+                    await handleLoginSuccess(cred.user);
+                } catch (error) { 
+                    hideLoading();
+                    if (window.grecaptcha && window.recaptchaVerifier) {
+                        try {
+                            window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId)).catch(() => {});
+                        } catch (e) {}
+                    }
+                    if (btnLoginEmail) btnLoginEmail.disabled = true;
+                    const btnReg = document.getElementById('btn-register-email');
+                    if (btnReg) btnReg.disabled = true;
+                    showPopup('Sai email hoặc mật khẩu rùi!', true); 
+                }
+            });
+        }
+
+        const btnRegisterEmail = document.getElementById('btn-register-email');
+        if (btnRegisterEmail) {
+            btnRegisterEmail.addEventListener('click', async () => {
+                const email = document.getElementById('reg-email').value.trim(); 
+                const pass = document.getElementById('reg-password').value.trim();
+                const confirmPass = document.getElementById('reg-confirm-password').value.trim();
+
+                if(!email || !pass || !confirmPass) return showPopup('Điền đủ thông tin nhé!', true);
+                if(pass.length < 6) return showPopup('Mật khẩu ít nhất 6 ký tự nha!', true);
+                if(pass !== confirmPass) return showPopup('Hai mật khẩu không khớp nhau rùi!', true);
+
+                showLoading("Đang khởi tạo tài khoản mới...");
+
+                try {
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    showLoading("Tạo tài khoản thành công!");
+                    await handleLoginSuccess(cred.user);
+                } catch (error) {
+                    hideLoading();
+                    if (window.grecaptcha && window.recaptchaVerifier) {
+                        try {
+                            window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId)).catch(() => {});
+                        } catch (e) {}
+                    }
+                    const btnLogin = document.getElementById('btn-login-email');
+                    if (btnLogin) btnLogin.disabled = true;
+                    if (btnRegisterEmail) btnRegisterEmail.disabled = true;
+                    
+                    if(error.code === 'auth/email-already-in-use') showPopup('Email này đã được đăng ký rồi!', true);
+                    else showPopup('Lỗi tạo tài khoản: ' + (error.message || ''), true);
+                }
+            });
+        }
+
+        // ==========================================
+        // QUÊN MẬT KHẨU
+        // ==========================================
+        window.forgotPassword = function() {
+            const loginEmailInput = document.getElementById('login-email');
+            const emailValue = loginEmailInput ? loginEmailInput.value.trim() : '';
+
+            const sendReset = (email) => {
+                showLoading("Đang gửi liên kết khôi phục...");
+                sendPasswordResetEmail(auth, email).then(() => {
+                    hideLoading();
+                    showPopup(`Đã gửi thư đặt lại mật khẩu đến ${email}! Vui lòng kiểm tra hộp thư (cả mục Spam/Rác) nha.`, false);
+                }).catch((err) => {
+                    hideLoading();
+                    console.error("Forgot password error:", err);
+                    let msg = "Không thể gửi thư khôi phục.";
+                    if (err.code === 'auth/user-not-found') msg = "Email này chưa được đăng ký trong hệ thống!";
+                    else if (err.code === 'auth/invalid-email') msg = "Địa chỉ email không hợp lệ!";
+                    showPopup(msg, true);
+                });
+            };
+
+            if (emailValue && emailValue.includes('@')) {
+                sendReset(emailValue);
+            } else if (typeof showInputPopup === 'function') {
+                showInputPopup("Quên Mật Khẩu", "Nhập email tài khoản của cậu...", "Gửi Liên Kết", (enteredEmail) => {
+                    if (!enteredEmail || !enteredEmail.includes('@')) {
+                        if (typeof showToast === 'function') showToast("Cảnh báo", "Vui lòng nhập đúng địa chỉ email!", "error");
+                        return;
+                    }
+                    sendReset(enteredEmail.trim());
+                });
+            } else {
+                const promptEmail = prompt("Nhập địa chỉ Email của cậu để nhận liên kết đổi mật khẩu:");
+                if (promptEmail && promptEmail.includes('@')) {
+                    sendReset(promptEmail.trim());
+                }
+            }
+        };
+
+        // ==========================================
+        // HÀM BẬT/TẮT HIỂN THỊ MẬT KHẨU
         // ==========================================
         window.togglePassword = function(inputId, iconElement) {
             const input = document.getElementById(inputId);
-            if (!input) return; // Bảo hiểm nếu không tìm thấy ô nhập liệu
+            if (!input) return;
 
-            // Logic chuyển đổi
             if (input.type === "password") {
                 input.type = "text"; 
-                // Thay biểu tượng: Nhắm mắt -> Mở mắt
                 iconElement.classList.replace('fa-eye', 'fa-eye-slash'); 
-                // Đổi màu thành màu nhấn của theme (Màu Hồng)
                 iconElement.style.color = 'var(--theme-accent)'; 
             } else {
                 input.type = "password"; 
-                // Thay biểu tượng: Mở mắt -> Nhắm mắt
                 iconElement.classList.replace('fa-eye-slash', 'fa-eye'); 
-                // Đổi màu lại thành màu mờ nhạt
                 iconElement.style.color = 'var(--text-muted)'; 
             }
         };
