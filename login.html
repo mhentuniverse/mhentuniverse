@@ -490,25 +490,21 @@
         }
 
         // ==========================================
-        // XỬ LÝ KẾT QUẢ TRẢ VỀ TỪ REDIRECT GOOGLE
+        // XỬ LÝ KẾT QUẢ TRẢ VỀ TỪ REDIRECT GOOGLE (FALLBACK CHO IN-APP WEBVIEW)
         // ==========================================
         async function checkRedirectAuthResult() {
             const isPendingRedirect = sessionStorage.getItem('mhent_auth_pending_redirect') === 'true';
-            if (isPendingRedirect) {
-                showLoading("Đang xác thực tài khoản Google...");
-            }
+            if (!isPendingRedirect) return;
+
+            showLoading("Đang xác thực tài khoản Google...");
 
             try {
                 const result = await getRedirectResult(auth);
                 if (result && result.user) {
+                    sessionStorage.removeItem('mhent_auth_pending_redirect');
                     showLoading("Đang khởi tạo Hộ chiếu...");
                     await handleLoginSuccess(result.user);
-                    return true;
-                } else {
-                    if (isPendingRedirect) {
-                        sessionStorage.removeItem('mhent_auth_pending_redirect');
-                        hideLoading();
-                    }
+                    return;
                 }
             } catch (error) {
                 sessionStorage.removeItem('mhent_auth_pending_redirect');
@@ -520,70 +516,79 @@
                 } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                     showPopup('Không thể đăng nhập Google: ' + (error.message || 'Lỗi xác thực'), true);
                 }
+                return;
             }
-            return false;
+
+            // Nếu getRedirectResult trả về null, chờ onAuthStateChanged giải mã phiên (tối đa 2.5s)
+            if (auth.currentUser) {
+                sessionStorage.removeItem('mhent_auth_pending_redirect');
+                showLoading("Đang chuyển hướng vào hệ thống...");
+                await handleLoginSuccess(auth.currentUser);
+                return;
+            }
+
+            let resolved = false;
+            const timer = setTimeout(() => {
+                if (!resolved) {
+                    sessionStorage.removeItem('mhent_auth_pending_redirect');
+                    hideLoading();
+                }
+            }, 2500);
+
+            const unsubscribe = onAuthStateChanged(auth, async (user) => {
+                if (user && !resolved) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    sessionStorage.removeItem('mhent_auth_pending_redirect');
+                    showLoading("Đang chuyển hướng vào hệ thống...");
+                    if (typeof unsubscribe === 'function') unsubscribe();
+                    await handleLoginSuccess(user);
+                }
+            });
         }
 
         // Chạy kiểm tra kết quả Redirect ngay khi mở trang
         checkRedirectAuthResult();
 
-        // Lưới an toàn: Bắt sự kiện nếu Auth State đã đổi do phiên Redirect hoàn tất
+        // Lưới an toàn: Lắng nghe trạng thái Auth chung
         onAuthStateChanged(auth, async (user) => {
             if (user && sessionStorage.getItem('mhent_auth_pending_redirect') === 'true') {
+                sessionStorage.removeItem('mhent_auth_pending_redirect');
                 showLoading("Đang chuyển hướng vào hệ thống...");
                 await handleLoginSuccess(user);
             }
         });
 
         // ==========================================
-        // XỬ LÝ ĐĂNG NHẬP GOOGLE (HYBRID REDIRECT + POPUP)
+        // XỬ LÝ ĐĂNG NHẬP GOOGLE (POPUP TRỰC TIẾP + FALLBACK REDIRECT)
         // ==========================================
         async function executeGoogleLogin() {
-            // Lưu lại thông tin đích đến vào sessionStorage trước khi chuyển trang
+            // Lưu lại thông tin đích đến vào sessionStorage
             const urlParams = new URLSearchParams(window.location.search);
             const redirectParam = urlParams.get('redirect');
             const sourceParam = urlParams.get('source');
             if (redirectParam) sessionStorage.setItem('mhent_login_redirect', redirectParam);
             if (sourceParam) sessionStorage.setItem('mhent_login_source', sourceParam);
 
-            // 1. TRÊN ĐIỆN THOẠI & WEBVIEW: Dùng Redirect 100% để không bị chặn
-            if (isMobileOrInApp()) {
-                try {
-                    sessionStorage.setItem('mhent_auth_pending_redirect', 'true');
-                    showLoading("Đang chuyển hướng sang Google...");
-                    await signInWithRedirect(auth, provider);
-                } catch (error) {
-                    sessionStorage.removeItem('mhent_auth_pending_redirect');
-                    hideLoading();
-                    console.error("Lỗi chuyển hướng Google (Mobile):", error);
-                    
-                    if (error.code === 'auth/unauthorized-domain') {
-                        showPopup('Tên miền web chưa được thêm vào mục Authorized Domains của Firebase!', true);
-                    } else {
-                        showPopup('Không thể chuyển hướng đăng nhập: ' + (error.message || 'Lỗi mạng'), true);
-                    }
-                }
-                return;
-            }
+            // Mở popup trực tiếp trên toàn bộ thiết bị (Mobile Safari, Android Chrome & Desktop)
+            // Popup trực tiếp không bị chặn cookie bên thứ 3 và nhận kết quả tức thì
+            showLoading("Đang kết nối Google...");
 
-            // 2. TRÊN MÁY TÍNH: Thử Popup trước, tự động Fallback sang Redirect nếu bị chặn
-            showLoading("Đang mở cổng Google...");
             try {
                 const result = await signInWithPopup(auth, provider);
                 showLoading("Đang đồng bộ dữ liệu...");
                 await handleLoginSuccess(result.user);
             } catch (error) {
-                console.warn("Google Popup thất bại hoặc bị chặn, chuyển sang chế độ Redirect:", error.code, error.message);
+                console.warn("Google Popup kết quả:", error.code, error.message);
 
-                const shouldFallback = [
+                // Nếu popup bị chặn (do In-App WebView như Zalo, Facebook App hoặc Adblock) -> Chuyển hướng Redirect
+                const shouldFallbackToRedirect = [
                     'auth/popup-blocked',
-                    'auth/cancelled-popup-request',
                     'auth/operation-not-supported-in-this-environment',
-                    'auth/internal-error',
-                    'auth/network-request-failed'
-                ].includes(error.code) || (error.code === 'auth/popup-closed-by-user' && !navigator.cookieEnabled);
+                    'auth/cancelled-popup-request'
+                ].includes(error.code);
 
-                if (shouldFallback) {
+                if (shouldFallbackToRedirect) {
                     try {
                         sessionStorage.setItem('mhent_auth_pending_redirect', 'true');
                         showLoading("Đang chuyển hướng sang Google...");
@@ -592,7 +597,7 @@
                     } catch (redirError) {
                         sessionStorage.removeItem('mhent_auth_pending_redirect');
                         hideLoading();
-                        console.error("Lỗi Fallback Redirect (Desktop):", redirError);
+                        console.error("Lỗi Fallback Redirect:", redirError);
                         showPopup('Không thể chuyển hướng đăng nhập Google!', true);
                         return;
                     }
@@ -601,7 +606,7 @@
                 hideLoading();
                 if (error.code === 'auth/unauthorized-domain') {
                     showPopup('Tên miền web chưa được thêm vào mục Authorized Domains của Firebase!', true);
-                } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                } else if (error.code !== 'auth/popup-closed-by-user') {
                     showPopup('Đăng nhập Google thất bại: ' + (error.message || 'Lỗi xác thực'), true);
                 }
             }
