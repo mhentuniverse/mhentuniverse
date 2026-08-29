@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="canonical" href="https://www.mhentuniverse.com/tools/inventory/inventory" />
         <meta property="og:site_name" content="MHEnt. Universe">
-    <meta property="og:title" content="Phòng Làm Việc - MHEnt. Tools">
-    <meta property="og:description" content="Miyazaki Haruto Entertainment Tools - Kho tiện ích thông minh, tối ưu quy trình làm việc cho toàn hệ sinh thái MHEnt.">
-    <meta property="og:image" content="https://www.mhentuniverse.com/assets/avt-web.jpg">
+        <meta property="og:title" content="Phòng Làm Việc - MHEnt. Tools">
+        <meta property="og:description" content="Miyazaki Haruto Entertainment Tools - Kho tiện ích thông minh, tối ưu quy trình làm việc cho toàn hệ sinh thái MHEnt.">
+        <meta property="og:image" content="https://www.mhentuniverse.com/assets/avt-web.jpg">
         <title>Phòng Làm Việc - MHEnt. Tools</title>
         <meta name="theme-color" content="#10b981">
         <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
@@ -56,7 +56,9 @@
             .item-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
             .item-name { font-weight: 900; font-size: 17px; color: #1e293b; }
             body.dark-mode .item-name { color: #f8fafc; }
+            .item-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
             .item-unit { font-size: 12px; background: var(--hub-bg); color: var(--hub-color); padding: 6px 12px; border-radius: 999px; font-weight: 800;}
+            .item-multiplier-badge { font-size: 11.5px; background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 12px; border-radius: 999px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
             
             .input-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
             .input-box { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
@@ -66,11 +68,8 @@
             body.dark-mode .input-box input { background: #0f172a; border-color: #334155; color: #fff;}
             body.dark-mode .input-box input:focus { background: #1e293b; }
             
-            .result-box { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 10px; padding: 10px; text-align: center; font-weight: 900; font-size: 17px; color: #10b981; min-width: 90px; display: flex; flex-direction: column; justify-content: center; }
+            .result-box { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 10px; padding: 10px 14px; text-align: center; font-weight: 900; font-size: 17px; color: #10b981; min-width: 90px; display: flex; flex-direction: column; justify-content: center; }
             .result-box.empty { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
-            
-            .revenue-panel { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.12); color: #f8fafc; font-weight: 700; padding: 18px 20px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); text-align: center; margin-top: 25px; }
-            .revenue-panel small { display: block; font-size: 13px; color: rgba(255,255,255,0.72); margin-top: 6px; }
             
             /* BOTTOM BAR ĐƯỢC CHUẨN HÓA VỚI ADMIN SIDEBAR */
             .bottom-bar { position: fixed; bottom: 0; left: 260px; width: calc(100% - 260px); height: 75px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 12px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 12px; z-index: 100; justify-content: center; align-items: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); box-sizing: border-box; }
@@ -92,9 +91,24 @@
             .edit-input-field:focus { border-color: var(--hub-color); }
             body.dark-mode .edit-input-field { background: #0f172a; border-color: #475569; color: #fff;}
             
-            .edit-row { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #e2e8f0; padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; font-weight: 800; transition: 0.2s;}
+            /* REARRANGE EDIT ROW STYLES */
+            .edit-row { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 14px; margin-bottom: 10px; font-weight: 800; transition: all 0.2s ease; gap: 12px; }
             body.dark-mode .edit-row { background: #1e293b; border-color: #334155; color: #f8fafc;}
-            .btn-delete { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold;}
+            .edit-row.dragging { opacity: 0.35; transform: scale(0.98); border: 2px dashed var(--hub-color); background: var(--hub-bg); }
+            .edit-row.drag-over { border-top: 3px solid var(--hub-color); transform: translateY(2px); }
+            
+            .drag-handle { cursor: grab; color: #94a3b8; padding: 6px 8px; display: flex; align-items: center; font-size: 17px; user-select: none; transition: 0.2s; }
+            .drag-handle:hover { color: var(--hub-color); }
+            .drag-handle:active { cursor: grabbing; }
+            
+            .btn-move { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 7px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
+            .btn-move:hover:not(:disabled) { background: var(--hub-color); color: white; border-color: var(--hub-color); }
+            .btn-move:disabled { opacity: 0.25; cursor: not-allowed; }
+            body.dark-mode .btn-move { background: #334155; border-color: #475569; color: #cbd5e1; }
+            body.dark-mode .btn-move:hover:not(:disabled) { background: var(--hub-color); color: white; border-color: var(--hub-color); }
+            
+            .btn-delete { background: #ef4444; color: white; border: none; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; }
+            .btn-delete:hover { background: #dc2626; transform: translateY(-1px); }
 
             /* --- RESPONSIVE CHO ĐIỆN THOẠI (< 768px) --- */
             @media (max-width: 768px) {
@@ -120,10 +134,12 @@
                 .input-group { flex-direction: column; align-items: stretch; gap: 10px; }
                 .input-box { min-width: 100%; }
                 .result-box { width: 100%; padding: 12px; }
+                .edit-row { flex-direction: column; align-items: stretch; gap: 10px; }
+                .edit-row-actions { justify-content: flex-end; }
             }
         </style>
         <script src="/js/config.js"></script>
-</head>
+    </head>
     <body class="dark-mode">
         <nav class="navbar" style="position: fixed; width: 100%; top: 0; left: 0; z-index: 1000; height: 55px;">
             <div class="nav-left" style="display: flex; align-items: center; gap: 10px;">
@@ -160,7 +176,6 @@
 
                 <div id="view-input">
                     <div id="inventory-list"></div>
-                    <div id="revenue-panel" class="revenue-panel" style="display:none; max-width: 460px; margin: 30px auto 0 auto;"></div>
                 </div>
 
                 <div id="view-review" style="display: none;">
@@ -180,7 +195,7 @@
                         <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
                         <input type="text" id="new_name" class="edit-input-field" placeholder="Tên Món (VD: Trà Olong)">
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị (Bị, Kg...)" style="flex: 1;">
+                            <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị kiểm đếm (Bịch, Thùng, Gói, Hộp...)" style="flex: 1;">
                             <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi <= ?" style="flex: 1;">
                         </div>
                         
@@ -191,18 +206,16 @@
                             <input type="number" step="0.01" id="new_tare_weight" class="edit-input-field" placeholder="Nhập kg vỏ thùng/hộp (VD: 0.2)">
                         </div>
                         
-                        <div style="display: flex; gap: 10px; margin-top: 5px;">
-                            <input type="number" step="1" min="1" id="new_multiplier" class="edit-input-field" placeholder="Hệ số quy đổi (VD: 1 bịch = 50 cái)" style="flex: 1;">
-                            <input type="number" step="0.01" min="0" id="new_price" class="edit-input-field" placeholder="Đơn giá (VD: 25000)" style="flex: 1;">
+                        <div style="margin-top: 5px;">
+                            <input type="number" step="1" min="1" id="new_multiplier" class="edit-input-field" placeholder="Hệ số quy đổi đóng gói (VD: 1 bịch = 50 cái -> Nhập 50. Để trống nếu không quy đổi)">
                         </div>
-                        <p style="font-size: 13px; color:#64748b; margin: 4px 0 18px 0;"><i class="fa-solid fa-info-circle"></i> Hệ thống sẽ tự động tính doanh thu ước tính dựa trên đơn giá.</p>
                         
                         <button id="add-item-button" class="btn-action" style="width: 100%; max-width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Thêm vào danh sách</button>
                         <button id="cancel-edit-button" class="btn-action btn-back-tool" type="button" style="width: 100%; max-width: 100%; margin-top: 10px; display: none;" onclick="cancelEdit()">Hủy chỉnh sửa</button>
                     </div>
                 </div>
 
-        <!-- ⚡ BƯỚC 1: DÁN 3 THANH BOTTOM BAR VÀO ĐÂY (NGAY TRƯỚC </main>) -->
+                <!-- ⚡ 3 THANH BOTTOM BAR ĐIỀU KHIỂN -->
                 <div class="bottom-bar" id="bar-input" style="display: none;">
                     <button class="btn-action btn-report" onclick="chotSoLieu()"><i class="fa-solid fa-check-double"></i> CHỐT SỐ LIỆU</button>
                 </div>
@@ -211,41 +224,40 @@
                     <button class="btn-action btn-copy" onclick="copyReport()"><i class="fa-solid fa-copy"></i> Copy Báo Cáo</button>
                 </div>
                 <div class="bottom-bar" id="bar-edit" style="display: none;">
-                    <button class="btn-action btn-back-tool" onclick="window.location.href='index.html'"><i class="fa-solid fa-xmark"></i> Thoát</button>
+                    <button class="btn-action btn-back-tool" onclick="window.location.href='/tools/inventory'"><i class="fa-solid fa-xmark"></i> Thoát</button>
                     <button class="btn-action btn-report" style="background: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.3);" onclick="savePresetToSupabase()"><i class="fa-solid fa-cloud-arrow-up"></i> LƯU TRÊN MÂY</button>
                 </div>
 
-            </main> <!-- Thẻ đóng main của cậu -->
-        </div> <!-- Thẻ đóng admin-layout -->
+            </main>
+        </div>
 
         <footer>
-        <div class="footer-bottom">
-            <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
-            
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <div class="footer-bottom">
+                <p style="margin-bottom: 8px;">©2026 Miyazaki Haruto Entertainment Co., Ltd.</p>
                 
-                <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
-                    <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer" class="footer-link">
-                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                        Fanpage MHEnt.
-                    </a>
-                    <span style="opacity: 0.4; font-size: 10px;">•</span>
-                    <a onclick="window.open('https://www.facebook.com/mhentuniverse', '_blank')" style="cursor: pointer" class="footer-link">
-                        <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        MHEnt. Universe
-                    </a>
-                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
+                        <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')" style="cursor: pointer" class="footer-link">
+                            <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                            Fanpage MHEnt.
+                        </a>
+                        <span style="opacity: 0.4; font-size: 10px;">•</span>
+                        <a onclick="window.open('https://www.facebook.com/mhentuniverse', '_blank')" style="cursor: pointer" class="footer-link">
+                            <svg class="footer-vector-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            MHEnt. Universe
+                        </a>
+                    </div>
 
-                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
-                    <a onclick="window.open('https://docs.mhentuniverse.com/terms', '_blank')" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#ff85a2'" onmouseout="this.style.color='inherit'">Điều khoản dịch vụ</a>
-                    <span style="opacity: 0.3;">|</span>
-                    <a onclick="window.open('https://docs.mhentuniverse.com/privacy', '_blank')" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#ff85a2'" onmouseout="this.style.color='inherit'">Chính sách bảo mật</a>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
+                        <a onclick="window.open('https://docs.mhentuniverse.com/terms', '_blank')" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#ff85a2'" onmouseout="this.style.color='inherit'">Điều khoản dịch vụ</a>
+                        <span style="opacity: 0.3;">|</span>
+                        <a onclick="window.open('https://docs.mhentuniverse.com/privacy', '_blank')" style="cursor: pointer; color: inherit; text-decoration: none; font-weight: 600; transition: color 0.3s;" onmouseover="this.style.color='#ff85a2'" onmouseout="this.style.color='inherit'">Chính sách bảo mật</a>
+                    </div>
                 </div>
-
             </div>
-        </div>
-    </footer>
-    <script src="/js/mhent-ui.js"></script>
+        </footer>
+
+        <script src="/js/mhent-ui.js"></script>
         <script type="module">
             import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
             const supabase = createClient(window.supabaseUrl, window.supabaseKey);
@@ -287,6 +299,7 @@
 
             let currentData = [];
             let currentEditIndex = null;
+            let draggedItemIndex = null;
 
             async function loadData() {
                 if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID Preset.", true);
@@ -307,7 +320,7 @@
                                 <div style="text-align: center; padding: 60px 20px; color: #64748b;">
                                     <i class="fa-solid fa-box-open fa-3x" style="margin-bottom: 18px; opacity: 0.5;"></i>
                                     <h3 style="font-weight: 900;">Chưa có danh sách kiểm kiện!</h3>
-                                    <button class="btn-action btn-report" style="margin: 20px auto 0 auto; width: fit-content; padding: 12px 25px;" onclick="window.location.href='?id=${presetId}&edit=true'">Thiết lập ngay</button>
+                                    <button class="btn-action btn-report" style="margin: 20px auto 0 auto; width: fit-content; padding: 12px 25px;" onclick="window.location.href='/tools/inventory/inventory?id=${presetId}&edit=true'">Thiết lập ngay</button>
                                 </div>`;
                             renderSidebarNav([]);
                         } else {
@@ -342,11 +355,11 @@
                 html += `
                     <div style="height: 1px; background: var(--border-color, #334155); margin: 15px 10px;"></div>
                     <div style="font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; margin: 10px 0 15px 12px; letter-spacing: 1px;">CÔNG CỤ & CÀI ĐẶT</div>
-                    <a href="?id=${presetId}&edit=true" class="admin-menu-item" style="color: #3b82f6;">
+                    <a href="/tools/inventory/inventory?id=${presetId}&edit=true" class="admin-menu-item" style="color: #3b82f6;">
                         <i class="fa-solid fa-gear" style="color: #3b82f6;"></i>
                         <span>Chỉnh Sửa Preset</span>
                     </a>
-                    <a href="index.html" class="admin-menu-item" style="color: #ef4444;">
+                    <a href="/tools/inventory" class="admin-menu-item" style="color: #ef4444;">
                         <i class="fa-solid fa-door-open" style="color: #ef4444;"></i>
                         <span>Thoát Về Sảnh</span>
                     </a>
@@ -359,10 +372,11 @@
                 document.getElementById('bar-input').style.display = 'none';
                 document.getElementById('view-edit').style.display = 'block';
                 document.getElementById('bar-edit').style.display = 'flex';
-                renderSidebarNav([]); // Trong mode sửa thì hiện sidebar cơ bản
+                renderSidebarNav([]);
                 renderEditList();
             }
 
+            // ⚡ HIỂN THỊ DANH SÁCH MÓN KÈM TÍNH NĂNG SẮP XẾP REARRANGE
             window.renderEditList = function() {
                 const container = document.getElementById('edit-list-render');
                 if (currentData.length === 0) {
@@ -371,21 +385,95 @@
                 }
                 let html = '';
                 currentData.forEach((item, index) => {
+                    let metaInfo = [];
+                    metaInfo.push(item.unit);
+                    if (item.multiplier && item.multiplier > 1) {
+                        metaInfo.push(`1 ${item.unit} = ${item.multiplier} cái`);
+                    }
+                    if (item.hasTare && item.defaultTare) {
+                        metaInfo.push(`Bì: ${item.defaultTare}kg`);
+                    }
+                    
                     html += `
-                        <div class="edit-row">
-                            <div>
-                                <div style="color: var(--hub-color); font-size: 12px; font-weight: 900;">${item.catName}</div>
-                                <div style="font-size: 16px;">${item.name} <span style="font-size:12px; opacity:0.7;">(${item.unit})</span></div>
+                        <div class="edit-row" draggable="true" data-index="${index}" ondragstart="handleDragStart(event, ${index})" ondragover="handleDragOver(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, ${index})" ondragend="handleDragEnd(event)">
+                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                <div class="drag-handle" title="Kéo thả để đổi thứ tự"><i class="fa-solid fa-grip-vertical"></i></div>
+                                <div style="min-width: 0;">
+                                    <div style="color: var(--hub-color); font-size: 12px; font-weight: 900; text-transform: uppercase;">${item.catName}</div>
+                                    <div style="font-size: 15.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${item.name} 
+                                        <span style="font-size: 12px; opacity: 0.75; font-weight: 700;">(${metaInfo.join(' • ')})</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn-action" style="background: #f59e0b; color: white; padding: 8px 14px; width: auto;" onclick="startEditItem(${index})"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn-delete" style="padding: 8px 14px;" onclick="removeItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                            <div class="edit-row-actions" style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+                                <button class="btn-move" onclick="moveItemUp(${index})" title="Di chuyển lên" ${index === 0 ? 'disabled' : ''}><i class="fa-solid fa-arrow-up"></i></button>
+                                <button class="btn-move" onclick="moveItemDown(${index})" title="Di chuyển xuống" ${index === currentData.length - 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-down"></i></button>
+                                <button class="btn-action" style="background: #f59e0b; color: white; padding: 7px 12px; width: auto; font-size: 13px;" onclick="startEditItem(${index})" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn-delete" onclick="removeItem(${index})" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
-            }
+            };
+
+            // ⚡ HÀM DI CHUYỂN BẰNG NÚT BẤM (UP / DOWN)
+            window.moveItemUp = function(index) {
+                if (index <= 0) return;
+                const temp = currentData[index];
+                currentData[index] = currentData[index - 1];
+                currentData[index - 1] = temp;
+                renderEditList();
+            };
+
+            window.moveItemDown = function(index) {
+                if (index >= currentData.length - 1) return;
+                const temp = currentData[index];
+                currentData[index] = currentData[index + 1];
+                currentData[index + 1] = temp;
+                renderEditList();
+            };
+
+            // ⚡ CÁC SỰ KIỆN KÉO THẢ (DRAG & DROP)
+            window.handleDragStart = function(e, index) {
+                draggedItemIndex = index;
+                e.dataTransfer.effectAllowed = 'move';
+                e.currentTarget.classList.add('dragging');
+            };
+
+            window.handleDragOver = function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            };
+
+            window.handleDragEnter = function(e) {
+                const row = e.target.closest('.edit-row');
+                if (row) row.classList.add('drag-over');
+            };
+
+            window.handleDragLeave = function(e) {
+                const row = e.target.closest('.edit-row');
+                if (row) row.classList.remove('drag-over');
+            };
+
+            window.handleDrop = function(e, targetIndex) {
+                e.preventDefault();
+                const row = e.target.closest('.edit-row');
+                if (row) row.classList.remove('drag-over');
+                if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+                
+                const movedItem = currentData.splice(draggedItemIndex, 1)[0];
+                currentData.splice(targetIndex, 0, movedItem);
+                draggedItemIndex = null;
+                renderEditList();
+            };
+
+            window.handleDragEnd = function(e) {
+                e.currentTarget.classList.remove('dragging');
+                document.querySelectorAll('.edit-row').forEach(el => el.classList.remove('drag-over'));
+                draggedItemIndex = null;
+            };
 
             window.startEditItem = function(index) {
                 const item = currentData[index];
@@ -398,12 +486,11 @@
                 document.getElementById('tare_input_wrapper').style.display = item.hasTare ? 'block' : 'none';
                 document.getElementById('new_tare_weight').value = item.defaultTare || '';
                 document.getElementById('new_multiplier').value = item.multiplier || '';
-                document.getElementById('new_price').value = item.pricePerUnit || '';
                 document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-pen"></i> Chỉnh sửa món';
                 document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi';
                 document.getElementById('cancel-edit-button').style.display = 'inline-flex';
                 window.scrollTo({ top: document.getElementById('add-item-title').offsetTop - 120, behavior: 'smooth' });
-            }
+            };
 
             window.cancelEdit = function() {
                 currentEditIndex = null;
@@ -415,11 +502,10 @@
                 document.getElementById('tare_input_wrapper').style.display = 'none';
                 document.getElementById('new_tare_weight').value = '';
                 document.getElementById('new_multiplier').value = '';
-                document.getElementById('new_price').value = '';
                 document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-plus"></i> Thêm Món Mới';
                 document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Thêm vào danh sách';
                 document.getElementById('cancel-edit-button').style.display = 'none';
-            }
+            };
 
             window.addNewItem = function() {
                 let cat = document.getElementById('new_cat').value.trim();
@@ -436,15 +522,13 @@
                 let catId = 'cat_' + cat.replace(/\s+/g, '-').toLowerCase();
                 let warnValue = parseFloat(warn);
                 let multiplier = parseFloat(document.getElementById('new_multiplier').value);
-                let pricePerUnit = parseFloat(document.getElementById('new_price').value);
                 
                 if (currentEditIndex !== null) {
                     const item = currentData[currentEditIndex];
                     item.cat = catId; item.catName = cat; item.name = name; item.unit = unit;
                     item.hasTare = tare; item.warnAt = warnValue;
                     item.defaultTare = tare ? parseFloat(tareWeight || 0) : 0;
-                    item.multiplier = multiplier > 0 ? multiplier : undefined;
-                    item.pricePerUnit = pricePerUnit > 0 ? pricePerUnit : undefined;
+                    item.multiplier = (multiplier && multiplier > 1) ? multiplier : undefined;
                     currentEditIndex = null;
                     showToast('Đã cập nhật', name, 'success');
                 } else {
@@ -453,20 +537,19 @@
                         id: itemId, cat: catId, catName: cat, name: name, unit: unit,
                         hasTare: tare, warnAt: warnValue,
                         defaultTare: tare ? parseFloat(tareWeight || 0) : 0,
-                        multiplier: multiplier > 0 ? multiplier : undefined,
-                        pricePerUnit: pricePerUnit > 0 ? pricePerUnit : undefined
+                        multiplier: (multiplier && multiplier > 1) ? multiplier : undefined
                     });
                     showToast('Đã thêm', name, 'success');
                 }
                 
-                cancelEdit(); // Reset form sạch sẽ
+                cancelEdit();
                 renderEditList();
-            }
+            };
 
             window.removeItem = function(index) {
                 currentData.splice(index, 1);
                 renderEditList();
-            }
+            };
 
             window.savePresetToSupabase = async function() {
                 window.showTypingPopup("Đang lưu lên mây...");
@@ -475,13 +558,14 @@
                     if(error) throw error;
                     window.hideTypingPopup();
                     showToast('Xong!', 'Danh sách đã được cập nhật an toàn trên mây.', 'success');
-                    setTimeout(() => { window.location.href = `?id=${presetId}`; }, 1500);
+                    setTimeout(() => { window.location.href = `/tools/inventory/inventory?id=${presetId}`; }, 1200);
                 } catch(err) {
                     window.hideTypingPopup();
                     showToast('Lỗi', 'Lưu thất bại!', 'error');
                 }
-            }
+            };
 
+            // ⚡ VẼ GIAO DIỆN KIỂM ĐẾM (HỖ TRỢ MULTIPLIER & Ô NHẬP HÀNG LẺ DƯ)
             function renderInputList() {
                 const container = document.getElementById('inventory-list');
                 let htmlContent = ''; 
@@ -498,115 +582,162 @@
                     let savedTare = localStorage.getItem('tare_' + item.id);
                     if (savedTare === null) savedTare = item.defaultTare || '';
                     
-                    let grossLabel = item.multiplier ? 'Số Lượng Sạch' : 'Tổng Kiểm Đếm';
-                    let priceInfo = item.pricePerUnit ? `<div style="font-size:13.5px; color:#64748b; margin-top:8px; font-weight:800;">Đơn giá: ${formatCurrency(item.pricePerUnit)} / ${item.unit}</div>` : '';
+                    let hasMult = item.multiplier && item.multiplier > 1;
+                    let multBadge = hasMult ? `<span class="item-multiplier-badge"><i class="fa-solid fa-layer-group"></i> 1 ${item.unit} = ${item.multiplier} cái</span>` : '';
+                    let mainGrossLabel = hasMult ? `Số ${item.unit} (×${item.multiplier})` : `Tổng Kiểm Đếm`;
                     
                     htmlContent += `
                         <div class="item-card">
                             <div class="item-header">
                                 <span class="item-name">${item.name}</span>
-                                <span class="item-unit">${item.unit}</span>
+                                <div class="item-badges">
+                                    ${multBadge}
+                                    <span class="item-unit">${item.unit}</span>
+                                </div>
                             </div>
                             <div class="input-group">
                                 <div class="input-box">
-                                    <label>${grossLabel}</label>
-                                    <input type="number" step="0.01" id="gross_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
+                                    <label>${mainGrossLabel}</label>
+                                    <input type="number" step="any" id="gross_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
                                 </div>
+                                ${hasMult ? `
+                                <div class="input-box">
+                                    <label>Lẻ / Dư (cái)</label>
+                                    <input type="number" step="any" id="loose_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
+                                </div>` : ''}
                                 ${item.hasTare ? `
                                 <div class="input-box">
-                                    <label>Trừ Bì</label>
+                                    <label>Trừ Bì (kg)</label>
                                     <input type="number" step="0.01" id="tare_${item.id}" value="${savedTare}" oninput="window.saveTare('${item.id}'); window.calculate('${item.id}')" placeholder="0">
                                 </div>` : ''}
                                 <div class="result-box empty" id="result_${item.id}">--</div>
                             </div>
-                            ${priceInfo}
+                            <div id="formula_${item.id}" style="font-size: 13px; color: #10b981; font-weight: 800; display: none; margin-top: -2px;"></div>
                         </div>
                     `;
                 });
                 
-                renderSidebarNav(sidebarCats); // ⚡ VẼ SIDEBAR MỤC LỤC
+                renderSidebarNav(sidebarCats);
                 container.innerHTML = htmlContent;
             }
 
-            window.saveTare = function(id) { localStorage.setItem('tare_' + id, document.getElementById('tare_' + id).value); }
-            window.formatCurrency = function(value) {
-                if (typeof value !== 'number' || Number.isNaN(value)) return '0 đ';
-                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
-            }
+            window.saveTare = function(id) { 
+                const tareEl = document.getElementById('tare_' + id);
+                if (tareEl) localStorage.setItem('tare_' + id, tareEl.value); 
+            };
 
+            // ⚡ HÀM TÍNH GIÁ TRỊ THỰC (NET VALUE)
             window.getNetValue = function(item) {
                 const grossEl = document.getElementById('gross_' + item.id);
-                if (!grossEl || grossEl.value === '') return null;
-                let total = parseFloat(grossEl.value || 0);
-                if (item.multiplier && item.multiplier > 0) total = total * item.multiplier;
-                const tareEl = document.getElementById('tare_' + item.id);
-                if (tareEl) total -= parseFloat(tareEl.value || 0);
-                return Math.round(total * 1000) / 1000;
-            }
-
-            window.updateRevenuePreview = function() {
-                let totalRevenue = 0;
-                currentData.forEach(item => {
-                    if (!item.pricePerUnit) return;
-                    const net = window.getNetValue(item);
-                    if (net !== null && net > 0) totalRevenue += net * item.pricePerUnit;
-                });
-                const panel = document.getElementById('revenue-panel');
-                if (totalRevenue > 0) {
-                    panel.style.display = 'block';
-                    panel.innerHTML = `DOANH THU ƯỚC TÍNH: <span style="color:#10b981; font-size: 20px;">${formatCurrency(Math.round(totalRevenue))}</span><small>(Tính tự động dựa trên đơn giá)</small>`;
-                } else {
-                    panel.style.display = 'none';
+                const looseEl = document.getElementById('loose_' + item.id);
+                
+                const grossStr = grossEl ? grossEl.value.trim() : '';
+                const looseStr = looseEl ? looseEl.value.trim() : '';
+                
+                if (grossStr === '' && looseStr === '') return null;
+                
+                let gross = grossStr !== '' ? parseFloat(grossStr) || 0 : 0;
+                let loose = looseStr !== '' ? parseFloat(looseStr) || 0 : 0;
+                
+                let total = gross;
+                if (item.multiplier && item.multiplier > 1) {
+                    total = (gross * item.multiplier) + loose;
                 }
-            }
+                
+                const tareEl = document.getElementById('tare_' + item.id);
+                if (tareEl && tareEl.value.trim() !== '') {
+                    total -= parseFloat(tareEl.value) || 0;
+                }
+                
+                return Math.round(total * 1000) / 1000;
+            };
 
+            // ⚡ HÀM TỰ ĐỘNG TÍNH TOÁN KHI GÕ SỐ
             window.calculate = function(id) {
                 const item = currentData.find(i => i.id === id);
                 const resultBox = document.getElementById('result_' + id);
+                const formulaEl = document.getElementById('formula_' + id);
                 if (!item || !resultBox) return;
+                
                 const net = window.getNetValue(item);
                 if (net === null) {
                     resultBox.innerText = '--';
                     resultBox.classList.add('empty');
-                    window.updateRevenuePreview();
+                    if (formulaEl) formulaEl.style.display = 'none';
                     return;
                 }
+                
+                let unitLabel = (item.multiplier && item.multiplier > 1) ? 'cái' : item.unit;
+                
                 if (net <= 0) {
-                    resultBox.innerText = `0 ${item.unit}`;
+                    resultBox.innerText = `0 ${unitLabel}`;
                     resultBox.classList.add('empty');
                 } else {
-                    let text = `${net} ${item.unit}`;
-                    if (item.pricePerUnit) {
-                        text += `\n${formatCurrency(Math.round(net * item.pricePerUnit))}`;
-                    }
-                    resultBox.innerText = text;
+                    resultBox.innerText = `${net} ${unitLabel}`;
                     resultBox.classList.remove('empty');
                 }
-                window.updateRevenuePreview();
-            }
+                
+                // Hiển thị công thức quy đổi trực quan theo thời gian thực
+                if (formulaEl && item.multiplier && item.multiplier > 1) {
+                    const grossEl = document.getElementById('gross_' + item.id);
+                    const looseEl = document.getElementById('loose_' + item.id);
+                    let g = (grossEl && grossEl.value.trim() !== '') ? parseFloat(grossEl.value) || 0 : 0;
+                    let l = (looseEl && looseEl.value.trim() !== '') ? parseFloat(looseEl.value) || 0 : 0;
+                    
+                    let parts = [];
+                    if (g > 0 || l > 0) {
+                        let formulaTxt = `💡 Quy đổi: (${g} ${item.unit} × ${item.multiplier})`;
+                        if (l > 0) formulaTxt += ` + ${l} cái lẻ`;
+                        const tareEl = document.getElementById('tare_' + item.id);
+                        if (tareEl && parseFloat(tareEl.value) > 0) {
+                            formulaTxt += ` - ${parseFloat(tareEl.value)}kg bì`;
+                        }
+                        formulaTxt += ` = ${net} cái`;
+                        formulaEl.innerText = formulaTxt;
+                        formulaEl.style.display = 'block';
+                    } else {
+                        formulaEl.style.display = 'none';
+                    }
+                }
+            };
 
+            // ⚡ HÀM CHỐT SỐ LIỆU XUẤT BÁO CÁO (KHÔNG CÒN ĐƠN GIÁ / DOANH THU)
             window.chotSoLieu = function() {
                 let txt = `BÁO CÁO KIỂM KHO - ${new Date().toLocaleString('vi-VN')}\n--------------------------------\n\n`;
                 let outOfStock = [], lowStock = [], fullList = [];
-                let totalRevenue = 0;
+                
                 currentData.forEach(item => {
                     const net = window.getNetValue(item);
                     if (net === null) return;
-                    if (item.pricePerUnit) totalRevenue += net * item.pricePerUnit;
-                    fullList.push(`- ${item.name}: ${net} ${item.unit}${item.pricePerUnit ? ` | ${formatCurrency(Math.round(net * item.pricePerUnit))}` : ''}`);
-                    if (net <= 0) outOfStock.push(`  ❌ ${item.name}`);
-                    else if (net <= item.warnAt) lowStock.push(`  ⚠️ ${item.name} (Còn: ${net} ${item.unit})`);
+                    
+                    let unitLabel = (item.multiplier && item.multiplier > 1) ? 'cái' : item.unit;
+                    let detailNote = '';
+                    if (item.multiplier && item.multiplier > 1) {
+                        const grossEl = document.getElementById('gross_' + item.id);
+                        const looseEl = document.getElementById('loose_' + item.id);
+                        let g = (grossEl && grossEl.value.trim() !== '') ? parseFloat(grossEl.value) || 0 : 0;
+                        let l = (looseEl && looseEl.value.trim() !== '') ? parseFloat(looseEl.value) || 0 : 0;
+                        let parts = [];
+                        if (g > 0) parts.push(`${g} ${item.unit}`);
+                        if (l > 0) parts.push(`${l} lẻ`);
+                        if (parts.length > 0) detailNote = ` (${parts.join(' + ')})`;
+                    }
+                    
+                    fullList.push(`- ${item.name}: ${net} ${unitLabel}${detailNote}`);
+                    if (net <= 0) {
+                        outOfStock.push(`  ❌ ${item.name}`);
+                    } else if (net <= item.warnAt) {
+                        lowStock.push(`  ⚠️ ${item.name} (Còn: ${net} ${unitLabel})`);
+                    }
                 });
+                
                 if (outOfStock.length > 0 || lowStock.length > 0) {
                     txt += `📌 CẢNH BÁO NHẬP HÀNG:\n`;
                     if (outOfStock.length > 0) txt += `\n❌ HẾT HÀNG / TRỐNG:\n` + outOfStock.join('\n') + '\n';
                     if (lowStock.length > 0) txt += `\n⚠️ SẮP HẾT (CẦN NHẬP):\n` + lowStock.join('\n') + '\n';
                     txt += `--------------------------------\n\n`;
                 }
-                if (totalRevenue > 0) {
-                    txt += `💰 DOANH THU ƯỚC TÍNH: ${formatCurrency(Math.round(totalRevenue))}\n--------------------------------\n\n`;
-                }
-                txt += `📋 DANH SÁCH CHI TIẾT:\n` + fullList.join('\n');
+                txt += `📋 DANH SÁCH CHI TIẾT:\n` + (fullList.length > 0 ? fullList.join('\n') : '(Chưa nhập số liệu món nào)');
                 
                 document.getElementById('reportText').innerText = txt;
                 document.getElementById('view-input').style.display = 'none';
@@ -614,19 +745,19 @@
                 document.getElementById('view-review').style.display = 'block';
                 document.getElementById('bar-review').style.display = 'flex';
                 window.scrollTo(0, 0);
-            }
+            };
 
             window.quayLaiSua = function() {
                 document.getElementById('view-review').style.display = 'none';
                 document.getElementById('bar-review').style.display = 'none';
                 document.getElementById('view-input').style.display = 'block';
                 document.getElementById('bar-input').style.display = 'flex';
-            }
+            };
 
             window.copyReport = function() {
                 navigator.clipboard.writeText(document.getElementById('reportText').innerText);
                 showToast("Thành công", "Đã copy báo cáo, sẵn sàng gửi Group!", "success");
-            }
+            };
 
             loadData();
         </script>
