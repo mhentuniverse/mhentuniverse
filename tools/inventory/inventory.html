@@ -58,10 +58,10 @@
             body.dark-mode .item-name { color: #f8fafc; }
             .item-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
             .item-unit { font-size: 12px; background: var(--hub-bg); color: var(--hub-color); padding: 6px 12px; border-radius: 999px; font-weight: 800;}
-            .item-multiplier-badge { font-size: 11.5px; background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 12px; border-radius: 999px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+            .item-multiplier-badge { font-size: 11.5px; background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); padding: 5px 12px; border-radius: 999px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             
             .input-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-            .input-box { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
+            .input-box { flex: 1; min-width: 130px; display: flex; flex-direction: column; }
             .input-box label { font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 800;}
             .input-box input { background: #f8fafc; border: 2px solid #e2e8f0; color: #1e293b; padding: 12px; border-radius: 10px; font-size: 16px; font-weight: 900; outline: none; text-align: center; font-family: 'Nunito', sans-serif; transition: 0.2s; }
             .input-box input:focus { border-color: var(--hub-color); background: #fff; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
@@ -110,6 +110,10 @@
             .btn-delete { background: #ef4444; color: white; border: none; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; }
             .btn-delete:hover { background: #dc2626; transform: translateY(-1px); }
 
+            /* CONVERSION LEVEL ROW IN FORM */
+            .conv-level-row { display: flex; gap: 8px; align-items: center; background: #fff; padding: 8px 12px; border-radius: 10px; border: 1px solid #e2e8f0; flex-wrap: wrap; }
+            body.dark-mode .conv-level-row { background: #0f172a; border-color: #334155; }
+
             /* --- RESPONSIVE CHO ĐIỆN THOẠI (< 768px) --- */
             @media (max-width: 768px) {
                 .admin-sidebar { transform: translateX(-100%); width: 280px; box-shadow: none; }
@@ -120,13 +124,13 @@
                 
                 /* ⚡ PHÉP THUẬT Ở ĐÂY: Biến Bottom Bar cố định thành Nút bấm bình thường ở cuối trang! */
                 .bottom-bar { 
-                    position: static !important; /* Ngắt bay lơ lửng, trở về làm khối bình thường */
+                    position: static !important;
                     width: 100% !important; 
                     height: auto !important;
                     padding: 25px 0 10px 0 !important; 
-                    background: transparent !important; /* Xóa nền kính mờ */
-                    border-top: none !important; /* Xóa đường viền đỉnh */
-                    box-shadow: none !important; /* Xóa bóng đổ */
+                    background: transparent !important;
+                    border-top: none !important;
+                    box-shadow: none !important;
                     margin-top: 10px;
                 }
                 
@@ -136,6 +140,7 @@
                 .result-box { width: 100%; padding: 12px; }
                 .edit-row { flex-direction: column; align-items: stretch; gap: 10px; }
                 .edit-row-actions { justify-content: flex-end; }
+                .conv-level-row { flex-direction: column; align-items: stretch; }
             }
         </style>
         <script src="/js/config.js"></script>
@@ -192,10 +197,10 @@
                     
                     <div class="edit-box">
                         <h3 id="add-item-title" style="color: var(--hub-color); margin-top: 0; margin-bottom: 18px; font-weight: 900; font-size: 18px;"><i class="fa-solid fa-plus"></i> Thêm Món Mới</h3>
-                        <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ)">
-                        <input type="text" id="new_name" class="edit-input-field" placeholder="Tên Món (VD: Trà Olong)">
+                        <input type="text" id="new_cat" class="edit-input-field" placeholder="Tên Danh mục (VD: 1. TRÀ & LY)">
+                        <input type="text" id="new_name" class="edit-input-field" placeholder="Tên Món (VD: Ly Size L)">
                         <div style="display: flex; gap: 10px;">
-                            <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị kiểm đếm (Bịch, Thùng, Gói, Hộp...)" style="flex: 1;">
+                            <input type="text" id="new_unit" class="edit-input-field" placeholder="Đơn vị cơ sở lẻ nhất (Ly, Cái, Gói, Kg...)" style="flex: 1;" oninput="updateConversionPreview()">
                             <input type="number" id="new_warn" class="edit-input-field" placeholder="Cảnh báo khi <= ?" style="flex: 1;">
                         </div>
                         
@@ -206,8 +211,18 @@
                             <input type="number" step="0.01" id="new_tare_weight" class="edit-input-field" placeholder="Nhập kg vỏ thùng/hộp (VD: 0.2)">
                         </div>
                         
-                        <div style="margin-top: 5px;">
-                            <input type="number" step="1" min="1" id="new_multiplier" class="edit-input-field" placeholder="Hệ số quy đổi đóng gói (VD: 1 bịch = 50 cái -> Nhập 50. Để trống nếu không quy đổi)">
+                        <!-- ⚡ CẤU HÌNH CẤP TRONG CẤP (QUY ĐỔI ĐA CẤP ĐỘNG) -->
+                        <div style="background: rgba(16, 185, 129, 0.05); border: 1.5px dashed rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; margin: 15px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                                <span style="font-size: 13.5px; font-weight: 900; color: var(--hub-color); display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-layer-group"></i> Quy Đổi Đóng Gói (Cấp Trong Cấp)
+                                </span>
+                                <button type="button" class="btn-action" style="background: var(--hub-color); color: white; padding: 6px 12px; font-size: 12px; width: auto; max-width: fit-content;" onclick="addConversionLevelRow()">
+                                    <i class="fa-solid fa-plus"></i> Thêm Cấp Đóng Gói
+                                </button>
+                            </div>
+                            <div id="conversion_levels_list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                            <div id="conversion_chain_preview" style="font-size: 12.5px; color: #10b981; font-weight: 800; margin-top: 10px; display: none;"></div>
                         </div>
                         
                         <button id="add-item-button" class="btn-action" style="width: 100%; max-width: 100%; background: #334155; color: white;" onclick="addNewItem()"><i class="fa-solid fa-check"></i> Thêm vào danh sách</button>
@@ -301,6 +316,30 @@
             let currentEditIndex = null;
             let draggedItemIndex = null;
 
+            // ⚡ HELPER LẤY DANH SÁCH CÁC CẤP QUY ĐỔI (TƯƠNG THÍCH NGƯỢC DỮ LIỆU CŨ)
+            window.getItemLevels = function(item) {
+                if (Array.isArray(item.conversionLevels) && item.conversionLevels.length > 0) {
+                    return item.conversionLevels.filter(l => l && l.name && parseFloat(l.ratio) > 0);
+                }
+                if (item.multiplier && parseFloat(item.multiplier) > 1) {
+                    return [{ name: "Gói/Bịch", ratio: parseFloat(item.multiplier) }];
+                }
+                return [];
+            };
+
+            // ⚡ TÍNH HỆ SỐ TÍCH LŨY CỦA TỪNG CẤP VỀ ĐƠN VỊ CƠ SỞ
+            window.getLevelMultipliers = function(levels) {
+                const mults = [];
+                for (let i = 0; i < levels.length; i++) {
+                    let m = 1;
+                    for (let j = i; j < levels.length; j++) {
+                        m *= (parseFloat(levels[j].ratio) || 1);
+                    }
+                    mults.push(m);
+                }
+                return mults;
+            };
+
             async function loadData() {
                 if (!presetId) return showPopup("Lỗi!", "Không tìm thấy ID Preset.", true);
                 window.showTypingPopup("Đang nạp dữ liệu...");
@@ -387,8 +426,14 @@
                 currentData.forEach((item, index) => {
                     let metaInfo = [];
                     metaInfo.push(item.unit);
-                    if (item.multiplier && item.multiplier > 1) {
-                        metaInfo.push(`1 ${item.unit} = ${item.multiplier} cái`);
+                    
+                    const levels = window.getItemLevels(item);
+                    if (levels.length > 0) {
+                        let chainStr = levels.map((lvl, i) => {
+                            let nextName = (i < levels.length - 1) ? levels[i+1].name : item.unit;
+                            return `1 ${lvl.name} = ${lvl.ratio} ${nextName}`;
+                        }).join(' • ');
+                        metaInfo.push(chainStr);
                     }
                     if (item.hasTare && item.defaultTare) {
                         metaInfo.push(`Bì: ${item.defaultTare}kg`);
@@ -475,6 +520,91 @@
                 draggedItemIndex = null;
             };
 
+            // ⚡ QUẢN LÝ CÁC DÒNG CẤP ĐÓNG GÓI ĐA CẤP TRONG FORM
+            window.addConversionLevelRow = function(name = '', ratio = '') {
+                const list = document.getElementById('conversion_levels_list');
+                const row = document.createElement('div');
+                row.className = 'conv-level-row';
+                row.innerHTML = `
+                    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                        <span class="conv-idx" style="font-size: 12px; font-weight: 900; color: #64748b; min-width: 48px;">Cấp:</span>
+                        <input type="text" class="conv-name edit-input-field" placeholder="Tên cấp (VD: Thùng, Cây...)" value="${name}" style="flex: 1; margin-bottom: 0;" oninput="updateConversionPreview()">
+                        <span style="font-size: 12px; font-weight: 800; color: #64748b;">chứa</span>
+                        <input type="number" step="any" min="1" class="conv-ratio edit-input-field" placeholder="Số lượng" value="${ratio}" style="width: 85px; margin-bottom: 0; text-align: center;" oninput="updateConversionPreview()">
+                        <span class="conv-target-label" style="font-size: 12px; font-weight: 800; color: var(--hub-color); min-width: 50px;"></span>
+                        <button type="button" class="btn-delete" style="padding: 6px 10px; font-size: 12px;" onclick="removeConversionLevelRow(this)"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                list.appendChild(row);
+                updateConversionPreview();
+            };
+
+            window.removeConversionLevelRow = function(btn) {
+                const row = btn.closest('.conv-level-row');
+                if (row) row.remove();
+                updateConversionPreview();
+            };
+
+            window.updateConversionPreview = function() {
+                const baseUnit = document.getElementById('new_unit').value.trim() || 'đơn vị';
+                const rows = document.querySelectorAll('#conversion_levels_list .conv-level-row');
+                const previewEl = document.getElementById('conversion_chain_preview');
+                
+                if (rows.length === 0) {
+                    if (previewEl) previewEl.style.display = 'none';
+                    return;
+                }
+
+                const levels = [];
+                rows.forEach((row, index) => {
+                    const idxSpan = row.querySelector('.conv-idx');
+                    if (idxSpan) idxSpan.innerText = `Cấp ${index + 1}:`;
+                    const name = row.querySelector('.conv-name').value.trim() || `Cấp ${index + 1}`;
+                    const ratio = parseFloat(row.querySelector('.conv-ratio').value) || 0;
+                    levels.push({ name, ratio, targetSpan: row.querySelector('.conv-target-label') });
+                });
+
+                // Cập nhật nhãn đích cho từng cấp
+                for (let i = 0; i < levels.length; i++) {
+                    const nextName = (i < levels.length - 1) ? levels[i+1].name : baseUnit;
+                    if (levels[i].targetSpan) levels[i].targetSpan.innerText = nextName;
+                }
+
+                // Vẽ chuỗi preview
+                const mults = window.getLevelMultipliers(levels);
+                let chainParts = [];
+                for (let i = 0; i < levels.length; i++) {
+                    if (levels[i].ratio > 0) {
+                        const nextName = (i < levels.length - 1) ? levels[i+1].name : baseUnit;
+                        let part = `1 ${levels[i].name} = ${levels[i].ratio} ${nextName}`;
+                        if (i < levels.length - 1 && mults[i] > levels[i].ratio) {
+                            part += ` (= ${mults[i]} ${baseUnit})`;
+                        }
+                        chainParts.push(part);
+                    }
+                }
+
+                if (chainParts.length > 0 && previewEl) {
+                    previewEl.innerHTML = `💡 <span style="color:#64748b;">Chuỗi quy đổi:</span> ${chainParts.join(' • ')}`;
+                    previewEl.style.display = 'block';
+                } else if (previewEl) {
+                    previewEl.style.display = 'none';
+                }
+            };
+
+            window.getFormConversionLevels = function() {
+                const rows = document.querySelectorAll('#conversion_levels_list .conv-level-row');
+                const levels = [];
+                rows.forEach(row => {
+                    const name = row.querySelector('.conv-name').value.trim();
+                    const ratio = parseFloat(row.querySelector('.conv-ratio').value);
+                    if (name && ratio > 0) {
+                        levels.push({ name, ratio });
+                    }
+                });
+                return levels;
+            };
+
             window.startEditItem = function(index) {
                 const item = currentData[index];
                 currentEditIndex = index;
@@ -485,7 +615,16 @@
                 document.getElementById('new_tare').checked = item.hasTare;
                 document.getElementById('tare_input_wrapper').style.display = item.hasTare ? 'block' : 'none';
                 document.getElementById('new_tare_weight').value = item.defaultTare || '';
-                document.getElementById('new_multiplier').value = item.multiplier || '';
+                
+                // Nạp danh sách cấp quy đổi
+                const list = document.getElementById('conversion_levels_list');
+                list.innerHTML = '';
+                const levels = window.getItemLevels(item);
+                levels.forEach(lvl => {
+                    window.addConversionLevelRow(lvl.name, lvl.ratio);
+                });
+                updateConversionPreview();
+
                 document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-pen"></i> Chỉnh sửa món';
                 document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi';
                 document.getElementById('cancel-edit-button').style.display = 'inline-flex';
@@ -501,7 +640,10 @@
                 document.getElementById('new_tare').checked = false;
                 document.getElementById('tare_input_wrapper').style.display = 'none';
                 document.getElementById('new_tare_weight').value = '';
-                document.getElementById('new_multiplier').value = '';
+                document.getElementById('conversion_levels_list').innerHTML = '';
+                const previewEl = document.getElementById('conversion_chain_preview');
+                if (previewEl) previewEl.style.display = 'none';
+                
                 document.getElementById('add-item-title').innerHTML = '<i class="fa-solid fa-plus"></i> Thêm Món Mới';
                 document.getElementById('add-item-button').innerHTML = '<i class="fa-solid fa-check"></i> Thêm vào danh sách';
                 document.getElementById('cancel-edit-button').style.display = 'none';
@@ -521,14 +663,15 @@
                 }
                 let catId = 'cat_' + cat.replace(/\s+/g, '-').toLowerCase();
                 let warnValue = parseFloat(warn);
-                let multiplier = parseFloat(document.getElementById('new_multiplier').value);
+                let conversionLevels = window.getFormConversionLevels();
                 
                 if (currentEditIndex !== null) {
                     const item = currentData[currentEditIndex];
                     item.cat = catId; item.catName = cat; item.name = name; item.unit = unit;
                     item.hasTare = tare; item.warnAt = warnValue;
                     item.defaultTare = tare ? parseFloat(tareWeight || 0) : 0;
-                    item.multiplier = (multiplier && multiplier > 1) ? multiplier : undefined;
+                    item.conversionLevels = conversionLevels.length > 0 ? conversionLevels : undefined;
+                    delete item.multiplier; // Chuẩn hóa cấu trúc
                     currentEditIndex = null;
                     showToast('Đã cập nhật', name, 'success');
                 } else {
@@ -537,7 +680,7 @@
                         id: itemId, cat: catId, catName: cat, name: name, unit: unit,
                         hasTare: tare, warnAt: warnValue,
                         defaultTare: tare ? parseFloat(tareWeight || 0) : 0,
-                        multiplier: (multiplier && multiplier > 1) ? multiplier : undefined
+                        conversionLevels: conversionLevels.length > 0 ? conversionLevels : undefined
                     });
                     showToast('Đã thêm', name, 'success');
                 }
@@ -565,7 +708,7 @@
                 }
             };
 
-            // ⚡ VẼ GIAO DIỆN KIỂM ĐẾM (HỖ TRỢ MULTIPLIER & Ô NHẬP HÀNG LẺ DƯ)
+            // ⚡ VẼ GIAO DIỆN KIỂM ĐẾM (HỖ TRỢ QUY ĐỔI ĐA CẤP KHÔNG GIỚI HẠN)
             function renderInputList() {
                 const container = document.getElementById('inventory-list');
                 let htmlContent = ''; 
@@ -582,10 +725,54 @@
                     let savedTare = localStorage.getItem('tare_' + item.id);
                     if (savedTare === null) savedTare = item.defaultTare || '';
                     
-                    let hasMult = item.multiplier && item.multiplier > 1;
-                    let multBadge = hasMult ? `<span class="item-multiplier-badge"><i class="fa-solid fa-layer-group"></i> 1 ${item.unit} = ${item.multiplier} cái</span>` : '';
-                    let mainGrossLabel = hasMult ? `Số ${item.unit} (×${item.multiplier})` : `Tổng Kiểm Đếm`;
+                    const levels = window.getItemLevels(item);
+                    let multBadge = '';
+                    if (levels.length > 0) {
+                        let chainStr = levels.map((lvl, i) => {
+                            let nextName = (i < levels.length - 1) ? levels[i+1].name : item.unit;
+                            return `1 ${lvl.name} = ${lvl.ratio} ${nextName}`;
+                        }).join(' • ');
+                        multBadge = `<span class="item-multiplier-badge" title="${chainStr}"><i class="fa-solid fa-layer-group"></i> ${chainStr}</span>`;
+                    }
                     
+                    let inputBoxesHtml = '';
+                    if (levels.length === 0) {
+                        // Không quy đổi: 1 ô tổng kiểm đếm
+                        inputBoxesHtml += `
+                            <div class="input-box">
+                                <label>Tổng Kiểm Đếm (${item.unit})</label>
+                                <input type="number" step="any" id="gross_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
+                            </div>
+                        `;
+                    } else {
+                        // Đa cấp: Sinh ô nhập cho từng cấp
+                        levels.forEach((lvl, i) => {
+                            let nextName = (i < levels.length - 1) ? levels[i+1].name : item.unit;
+                            inputBoxesHtml += `
+                                <div class="input-box">
+                                    <label>Số ${lvl.name} (×${lvl.ratio} ${nextName})</label>
+                                    <input type="number" step="any" id="lvl_${item.id}_${i}" oninput="window.calculate('${item.id}')" placeholder="0">
+                                </div>
+                            `;
+                        });
+                        // Ô nhập hàng lẻ/dư của đơn vị cơ sở
+                        inputBoxesHtml += `
+                            <div class="input-box">
+                                <label>Lẻ / Dư (${item.unit})</label>
+                                <input type="number" step="any" id="loose_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
+                            </div>
+                        `;
+                    }
+
+                    if (item.hasTare) {
+                        inputBoxesHtml += `
+                            <div class="input-box">
+                                <label>Trừ Bì (kg)</label>
+                                <input type="number" step="0.01" id="tare_${item.id}" value="${savedTare}" oninput="window.saveTare('${item.id}'); window.calculate('${item.id}')" placeholder="0">
+                            </div>
+                        `;
+                    }
+
                     htmlContent += `
                         <div class="item-card">
                             <div class="item-header">
@@ -596,20 +783,7 @@
                                 </div>
                             </div>
                             <div class="input-group">
-                                <div class="input-box">
-                                    <label>${mainGrossLabel}</label>
-                                    <input type="number" step="any" id="gross_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
-                                </div>
-                                ${hasMult ? `
-                                <div class="input-box">
-                                    <label>Lẻ / Dư (cái)</label>
-                                    <input type="number" step="any" id="loose_${item.id}" oninput="window.calculate('${item.id}')" placeholder="0">
-                                </div>` : ''}
-                                ${item.hasTare ? `
-                                <div class="input-box">
-                                    <label>Trừ Bì (kg)</label>
-                                    <input type="number" step="0.01" id="tare_${item.id}" value="${savedTare}" oninput="window.saveTare('${item.id}'); window.calculate('${item.id}')" placeholder="0">
-                                </div>` : ''}
+                                ${inputBoxesHtml}
                                 <div class="result-box empty" id="result_${item.id}">--</div>
                             </div>
                             <div id="formula_${item.id}" style="font-size: 13px; color: #10b981; font-weight: 800; display: none; margin-top: -2px;"></div>
@@ -626,23 +800,40 @@
                 if (tareEl) localStorage.setItem('tare_' + id, tareEl.value); 
             };
 
-            // ⚡ HÀM TÍNH GIÁ TRỊ THỰC (NET VALUE)
+            // ⚡ HÀM TÍNH GIÁ TRỊ THỰC (NET VALUE) CHO MỌI CẤP QUY ĐỔI
             window.getNetValue = function(item) {
-                const grossEl = document.getElementById('gross_' + item.id);
-                const looseEl = document.getElementById('loose_' + item.id);
+                const levels = window.getItemLevels(item);
                 
-                const grossStr = grossEl ? grossEl.value.trim() : '';
-                const looseStr = looseEl ? looseEl.value.trim() : '';
-                
-                if (grossStr === '' && looseStr === '') return null;
-                
-                let gross = grossStr !== '' ? parseFloat(grossStr) || 0 : 0;
-                let loose = looseStr !== '' ? parseFloat(looseStr) || 0 : 0;
-                
-                let total = gross;
-                if (item.multiplier && item.multiplier > 1) {
-                    total = (gross * item.multiplier) + loose;
+                if (levels.length === 0) {
+                    const grossEl = document.getElementById('gross_' + item.id);
+                    if (!grossEl || grossEl.value.trim() === '') return null;
+                    let total = parseFloat(grossEl.value) || 0;
+                    const tareEl = document.getElementById('tare_' + item.id);
+                    if (tareEl && tareEl.value.trim() !== '') {
+                        total -= parseFloat(tareEl.value) || 0;
+                    }
+                    return Math.round(total * 1000) / 1000;
                 }
+                
+                const mults = window.getLevelMultipliers(levels);
+                let anyInput = false;
+                let total = 0;
+                
+                levels.forEach((lvl, i) => {
+                    const el = document.getElementById(`lvl_${item.id}_${i}`);
+                    if (el && el.value.trim() !== '') {
+                        anyInput = true;
+                        total += (parseFloat(el.value) || 0) * mults[i];
+                    }
+                });
+                
+                const looseEl = document.getElementById('loose_' + item.id);
+                if (looseEl && looseEl.value.trim() !== '') {
+                    anyInput = true;
+                    total += (parseFloat(looseEl.value) || 0);
+                }
+                
+                if (!anyInput) return null;
                 
                 const tareEl = document.getElementById('tare_' + item.id);
                 if (tareEl && tareEl.value.trim() !== '') {
@@ -667,33 +858,42 @@
                     return;
                 }
                 
-                let unitLabel = (item.multiplier && item.multiplier > 1) ? 'cái' : item.unit;
-                
                 if (net <= 0) {
-                    resultBox.innerText = `0 ${unitLabel}`;
+                    resultBox.innerText = `0 ${item.unit}`;
                     resultBox.classList.add('empty');
                 } else {
-                    resultBox.innerText = `${net} ${unitLabel}`;
+                    resultBox.innerText = `${net} ${item.unit}`;
                     resultBox.classList.remove('empty');
                 }
                 
                 // Hiển thị công thức quy đổi trực quan theo thời gian thực
-                if (formulaEl && item.multiplier && item.multiplier > 1) {
-                    const grossEl = document.getElementById('gross_' + item.id);
-                    const looseEl = document.getElementById('loose_' + item.id);
-                    let g = (grossEl && grossEl.value.trim() !== '') ? parseFloat(grossEl.value) || 0 : 0;
-                    let l = (looseEl && looseEl.value.trim() !== '') ? parseFloat(looseEl.value) || 0 : 0;
+                const levels = window.getItemLevels(item);
+                if (formulaEl && levels.length > 0) {
+                    const mults = window.getLevelMultipliers(levels);
+                    let formulaParts = [];
                     
-                    let parts = [];
-                    if (g > 0 || l > 0) {
-                        let formulaTxt = `💡 Quy đổi: (${g} ${item.unit} × ${item.multiplier})`;
-                        if (l > 0) formulaTxt += ` + ${l} cái lẻ`;
-                        const tareEl = document.getElementById('tare_' + item.id);
-                        if (tareEl && parseFloat(tareEl.value) > 0) {
-                            formulaTxt += ` - ${parseFloat(tareEl.value)}kg bì`;
+                    levels.forEach((lvl, i) => {
+                        const el = document.getElementById(`lvl_${item.id}_${i}`);
+                        let val = (el && el.value.trim() !== '') ? parseFloat(el.value) || 0 : 0;
+                        if (val > 0) {
+                            if (mults[i] > 1) {
+                                formulaParts.push(`(${val} ${lvl.name} × ${mults[i].toLocaleString('vi-VN')})`);
+                            } else {
+                                formulaParts.push(`${val} ${lvl.name}`);
+                            }
                         }
-                        formulaTxt += ` = ${net} cái`;
-                        formulaEl.innerText = formulaTxt;
+                    });
+
+                    const looseEl = document.getElementById('loose_' + item.id);
+                    let l = (looseEl && looseEl.value.trim() !== '') ? parseFloat(looseEl.value) || 0 : 0;
+                    if (l > 0) formulaParts.push(`${l} ${item.unit} lẻ`);
+                    
+                    const tareEl = document.getElementById('tare_' + item.id);
+                    let tareVal = (tareEl && tareEl.value.trim() !== '') ? parseFloat(tareEl.value) || 0 : 0;
+                    if (tareVal > 0) formulaParts.push(`- ${tareVal}kg bì`);
+
+                    if (formulaParts.length > 0) {
+                        formulaEl.innerHTML = `💡 Quy đổi: ${formulaParts.join(' + ')} = <strong>${net.toLocaleString('vi-VN')} ${item.unit}</strong>`;
                         formulaEl.style.display = 'block';
                     } else {
                         formulaEl.style.display = 'none';
@@ -701,7 +901,7 @@
                 }
             };
 
-            // ⚡ HÀM CHỐT SỐ LIỆU XUẤT BÁO CÁO (KHÔNG CÒN ĐƠN GIÁ / DOANH THU)
+            // ⚡ HÀM CHỐT SỐ LIỆU XUẤT BÁO CÁO (PHÂN RÃ ĐẦY ĐỦ CÁC CẤP)
             window.chotSoLieu = function() {
                 let txt = `BÁO CÁO KIỂM KHO - ${new Date().toLocaleString('vi-VN')}\n--------------------------------\n\n`;
                 let outOfStock = [], lowStock = [], fullList = [];
@@ -710,24 +910,27 @@
                     const net = window.getNetValue(item);
                     if (net === null) return;
                     
-                    let unitLabel = (item.multiplier && item.multiplier > 1) ? 'cái' : item.unit;
-                    let detailNote = '';
-                    if (item.multiplier && item.multiplier > 1) {
-                        const grossEl = document.getElementById('gross_' + item.id);
+                    const levels = window.getItemLevels(item);
+                    let detailParts = [];
+                    
+                    if (levels.length > 0) {
+                        levels.forEach((lvl, i) => {
+                            const el = document.getElementById(`lvl_${item.id}_${i}`);
+                            let val = (el && el.value.trim() !== '') ? parseFloat(el.value) || 0 : 0;
+                            if (val > 0) detailParts.push(`${val} ${lvl.name}`);
+                        });
                         const looseEl = document.getElementById('loose_' + item.id);
-                        let g = (grossEl && grossEl.value.trim() !== '') ? parseFloat(grossEl.value) || 0 : 0;
                         let l = (looseEl && looseEl.value.trim() !== '') ? parseFloat(looseEl.value) || 0 : 0;
-                        let parts = [];
-                        if (g > 0) parts.push(`${g} ${item.unit}`);
-                        if (l > 0) parts.push(`${l} lẻ`);
-                        if (parts.length > 0) detailNote = ` (${parts.join(' + ')})`;
+                        if (l > 0) detailParts.push(`${l} ${item.unit}`);
                     }
                     
-                    fullList.push(`- ${item.name}: ${net} ${unitLabel}${detailNote}`);
+                    let noteStr = detailParts.length > 0 ? ` (${detailParts.join(' + ')})` : '';
+                    fullList.push(`- ${item.name}: ${net} ${item.unit}${noteStr}`);
+                    
                     if (net <= 0) {
                         outOfStock.push(`  ❌ ${item.name}`);
                     } else if (net <= item.warnAt) {
-                        lowStock.push(`  ⚠️ ${item.name} (Còn: ${net} ${unitLabel})`);
+                        lowStock.push(`  ⚠️ ${item.name} (Còn: ${net} ${item.unit})`);
                     }
                 });
                 
