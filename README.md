@@ -12,8 +12,6 @@ Mục tiêu lớn nhất của MHEnt. là kiến tạo một không gian kết n
 Hiện tại, MHEnt Universe đang mở cửa đón khách ở các vũ trụ sau:
 
 * 🍿 **MHEnt. Cinema (Rạp chiếu phim Tân Thời):** Nơi lưu trữ các dự án Vietsub độc quyền.
-  * *Star Detective Pretty Cure!* (Series)
-  * *Eiga Kimi to Idol Pretty Cure♪* (Movie)
 * ⚔️ **MHEnt. Arena:** Không gian thách đấu trí tuệ và trắc nghiệm (Quiz).
 
 ## 🛠️ Công nghệ cốt lõi
@@ -28,7 +26,7 @@ Hệ thống được phát triển hoàn toàn thủ công (Vanilla) để đ�
 * [Cộng đồng Rạp Phim (Facebook Group)](https://www.facebook.com/groups/mhent.cinema)
 
 ## 📜 Lưu ý pháp lý
-👉 Vui lòng đọc kĩ **[Điều Khoản Sử Dụng (ToS)](https://mhentuniverse.vercel.app/terms)** và **Nguyên Tắc Cộng Đồng** trước khi trải nghiệm dịch vụ. Bằng việc truy cập vào MHEnt Universe, bạn đồng ý tuân thủ các quy định mà chúng tớ đã đề ra. Mọi hành vi vi phạm sẽ được xử lý theo đúng điều khoản.
+👉 Vui lòng đọc kĩ **[Điều Khoản Sử Dụng (ToS)](https://docs.mhentuniverse.com/terms)** và **Nguyên Tắc Cộng Đồng** trước khi trải nghiệm dịch vụ. Bằng việc truy cập vào MHEnt Universe, bạn đồng ý tuân thủ các quy định mà chúng tớ đã đề ra. Mọi hành vi vi phạm sẽ được xử lý theo đúng điều khoản.
 
 ---
 *Cảm ơn bạn đã ghé thăm và ủng hộ dự án!* 💖
