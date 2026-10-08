@@ -108,6 +108,18 @@
             letter-spacing: 0.5px;
         }
 
+        .permission-role-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
         .topbar-actions {
             display: flex;
             align-items: center;
@@ -801,8 +813,9 @@
             <a href="/tools/forms" class="btn-studio btn-studio-ghost" title="Quay về Forms Hub">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
-            <div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span class="form-code-pill" id="display-form-code">MÃ: ĐANG TẠO...</span>
+                <span class="permission-role-pill" id="permission-role-badge" style="display: none;"></span>
             </div>
         </div>
 
@@ -822,6 +835,25 @@
 
     <!-- MAIN BUILDER -->
     <main class="studio-container">
+        <!-- ACCESS DENIED CARD -->
+        <div id="studio-access-denied" class="studio-card" style="display: none; grid-column: 1 / -1; text-align: center; padding: 60px 24px; border-radius: 24px; border: 1px solid var(--border-soft); box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px;">
+            <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 style="font-size: 24px; font-weight: 900; margin: 0 0 12px; color: var(--text-main);">Bạn Không Có Quyền Chỉnh Sửa Biểu Mẫu Này</h2>
+            <p style="font-size: 15px; color: var(--text-muted); max-width: 600px; margin: 0 auto 24px; line-height: 1.6;">
+                Biểu mẫu này thuộc quyền sở hữu của một cư dân MHEnt khác. Theo chính sách bảo mật hệ thống, chỉ <strong>người tạo biểu mẫu</strong> hoặc <strong>Quản trị viên</strong> mới có quyền chỉnh sửa câu hỏi và thiết lập.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <a href="/tools/forms" class="btn-studio btn-studio-primary" style="padding: 12px 24px; font-size: 14.5px; text-decoration: none;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay về Danh Sách Forms
+                </a>
+                <a id="btn-denied-fill" href="#" class="btn-studio btn-studio-ghost" style="padding: 12px 24px; font-size: 14.5px; text-decoration: none;">
+                    <i class="fa-solid fa-pen-to-square"></i> Điền Biểu Mẫu Này
+                </a>
+            </div>
+        </div>
+
         <!-- LEFT: FORM BUILDER -->
         <section class="studio-main-column">
             <!-- HEADER SETTINGS CARD -->
@@ -1093,8 +1125,12 @@
             }
         });
 
+        let currentUserRole = '';
+        let isUserAdmin = false;
+        let formConfigLoaded = false;
+
         // AUTH MONITOR
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             const userSection = document.getElementById('user-section');
             if (user) {
@@ -1104,11 +1140,23 @@
                         <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Chủ tịch'}</span>
                     </div>
                 `;
+                try {
+                    const uDoc = await getDoc(doc(db, "users", user.uid));
+                    if (uDoc.exists()) {
+                        currentUserRole = uDoc.data().role || '';
+                    }
+                } catch (e) {
+                    console.warn("Lỗi đọc role user:", e);
+                }
+                isUserAdmin = currentUserRole.includes('admin') || user.email === 'mhent@mhentuniverse.com' || user.email === 'contact@mhentuniverse.com';
             } else {
+                currentUserRole = '';
+                isUserAdmin = false;
                 userSection.innerHTML = `
                     <button class="btn-studio btn-studio-ghost" onclick="window.redirectToLogin()">Đăng nhập</button>
                 `;
             }
+            checkStudioPermission();
         });
 
         // INIT LOAD
@@ -1123,15 +1171,97 @@
                         const data = docSnap.data();
                         formConfig = { ...formConfig, ...data, id: formId };
                         window.formConfig = formConfig;
+                        formConfigLoaded = true;
                         applyConfigToUI();
                         document.getElementById('btn-open-sheet').style.display = 'inline-flex';
+                        checkStudioPermission();
+                    } else {
+                        formConfigLoaded = true;
+                        window.showToast("Thông báo", `Biểu mẫu [${formId}] không tồn tại trên hệ thống!`, "error");
+                        setTimeout(() => window.location.href = '/tools/forms', 2500);
                     }
                 } catch (e) {
                     console.error("Lỗi tải form:", e);
+                    window.showToast("Lỗi", "Không thể nạp dữ liệu: " + e.message, "error");
                 }
             } else {
+                formConfigLoaded = true;
                 // Thêm sẵn 1 câu hỏi mẫu ban đầu
                 addNewQuestion("Câu hỏi số 1", "radio", ["Lựa chọn A", "Lựa chọn B"]);
+                checkStudioPermission();
+            }
+        }
+
+        // KIỂM TRA QUYỀN TRUY CẬP STUDIO (CREATOR HOẶC ADMIN)
+        function checkStudioPermission() {
+            if (!formConfigLoaded) return;
+
+            const badge = document.getElementById('permission-role-badge');
+            const deniedBox = document.getElementById('studio-access-denied');
+            const mainCol = document.querySelector('.studio-main-column');
+            const sideSettings = document.querySelector('.side-settings');
+            const btnSave = document.getElementById('btn-save-form');
+            const btnSheet = document.getElementById('btn-open-sheet');
+
+            // 1. Nếu là tạo biểu mẫu mới (Chưa có ID trên cloud)
+            if (!urlParams.get('id')) {
+                if (badge) {
+                    badge.style.display = 'inline-flex';
+                    if (currentUser) {
+                        badge.style.background = 'rgba(16, 185, 129, 0.12)';
+                        badge.style.color = '#10b981';
+                        badge.innerHTML = `<i class="fa-solid fa-sparkles"></i> Tạo mới bởi ${escapeHtml(currentUser.displayName || currentUser.email)}`;
+                    } else {
+                        badge.style.display = 'inline-flex';
+                        badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                        badge.style.color = '#f59e0b';
+                        badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Khách (Cần đăng nhập để lưu)`;
+                    }
+                }
+                return;
+            }
+
+            // 2. Nếu đang chỉnh sửa biểu mẫu có sẵn
+            const creatorUid = formConfig.creatorUid;
+            const isCreator = currentUser && creatorUid && (currentUser.uid === creatorUid);
+            const hasAccess = isCreator || isUserAdmin;
+
+            if (!hasAccess) {
+                // CHẶN TRUY CẬP: Không cho phép chỉnh sửa
+                if (deniedBox) {
+                    deniedBox.style.display = 'block';
+                    const fillBtn = document.getElementById('btn-denied-fill');
+                    if (fillBtn) fillBtn.href = `/tools/forms/fill?id=${formId}`;
+                }
+                if (mainCol) mainCol.style.display = 'none';
+                if (sideSettings) sideSettings.style.display = 'none';
+                if (btnSave) btnSave.style.display = 'none';
+                if (btnSheet) btnSheet.style.display = 'none';
+                if (badge) {
+                    badge.style.display = 'inline-flex';
+                    badge.style.background = 'rgba(239, 68, 68, 0.12)';
+                    badge.style.color = '#ef4444';
+                    badge.innerHTML = `<i class="fa-solid fa-ban"></i> Không có quyền sửa`;
+                }
+            } else {
+                // CHO PHÉP TRUY CẬP
+                if (deniedBox) deniedBox.style.display = 'none';
+                if (mainCol) mainCol.style.display = 'block';
+                if (sideSettings) sideSettings.style.display = 'block';
+                if (btnSave) btnSave.style.display = 'inline-flex';
+                if (btnSheet) btnSheet.style.display = 'inline-flex';
+                if (badge) {
+                    badge.style.display = 'inline-flex';
+                    if (isUserAdmin && !isCreator) {
+                        badge.style.background = 'rgba(239, 68, 68, 0.12)';
+                        badge.style.color = '#ef4444';
+                        badge.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Toàn quyền Admin`;
+                    } else {
+                        badge.style.background = 'rgba(16, 185, 129, 0.12)';
+                        badge.style.color = '#10b981';
+                        badge.innerHTML = `<i class="fa-solid fa-crown"></i> Người tạo biểu mẫu`;
+                    }
+                }
             }
         }
 
@@ -1599,6 +1729,22 @@
 
         // SAVE FORM TO CLOUD
         window.saveFormToCloud = async function () {
+            if (!currentUser) {
+                window.showToast("Yêu cầu đăng nhập", "Cậu cần đăng nhập tài khoản MHEnt Universe để hệ thống gán quyền sở hữu biểu mẫu cho cậu!", "error");
+                setTimeout(() => window.redirectToLogin(), 1500);
+                return;
+            }
+
+            // Nếu đang sửa form có sẵn, kiểm tra lại quyền
+            if (urlParams.get('id')) {
+                const creatorUid = formConfig.creatorUid;
+                const isCreator = currentUser.uid === creatorUid;
+                if (!isCreator && !isUserAdmin) {
+                    window.showToast("Từ chối quyền", "Cậu không có quyền lưu chỉnh sửa biểu mẫu này!", "error");
+                    return;
+                }
+            }
+
             syncQuestionsFromDOM();
             const btn = document.getElementById('btn-save-form');
             btn.disabled = true;
@@ -1622,8 +1768,13 @@
                 formConfig.updatedAt = serverTimestamp();
                 if (!formConfig.createdAt) {
                     formConfig.createdAt = serverTimestamp();
-                    formConfig.createdBy = currentUser?.displayName || 'Chủ tịch';
-                    formConfig.creatorUid = currentUser?.uid || 'guest';
+                    formConfig.createdBy = currentUser.displayName || currentUser.email || 'Cư dân MHEnt';
+                    formConfig.creatorUid = currentUser.uid;
+                    formConfig.creatorEmail = currentUser.email || '';
+                } else if (!formConfig.creatorUid) {
+                    // Nếu form cũ trước đây chưa gắn creatorUid
+                    formConfig.creatorUid = currentUser.uid;
+                    formConfig.creatorEmail = currentUser.email || '';
                 }
 
                 await setDoc(doc(db, "mhent_forms", formId), formConfig);
@@ -1635,6 +1786,7 @@
                 if (!urlParams.get('id')) {
                     window.history.replaceState({}, '', `?id=${formId}`);
                 }
+                checkStudioPermission();
             } catch (err) {
                 console.error("Lỗi lưu:", err);
                 window.showToast("Lỗi", "Không thể lưu biểu mẫu lên máy chủ: " + err.message, "error");

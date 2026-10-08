@@ -355,8 +355,9 @@
         <!-- ADMIN HERO -->
         <section class="admin-hero">
             <div class="admin-hero-title">
-                <h1>Trung Tâm Quản Trị MHEnt. Forms & Sheet</h1>
-                <p>Quản lý toàn bộ biểu mẫu, danh sách thu thập, xuất Excel và phân tích dữ liệu Vũ trụ.</p>
+                <h1 id="hero-title">Trung Tâm Quản Trị MHEnt. Forms & Sheet</h1>
+                <p id="hero-desc">Quản lý toàn bộ biểu mẫu, danh sách thu thập, xuất Excel và phân tích dữ liệu Vũ trụ.</p>
+                <div id="hero-role-badge" style="margin-top: 12px; display: inline-flex;"></div>
             </div>
             <a href="/tools/forms/studio" class="btn-create-giant">
                 <i class="fa-solid fa-plus-circle fa-lg"></i> Tạo Biểu Mẫu Mới
@@ -385,13 +386,29 @@
 
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, deleteDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = window.firebaseConfig;
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        let currentUser = null;
+        let currentUserRole = '';
+        let isUserAdmin = false;
+        let allForms = [];
+        let rawForms = [];
+
+        function escapeHtml(str) {
+            if (!str && str !== 0) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
 
         window.toggleAppSwitcher = function() {
             const switcher = document.getElementById('dropdown-app-switcher');
@@ -416,7 +433,8 @@
             }
         });
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
             const userSection = document.getElementById('user-section');
             if (user) {
                 userSection.innerHTML = `
@@ -425,23 +443,63 @@
                         <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Chủ tịch'}</span>
                     </div>
                 `;
+                try {
+                    const uDoc = await getDoc(doc(db, "users", user.uid));
+                    if (uDoc.exists()) {
+                        currentUserRole = uDoc.data().role || '';
+                    }
+                } catch(e) {
+                    console.warn(e);
+                }
+                isUserAdmin = currentUserRole.includes('admin') || user.email === 'mhent@mhentuniverse.com' || user.email === 'contact@mhentuniverse.com';
             } else {
+                currentUserRole = '';
+                isUserAdmin = false;
                 userSection.innerHTML = `
                     <button class="btn-login" style="padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold;" onclick="window.redirectToLogin()">Đăng nhập</button>
                 `;
             }
+            loadAllForms();
         });
 
         async function loadAllForms() {
+            document.getElementById('admin-loading').style.display = 'block';
+            document.getElementById('admin-grid').style.display = 'none';
+
             try {
                 const snap = await getDocs(collection(db, "mhent_forms"));
-                allForms = [];
+                rawForms = [];
                 snap.forEach(docSnap => {
-                    allForms.push({
+                    rawForms.push({
                         id: docSnap.id,
                         ...docSnap.data()
                     });
                 });
+
+                // Cập nhật Header & Phân quyền lọc danh sách
+                const heroTitle = document.getElementById('hero-title');
+                const heroDesc = document.getElementById('hero-desc');
+                const heroBadge = document.getElementById('hero-role-badge');
+
+                if (isUserAdmin) {
+                    // ADMIN: Xem được TẤT CẢ các form
+                    allForms = rawForms;
+                    if (heroTitle) heroTitle.innerText = "Trung Tâm Quản Trị Hệ Thống - Toàn Bộ Biểu Mẫu";
+                    if (heroDesc) heroDesc.innerText = "Chế độ Quản Trị Viên: Toàn quyền xem, chỉnh sửa Studio, mở MHEnt Sheet và quản lý tất cả biểu mẫu trong Vũ trụ MHEnt.";
+                    if (heroBadge) heroBadge.innerHTML = `<span style="background: rgba(255,255,255,0.25); color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-shield-halved"></i> Quản Trị Viên (Toàn Quyền)</span>`;
+                } else if (currentUser) {
+                    // CREATOR (Người dùng thông thường): CHỈ xem form do mình tạo
+                    allForms = rawForms.filter(f => f.creatorUid === currentUser.uid);
+                    if (heroTitle) heroTitle.innerText = "Không Gian Quản Lý Biểu Mẫu Của Cậu";
+                    if (heroDesc) heroDesc.innerText = "Danh sách các biểu mẫu do chính tài khoản của cậu tạo ra. Cậu có toàn quyền chỉnh sửa và xem câu trả lời trong MHEnt Sheet.";
+                    if (heroBadge) heroBadge.innerHTML = `<span style="background: rgba(255,255,255,0.25); color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-crown"></i> Người Tạo Biểu Mẫu</span>`;
+                } else {
+                    // CHƯA ĐĂNG NHẬP
+                    allForms = [];
+                    if (heroTitle) heroTitle.innerText = "Quản Lý Biểu Mẫu MHEnt";
+                    if (heroDesc) heroDesc.innerText = "Vui lòng đăng nhập tài khoản MHEnt Universe để xem và quản lý danh sách biểu mẫu của cậu.";
+                    if (heroBadge) heroBadge.innerHTML = `<span style="background: rgba(255,255,255,0.25); color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-user-lock"></i> Chưa Đăng Nhập</span>`;
+                }
 
                 document.getElementById('admin-loading').style.display = 'none';
                 document.getElementById('admin-grid').style.display = 'grid';
@@ -463,10 +521,34 @@
 
         function renderForms(list) {
             const grid = document.getElementById('admin-grid');
-            document.getElementById('forms-count-tag').innerText = `Tổng cộng: ${list.length} biểu mẫu`;
+            document.getElementById('forms-count-tag').innerText = isUserAdmin ? `Tổng cộng: ${list.length} / ${rawForms.length} biểu mẫu toàn hệ thống` : `Tổng cộng: ${list.length} biểu mẫu của cậu`;
 
             if (list.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted); font-weight: bold;">Không tìm thấy biểu mẫu nào!</div>`;
+                if (!currentUser) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                            <i class="fa-solid fa-user-lock fa-3x" style="color: var(--primary-accent); margin-bottom: 16px;"></i>
+                            <h3 style="font-weight: 800; margin: 0 0 8px; color: var(--text-main);">Cậu chưa đăng nhập!</h3>
+                            <p style="margin: 0 0 20px;">Vui lòng đăng nhập để hệ thống hiển thị danh sách biểu mẫu do cậu tạo.</p>
+                            <button class="btn-create-giant" style="background: var(--primary-accent); color: white; font-size: 14px; padding: 10px 24px;" onclick="window.redirectToLogin()">
+                                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập ngay
+                            </button>
+                        </div>
+                    `;
+                } else if (!isUserAdmin) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                            <i class="fa-solid fa-folder-open fa-3x" style="color: var(--primary-accent); margin-bottom: 16px;"></i>
+                            <h3 style="font-weight: 800; margin: 0 0 8px; color: var(--text-main);">Cậu chưa tạo biểu mẫu nào!</h3>
+                            <p style="margin: 0 0 20px;">Hãy bắt đầu tạo biểu mẫu đầu tiên bằng MHEnt Studio để thu thập ý kiến hoặc lập danh sách nhé.</p>
+                            <a href="/tools/forms/studio" class="btn-create-giant" style="background: var(--primary-accent); color: white; font-size: 14px; padding: 10px 24px; text-decoration: none;">
+                                <i class="fa-solid fa-plus-circle"></i> Tạo Biểu Mẫu Mới
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted); font-weight: bold;">Không tìm thấy biểu mẫu nào!</div>`;
+                }
                 return;
             }
 
@@ -475,6 +557,7 @@
                 const statusHtml = isOpen ? `<span class="card-status-pill status-open">Đang nhận phản hồi</span>` : `<span class="card-status-pill status-closed">Đã đóng</span>`;
                 const qCount = f.fields ? f.fields.length : 0;
                 const respCount = f.responsesCount || 0;
+                const creatorText = f.createdBy || f.creatorEmail || 'Thành viên MHEnt';
 
                 return `
                     <div class="admin-form-card">
@@ -487,6 +570,11 @@
                             </div>
                             <h3 class="card-title">${f.title || 'Biểu mẫu'}</h3>
                             <p class="card-desc">${f.description || 'Không có mô tả chi tiết.'}</p>
+                            ${isUserAdmin ? `
+                                <div style="font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-user-pen" style="color: var(--primary-accent);"></i> Người tạo: <span style="color: var(--text-main);">${escapeHtml(creatorText)}</span>
+                                </div>
+                            ` : ''}
                         </div>
 
                         <div>
@@ -524,6 +612,12 @@
         };
 
         window.deleteForm = function(fId, title) {
+            const target = rawForms.find(f => f.id === fId);
+            if (!isUserAdmin && target && target.creatorUid !== currentUser?.uid) {
+                window.showToast("Từ chối", "Cậu chỉ có quyền xóa biểu mẫu do chính mình tạo!", "error");
+                return;
+            }
+
             window.showConfirmPopup(
                 "Xác nhận xóa biểu mẫu?",
                 `Cậu có chắc muốn xóa biểu mẫu "${title}" [${fId}] không? Biểu mẫu và dữ liệu liên quan sẽ bị gỡ bỏ.`,
@@ -538,8 +632,6 @@
                 }
             );
         };
-
-        loadAllForms();
     </script>
     <script src="/js/mhent-ui.js"></script>
     <script src="/js/aisa-widget.js" defer></script>

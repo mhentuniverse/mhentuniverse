@@ -54,6 +54,11 @@
             --text-muted: #94a3b8;
         }
 
+        html, body {
+            overflow-x: clip !important;
+            overflow-y: visible !important;
+        }
+
         body {
             background-color: var(--bg-canvas);
             color: var(--text-main);
@@ -87,8 +92,11 @@
         }
 
         .runner-left-col {
+            position: -webkit-sticky;
             position: sticky;
             top: 85px;
+            align-self: start;
+            height: fit-content;
             max-height: calc(100vh - 105px);
             overflow-y: auto;
             overscroll-behavior: contain;
@@ -96,6 +104,7 @@
             scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
             padding-right: 8px;
             padding-bottom: 25px;
+            z-index: 20;
         }
         .runner-left-col::-webkit-scrollbar {
             width: 5px;
@@ -687,6 +696,14 @@
                         <div class="runner-meta-strip">
                             <i class="fa-solid fa-shield-halved"></i> Xác thực qua Hệ thống MHEnt Universe
                         </div>
+                        <div id="creator-admin-controls" style="display: none; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-soft); gap: 10px; flex-wrap: wrap;">
+                            <a id="btn-quick-studio" href="#" class="btn-sheet" style="padding: 7px 14px; font-size: 13px; text-decoration: none; border-radius: 12px; border: 1px solid var(--border-soft); background: var(--card-bg); display: inline-flex; align-items: center; gap: 6px; font-weight: 800; color: var(--text-main); transition: 0.2s;">
+                                <i class="fa-solid fa-pen-to-square" style="color: var(--primary-accent);"></i> Sửa Form
+                            </a>
+                            <a id="btn-quick-sheet" href="#" class="btn-sheet" style="padding: 7px 14px; font-size: 13px; text-decoration: none; border-radius: 12px; border: 1px solid var(--border-soft); background: var(--card-bg); display: inline-flex; align-items: center; gap: 6px; font-weight: 800; color: var(--text-main); transition: 0.2s;">
+                                <i class="fa-solid fa-table" style="color: #10b981;"></i> MHEnt Sheet
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -849,25 +866,49 @@
                 if (emailInput && !emailInput.value) emailInput.value = user.email || '';
 
                 // Kiểm tra quyền Admin để hiện Admin Panel
+                let userRole = '';
                 try {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
                     const adminBtn = document.getElementById('admin-panel-btn');
                     const adminDiv = document.getElementById('admin-divider');
                     if (adminBtn) adminBtn.style.display = 'none';
                     if (adminDiv) adminDiv.style.display = 'none';
-                    if (docSnap.exists() && docSnap.data().role && docSnap.data().role.includes('admin')) {
-                        if (adminBtn) adminBtn.style.display = 'flex';
-                        if (adminDiv) adminDiv.style.display = 'block';
+                    if (docSnap.exists() && docSnap.data().role) {
+                        userRole = docSnap.data().role;
+                        if (userRole.includes('admin')) {
+                            if (adminBtn) adminBtn.style.display = 'flex';
+                            if (adminDiv) adminDiv.style.display = 'block';
+                        }
                     }
                 } catch (e) {
                     console.log("Quyền admin:", e);
                 }
+                updateCreatorAdminShortcuts(userRole);
             } else {
                 if (btnLoginEl) btnLoginEl.style.display = 'flex';
                 if (btnTheme) btnTheme.style.display = 'flex'; 
                 if (userProfile) userProfile.style.display = 'none';
             }
         });
+
+        function updateCreatorAdminShortcuts(role) {
+            if (!formConfig || !currentUser) return;
+            const r = role || '';
+            const isCreator = formConfig.creatorUid && (currentUser.uid === formConfig.creatorUid);
+            const isAdmin = r.includes('admin') || currentUser.email === 'mhent@mhentuniverse.com' || currentUser.email === 'contact@mhentuniverse.com';
+            const controls = document.getElementById('creator-admin-controls');
+            if (controls) {
+                if (isCreator || isAdmin) {
+                    controls.style.display = 'flex';
+                    const btnStudio = document.getElementById('btn-quick-studio');
+                    const btnSheet = document.getElementById('btn-quick-sheet');
+                    if (btnStudio) btnStudio.href = `/tools/forms/studio?id=${formId}`;
+                    if (btnSheet) btnSheet.href = `/tools/forms/sheet?id=${formId}`;
+                } else {
+                    controls.style.display = 'none';
+                }
+            }
+        }
 
         async function initForm() {
             if (!formId) {
@@ -894,6 +935,7 @@
                 }
 
                 renderForm(formConfig);
+                updateCreatorAdminShortcuts();
             } catch (err) {
                 console.error("Lỗi:", err);
                 showError("Lỗi kết nối", "Không thể tải nội dung biểu mẫu từ máy chủ.");

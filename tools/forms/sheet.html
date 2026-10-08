@@ -128,6 +128,27 @@
             color: #10b981;
         }
 
+        .permission-role-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            margin-left: 8px;
+        }
+        .form-code-pill {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--sheet-accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
         /* TOOLBAR ACTIONS */
         .sheet-toolbar {
             background: var(--card-bg);
@@ -442,7 +463,7 @@
     </div>
 
     <!-- SHEET TOPBAR -->
-    <header class="sheet-topbar">
+    <header class="sheet-topbar" id="sheet-topbar">
         <div class="sheet-info-left">
             <a href="/tools/forms" class="btn-sheet btn-sheet-ghost" title="Quay về Forms Hub">
                 <i class="fa-solid fa-arrow-left"></i>
@@ -451,9 +472,10 @@
                 <i class="fa-solid fa-table"></i> MHEnt. Sheet
             </div>
             <div class="sheet-title-group">
-                <h2>
+                <h2 style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span id="sheet-title">Đang tải biểu mẫu...</span>
                     <span class="form-code-pill" id="sheet-form-id" style="font-size: 12px;">FORM_ID</span>
+                    <span class="permission-role-pill" id="sheet-role-badge" style="display: none;"></span>
                 </h2>
                 <div class="save-status-pill saved" id="cloud-status">
                     <i class="fa-solid fa-cloud-check"></i> <span>Tất cả chỉnh sửa đã lưu vào Căn Cứ MHEnt</span>
@@ -475,7 +497,7 @@
     </header>
 
     <!-- SHEET TOOLBAR -->
-    <section class="sheet-toolbar">
+    <section class="sheet-toolbar" id="sheet-toolbar">
         <div class="toolbar-left">
             <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -513,6 +535,44 @@
 
     <!-- MAIN SPREADSHEET INTERFACE -->
     <main class="spreadsheet-container">
+        <!-- AUTH REQUIRED SCREEN -->
+        <div id="sheet-auth-required" style="display: none; text-align: center; padding: 70px 24px; max-width: 580px; margin: 40px auto; background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border-soft); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
+            <h2 style="font-size: 24px; font-weight: 900; margin: 0 0 12px; color: var(--text-main);">Yêu Cầu Đăng Nhập Tài Khoản</h2>
+            <p style="font-size: 15px; color: var(--text-muted); margin: 0 auto 24px; line-height: 1.6;">
+                Dữ liệu bảng tính MHEnt. Sheet được bảo mật. Chỉ <strong>người tạo biểu mẫu</strong> hoặc <strong>Quản trị viên</strong> mới có quyền xem và xử lý danh sách câu trả lời.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-sheet" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 24px;" onclick="window.redirectToLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập bằng MHEnt ID
+                </button>
+                <a href="/tools/forms" class="btn-sheet btn-sheet-ghost" style="padding: 12px 24px; text-decoration: none;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay về Forms Hub
+                </a>
+            </div>
+        </div>
+
+        <!-- ACCESS DENIED SCREEN -->
+        <div id="sheet-access-denied" style="display: none; text-align: center; padding: 70px 24px; max-width: 580px; margin: 40px auto; background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border-soft); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2 style="font-size: 24px; font-weight: 900; margin: 0 0 12px; color: var(--text-main);">Không Có Quyền Truy Cập Bảng Tính</h2>
+            <p style="font-size: 15px; color: var(--text-muted); margin: 0 auto 24px; line-height: 1.6;">
+                Cậu không phải là người tạo biểu mẫu này và không có quyền Quản trị viên. Toàn bộ danh sách câu trả lời được bảo mật riêng cho chủ sở hữu biểu mẫu.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <a href="/tools/forms" class="btn-sheet" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 12px 24px; text-decoration: none;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay về Danh Sách Forms
+                </a>
+                <a id="btn-sheet-denied-fill" href="#" class="btn-sheet btn-sheet-ghost" style="padding: 12px 24px; text-decoration: none;">
+                    <i class="fa-solid fa-pen-to-square"></i> Điền Biểu Mẫu Này
+                </a>
+            </div>
+        </div>
+
         <div id="loading-spinner" style="text-align: center; padding: 60px 0;">
             <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: var(--sheet-accent); margin-bottom: 16px;"></i>
             <p style="font-weight: 700; color: var(--text-muted);">Đang tải bảng tính dữ liệu từ Vũ trụ MHEnt...</p>
@@ -571,8 +631,15 @@
             }
         });
 
+        let currentUser = null;
+        let currentUserRole = '';
+        let isUserAdmin = false;
+        let authResolved = false;
+        let hasStartedListening = false;
+
         // AUTH
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
             const userSection = document.getElementById('user-section');
             if (user) {
                 userSection.innerHTML = `
@@ -581,11 +648,24 @@
                         <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Chủ tịch'}</span>
                     </div>
                 `;
+                try {
+                    const uDoc = await getDoc(doc(db, "users", user.uid));
+                    if (uDoc.exists()) {
+                        currentUserRole = uDoc.data().role || '';
+                    }
+                } catch (e) {
+                    console.warn("Lỗi đọc role user:", e);
+                }
+                isUserAdmin = currentUserRole.includes('admin') || user.email === 'mhent@mhentuniverse.com' || user.email === 'contact@mhentuniverse.com';
             } else {
+                currentUserRole = '';
+                isUserAdmin = false;
                 userSection.innerHTML = `
                     <button class="btn-login" style="background: var(--sheet-accent); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold;" onclick="window.redirectToLogin()">Đăng nhập</button>
                 `;
             }
+            authResolved = true;
+            evaluateSheetAccess();
         });
 
         // INIT LOAD
@@ -603,7 +683,7 @@
                 // 1. Load Form Definition
                 const formSnap = await getDoc(doc(db, "mhent_forms", formId));
                 if (!formSnap.exists()) {
-                    document.getElementById('loading-spinner').innerHTML = `<p style="color: red; font-weight: bold;">Biểu mẫu [${formId}] không tồn tại!</p>`;
+                    document.getElementById('loading-spinner').innerHTML = `<p style="color: red; font-weight: bold;">Biểu mẫu [${formId}] không tồn tại trên hệ thống!</p>`;
                     return;
                 }
 
@@ -614,12 +694,80 @@
                 // 2. Build Table Headers
                 renderTableHeaders(formMetadata);
 
-                // 3. Listen Real-time Submissions
-                listenToResponses();
+                // 3. Evaluate Access & Listen
+                evaluateSheetAccess();
 
             } catch (err) {
                 console.error("Lỗi:", err);
                 document.getElementById('loading-spinner').innerHTML = `<p style="color: red; font-weight: bold;">Lỗi kết nối Căn Cứ MHEnt: ${err.message}</p>`;
+            }
+        }
+
+        // KIỂM TRA QUYỀN TRUY CẬP BẢNG TÍNH (CHỈ CREATOR HOẶC ADMIN)
+        function evaluateSheetAccess() {
+            if (!formMetadata || !authResolved) return;
+
+            const authScreen = document.getElementById('sheet-auth-required');
+            const deniedScreen = document.getElementById('sheet-access-denied');
+            const topbar = document.getElementById('sheet-topbar');
+            const toolbar = document.getElementById('sheet-toolbar');
+            const loading = document.getElementById('loading-spinner');
+            const tableWrapper = document.getElementById('table-wrapper');
+            const roleBadge = document.getElementById('sheet-role-badge');
+
+            // 1. Chưa đăng nhập
+            if (!currentUser) {
+                if (authScreen) authScreen.style.display = 'block';
+                if (deniedScreen) deniedScreen.style.display = 'none';
+                if (topbar) topbar.style.display = 'none';
+                if (toolbar) toolbar.style.display = 'none';
+                if (loading) loading.style.display = 'none';
+                if (tableWrapper) tableWrapper.style.display = 'none';
+                return;
+            }
+
+            // 2. Đã đăng nhập: Kiểm tra quyền Creator hoặc Admin
+            const creatorUid = formMetadata.creatorUid;
+            const isCreator = creatorUid && (currentUser.uid === creatorUid);
+            const hasAccess = isCreator || isUserAdmin;
+
+            if (!hasAccess) {
+                // TỪ CHỐI QUYỀN: Người dùng không phải là creator và không phải admin
+                if (authScreen) authScreen.style.display = 'none';
+                if (deniedScreen) {
+                    deniedScreen.style.display = 'block';
+                    const fillBtn = document.getElementById('btn-sheet-denied-fill');
+                    if (fillBtn) fillBtn.href = `/tools/forms/fill?id=${formId}`;
+                }
+                if (topbar) topbar.style.display = 'none';
+                if (toolbar) toolbar.style.display = 'none';
+                if (loading) loading.style.display = 'none';
+                if (tableWrapper) tableWrapper.style.display = 'none';
+                return;
+            }
+
+            // 3. HỢP LỆ (LÀ CREATOR HOẶC ADMIN)
+            if (authScreen) authScreen.style.display = 'none';
+            if (deniedScreen) deniedScreen.style.display = 'none';
+            if (topbar) topbar.style.display = 'flex';
+            if (toolbar) toolbar.style.display = 'flex';
+
+            if (roleBadge) {
+                roleBadge.style.display = 'inline-flex';
+                if (isUserAdmin && !isCreator) {
+                    roleBadge.style.background = 'rgba(239, 68, 68, 0.12)';
+                    roleBadge.style.color = '#ef4444';
+                    roleBadge.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Quản trị viên`;
+                } else {
+                    roleBadge.style.background = 'rgba(16, 185, 129, 0.12)';
+                    roleBadge.style.color = '#10b981';
+                    roleBadge.innerHTML = `<i class="fa-solid fa-crown"></i> Người tạo biểu mẫu`;
+                }
+            }
+
+            if (!hasStartedListening) {
+                hasStartedListening = true;
+                listenToResponses();
             }
         }
 
