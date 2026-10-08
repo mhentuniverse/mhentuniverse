@@ -904,6 +904,17 @@
             },
             fields: []
         };
+        window.formConfig = formConfig;
+
+        function escapeHtml(str) {
+            if (!str && str !== 0) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
 
         // AUTH MONITOR
         onAuthStateChanged(auth, (user) => {
@@ -934,6 +945,7 @@
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         formConfig = { ...formConfig, ...data, id: formId };
+                        window.formConfig = formConfig;
                         applyConfigToUI();
                         document.getElementById('btn-open-sheet').style.display = 'inline-flex';
                     }
@@ -971,8 +983,61 @@
             renderAllQuestions();
         }
 
+        // ĐỒNG BỘ DỮ LIỆU ĐANG NHẬP TRÊN GIAO DIỆN VÀO STATE
+        function syncQuestionsFromDOM() {
+            const cards = document.querySelectorAll('#questions-container .question-card');
+            cards.forEach((card, idx) => {
+                if (!formConfig.fields[idx]) return;
+                const titleInput = card.querySelector('.question-input');
+                if (titleInput) formConfig.fields[idx].title = titleInput.value;
+
+                const typeSelect = card.querySelector('.question-type-select');
+                if (typeSelect) formConfig.fields[idx].type = typeSelect.value;
+
+                const reqCheckbox = card.querySelector('.question-bottom-bar input[type="checkbox"]');
+                if (reqCheckbox) formConfig.fields[idx].required = reqCheckbox.checked;
+
+                const optionInputs = card.querySelectorAll('.option-input');
+                if (optionInputs.length > 0) {
+                    formConfig.fields[idx].options = Array.from(optionInputs).map(inp => inp.value);
+                }
+
+                const sliderMinInput = card.querySelector('.slider-min-input');
+                const sliderMaxInput = card.querySelector('.slider-max-input');
+                if (sliderMinInput) formConfig.fields[idx].sliderMin = parseInt(sliderMinInput.value) || 1;
+                if (sliderMaxInput) formConfig.fields[idx].sliderMax = parseInt(sliderMaxInput.value) || 5;
+            });
+        }
+        window.syncQuestionsFromDOM = syncQuestionsFromDOM;
+
+        // REAL-TIME EVENT HANDLERS
+        window.updateQuestionTitle = function (idx, val) {
+            if (formConfig.fields[idx]) {
+                formConfig.fields[idx].title = val;
+            }
+        };
+
+        window.updateQuestionOption = function (qIdx, optIdx, val) {
+            if (formConfig.fields[qIdx] && formConfig.fields[qIdx].options) {
+                formConfig.fields[qIdx].options[optIdx] = val;
+            }
+        };
+
+        window.updateQuestionRequired = function (idx, isChecked) {
+            if (formConfig.fields[idx]) {
+                formConfig.fields[idx].required = isChecked;
+            }
+        };
+
+        window.updateSliderLimit = function (idx, prop, val) {
+            if (formConfig.fields[idx]) {
+                formConfig.fields[idx][prop] = parseInt(val) || 1;
+            }
+        };
+
         // QUESTION CRUD
         window.addNewQuestion = function (defaultTitle = "Câu hỏi mới", defaultType = "text", defaultOptions = ["Tùy chọn 1", "Tùy chọn 2"]) {
+            syncQuestionsFromDOM();
             const newQ = {
                 id: "q_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
                 title: defaultTitle,
@@ -984,14 +1049,29 @@
             };
             formConfig.fields.push(newQ);
             renderAllQuestions();
+
+            setTimeout(() => {
+                const cards = document.querySelectorAll('#questions-container .question-card');
+                if (cards.length > 0) {
+                    const lastCard = cards[cards.length - 1];
+                    lastCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    const input = lastCard.querySelector('.question-input');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }
+            }, 60);
         };
 
         window.removeQuestion = function (idx) {
+            syncQuestionsFromDOM();
             formConfig.fields.splice(idx, 1);
             renderAllQuestions();
         };
 
         window.duplicateQuestion = function (idx) {
+            syncQuestionsFromDOM();
             const copy = JSON.parse(JSON.stringify(formConfig.fields[idx]));
             copy.id = "q_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5);
             copy.title += " (Bản sao)";
@@ -1000,6 +1080,7 @@
         };
 
         window.moveQuestion = function (idx, direction) {
+            syncQuestionsFromDOM();
             const targetIdx = idx + direction;
             if (targetIdx < 0 || targetIdx >= formConfig.fields.length) return;
             const temp = formConfig.fields[idx];
@@ -1009,6 +1090,7 @@
         };
 
         window.updateQuestionType = function (idx, newType) {
+            syncQuestionsFromDOM();
             formConfig.fields[idx].type = newType;
             if (['radio', 'checkbox', 'select'].includes(newType) && (!formConfig.fields[idx].options || formConfig.fields[idx].options.length === 0)) {
                 formConfig.fields[idx].options = ["Lựa chọn 1", "Lựa chọn 2"];
@@ -1017,12 +1099,14 @@
         };
 
         window.addOption = function (qIdx) {
+            syncQuestionsFromDOM();
             if (!formConfig.fields[qIdx].options) formConfig.fields[qIdx].options = [];
             formConfig.fields[qIdx].options.push(`Lựa chọn ${formConfig.fields[qIdx].options.length + 1}`);
             renderAllQuestions();
         };
 
         window.removeOption = function (qIdx, optIdx) {
+            syncQuestionsFromDOM();
             formConfig.fields[qIdx].options.splice(optIdx, 1);
             renderAllQuestions();
         };
@@ -1043,7 +1127,7 @@
                             ${(q.options || []).map((opt, optIdx) => `
                                 <div class="option-row">
                                     <span class="option-bullet">${q.type === 'radio' ? '⚪' : (q.type === 'checkbox' ? '◻️' : '▾')}</span>
-                                    <input type="text" class="option-input" value="${opt}" oninput="formConfig.fields[${idx}].options[${optIdx}] = this.value">
+                                    <input type="text" class="option-input" value="${escapeHtml(opt)}" oninput="updateQuestionOption(${idx}, ${optIdx}, this.value)">
                                     <button class="btn-remove-opt" onclick="removeOption(${idx}, ${optIdx})" title="Xóa lựa chọn"><i class="fa-solid fa-xmark"></i></button>
                                 </div>
                             `).join('')}
@@ -1056,9 +1140,9 @@
                     optionsHtml = `
                         <div style="display: flex; gap: 14px; margin-top: 10px; font-size: 13.5px; align-items: center;">
                             <span>Thang điểm từ:</span>
-                            <input type="number" value="${q.sliderMin || 1}" style="width: 60px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-soft);" onchange="formConfig.fields[${idx}].sliderMin = parseInt(this.value)">
+                            <input type="number" class="slider-min-input" value="${q.sliderMin || 1}" style="width: 60px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-soft);" onchange="updateSliderLimit(${idx}, 'sliderMin', this.value)">
                             <span>đến:</span>
-                            <input type="number" value="${q.sliderMax || 5}" style="width: 60px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-soft);" onchange="formConfig.fields[${idx}].sliderMax = parseInt(this.value)">
+                            <input type="number" class="slider-max-input" value="${q.sliderMax || 5}" style="width: 60px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border-soft);" onchange="updateSliderLimit(${idx}, 'sliderMax', this.value)">
                             <span style="color: var(--text-muted);">(Ví dụ: 1 sao đến 5 sao)</span>
                         </div>
                     `;
@@ -1072,7 +1156,7 @@
 
                 card.innerHTML = `
                     <div class="question-top-row">
-                        <input type="text" class="question-input" value="${q.title}" placeholder="Nhập câu hỏi..." oninput="formConfig.fields[${idx}].title = this.value">
+                        <input type="text" class="question-input" value="${escapeHtml(q.title)}" placeholder="Nhập câu hỏi..." oninput="updateQuestionTitle(${idx}, this.value)">
                         <select class="question-type-select" onchange="updateQuestionType(${idx}, this.value)">
                             <option value="text" ${q.type === 'text' ? 'selected' : ''}>📝 Văn bản ngắn</option>
                             <option value="textarea" ${q.type === 'textarea' ? 'selected' : ''}>📄 Đoạn văn bản dài</option>
@@ -1090,7 +1174,7 @@
                     <div class="question-bottom-bar">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label class="toggle-switch">
-                                <input type="checkbox" ${q.required ? 'checked' : ''} onchange="formConfig.fields[${idx}].required = this.checked">
+                                <input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQuestionRequired(${idx}, this.checked)">
                                 <span class="toggle-slider"></span>
                             </label>
                             <span style="font-weight: 700;">Bắt buộc trả lời (*)</span>
@@ -1116,7 +1200,9 @@
             document.getElementById('banner-preview').style.background = gradient;
             document.getElementById('form-header-box').style.borderTopColor = color;
             document.getElementById('theme-custom-color').value = color;
-            renderAllQuestions();
+            document.querySelectorAll('#questions-container .question-card').forEach(c => {
+                c.style.borderLeftColor = color;
+            });
         };
 
         window.updateCustomColor = function (color) {
@@ -1125,7 +1211,9 @@
             document.documentElement.style.setProperty('--primary-accent', color);
             document.getElementById('banner-preview').style.background = formConfig.theme.gradient;
             document.getElementById('form-header-box').style.borderTopColor = color;
-            renderAllQuestions();
+            document.querySelectorAll('#questions-container .question-card').forEach(c => {
+                c.style.borderLeftColor = color;
+            });
         };
 
         window.updateBannerIcon = function (iconClass) {
@@ -1144,6 +1232,7 @@
 
         // SAVE FORM TO CLOUD
         window.saveFormToCloud = async function () {
+            syncQuestionsFromDOM();
             const btn = document.getElementById('btn-save-form');
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...`;
@@ -1194,6 +1283,7 @@
 
         // LIVE PREVIEW MODAL
         window.openLivePreview = function () {
+            syncQuestionsFromDOM();
             const modal = document.getElementById('preview-modal');
             const render = document.getElementById('preview-content-render');
 
