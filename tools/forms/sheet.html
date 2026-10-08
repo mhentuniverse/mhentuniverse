@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Kiểm tra Dark Mode ngay lập tức trước khi Render để tránh chớp trắng (Anti-FOUC) -->
+    <script>
+        (function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+                return match ? decodeURIComponent(match[3]) : null;
+            }
+            const saved = localStorage.getItem('mhent_dark_mode') || getCookie('mhent_dark_mode');
+            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'on' || (!saved && systemDark)) {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHEnt. Sheet - Bảng Tính Quản Lý Dữ Liệu Biểu Mẫu</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SheetJS (xlsx) for full Excel .xlsx export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        body, h1, h2, h3, h4, h5, p, span, button, input, select, textarea, table, th, td {
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        :root {
+            --sheet-accent: #10b981;
+            --sheet-hover: #059669;
+            --primary-accent: #6366f1;
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --border-soft: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --cell-hover: rgba(16, 185, 129, 0.05);
+            --cell-focus: rgba(16, 185, 129, 0.15);
+        }
+
+        body.dark-mode {
+            --bg-canvas: #0b1120;
+            --card-bg: #1e293b;
+            --border-soft: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --cell-hover: rgba(16, 185, 129, 0.1);
+            --cell-focus: rgba(16, 185, 129, 0.25);
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 70px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* SHEET HEADER BAR */
+        .sheet-topbar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-soft);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 70px;
+            z-index: 40;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .sheet-info-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .sheet-brand-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .sheet-title-group h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .save-status-pill {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        .save-status-pill.saving {
+            color: #f59e0b;
+        }
+        .save-status-pill.saved {
+            color: #10b981;
+        }
+
+        /* TOOLBAR ACTIONS */
+        .sheet-toolbar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-soft);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 260px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            background: rgba(0,0,0,0.02);
+            color: var(--text-main);
+            font-size: 13.5px;
+            font-weight: 600;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .search-input:focus {
+            border-color: var(--sheet-accent);
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .filter-select {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 13.5px;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn-sheet {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 13.5px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-sheet-excel {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .btn-sheet-excel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+        }
+        .btn-sheet-pdf {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .btn-sheet-pdf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+        }
+        .btn-sheet-ghost {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-soft);
+        }
+        .btn-sheet-ghost:hover {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: var(--sheet-accent);
+            color: var(--sheet-accent);
+        }
+
+        /* SPREADSHEET TABLE CONTAINER */
+        .spreadsheet-container {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            max-height: calc(100vh - 200px);
+            background: var(--bg-canvas);
+            padding: 16px 24px;
+        }
+
+        .mhent-sheet-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--card-bg);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+            font-size: 14px;
+        }
+
+        .mhent-sheet-table th {
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--text-main);
+            font-weight: 900;
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-soft);
+            border-right: 1px solid var(--border-soft);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            white-space: nowrap;
+        }
+        body.dark-mode .mhent-sheet-table th {
+            background: #1e293b;
+        }
+
+        .mhent-sheet-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-soft);
+            border-right: 1px solid var(--border-soft);
+            color: var(--text-main);
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+
+        .mhent-sheet-table tr:hover td {
+            background: var(--cell-hover);
+        }
+
+        /* INLINE EDITABLE CELL */
+        .editable-cell {
+            cursor: pointer;
+            outline: none;
+            min-width: 120px;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .editable-cell:hover {
+            background: rgba(0,0,0,0.04);
+        }
+        body.dark-mode .editable-cell:hover {
+            background: rgba(255,255,255,0.06);
+        }
+        .editable-cell:focus {
+            background: var(--cell-focus) !important;
+            box-shadow: inset 0 0 0 2px var(--sheet-accent);
+            cursor: text;
+        }
+
+        /* STATUS BADGE SELECT */
+        .status-badge-select {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-approved { background: #dcfce7; color: #10b981; }
+        .status-paid { background: #e0e7ff; color: #4338ca; }
+        .status-rejected { background: #fee2e2; color: #ef4444; }
+
+        body.dark-mode .status-pending { background: rgba(217, 119, 6, 0.25); color: #fbbf24; }
+        body.dark-mode .status-approved { background: rgba(16, 185, 129, 0.25); color: #34d399; }
+        body.dark-mode .status-paid { background: rgba(99, 102, 241, 0.25); color: #a5b4fc; }
+        body.dark-mode .status-rejected { background: rgba(239, 68, 68, 0.25); color: #f87171; }
+
+        .btn-row-action {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .btn-row-action:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            .navbar, .sheet-topbar, .sheet-toolbar, .btn-row-action, th:last-child, td:last-child {
+                display: none !important;
+            }
+            body {
+                padding: 0 !important;
+                background: white !important;
+                color: black !important;
+            }
+            .spreadsheet-container {
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .mhent-sheet-table {
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+            }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+        }
+        .print-header { display: none; }
+    </style>
+    <script src="/js/config.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--sheet-accent);">
+                <span class="logo-name" style="color: var(--sheet-accent);">MHEnt. Sheet</span>
+            </a>
+        </div>
+        <ul class="nav-links" id="nav-links">
+            <li><a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">Trang Chủ</a></li>
+            <li><a onclick="window.location.href='/tools/forms/admin'" style="cursor: pointer;">Admin Panel</a></li>
+            <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
+        </ul>
+        <div class="nav-right">
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <div id="user-section" class="user-section"></div>
+        </div>
+    </nav>
+
+    <!-- PRINT REPORT HEADER -->
+    <div class="print-header">
+        <h2 style="margin: 0; color: #10b981;">MIYAZAKI HARUTO ENTERTAINMENT CO., LTD.</h2>
+        <h3 id="print-form-title" style="margin: 6px 0;">BÁO CÁO DANH SÁCH BIỂU MẪU</h3>
+        <p style="font-size: 13px; color: #666;" id="print-date">Ngày xuất báo cáo: ...</p>
+    </div>
+
+    <!-- SHEET TOPBAR -->
+    <header class="sheet-topbar">
+        <div class="sheet-info-left">
+            <a href="/tools/forms" class="btn-sheet btn-sheet-ghost" title="Quay về Forms Hub">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div class="sheet-brand-badge">
+                <i class="fa-solid fa-table"></i> MHEnt. Sheet
+            </div>
+            <div class="sheet-title-group">
+                <h2>
+                    <span id="sheet-title">Đang tải biểu mẫu...</span>
+                    <span class="form-code-pill" id="sheet-form-id" style="font-size: 12px;">FORM_ID</span>
+                </h2>
+                <div class="save-status-pill saved" id="cloud-status">
+                    <i class="fa-solid fa-cloud-check"></i> <span>Tất cả chỉnh sửa đã lưu vào Căn Cứ MHEnt</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sheet-info-right" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button class="btn-sheet btn-sheet-ghost" onclick="copyFormPublicLink()" title="Sao chép link chia sẻ">
+                <i class="fa-solid fa-link"></i> Chia sẻ Form
+            </button>
+            <button class="btn-sheet btn-sheet-ghost" onclick="openStudioEditor()" title="Sửa câu hỏi trong Studio">
+                <i class="fa-solid fa-pen-to-square"></i> Sửa Form
+            </button>
+            <a id="btn-view-fill" href="#" target="_blank" class="btn-sheet btn-sheet-ghost" title="Mở trang điền form">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Điền Thử
+            </a>
+        </div>
+    </header>
+
+    <!-- SHEET TOOLBAR -->
+    <section class="sheet-toolbar">
+        <div class="toolbar-left">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="sheet-search" class="search-input" placeholder="Tìm kiếm theo tên, email, sđt, câu trả lời..." oninput="filterResponses()">
+            </div>
+
+            <select id="sheet-filter-status" class="filter-select" onchange="filterResponses()">
+                <option value="ALL">🔍 Tất cả trạng thái</option>
+                <option value="Chờ duyệt">⏳ Chờ duyệt</option>
+                <option value="Đã duyệt">✅ Đã duyệt</option>
+                <option value="Đã thanh toán">💰 Đã thanh toán</option>
+                <option value="Từ chối">❌ Từ chối</option>
+            </select>
+
+            <span style="font-weight: 800; font-size: 13.5px; color: var(--text-muted);" id="responses-count-badge">
+                Tổng cộng: 0 phản hồi
+            </span>
+        </div>
+
+        <div class="toolbar-right">
+            <button class="btn-sheet btn-sheet-ghost" onclick="addNewManualRow()">
+                <i class="fa-solid fa-plus"></i> Thêm Dòng
+            </button>
+            <button class="btn-sheet btn-sheet-excel" onclick="exportToExcel()">
+                <i class="fa-solid fa-file-excel"></i> Xuất Excel (.xlsx)
+            </button>
+            <button class="btn-sheet btn-sheet-pdf" onclick="window.print()">
+                <i class="fa-solid fa-file-pdf"></i> In / Báo Cáo PDF
+            </button>
+            <button class="btn-sheet btn-sheet-ghost" onclick="exportToCSV()">
+                <i class="fa-solid fa-file-csv"></i> Xuất CSV
+            </button>
+        </div>
+    </section>
+
+    <!-- MAIN SPREADSHEET INTERFACE -->
+    <main class="spreadsheet-container">
+        <div id="loading-spinner" style="text-align: center; padding: 60px 0;">
+            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: var(--sheet-accent); margin-bottom: 16px;"></i>
+            <p style="font-weight: 700; color: var(--text-muted);">Đang tải bảng tính dữ liệu từ Vũ trụ MHEnt...</p>
+        </div>
+
+        <div id="table-wrapper" style="display: none;">
+            <table class="mhent-sheet-table" id="responses-table">
+                <thead id="sheet-thead">
+                    <!-- Dynamic column headers -->
+                </thead>
+                <tbody id="sheet-tbody">
+                    <!-- Dynamic rows with inline editing -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, query, where, orderBy, onSnapshot, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const formId = urlParams.get('id');
+
+        let formMetadata = null;
+        let responsesData = [];
+        let filteredResponses = [];
+        let unsubscribeRealtime = null;
+
+        // AUTH
+        onAuthStateChanged(auth, (user) => {
+            const userSection = document.getElementById('user-section');
+            if (user) {
+                userSection.innerHTML = `
+                    <div class="profile-trigger" onclick="window.location.href='/profile.html'">
+                        <img src="${user.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 34px; border-radius: 50%; border: 2px solid var(--sheet-accent);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Chủ tịch'}</span>
+                    </div>
+                `;
+            } else {
+                userSection.innerHTML = `
+                    <button class="btn-login" style="background: var(--sheet-accent); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold;" onclick="window.redirectToLogin()">Đăng nhập</button>
+                `;
+            }
+        });
+
+        // INIT LOAD
+        async function loadSheet() {
+            if (!formId) {
+                document.getElementById('loading-spinner').innerHTML = `<p style="color: red; font-weight: bold;">Không tìm thấy mã biểu mẫu!</p>`;
+                return;
+            }
+
+            document.getElementById('sheet-form-id').innerText = formId;
+            document.getElementById('btn-view-fill').href = `/tools/forms/fill?id=${formId}`;
+            document.getElementById('print-date').innerText = `Ngày xuất: ${new Date().toLocaleString('vi-VN')}`;
+
+            try {
+                // 1. Load Form Definition
+                const formSnap = await getDoc(doc(db, "mhent_forms", formId));
+                if (!formSnap.exists()) {
+                    document.getElementById('loading-spinner').innerHTML = `<p style="color: red; font-weight: bold;">Biểu mẫu [${formId}] không tồn tại!</p>`;
+                    return;
+                }
+
+                formMetadata = formSnap.data();
+                document.getElementById('sheet-title').innerText = formMetadata.title || 'Biểu mẫu không tên';
+                document.getElementById('print-form-title').innerText = `DANH SÁCH THU THẬP: ${formMetadata.title || 'MHEnt Form'}`;
+
+                // 2. Build Table Headers
+                renderTableHeaders(formMetadata);
+
+                // 3. Listen Real-time Submissions
+                listenToResponses();
+
+            } catch (err) {
+                console.error("Lỗi:", err);
+                document.getElementById('loading-spinner').innerHTML = `<p style="color: red; font-weight: bold;">Lỗi kết nối Căn Cứ MHEnt: ${err.message}</p>`;
+            }
+        }
+
+        function renderTableHeaders(formDef) {
+            const thead = document.getElementById('sheet-thead');
+            let thHtml = `<tr>
+                <th style="width: 50px; text-align: center;">STT</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+            `;
+
+            const presets = formDef.presets || {};
+            if (presets.name !== false) thHtml += `<th>Họ và tên</th>`;
+            if (presets.email !== false) thHtml += `<th>Email</th>`;
+            if (presets.phone) thHtml += `<th>Số điện thoại</th>`;
+            if (presets.org) thHtml += `<th>Đơn vị / Lớp</th>`;
+
+            (formDef.fields || []).forEach((q, idx) => {
+                thHtml += `<th title="${q.title}">${idx + 1}. ${q.title}</th>`;
+            });
+
+            thHtml += `
+                <th>Ghi chú nội bộ</th>
+                <th style="width: 60px; text-align: center;">Xóa</th>
+            </tr>`;
+
+            thead.innerHTML = thHtml;
+        }
+
+        function listenToResponses() {
+            const q = query(
+                collection(db, "mhent_form_responses"),
+                where("formId", "==", formId)
+            );
+
+            unsubscribeRealtime = onSnapshot(q, (snapshot) => {
+                responsesData = [];
+                snapshot.forEach(docSnap => {
+                    responsesData.push({
+                        docId: docSnap.id,
+                        ...docSnap.data()
+                    });
+                });
+
+                // Sắp xếp giảm dần theo thời gian
+                responsesData.sort((a, b) => {
+                    const timeA = a.submittedAt?.toMillis ? a.submittedAt.toMillis() : (new Date(a.clientTimestamp || 0).getTime());
+                    const timeB = b.submittedAt?.toMillis ? b.submittedAt.toMillis() : (new Date(b.clientTimestamp || 0).getTime());
+                    return timeB - timeA;
+                });
+
+                document.getElementById('loading-spinner').style.display = 'none';
+                document.getElementById('table-wrapper').style.display = 'block';
+
+                filterResponses();
+            }, (error) => {
+                console.error("Lỗi realtime:", error);
+            });
+        }
+
+        // FILTER & SEARCH
+        window.filterResponses = function() {
+            const searchKeyword = (document.getElementById('sheet-search').value || '').toLowerCase().trim();
+            const statusFilter = document.getElementById('sheet-filter-status').value;
+
+            filteredResponses = responsesData.filter(r => {
+                // Filter status
+                if (statusFilter !== 'ALL' && (r.status || 'Chờ duyệt') !== statusFilter) {
+                    return false;
+                }
+
+                // Search keyword
+                if (searchKeyword) {
+                    const matchName = (r.userName || '').toLowerCase().includes(searchKeyword);
+                    const matchEmail = (r.userEmail || '').toLowerCase().includes(searchKeyword);
+                    const matchPhone = (r.userPhone || '').toLowerCase().includes(searchKeyword);
+                    const matchOrg = (r.userOrg || '').toLowerCase().includes(searchKeyword);
+                    const matchNote = (r.note || '').toLowerCase().includes(searchKeyword);
+                    
+                    // Search in answers
+                    let matchAnswer = false;
+                    if (r.answers) {
+                        for (let k in r.answers) {
+                            if (String(r.answers[k]).toLowerCase().includes(searchKeyword)) {
+                                matchAnswer = true; break;
+                            }
+                        }
+                    }
+
+                    return matchName || matchEmail || matchPhone || matchOrg || matchNote || matchAnswer;
+                }
+
+                return true;
+            });
+
+            document.getElementById('responses-count-badge').innerText = `Tổng cộng: ${filteredResponses.length} / ${responsesData.length} phản hồi`;
+            renderTableRows(filteredResponses);
+        };
+
+        // RENDER ROWS WITH INLINE EDITING
+        function renderTableRows(list) {
+            const tbody = document.getElementById('sheet-tbody');
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="20" style="text-align: center; padding: 40px; color: var(--text-muted); font-weight: bold;">Chưa có phản hồi nào phù hợp tiêu chí!</td></tr>`;
+                return;
+            }
+
+            const presets = formMetadata?.presets || {};
+            const fields = formMetadata?.fields || [];
+
+            tbody.innerHTML = list.map((r, rowIdx) => {
+                const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : 'Mới tạo');
+                const curStatus = r.status || 'Chờ duyệt';
+
+                let statusBadgeClass = 'status-pending';
+                if (curStatus === 'Đã duyệt') statusBadgeClass = 'status-approved';
+                else if (curStatus === 'Đã thanh toán') statusBadgeClass = 'status-paid';
+                else if (curStatus === 'Từ chối') statusBadgeClass = 'status-rejected';
+
+                let rowHtml = `<tr>
+                    <td style="text-align: center; font-weight: 800; color: var(--text-muted);">${rowIdx + 1}</td>
+                    <td style="font-size: 13px; color: var(--text-muted);">${dateStr}</td>
+                    <td>
+                        <select class="status-badge-select ${statusBadgeClass}" onchange="updateCellField('${r.docId}', 'status', this.value, true)">
+                            <option value="Chờ duyệt" ${curStatus === 'Chờ duyệt' ? 'selected' : ''}>⏳ Chờ duyệt</option>
+                            <option value="Đã duyệt" ${curStatus === 'Đã duyệt' ? 'selected' : ''}>✅ Đã duyệt</option>
+                            <option value="Đã thanh toán" ${curStatus === 'Đã thanh toán' ? 'selected' : ''}>💰 Đã thanh toán</option>
+                            <option value="Từ chối" ${curStatus === 'Từ chối' ? 'selected' : ''}>❌ Từ chối</option>
+                        </select>
+                    </td>
+                `;
+
+                // Presets
+                if (presets.name !== false) {
+                    rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userName', this.innerText)">${r.userName || ''}</div></td>`;
+                }
+                if (presets.email !== false) {
+                    rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userEmail', this.innerText)">${r.userEmail || ''}</div></td>`;
+                }
+                if (presets.phone) {
+                    rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userPhone', this.innerText)">${r.userPhone || ''}</div></td>`;
+                }
+                if (presets.org) {
+                    rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userOrg', this.innerText)">${r.userOrg || ''}</div></td>`;
+                }
+
+                // Dynamic Questions
+                fields.forEach(q => {
+                    let ansVal = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
+                    if (Array.isArray(ansVal)) ansVal = ansVal.join(', ');
+                    rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateAnswerCell('${r.docId}', '${q.id}', this.innerText)">${ansVal}</div></td>`;
+                });
+
+                // Internal Admin Note
+                rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'note', this.innerText)" placeholder="Thêm ghi chú...">${r.note || ''}</div></td>`;
+
+                // Delete Action
+                rowHtml += `<td style="text-align: center;"><button class="btn-row-action" onclick="deleteResponseRow('${r.docId}')" title="Xóa bản ghi"><i class="fa-solid fa-trash"></i></button></td>`;
+
+                rowHtml += `</tr>`;
+                return rowHtml;
+            }).join('');
+        }
+
+        // AUTO-SAVE HANDLERS
+        window.updateCellField = async function(docId, fieldName, newVal, shouldReFilter = false) {
+            setSavingStatus(true);
+            try {
+                await updateDoc(doc(db, "mhent_form_responses", docId), {
+                    [fieldName]: newVal.trim ? newVal.trim() : newVal
+                });
+                setSavingStatus(false);
+                if (shouldReFilter) filterResponses();
+            } catch (err) {
+                console.error("Lỗi cập nhật ô:", err);
+                setSavingStatus(false, true);
+                window.showToast("Lỗi lưu", "Không thể lưu chỉnh sửa: " + err.message, "error");
+            }
+        };
+
+        window.updateAnswerCell = async function(docId, questionId, newVal) {
+            setSavingStatus(true);
+            try {
+                await updateDoc(doc(db, "mhent_form_responses", docId), {
+                    [`answers.${questionId}`]: newVal.trim()
+                });
+                setSavingStatus(false);
+            } catch (err) {
+                console.error("Lỗi cập nhật câu hỏi:", err);
+                setSavingStatus(false, true);
+            }
+        };
+
+        function setSavingStatus(isSaving, hasError = false) {
+            const pill = document.getElementById('cloud-status');
+            if (isSaving) {
+                pill.className = 'save-status-pill saving';
+                pill.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Đang tự động lưu lên Căn Cứ MHEnt...</span>`;
+            } else if (hasError) {
+                pill.className = 'save-status-pill saving';
+                pill.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>Lỗi đồng bộ đám mây!</span>`;
+            } else {
+                pill.className = 'save-status-pill saved';
+                pill.innerHTML = `<i class="fa-solid fa-cloud-check"></i> <span>Tất cả chỉnh sửa đã lưu vào Căn Cứ MHEnt</span>`;
+            }
+        }
+
+        // DELETE ROW
+        window.deleteResponseRow = function(docId) {
+            window.showConfirmPopup(
+                "Xác nhận xóa?",
+                "Cậu có chắc chắn muốn xóa bản ghi này khỏi danh sách không? Hành động này không thể hoàn tác.",
+                async () => {
+                    try {
+                        await deleteDoc(doc(db, "mhent_form_responses", docId));
+                        window.showToast("Đã xóa", "Bản ghi đã được xóa thành công!", "success");
+                    } catch (err) {
+                        window.showToast("Lỗi", "Không thể xóa bản ghi: " + err.message, "error");
+                    }
+                }
+            );
+        };
+
+        // ADD MANUAL ROW
+        window.addNewManualRow = async function() {
+            setSavingStatus(true);
+            try {
+                const newRecord = {
+                    formId: formId,
+                    formTitle: formMetadata?.title || '',
+                    submittedAt: serverTimestamp(),
+                    clientTimestamp: new Date().toISOString(),
+                    userId: 'admin_manual',
+                    userName: 'Thành viên mới',
+                    userEmail: '',
+                    userPhone: '',
+                    userOrg: '',
+                    status: 'Chờ duyệt',
+                    note: 'Nhập thủ công',
+                    answers: {}
+                };
+                await addDoc(collection(db, "mhent_form_responses"), newRecord);
+                setSavingStatus(false);
+                window.showToast("Đã thêm", "Đã chèn 1 dòng mới vào bảng tính!", "success");
+            } catch (err) {
+                setSavingStatus(false, true);
+                window.showToast("Lỗi", "Không thể thêm dòng: " + err.message, "error");
+            }
+        };
+
+        // EXPORT OPTIONS: EXCEL (.xlsx) - PRESERVES ALL EDITS & PERFECT VIETNAMESE
+        window.exportToExcel = function() {
+            if (filteredResponses.length === 0) {
+                return window.showToast("Trống", "Không có dữ liệu nào để xuất!", "warning");
+            }
+
+            const presets = formMetadata?.presets || {};
+            const fields = formMetadata?.fields || [];
+
+            // Build array of objects
+            const exportData = filteredResponses.map((r, idx) => {
+                const row = {};
+                row["STT"] = idx + 1;
+                row["Thời gian nộp"] = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
+                row["Trạng thái"] = r.status || 'Chờ duyệt';
+
+                if (presets.name !== false) row["Họ và tên"] = r.userName || '';
+                if (presets.email !== false) row["Email"] = r.userEmail || '';
+                if (presets.phone) row["Số điện thoại"] = r.userPhone || '';
+                if (presets.org) row["Đơn vị / Lớp"] = r.userOrg || '';
+
+                fields.forEach((q, qIdx) => {
+                    let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
+                    if (Array.isArray(val)) val = val.join(', ');
+                    row[`${qIdx + 1}. ${q.title}`] = val;
+                });
+
+                row["Ghi chú"] = r.note || '';
+                return row;
+            });
+
+            // SheetJS export
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Danh Sách");
+
+            // Auto calculate column widths
+            const colWidths = [];
+            if (exportData.length > 0) {
+                Object.keys(exportData[0]).forEach((k, idx) => {
+                    const maxLen = Math.max(k.length, ...exportData.map(row => String(row[k] || '').length));
+                    colWidths.push({ wch: Math.min(Math.max(maxLen + 3, 12), 45) });
+                });
+                worksheet['!cols'] = colWidths;
+            }
+
+            const safeTitle = (formMetadata?.title || 'MHEnt_Sheet').replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]/g, '_');
+            const fileName = `${safeTitle}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+            window.showToast("Xuất Excel Thành Công", `Đã tải về tệp ${fileName}`, "success");
+        };
+
+        // EXPORT TO CSV (WITH UTF-8 BOM TO FIX VIETNAMESE IN EXCEL)
+        window.exportToCSV = function() {
+            if (filteredResponses.length === 0) {
+                return window.showToast("Trống", "Không có dữ liệu nào để xuất!", "warning");
+            }
+
+            const presets = formMetadata?.presets || {};
+            const fields = formMetadata?.fields || [];
+
+            const headers = ["STT", "Thời gian nộp", "Trạng thái"];
+            if (presets.name !== false) headers.push("Họ và tên");
+            if (presets.email !== false) headers.push("Email");
+            if (presets.phone) headers.push("Số điện thoại");
+            if (presets.org) headers.push("Đơn vị / Lớp");
+            fields.forEach((q, idx) => headers.push(`${idx + 1}. ${q.title}`));
+            headers.push("Ghi chú");
+
+            const rows = [headers];
+
+            filteredResponses.forEach((r, idx) => {
+                const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
+                const row = [idx + 1, dateStr, r.status || 'Chờ duyệt'];
+
+                if (presets.name !== false) row.push(r.userName || '');
+                if (presets.email !== false) row.push(r.userEmail || '');
+                if (presets.phone) row.push(r.userPhone || '');
+                if (presets.org) row.push(r.userOrg || '');
+
+                fields.forEach(q => {
+                    let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
+                    if (Array.isArray(val)) val = val.join('; ');
+                    row.push(val);
+                });
+
+                row.push(r.note || '');
+                rows.push(row);
+            });
+
+            // Convert to CSV string with proper escaping and UTF-8 BOM
+            let csvContent = "\uFEFF"; // BOM
+            rows.forEach(rowArr => {
+                const escapedRow = rowArr.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',');
+                csvContent += escapedRow + "\r\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeTitle = (formMetadata?.title || 'MHEnt_Sheet').replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]/g, '_');
+            a.download = `${safeTitle}_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            window.showToast("Xuất CSV Thành Công", "Đã tải về tệp CSV mã hóa UTF-8!", "success");
+        };
+
+        // UTILITIES
+        window.copyFormPublicLink = function() {
+            const publicUrl = `${window.location.origin}/tools/forms/fill?id=${formId}`;
+            navigator.clipboard.writeText(publicUrl).then(() => {
+                window.showToast("Đã sao chép", "Đã copy liên kết điền biểu mẫu công khai!", "success");
+            }).catch(() => {
+                prompt("Sao chép liên kết này gửi cho mọi người:", publicUrl);
+            });
+        };
+
+        window.openStudioEditor = function() {
+            window.location.href = `/tools/forms/studio?id=${formId}`;
+        };
+
+        loadSheet();
+    </script>
+    <script src="/js/mhent-ui.js"></script>
+    <script src="/js/aisa-widget.js" defer></script>
+</body>
+</html>

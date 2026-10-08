@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Kiểm tra Dark Mode ngay lập tức trước khi Render để tránh chớp trắng (Anti-FOUC) -->
+    <script>
+        (function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+                return match ? decodeURIComponent(match[3]) : null;
+            }
+            const saved = localStorage.getItem('mhent_dark_mode') || getCookie('mhent_dark_mode');
+            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'on' || (!saved && systemDark)) {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Quản Trị - MHEnt. Forms & Sheet</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, h1, h2, h3, h4, h5, p, span, button, input, select {
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        :root {
+            --primary-accent: #6366f1;
+            --primary-hover: #4f46e5;
+            --sheet-accent: #10b981;
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --border-soft: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body.dark-mode {
+            --bg-canvas: #0f172a;
+            --card-bg: #1e293b;
+            --border-soft: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 80px;
+            padding-bottom: 60px;
+        }
+
+        .admin-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* HEADER STATS HERO */
+        .admin-hero {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+            border-radius: 24px;
+            padding: 36px 32px;
+            color: white;
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .admin-hero-title h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 900;
+        }
+        .admin-hero-title p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .btn-create-giant {
+            background: #ffffff;
+            color: #4f46e5;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .btn-create-giant:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+            background: #f8fafc;
+        }
+
+        /* TOOLBAR */
+        .admin-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .admin-search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        .admin-search-input {
+            width: 100%;
+            padding: 10px 14px 10px 38px;
+            border-radius: 30px;
+            border: 1px solid var(--border-soft);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .admin-search-input:focus {
+            border-color: var(--primary-accent);
+        }
+
+        /* FORMS LIST GRID */
+        .admin-forms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+            gap: 22px;
+        }
+
+        .admin-form-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .admin-form-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 35px rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+
+        .card-top-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .card-icon-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .card-status-pill {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+        .status-open { background: #dcfce7; color: #10b981; }
+        .status-closed { background: #fee2e2; color: #ef4444; }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 900;
+            margin: 0 0 6px;
+            color: var(--text-main);
+        }
+        .card-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin: 0 0 16px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+            border-top: 1px solid var(--border-soft);
+            padding-top: 14px;
+            margin-bottom: 16px;
+        }
+
+        .card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn-card-action {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        .btn-action-sheet {
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+        }
+        .btn-action-sheet:hover {
+            background: #10b981;
+            color: white;
+        }
+        .btn-action-studio {
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--primary-accent);
+        }
+        .btn-action-studio:hover {
+            background: var(--primary-accent);
+            color: white;
+        }
+        .btn-action-link {
+            background: rgba(0,0,0,0.04);
+            color: var(--text-main);
+        }
+        .btn-action-link:hover {
+            background: rgba(0,0,0,0.08);
+        }
+        .btn-action-del {
+            background: rgba(239, 68, 68, 0.08);
+            color: #ef4444;
+        }
+        .btn-action-del:hover {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+    <script src="/js/config.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--primary-accent);">
+                <span class="logo-name" style="color: var(--primary-accent);">MHEnt. Forms</span>
+            </a>
+        </div>
+        <ul class="nav-links" id="nav-links">
+            <li><a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">Trang Chủ</a></li>
+            <li><a onclick="window.location.href='/tools/forms/admin'" style="color: var(--primary-accent); font-weight: 900;">Admin Panel</a></li>
+            <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
+        </ul>
+        <div class="nav-right">
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <div id="user-section" class="user-section"></div>
+        </div>
+    </nav>
+
+    <main class="admin-container">
+        <!-- ADMIN HERO -->
+        <section class="admin-hero">
+            <div class="admin-hero-title">
+                <h1>Trung Tâm Quản Trị MHEnt. Forms & Sheet</h1>
+                <p>Quản lý toàn bộ biểu mẫu, danh sách thu thập, xuất Excel và phân tích dữ liệu Vũ trụ.</p>
+            </div>
+            <a href="/tools/forms/studio" class="btn-create-giant">
+                <i class="fa-solid fa-plus-circle fa-lg"></i> Tạo Biểu Mẫu Mới
+            </a>
+        </section>
+
+        <!-- TOOLBAR -->
+        <div class="admin-toolbar">
+            <div class="admin-search-box">
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                <input type="text" id="admin-search-input" class="admin-search-input" placeholder="Tìm theo tên hoặc mã biểu mẫu..." oninput="filterAdminForms()">
+            </div>
+            <div id="forms-count-tag" style="font-weight: 800; font-size: 14px; color: var(--text-muted);">
+                Đang tải danh sách...
+            </div>
+        </div>
+
+        <!-- FORMS GRID -->
+        <div id="admin-loading" style="text-align: center; padding: 60px 0;">
+            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: var(--primary-accent); margin-bottom: 16px;"></i>
+            <p style="font-weight: 700; color: var(--text-muted);">Đang truy xuất kho dữ liệu biểu mẫu...</p>
+        </div>
+
+        <div class="admin-forms-grid" id="admin-grid" style="display: none;"></div>
+    </main>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let allForms = [];
+
+        onAuthStateChanged(auth, (user) => {
+            const userSection = document.getElementById('user-section');
+            if (user) {
+                userSection.innerHTML = `
+                    <div class="profile-trigger" onclick="window.location.href='/profile.html'">
+                        <img src="${user.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 34px; border-radius: 50%; border: 2px solid var(--primary-accent);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Chủ tịch'}</span>
+                    </div>
+                `;
+            } else {
+                userSection.innerHTML = `
+                    <button class="btn-login" style="padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold;" onclick="window.redirectToLogin()">Đăng nhập</button>
+                `;
+            }
+        });
+
+        async function loadAllForms() {
+            try {
+                const snap = await getDocs(collection(db, "mhent_forms"));
+                allForms = [];
+                snap.forEach(docSnap => {
+                    allForms.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    });
+                });
+
+                document.getElementById('admin-loading').style.display = 'none';
+                document.getElementById('admin-grid').style.display = 'grid';
+
+                renderForms(allForms);
+            } catch (err) {
+                console.error("Lỗi:", err);
+                document.getElementById('admin-loading').innerHTML = `<p style="color: red; font-weight: bold;">Lỗi tải dữ liệu: ${err.message}</p>`;
+            }
+        }
+
+        window.filterAdminForms = function() {
+            const q = (document.getElementById('admin-search-input').value || '').toLowerCase().trim();
+            const filtered = allForms.filter(f => {
+                return (f.title || '').toLowerCase().includes(q) || (f.id || '').toLowerCase().includes(q);
+            });
+            renderForms(filtered);
+        };
+
+        function renderForms(list) {
+            const grid = document.getElementById('admin-grid');
+            document.getElementById('forms-count-tag').innerText = `Tổng cộng: ${list.length} biểu mẫu`;
+
+            if (list.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted); font-weight: bold;">Không tìm thấy biểu mẫu nào!</div>`;
+                return;
+            }
+
+            grid.innerHTML = list.map(f => {
+                const isOpen = f.settings?.isActive !== false;
+                const statusHtml = isOpen ? `<span class="card-status-pill status-open">Đang nhận phản hồi</span>` : `<span class="card-status-pill status-closed">Đã đóng</span>`;
+                const qCount = f.fields ? f.fields.length : 0;
+                const respCount = f.responsesCount || 0;
+
+                return `
+                    <div class="admin-form-card">
+                        <div>
+                            <div class="card-top-row">
+                                <div class="card-icon-badge" style="background: ${f.theme?.gradient || 'rgba(99, 102, 241, 0.1)'}; color: white;">
+                                    <i class="fa-solid ${f.theme?.icon || 'fa-wpforms'}"></i>
+                                </div>
+                                ${statusHtml}
+                            </div>
+                            <h3 class="card-title">${f.title || 'Biểu mẫu'}</h3>
+                            <p class="card-desc">${f.description || 'Không có mô tả chi tiết.'}</p>
+                        </div>
+
+                        <div>
+                            <div class="card-meta-row">
+                                <span><i class="fa-solid fa-fingerprint" style="color: var(--primary-accent);"></i> ${f.id}</span>
+                                <span><i class="fa-solid fa-list-check" style="color: var(--primary-accent);"></i> ${qCount} câu hỏi</span>
+                                <span><i class="fa-solid fa-users" style="color: #10b981;"></i> ${respCount} lượt điền</span>
+                            </div>
+
+                            <div class="card-actions">
+                                <a href="/tools/forms/sheet?id=${f.id}" class="btn-card-action btn-action-sheet" title="Mở bảng tính MHEnt Sheet">
+                                    <i class="fa-solid fa-table"></i> MHEnt Sheet
+                                </a>
+                                <a href="/tools/forms/studio?id=${f.id}" class="btn-card-action btn-action-studio" title="Sửa biểu mẫu">
+                                    <i class="fa-solid fa-pen-to-square"></i> Studio
+                                </a>
+                                <button class="btn-card-action btn-action-link" onclick="copyFormLink('${f.id}')" title="Copy link điền">
+                                    <i class="fa-solid fa-link"></i> Link Điền
+                                </button>
+                                <button class="btn-card-action btn-action-del" onclick="deleteForm('${f.id}', '${f.title}')" title="Xóa biểu mẫu">
+                                    <i class="fa-solid fa-trash"></i> Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.copyFormLink = function(fId) {
+            const url = `${window.location.origin}/tools/forms/fill?id=${fId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                window.showToast("Đã copy", "Đã sao chép link điền form!", "success");
+            });
+        };
+
+        window.deleteForm = function(fId, title) {
+            window.showConfirmPopup(
+                "Xác nhận xóa biểu mẫu?",
+                `Cậu có chắc muốn xóa biểu mẫu "${title}" [${fId}] không? Biểu mẫu và dữ liệu liên quan sẽ bị gỡ bỏ.`,
+                async () => {
+                    try {
+                        await deleteDoc(doc(db, "mhent_forms", fId));
+                        window.showToast("Đã xóa", "Đã gỡ bỏ biểu mẫu thành công!", "success");
+                        loadAllForms();
+                    } catch (err) {
+                        window.showToast("Lỗi", "Không thể xóa: " + err.message, "error");
+                    }
+                }
+            );
+        };
+
+        loadAllForms();
+    </script>
+    <script src="/js/mhent-ui.js"></script>
+    <script src="/js/aisa-widget.js" defer></script>
+</body>
+</html>

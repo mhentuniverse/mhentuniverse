@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Kiểm tra Dark Mode ngay lập tức trước khi Render để tránh chớp trắng (Anti-FOUC) -->
+    <script>
+        (function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+                return match ? decodeURIComponent(match[3]) : null;
+            }
+            const saved = localStorage.getItem('mhent_dark_mode') || getCookie('mhent_dark_mode');
+            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'on' || (!saved && systemDark)) {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điền Biểu Mẫu - MHEnt. Forms</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, h1, h2, h3, h4, h5, p, span, button, input, textarea, select {
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        :root {
+            --primary-accent: #6366f1;
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --border-soft: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body.dark-mode {
+            --bg-canvas: #0f172a;
+            --card-bg: #1e293b;
+            --border-soft: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 80px;
+            padding-bottom: 60px;
+        }
+
+        .form-runner-container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .runner-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            padding: 28px;
+            margin-bottom: 22px;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+        .runner-card:hover {
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.07);
+        }
+
+        /* HEADER CARD */
+        .runner-header-card {
+            border-top: 8px solid var(--primary-accent);
+            text-align: center;
+            overflow: hidden;
+        }
+        .runner-banner {
+            height: 110px;
+            border-radius: 14px;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 42px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.12);
+        }
+        .runner-title {
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0 0 10px;
+            line-height: 1.3;
+        }
+        .runner-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin: 0 0 18px;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        .runner-meta-strip {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(99, 102, 241, 0.08);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary-accent);
+        }
+
+        /* FIELD GROUPS */
+        .field-group {
+            margin-bottom: 4px;
+        }
+        .field-label {
+            display: block;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .required-asterisk {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+        .field-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid var(--border-soft);
+            background: rgba(0,0,0,0.01);
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+        .field-input:focus {
+            border-color: var(--primary-accent);
+            background: transparent;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+
+        /* CHOICE OPTIONS */
+        .choice-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-soft);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .choice-option:hover {
+            border-color: var(--primary-accent);
+            background: rgba(99, 102, 241, 0.04);
+        }
+        .choice-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-accent);
+            cursor: pointer;
+        }
+
+        /* SLIDER RATING */
+        .slider-wrap {
+            padding: 10px 4px;
+        }
+        .slider-control {
+            width: 100%;
+            accent-color: var(--primary-accent);
+            height: 8px;
+            cursor: pointer;
+        }
+        .slider-scale-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* SUBMIT BUTTON */
+        .btn-runner-submit {
+            width: 100%;
+            padding: 16px;
+            border-radius: 50px;
+            border: none;
+            background: var(--primary-accent);
+            color: white;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
+        }
+        .btn-runner-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.5);
+        }
+        .btn-runner-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* SUCCESS SCREEN */
+        .success-card {
+            text-align: center;
+            padding: 50px 30px;
+        }
+        .success-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            margin: 0 auto 24px;
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+    <script src="/js/config.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--primary-accent);">
+                <span class="logo-name" style="color: var(--primary-accent);">MHEnt. Forms</span>
+            </a>
+        </div>
+        <div class="nav-right">
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <div id="user-section" class="user-section"></div>
+        </div>
+    </nav>
+
+    <main class="form-runner-container">
+        <!-- LOADING SPINNER -->
+        <div id="loading-box" style="text-align: center; padding: 60px 0;">
+            <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color: var(--primary-accent); margin-bottom: 16px;"></i>
+            <p style="font-weight: 700; color: var(--text-muted);">Đang kết nối tín hiệu biểu mẫu...</p>
+        </div>
+
+        <!-- FORM CLOSED OR ERROR -->
+        <div id="error-box" class="runner-card" style="display: none; text-align: center; padding: 40px 20px;">
+            <div style="font-size: 50px; color: #ef4444; margin-bottom: 16px;"><i class="fa-solid fa-lock"></i></div>
+            <h2 id="error-title" style="margin: 0 0 10px;">Biểu mẫu đang đóng</h2>
+            <p id="error-desc" style="color: var(--text-muted); margin-bottom: 24px;">Biểu mẫu này hiện không nhận câu trả lời hoặc không tồn tại.</p>
+            <a href="/tools/forms" class="btn-runner-submit" style="text-decoration: none; display: inline-flex; width: auto; padding: 12px 30px;">
+                Quay về Đại Sảnh Forms
+            </a>
+        </div>
+
+        <!-- MAIN FORM RUNNER -->
+        <form id="active-form" style="display: none;">
+            <!-- HEADER -->
+            <div class="runner-card runner-header-card" id="card-header">
+                <div class="runner-banner" id="runner-banner">
+                    <i class="fa-solid fa-wpforms" id="runner-banner-icon"></i>
+                </div>
+                <h1 class="runner-title" id="runner-title">Tiêu đề biểu mẫu</h1>
+                <p class="runner-desc" id="runner-desc">Mô tả biểu mẫu</p>
+                <div class="runner-meta-strip">
+                    <i class="fa-solid fa-shield-halved"></i> Xác thực qua Hệ thống MHEnt Universe
+                </div>
+            </div>
+
+            <!-- CORE PRESETS -->
+            <div class="runner-card" id="card-presets" style="display: none;">
+                <h3 style="margin: 0 0 16px; font-size: 18px; color: var(--primary-accent);"><i class="fa-solid fa-id-card"></i> Thông tin người điền</h3>
+                <div id="presets-container"></div>
+            </div>
+
+            <!-- CUSTOM QUESTIONS -->
+            <div id="questions-render-container"></div>
+
+            <!-- SUBMIT BUTTON -->
+            <div style="margin-top: 10px; margin-bottom: 40px;">
+                <button type="submit" class="btn-runner-submit" id="btn-submit">
+                    <i class="fa-solid fa-paper-plane" id="btn-submit-icon"></i>
+                    <span id="btn-submit-text">Gửi vào Vũ Trụ MHEnt</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- SUCCESS SCREEN -->
+        <div id="success-screen" class="runner-card success-card" style="display: none;">
+            <div class="success-icon-wrap"><i class="fa-solid fa-check"></i></div>
+            <h2 style="font-size: 26px; font-weight: 900; margin: 0 0 12px;">Đã Gửi Thành Công!</h2>
+            <p id="success-msg" style="color: var(--text-muted); font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                💖 Cảm ơn cậu! Câu trả lời đã được hệ thống MHEnt ghi nhận thành công.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-runner-submit" style="width: auto; padding: 12px 26px; background: transparent; color: var(--text-main); border: 1px solid var(--border-soft); box-shadow: none;" onclick="location.reload()">
+                    <i class="fa-solid fa-rotate-right"></i> Điền phản hồi khác
+                </button>
+                <a href="/tools/forms" class="btn-runner-submit" style="text-decoration: none; width: auto; padding: 12px 28px;">
+                    <i class="fa-solid fa-house"></i> Về Forms Hub
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        let formConfig = null;
+        const urlParams = new URLSearchParams(window.location.search);
+        const formId = urlParams.get('id');
+
+        // AUTH MONITOR
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const userSection = document.getElementById('user-section');
+            if (user) {
+                userSection.innerHTML = `
+                    <div class="profile-trigger" onclick="window.location.href='/profile.html'">
+                        <img src="${user.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 34px; border-radius: 50%; border: 2px solid var(--primary-accent);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Cư dân'}</span>
+                    </div>
+                `;
+                // Tự động điền thông tin vào các trường preset nếu có
+                const nameInput = document.getElementById('input-preset-name');
+                const emailInput = document.getElementById('input-preset-email');
+                if (nameInput && !nameInput.value) nameInput.value = user.displayName || '';
+                if (emailInput && !emailInput.value) emailInput.value = user.email || '';
+            } else {
+                userSection.innerHTML = `
+                    <button class="btn-login" style="padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold;" onclick="window.redirectToLogin()">Đăng nhập</button>
+                `;
+            }
+        });
+
+        async function initForm() {
+            if (!formId) {
+                showError("Thiếu mã biểu mẫu", "Vui lòng kiểm tra lại liên kết dẫn đến biểu mẫu này.");
+                return;
+            }
+
+            try {
+                const docSnap = await getDoc(doc(db, "mhent_forms", formId));
+                if (!docSnap.exists()) {
+                    showError("Không tìm thấy", "Biểu mẫu này không tồn tại trong Vũ trụ MHEnt.");
+                    return;
+                }
+
+                formConfig = docSnap.data();
+                if (formConfig.settings && formConfig.settings.isActive === false) {
+                    showError("Biểu mẫu đã đóng", "Biểu mẫu này hiện đang tạm ngưng tiếp nhận câu trả lời mới.");
+                    return;
+                }
+
+                // Check require login
+                if (formConfig.settings && formConfig.settings.requireLogin && !currentUser) {
+                    // Check auth again when ready
+                }
+
+                renderForm(formConfig);
+            } catch (err) {
+                console.error("Lỗi:", err);
+                showError("Lỗi kết nối", "Không thể tải nội dung biểu mẫu từ máy chủ.");
+            }
+        }
+
+        function showError(title, msg) {
+            document.getElementById('loading-box').style.display = 'none';
+            document.getElementById('error-title').innerText = title;
+            document.getElementById('error-desc').innerText = msg;
+            document.getElementById('error-box').style.display = 'block';
+        }
+
+        function renderForm(data) {
+            document.getElementById('loading-box').style.display = 'none';
+            document.getElementById('active-form').style.display = 'block';
+
+            // Apply theme
+            const primaryColor = data.theme?.primaryColor || '#6366f1';
+            const gradient = data.theme?.gradient || 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+            document.documentElement.style.setProperty('--primary-accent', primaryColor);
+            document.getElementById('card-header').style.borderTopColor = primaryColor;
+            document.getElementById('runner-banner').style.background = gradient;
+            if (data.theme?.icon) {
+                document.getElementById('runner-banner-icon').className = `fa-solid ${data.theme.icon}`;
+            }
+
+            document.getElementById('runner-title').innerText = data.title || 'Biểu mẫu';
+            document.getElementById('runner-desc').innerText = data.description || '';
+
+            // Submit Button
+            if (data.submitButton?.text) {
+                document.getElementById('btn-submit-text').innerText = data.submitButton.text;
+            }
+
+            // Render Presets
+            const presets = data.presets || {};
+            const presetsContainer = document.getElementById('presets-container');
+            presetsContainer.innerHTML = '';
+            let hasPresets = false;
+
+            if (presets.name) {
+                hasPresets = true;
+                presetsContainer.innerHTML += `
+                    <div class="field-group" style="margin-bottom: 14px;">
+                        <label class="field-label">Họ và tên <span class="required-asterisk">*</span></label>
+                        <input type="text" id="input-preset-name" class="field-input" required placeholder="Nhập họ và tên đầy đủ..." value="${currentUser?.displayName || ''}">
+                    </div>
+                `;
+            }
+            if (presets.email) {
+                hasPresets = true;
+                presetsContainer.innerHTML += `
+                    <div class="field-group" style="margin-bottom: 14px;">
+                        <label class="field-label">Địa chỉ Email <span class="required-asterisk">*</span></label>
+                        <input type="email" id="input-preset-email" class="field-input" required placeholder="email@example.com..." value="${currentUser?.email || ''}">
+                    </div>
+                `;
+            }
+            if (presets.phone) {
+                hasPresets = true;
+                presetsContainer.innerHTML += `
+                    <div class="field-group" style="margin-bottom: 14px;">
+                        <label class="field-label">Số điện thoại / Zalo</label>
+                        <input type="tel" id="input-preset-phone" class="field-input" placeholder="09xxxxxxxx...">
+                    </div>
+                `;
+            }
+            if (presets.org) {
+                hasPresets = true;
+                presetsContainer.innerHTML += `
+                    <div class="field-group" style="margin-bottom: 14px;">
+                        <label class="field-label">Đơn vị / Trường / Tổ chức</label>
+                        <input type="text" id="input-preset-org" class="field-input" placeholder="Tên đơn vị, lớp, tổ chức...">
+                    </div>
+                `;
+            }
+            if (hasPresets) {
+                document.getElementById('card-presets').style.display = 'block';
+            }
+
+            // Render Questions
+            const qContainer = document.getElementById('questions-render-container');
+            qContainer.innerHTML = '';
+
+            (data.fields || []).forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'runner-card';
+                card.id = `card_q_${q.id}`;
+
+                let inputHtml = '';
+                const reqAttr = q.required ? 'required' : '';
+
+                if (q.type === 'text') {
+                    inputHtml = `<input type="text" name="q_${q.id}" class="field-input" ${reqAttr} placeholder="Câu trả lời của cậu...">`;
+                } else if (q.type === 'textarea') {
+                    inputHtml = `<textarea name="q_${q.id}" class="field-input" rows="3" ${reqAttr} placeholder="Nhập nội dung chi tiết..."></textarea>`;
+                } else if (q.type === 'radio') {
+                    inputHtml = (q.options || []).map((opt, optIdx) => `
+                        <label class="choice-option">
+                            <input type="radio" name="q_${q.id}" value="${opt}" ${reqAttr && optIdx === 0 ? 'required' : ''}>
+                            <span>${opt}</span>
+                        </label>
+                    `).join('');
+                } else if (q.type === 'checkbox') {
+                    inputHtml = (q.options || []).map(opt => `
+                        <label class="choice-option">
+                            <input type="checkbox" name="q_${q.id}" value="${opt}">
+                            <span>${opt}</span>
+                        </label>
+                    `).join('');
+                } else if (q.type === 'select') {
+                    inputHtml = `
+                        <select name="q_${q.id}" class="field-input" ${reqAttr}>
+                            <option value="">-- Vui lòng chọn một mục --</option>
+                            ${(q.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                } else if (q.type === 'slider') {
+                    const min = q.sliderMin || 1;
+                    const max = q.sliderMax || 5;
+                    inputHtml = `
+                        <div class="slider-wrap">
+                            <div style="text-align: center; font-size: 20px; font-weight: 900; color: var(--primary-accent); margin-bottom: 8px;" id="val_q_${q.id}">${Math.round((min+max)/2)}</div>
+                            <input type="range" name="q_${q.id}" class="slider-control" min="${min}" max="${max}" value="${Math.round((min+max)/2)}" oninput="document.getElementById('val_q_${q.id}').innerText = this.value">
+                            <div class="slider-scale-values">
+                                <span>${min}</span>
+                                <span>${max}</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (q.type === 'date') {
+                    inputHtml = `<input type="date" name="q_${q.id}" class="field-input" ${reqAttr}>`;
+                } else if (q.type === 'file') {
+                    inputHtml = `
+                        <input type="text" name="q_${q.id}" class="field-input" ${reqAttr} placeholder="Dán liên kết tệp Google Drive, OneDrive hoặc hình ảnh công khai...">
+                        <small style="color: var(--text-muted); display: block; margin-top: 6px;"><i class="fa-solid fa-circle-info"></i> Hãy chắc chắn link được mở quyền xem công khai nha.</small>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="field-group">
+                        <label class="field-label">
+                            ${idx + 1}. ${q.title}
+                            ${q.required ? '<span class="required-asterisk">*</span>' : ''}
+                        </label>
+                        ${inputHtml}
+                    </div>
+                `;
+                qContainer.appendChild(card);
+            });
+        }
+
+        // FORM SUBMIT HANDLER
+        document.getElementById('active-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Require login check if enabled
+            if (formConfig.settings?.requireLogin && !currentUser) {
+                window.showToast("Cần đăng nhập", "Biểu mẫu này yêu cầu đăng nhập tài khoản MHEnt ID trước khi nộp!", "warning");
+                setTimeout(() => window.redirectToLogin(window.location.href), 1500);
+                return;
+            }
+
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang truyền dữ liệu...`;
+
+            try {
+                // Collect Presets
+                const userName = document.getElementById('input-preset-name')?.value.trim() || currentUser?.displayName || '';
+                const userEmail = document.getElementById('input-preset-email')?.value.trim() || currentUser?.email || '';
+                const userPhone = document.getElementById('input-preset-phone')?.value.trim() || '';
+                const userOrg = document.getElementById('input-preset-org')?.value.trim() || '';
+
+                // Collect Answers
+                const answersMap = {};
+                const answersList = [];
+
+                (formConfig.fields || []).forEach(q => {
+                    let val = null;
+                    if (q.type === 'checkbox') {
+                        const checkedNodes = document.querySelectorAll(`input[name="q_${q.id}"]:checked`);
+                        val = Array.from(checkedNodes).map(n => n.value);
+                    } else if (q.type === 'radio') {
+                        const checkedNode = document.querySelector(`input[name="q_${q.id}"]:checked`);
+                        val = checkedNode ? checkedNode.value : '';
+                    } else {
+                        const inputNode = document.querySelector(`[name="q_${q.id}"]`);
+                        val = inputNode ? inputNode.value : '';
+                    }
+
+                    answersMap[q.id] = val;
+                    answersList.push({
+                        id: q.id,
+                        title: q.title,
+                        type: q.type,
+                        answer: val
+                    });
+                });
+
+                // Prepare Submission Document
+                const submissionDoc = {
+                    formId: formId,
+                    formTitle: formConfig.title || '',
+                    submittedAt: serverTimestamp(),
+                    clientTimestamp: new Date().toISOString(),
+                    userId: currentUser?.uid || 'guest',
+                    userName: userName,
+                    userEmail: userEmail,
+                    userPhone: userPhone,
+                    userOrg: userOrg,
+                    status: 'Chờ duyệt',
+                    note: '',
+                    answers: answersMap,
+                    answersList: answersList
+                };
+
+                // Save to Firestore responses collection
+                await addDoc(collection(db, "mhent_form_responses"), submissionDoc);
+
+                // Update responses counter
+                try {
+                    await updateDoc(doc(db, "mhent_forms", formId), {
+                        responsesCount: increment(1)
+                    });
+                } catch (cErr) {
+                    console.log("Không thể tăng biến đếm:", cErr);
+                }
+
+                // Show Success Card
+                document.getElementById('active-form').style.display = 'none';
+                if (formConfig.postSubmit?.message) {
+                    document.getElementById('success-msg').innerText = formConfig.postSubmit.message;
+                }
+                document.getElementById('success-screen').style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                console.error("Lỗi gửi:", err);
+                window.showToast("Lỗi nộp bài", "Không thể gửi dữ liệu: " + err.message, "error");
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Thử gửi lại`;
+            }
+        });
+
+        initForm();
+    </script>
+    <script src="/js/mhent-ui.js"></script>
+    <script src="/js/aisa-widget.js" defer></script>
+</body>
+</html>
