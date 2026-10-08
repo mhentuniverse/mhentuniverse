@@ -576,7 +576,7 @@
             <!-- HEADER SETTINGS CARD -->
             <div class="studio-card form-header-card" id="form-header-box">
                 <div class="form-header-banner-preview" id="banner-preview" style="background: linear-gradient(135deg, #6366f1, #a855f7);">
-                    <i class="fa-solid fa-wpforms" id="banner-icon-display"></i>
+                    <i class="fa-brands fa-wpforms" id="banner-icon-display"></i>
                 </div>
                 <input type="text" id="form-title" class="form-title-input" value="Biểu Mẫu Mới MHEnt." placeholder="Tiêu đề biểu mẫu...">
                 <textarea id="form-desc" class="form-desc-input" placeholder="Mô tả mục đích của biểu mẫu, hướng dẫn người tham gia điền..."></textarea>
@@ -659,7 +659,7 @@
 
                 <div class="setting-group">
                     <label class="setting-label">Icon Banner đầu trang (FontAwesome):</label>
-                    <input type="text" id="theme-banner-icon" class="setting-input" value="fa-wpforms" placeholder="fa-wpforms, fa-star, fa-heart..." oninput="updateBannerIcon(this.value)">
+                    <input type="text" id="theme-banner-icon" class="setting-input" value="fa-brands fa-wpforms" placeholder="fa-brands fa-wpforms, fa-star, fa-heart..." oninput="updateBannerIcon(this.value)">
                 </div>
             </div>
 
@@ -697,13 +697,24 @@
                     </label>
                 </div>
 
-                <div class="setting-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
+                <div class="setting-group" style="display: flex; align-items: center; justify-content: space-between;">
                     <div>
                         <div style="font-weight: 700; font-size: 14px;">Mở tiếp nhận câu trả lời</div>
                         <div style="font-size: 12px; color: var(--text-muted);">Tắt để tạm khóa biểu mẫu</div>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="setting-is-active" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 14px;">Gửi email bản sao cho người điền</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Gửi từ noreply@mhentuniverse.com kèm chữ ký chính thức</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="setting-send-copy-email" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -742,7 +753,7 @@
             theme: {
                 primaryColor: "#6366f1",
                 gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                icon: "fa-wpforms"
+                icon: "fa-brands fa-wpforms"
             },
             submitButton: {
                 text: "Gửi vào Vũ Trụ MHEnt",
@@ -753,7 +764,8 @@
             },
             settings: {
                 requireLogin: false,
-                isActive: true
+                isActive: true,
+                sendCopyEmail: true
             },
             presets: {
                 name: true,
@@ -812,6 +824,7 @@
             document.getElementById('post-submit-msg').value = formConfig.postSubmit?.message || '';
             document.getElementById('setting-require-login').checked = !!formConfig.settings?.requireLogin;
             document.getElementById('setting-is-active').checked = formConfig.settings?.isActive !== false;
+            document.getElementById('setting-send-copy-email').checked = formConfig.settings?.sendCopyEmail !== false;
 
             document.getElementById('preset-name').checked = !!formConfig.presets?.name;
             document.getElementById('preset-email').checked = !!formConfig.presets?.email;
@@ -989,7 +1002,11 @@
         window.updateBannerIcon = function(iconClass) {
             formConfig.theme.icon = iconClass;
             const iconEl = document.getElementById('banner-icon-display');
-            iconEl.className = `fa-solid ${iconClass}`;
+            let ic = (iconClass || '').trim();
+            if (!ic || ic.includes('wpforms')) iconEl.className = 'fa-brands fa-wpforms';
+            else if (ic.startsWith('fa-solid') || ic.startsWith('fa-brands') || ic.startsWith('fa-regular')) iconEl.className = ic;
+            else if (ic.startsWith('fa-')) iconEl.className = 'fa-solid ' + ic;
+            else iconEl.className = 'fa-solid fa-' + ic;
         };
 
         // SAVE FORM TO CLOUD
@@ -1005,6 +1022,8 @@
                 formConfig.postSubmit.message = document.getElementById('post-submit-msg').value.trim();
                 formConfig.settings.requireLogin = document.getElementById('setting-require-login').checked;
                 formConfig.settings.isActive = document.getElementById('setting-is-active').checked;
+                formConfig.settings.sendCopyEmail = document.getElementById('setting-send-copy-email').checked;
+                formConfig.isActive = formConfig.settings.isActive; // Tương thích ngược root level
 
                 formConfig.presets.name = document.getElementById('preset-name').checked;
                 formConfig.presets.email = document.getElementById('preset-email').checked;
@@ -1078,7 +1097,7 @@
 
             render.innerHTML = `
                 <div style="background: ${formConfig.theme.gradient || 'linear-gradient(135deg, #6366f1, #8b5cf6)'}; color: white; padding: 25px; border-radius: 16px; margin-bottom: 20px; text-align: center;">
-                    <i class="fa-solid ${formConfig.theme.icon || 'fa-wpforms'} fa-2x" style="margin-bottom: 10px;"></i>
+                    <i class="${(formConfig.theme.icon && formConfig.theme.icon.includes('wpforms')) ? 'fa-brands fa-wpforms' : (formConfig.theme.icon || 'fa-brands fa-wpforms')} fa-2x" style="margin-bottom: 10px;"></i>
                     <h2 style="margin: 0 0 8px;">${pTitle}</h2>
                     <p style="margin: 0; opacity: 0.9; font-size: 14px;">${pDesc}</p>
                 </div>

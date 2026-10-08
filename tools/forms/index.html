@@ -394,7 +394,7 @@
 
     <script type="module">
             import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-            import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+            import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
             import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
             const firebaseConfig = window.firebaseConfig;
@@ -506,8 +506,8 @@
             container.innerHTML = '<div style="width: 100%; text-align: center; grid-column: 1 / -1; color: #888; font-weight: 700; padding: 40px 0;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: #6366f1; margin-bottom: 15px;"></i><br>Đang đồng bộ dữ liệu với Căn Cứ MHEnt...</div>';
 
             try {
-                const q = query(collection(db, "mhent_forms"), where("isActive", "==", true), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
+                const snap = await getDocs(collection(db, "mhent_forms"));
+
 
                 if (!snap || snap.empty) return container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px; font-weight: bold;">Hiện tại chưa có biểu mẫu nào mở. Cậu quay lại sau nha!</div>';
 
@@ -518,7 +518,8 @@
                     const form = docSnap.data();
                     displayCount++;
 
-                    let statusHtml = form.isActive ? `<span class="form-status status-open">Đang mở</span>` : `<span class="form-status status-closed">Đã đóng</span>`;
+                    const isOpen = (form.isActive !== false && (!form.settings || form.settings.isActive !== false));
+                    let statusHtml = isOpen ? `<span class="form-status status-open">Đang mở</span>` : `<span class="form-status status-closed">Đã đóng</span>`;
                     
                     container.innerHTML += `
                         <a onclick="window.location.href='/tools/forms/description?id=${docSnap.id}'" class="form-card">

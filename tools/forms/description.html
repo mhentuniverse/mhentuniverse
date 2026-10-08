@@ -144,8 +144,9 @@
                 const docRef = doc(db, "mhent_forms", formId);
                 const docSnap = await getDoc(docRef);
 
-                if (docSnap.exists() && docSnap.data().isActive) {
-                    const data = docSnap.data();
+                const data = docSnap.data();
+                const isFormOpen = docSnap.exists() && (data.isActive !== false && (!data.settings || data.settings.isActive !== false));
+                if (isFormOpen) {
                     const qCount = data.fields ? data.fields.length : 0;
                     
                     document.getElementById('form-title').innerText = data.title;

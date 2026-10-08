@@ -292,7 +292,7 @@
             <!-- HEADER -->
             <div class="runner-card runner-header-card" id="card-header">
                 <div class="runner-banner" id="runner-banner">
-                    <i class="fa-solid fa-wpforms" id="runner-banner-icon"></i>
+                    <i class="fa-brands fa-wpforms" id="runner-banner-icon"></i>
                 </div>
                 <h1 class="runner-title" id="runner-title">Tiêu đề biểu mẫu</h1>
                 <p class="runner-desc" id="runner-desc">Mô tả biểu mẫu</p>
@@ -323,9 +323,12 @@
         <div id="success-screen" class="runner-card success-card" style="display: none;">
             <div class="success-icon-wrap"><i class="fa-solid fa-check"></i></div>
             <h2 style="font-size: 26px; font-weight: 900; margin: 0 0 12px;">Đã Gửi Thành Công!</h2>
-            <p id="success-msg" style="color: var(--text-muted); font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+            <p id="success-msg" style="color: var(--text-muted); font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
                 💖 Cảm ơn cậu! Câu trả lời đã được hệ thống MHEnt ghi nhận thành công.
             </p>
+            <div id="email-sent-badge" style="display: none; background: rgba(99, 102, 241, 0.08); color: var(--primary-accent); padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; margin: 0 auto 25px; border: 1px dashed rgba(99, 102, 241, 0.3); max-width: 500px;">
+                <i class="fa-solid fa-envelope-circle-check"></i> <span id="email-sent-text">Một bản sao câu trả lời đã được gửi đến email của cậu!</span>
+            </div>
             <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                 <button class="btn-runner-submit" style="width: auto; padding: 12px 26px; background: transparent; color: var(--text-main); border: 1px solid var(--border-soft); box-shadow: none;" onclick="location.reload()">
                     <i class="fa-solid fa-rotate-right"></i> Điền phản hồi khác
@@ -424,7 +427,12 @@
             document.getElementById('card-header').style.borderTopColor = primaryColor;
             document.getElementById('runner-banner').style.background = gradient;
             if (data.theme?.icon) {
-                document.getElementById('runner-banner-icon').className = `fa-solid ${data.theme.icon}`;
+                let ic = data.theme.icon.trim();
+                if (ic.includes('wpforms')) ic = 'fa-brands fa-wpforms';
+                else if (!ic.startsWith('fa-solid') && !ic.startsWith('fa-brands') && !ic.startsWith('fa-regular')) {
+                    ic = ic.startsWith('fa-') ? 'fa-solid ' + ic : 'fa-solid fa-' + ic;
+                }
+                document.getElementById('runner-banner-icon').className = ic;
             }
 
             document.getElementById('runner-title').innerText = data.title || 'Biểu mẫu';
@@ -619,7 +627,7 @@
                 };
 
                 // Save to Firestore responses collection
-                await addDoc(collection(db, "mhent_form_responses"), submissionDoc);
+                const docRef = await addDoc(collection(db, "mhent_form_responses"), submissionDoc);
 
                 // Update responses counter
                 try {
@@ -628,6 +636,30 @@
                     });
                 } catch (cErr) {
                     console.log("Không thể tăng biến đếm:", cErr);
+                }
+
+                // TỰ ĐỘNG GỬI EMAIL BẢN SAO CHO NGƯỜI ĐIỀN (NẾU CÓ EMAIL VÀ BẬT CÀI ĐẶT)
+                if (userEmail && userEmail.includes('@') && formConfig.settings?.sendCopyEmail !== false) {
+                    const qaSummary = [];
+                    if (userName) qaSummary.push({ label: 'Họ và tên', value: userName });
+                    if (userEmail) qaSummary.push({ label: 'Email liên hệ', value: userEmail });
+                    if (userPhone) qaSummary.push({ label: 'Số điện thoại / Zalo', value: userPhone });
+                    if (userOrg) qaSummary.push({ label: 'Đơn vị / Trường / Tổ chức', value: userOrg });
+
+                    (answersList || []).forEach(item => {
+                        qaSummary.push({ label: item.title, value: item.answer });
+                    });
+
+                    sendConfirmationEmail(userEmail, userName, formConfig.title || 'Biểu Mẫu MHEnt', qaSummary, docRef.id)
+                        .then(() => {
+                            const badge = document.getElementById('email-sent-badge');
+                            const badgeText = document.getElementById('email-sent-text');
+                            if (badge && badgeText) {
+                                badgeText.innerHTML = `Một bản sao câu trả lời đã được gửi đến: <b>${userEmail}</b> (từ noreply@mhentuniverse.com)!`;
+                                badge.style.display = 'block';
+                            }
+                        })
+                        .catch(e => console.warn("Lỗi gửi mail bản sao:", e));
                 }
 
                 // Show Success Card
@@ -645,6 +677,101 @@
                 btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Thử gửi lại`;
             }
         });
+
+        const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
+
+        // CHỮ KÝ CHÍNH THỨC CỦA TẬP ĐOÀN (OFFICIAL SIGNATURE TỪ ADMIN.HTML)
+        const OFFICIAL_SIGNATURE = `
+            <table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; color: #333; margin-top: 25px; border-top: 2px solid #6366f1; padding-top: 15px; width: 100%;">
+                <tr>
+                    <td style="padding-right: 20px; vertical-align: top; width: 100px;">
+                        <img src="https://www.mhentuniverse.com/assets/icon-logo.png" width="100" style="display: block;">
+                    </td>
+                    <td style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+                        <strong style="color: #6366f1; font-size: 16px; text-transform: uppercase;">Miyazaki Haruto Entertainment Co., Ltd.</strong><br>
+                        📍 <span style="color: #64748b;">Operating in Vietnam and Online World</span><br><br>
+                        ✉️ <strong>Email:</strong> <a href="mailto:contact@mhentuniverse.com" style="color: #6366f1; text-decoration: none;">contact@mhentuniverse.com</a><br>
+                        🌐 <strong>Website:</strong> <a href="https://www.mhentuniverse.com" style="color: #6366f1; text-decoration: none;">MHEnt. Universe</a><br>
+                        🔗 <strong>Contact with us:</strong> <a href="https://www.facebook.com/mharuto.entertainment" style="color: #6366f1; text-decoration: none;">MHEnt. Facebook</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #6366f1; text-decoration: none;">MHEnt. Universe Community</a><br>
+                        <p style="font-style: italic; color: #94a3b8; font-size: 12px; margin-top: 10px;">— Khơi nguồn sáng tạo vô tận —</p>
+                    </td>
+                </tr>
+            </table>`;
+
+        async function sendConfirmationEmail(targetEmail, targetName, formTitle, qaSummary, submissionId) {
+            if (!targetEmail || !targetEmail.includes('@')) return;
+
+            let rowsHtml = '';
+            qaSummary.forEach((item, idx) => {
+                let valText = item.value;
+                if (Array.isArray(valText)) valText = valText.join(', ');
+                if (!valText) valText = '<i style="color: #94a3b8;">(Bỏ trống)</i>';
+                
+                let bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
+                rowsHtml += `
+                    <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px 14px; font-weight: bold; color: #1e293b; vertical-align: top; width: 38%; font-size: 14px;">${item.label}</td>
+                        <td style="padding: 12px 14px; color: #334155; vertical-align: top; font-size: 14px;">${valText}</td>
+                    </tr>
+                `;
+            });
+
+            const emailSubject = `📋 [Bản sao phản hồi] ${formTitle} - MHEnt. Universe`;
+            const emailBody = `
+                <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #1e293b; line-height: 1.6;">
+                    <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 25px; border-radius: 12px 12px 0 0; text-align: center; color: white;">
+                        <h2 style="margin: 0 0 6px; font-size: 22px;">Xác Nhận Đã Nhận Phản Hồi</h2>
+                        <p style="margin: 0; font-size: 14px; opacity: 0.95;">Hệ thống Biểu mẫu & Bảng tính MHEnt. Forms</p>
+                    </div>
+                    <div style="padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px; background: #ffffff;">
+                        <p>Thân gửi <b>${targetName || 'Cậu'}</b>,</p>
+                        <p>Hệ thống MHEnt. Universe xin thông báo đã tiếp nhận thành công câu trả lời của cậu cho biểu mẫu <strong>${formTitle}</strong>.</p>
+                        <p style="margin-bottom: 16px;">Dưới đây là bản sao các nội dung cậu đã điền:</p>
+                        
+                        <table cellpadding="0" cellspacing="0" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; margin-bottom: 20px; font-size: 14px;">
+                            <thead>
+                                <tr style="background-color: #e0e7ff; color: #4338ca;">
+                                    <th style="padding: 12px 14px; text-align: left; border-bottom: 2px solid #cbd5e1;">Mục thông tin / Câu hỏi</th>
+                                    <th style="padding: 12px 14px; text-align: left; border-bottom: 2px solid #cbd5e1;">Nội dung trả lời</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+
+                        <div style="background-color: #f1f5f9; padding: 12px 16px; border-radius: 8px; font-size: 13px; color: #64748b; margin-bottom: 15px;">
+                            📌 <b>Mã phiếu ghi nhận:</b> <code>${submissionId}</code><br>
+                            ⏰ <b>Thời gian:</b> ${new Date().toLocaleString('vi-VN')}
+                        </div>
+
+                        <p style="font-size: 13px; color: #94a3b8; font-style: italic; margin-top: 20px;">
+                            Email này được gửi tự động từ <b>noreply@mhentuniverse.com</b>. Cậu vui lòng không trả lời trực tiếp email này. Nếu có yêu cầu chỉnh sửa thông tin, xin liên hệ qua <a href="mailto:contact@mhentuniverse.com" style="color: #6366f1;">contact@mhentuniverse.com</a>.
+                        </p>
+
+                        ${OFFICIAL_SIGNATURE}
+                    </div>
+                </div>
+            `;
+
+            try {
+                await fetch(MAILER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "send",
+                        subject: emailSubject,
+                        body: emailBody,
+                        emails: [targetEmail],
+                        senderName: "MHEnt. Universe (No-Reply)",
+                        from: "noreply@mhentuniverse.com",
+                        replyTo: "contact@mhentuniverse.com"
+                    })
+                });
+            } catch (mErr) {
+                console.error("Lỗi gửi mail xác nhận:", mErr);
+            }
+        }
 
         initForm();
     </script>
