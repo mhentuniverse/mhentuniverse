@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <!-- Kiểm tra Dark Mode ngay lập tức trước khi Render để tránh chớp trắng (Anti-FOUC) -->
     <script>
-        (function() {
+        (function () {
             function getCookie(name) {
                 const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
                 return match ? decodeURIComponent(match[3]) : null;
@@ -30,7 +31,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body, h1, h2, h3, h4, h5, p, span, button, input, textarea, select {
+        body,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        p,
+        span,
+        button,
+        input,
+        textarea,
+        select {
             font-family: 'Nunito', sans-serif !important;
         }
 
@@ -57,7 +69,7 @@
             color: var(--text-main);
             min-height: 100vh;
             margin: 0;
-            padding-top: 60px;
+            padding-top: 10px;
         }
 
         /* STUDIO TOOLBAR */
@@ -75,6 +87,7 @@
             justify-content: space-between;
             gap: 16px;
         }
+
         body.dark-mode .studio-topbar {
             background: rgba(30, 41, 59, 0.95);
         }
@@ -84,6 +97,7 @@
             align-items: center;
             gap: 12px;
         }
+
         .form-code-pill {
             background: rgba(99, 102, 241, 0.15);
             color: var(--primary-accent);
@@ -100,6 +114,7 @@
             gap: 10px;
             flex-wrap: wrap;
         }
+
         .btn-studio {
             padding: 9px 18px;
             border-radius: 12px;
@@ -113,30 +128,36 @@
             gap: 8px;
             text-decoration: none;
         }
+
         .btn-studio-ghost {
             background: transparent;
             color: var(--text-main);
             border: 1px solid var(--border-soft);
         }
+
         .btn-studio-ghost:hover {
             background: rgba(99, 102, 241, 0.08);
             border-color: var(--primary-accent);
             color: var(--primary-accent);
         }
+
         .btn-studio-primary {
             background: linear-gradient(135deg, #6366f1, #4f46e5);
             color: white;
             box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
         }
+
         .btn-studio-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
         }
+
         .btn-studio-sheet {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
         }
+
         .btn-studio-sheet:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
@@ -145,12 +166,13 @@
         /* MAIN LAYOUT */
         .studio-container {
             max-width: 1100px;
-            margin: 16px auto 50px;
+            margin: 50px auto 50px;
             padding: 0 16px;
             display: grid;
             grid-template-columns: 1fr 340px;
             gap: 24px;
         }
+
         @media (max-width: 900px) {
             .studio-container {
                 grid-template-columns: 1fr;
@@ -168,6 +190,7 @@
             position: relative;
             transition: border-color 0.2s;
         }
+
         .studio-card:hover {
             border-color: rgba(99, 102, 241, 0.35);
         }
@@ -178,6 +201,7 @@
             position: relative;
             overflow: hidden;
         }
+
         .form-header-banner-preview {
             height: 90px;
             border-radius: 14px;
@@ -188,8 +212,9 @@
             color: white;
             font-size: 32px;
             position: relative;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
         }
+
         .form-title-input {
             width: 100%;
             border: none;
@@ -202,9 +227,11 @@
             outline: none;
             transition: border-color 0.2s;
         }
+
         .form-title-input:focus {
             border-bottom-color: var(--primary-accent);
         }
+
         .form-desc-input {
             width: 100%;
             border: none;
@@ -218,6 +245,7 @@
             min-height: 55px;
             margin-top: 10px;
         }
+
         .form-desc-input:focus {
             border-bottom-color: var(--primary-accent);
         }
@@ -229,6 +257,7 @@
             gap: 12px;
             margin-top: 14px;
         }
+
         .preset-item {
             display: flex;
             align-items: center;
@@ -240,49 +269,86 @@
             font-weight: 700;
             font-size: 14px;
         }
+
         .toggle-switch {
             position: relative;
             display: inline-block;
             width: 44px;
             height: 24px;
         }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
         .toggle-slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: #cbd5e1;
             transition: .3s;
             border-radius: 34px;
         }
+
         .toggle-slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
             background-color: white;
             transition: .3s;
             border-radius: 50%;
         }
-        input:checked + .toggle-slider { background-color: var(--primary-accent); }
-        input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        input:checked+.toggle-slider {
+            background-color: var(--primary-accent);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(20px);
+        }
 
         /* QUESTION CARD */
         .question-card {
             border-left: 4px solid var(--primary-accent);
             animation: fadeIn 0.3s ease;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .question-top-row {
             display: grid;
             grid-template-columns: 1fr 180px;
             gap: 16px;
             margin-bottom: 16px;
         }
+
         @media (max-width: 600px) {
-            .question-top-row { grid-template-columns: 1fr; }
+            .question-top-row {
+                grid-template-columns: 1fr;
+            }
         }
+
         .question-input {
             width: 100%;
-            background: rgba(0,0,0,0.02);
+            background: rgba(0, 0, 0, 0.02);
             border: 1px solid var(--border-soft);
             border-radius: 10px;
             padding: 10px 14px;
@@ -291,10 +357,12 @@
             color: var(--text-main);
             outline: none;
         }
+
         .question-input:focus {
             border-color: var(--primary-accent);
             background: transparent;
         }
+
         .question-type-select {
             background: var(--card-bg);
             border: 1px solid var(--border-soft);
@@ -314,17 +382,20 @@
             gap: 8px;
             margin-top: 12px;
         }
+
         .option-row {
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
         .option-bullet {
             color: var(--text-muted);
             font-size: 16px;
             width: 20px;
             text-align: center;
         }
+
         .option-input {
             flex: 1;
             padding: 8px 12px;
@@ -335,7 +406,11 @@
             outline: none;
             font-size: 14px;
         }
-        .option-input:focus { border-color: var(--primary-accent); }
+
+        .option-input:focus {
+            border-color: var(--primary-accent);
+        }
+
         .btn-remove-opt {
             background: transparent;
             border: none;
@@ -344,6 +419,7 @@
             padding: 6px;
             border-radius: 6px;
         }
+
         .btn-add-opt {
             background: transparent;
             border: 1px dashed var(--border-soft);
@@ -356,6 +432,7 @@
             align-self: flex-start;
             margin-top: 4px;
         }
+
         .btn-add-opt:hover {
             border-color: var(--primary-accent);
             background: rgba(99, 102, 241, 0.05);
@@ -371,11 +448,13 @@
             border-top: 1px solid var(--border-soft);
             font-size: 13px;
         }
+
         .question-actions-right {
             display: flex;
             align-items: center;
             gap: 14px;
         }
+
         .btn-action-icon {
             background: transparent;
             border: none;
@@ -386,10 +465,12 @@
             border-radius: 8px;
             transition: all 0.2s;
         }
+
         .btn-action-icon:hover {
             color: var(--primary-accent);
             background: rgba(99, 102, 241, 0.08);
         }
+
         .btn-action-icon.danger:hover {
             color: #ef4444;
             background: rgba(239, 68, 68, 0.08);
@@ -413,6 +494,7 @@
             justify-content: center;
             gap: 10px;
         }
+
         .add-question-bar:hover {
             background: rgba(99, 102, 241, 0.08);
             transform: translateY(-2px);
@@ -424,6 +506,7 @@
             top: 125px;
             align-self: start;
         }
+
         .setting-section-title {
             font-size: 15px;
             font-weight: 900;
@@ -433,12 +516,15 @@
             align-items: center;
             gap: 8px;
         }
+
         .setting-section-title i {
             color: var(--primary-accent);
         }
+
         .setting-group {
             margin-bottom: 20px;
         }
+
         .setting-label {
             font-size: 13px;
             font-weight: 700;
@@ -446,9 +532,10 @@
             margin-bottom: 6px;
             display: block;
         }
+
         .setting-input {
             width: 100%;
-            background: rgba(0,0,0,0.02);
+            background: rgba(0, 0, 0, 0.02);
             border: 1px solid var(--border-soft);
             border-radius: 10px;
             padding: 8px 12px;
@@ -457,6 +544,7 @@
             outline: none;
             box-sizing: border-box;
         }
+
         .setting-input:focus {
             border-color: var(--primary-accent);
         }
@@ -468,6 +556,7 @@
             gap: 8px;
             margin-top: 8px;
         }
+
         .palette-btn {
             height: 36px;
             border-radius: 10px;
@@ -475,10 +564,12 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .palette-btn:hover, .palette-btn.active {
+
+        .palette-btn:hover,
+        .palette-btn.active {
             transform: scale(1.15);
             border-color: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
         /* LIVE PREVIEW MODAL */
@@ -493,7 +584,11 @@
             justify-content: center;
             padding: 20px;
         }
-        .preview-modal.show { display: flex; }
+
+        .preview-modal.show {
+            display: flex;
+        }
+
         .preview-box {
             background: var(--card-bg);
             border-radius: 24px;
@@ -502,14 +597,15 @@
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             padding: 30px;
         }
+
         .preview-close {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(0,0,0,0.05);
+            background: rgba(0, 0, 0, 0.05);
             border: none;
             width: 36px;
             height: 36px;
@@ -524,11 +620,13 @@
     </style>
     <script src="/js/config.js"></script>
 </head>
+
 <body>
     <nav class="navbar">
         <div class="nav-left">
             <a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">
-                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--primary-accent);">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img"
+                    style="border-color: var(--primary-accent);">
                 <span class="logo-name" style="color: var(--primary-accent);">MHEnt. Forms</span>
             </a>
         </div>
@@ -539,7 +637,9 @@
         </ul>
         <div class="nav-right">
             <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
-                <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
             </button>
             <div id="user-section" class="user-section"></div>
         </div>
@@ -560,7 +660,8 @@
             <button class="btn-studio btn-studio-ghost" onclick="openLivePreview()">
                 <i class="fa-solid fa-eye"></i> Xem trước
             </button>
-            <button class="btn-studio btn-studio-sheet" id="btn-open-sheet" style="display: none;" onclick="openConnectedSheet()">
+            <button class="btn-studio btn-studio-sheet" id="btn-open-sheet" style="display: none;"
+                onclick="openConnectedSheet()">
                 <i class="fa-solid fa-table"></i> MHEnt Sheet
             </button>
             <button class="btn-studio btn-studio-primary" id="btn-save-form" onclick="saveFormToCloud()">
@@ -575,11 +676,14 @@
         <section class="studio-main-column">
             <!-- HEADER SETTINGS CARD -->
             <div class="studio-card form-header-card" id="form-header-box">
-                <div class="form-header-banner-preview" id="banner-preview" style="background: linear-gradient(135deg, #6366f1, #a855f7);">
+                <div class="form-header-banner-preview" id="banner-preview"
+                    style="background: linear-gradient(135deg, #6366f1, #a855f7);">
                     <i class="fa-brands fa-wpforms" id="banner-icon-display"></i>
                 </div>
-                <input type="text" id="form-title" class="form-title-input" value="Biểu Mẫu Mới MHEnt." placeholder="Tiêu đề biểu mẫu...">
-                <textarea id="form-desc" class="form-desc-input" placeholder="Mô tả mục đích của biểu mẫu, hướng dẫn người tham gia điền..."></textarea>
+                <input type="text" id="form-title" class="form-title-input" value="Biểu Mẫu Mới MHEnt."
+                    placeholder="Tiêu đề biểu mẫu...">
+                <textarea id="form-desc" class="form-desc-input"
+                    placeholder="Mô tả mục đích của biểu mẫu, hướng dẫn người tham gia điền..."></textarea>
             </div>
 
             <!-- CORE PRESETS CARD -->
@@ -588,32 +692,38 @@
                     <i class="fa-solid fa-shield-halved"></i> Thông tin cơ bản bắt buộc (Core Presets)
                 </div>
                 <p style="font-size: 13.5px; color: var(--text-muted); margin: 0 0 14px;">
-                    Bật các trường cố định này để lập danh sách chuẩn hóa (luôn lưu riêng biệt vào cột chuẩn để dễ xuất Excel/Sheet).
+                    Bật các trường cố định này để lập danh sách chuẩn hóa (luôn lưu riêng biệt vào cột chuẩn để dễ xuất
+                    Excel/Sheet).
                 </p>
                 <div class="preset-grid">
                     <div class="preset-item">
-                        <span><i class="fa-solid fa-user" style="color: var(--primary-accent); margin-right: 6px;"></i> Họ và tên</span>
+                        <span><i class="fa-solid fa-user" style="color: var(--primary-accent); margin-right: 6px;"></i>
+                            Họ và tên</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="preset-name" checked>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
                     <div class="preset-item">
-                        <span><i class="fa-solid fa-envelope" style="color: var(--primary-accent); margin-right: 6px;"></i> Địa chỉ Email</span>
+                        <span><i class="fa-solid fa-envelope"
+                                style="color: var(--primary-accent); margin-right: 6px;"></i> Địa chỉ Email</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="preset-email" checked>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
                     <div class="preset-item">
-                        <span><i class="fa-solid fa-phone" style="color: var(--primary-accent); margin-right: 6px;"></i> Số điện thoại / Zalo</span>
+                        <span><i class="fa-solid fa-phone" style="color: var(--primary-accent); margin-right: 6px;"></i>
+                            Số điện thoại / Zalo</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="preset-phone">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
                     <div class="preset-item">
-                        <span><i class="fa-solid fa-building" style="color: var(--primary-accent); margin-right: 6px;"></i> Đơn vị / Lớp / Tổ chức</span>
+                        <span><i class="fa-solid fa-building"
+                                style="color: var(--primary-accent); margin-right: 6px;"></i> Đơn vị / Lớp / Tổ
+                            chức</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="preset-org">
                             <span class="toggle-slider"></span>
@@ -629,7 +739,8 @@
 
             <!-- ADD QUESTION BUTTON -->
             <div class="add-question-bar" onclick="addNewQuestion()">
-                <i class="fa-solid fa-circle-plus fa-lg"></i> Thêm câu hỏi mới (Trắc nghiệm, Tự luận, Thang điểm, Upload...)
+                <i class="fa-solid fa-circle-plus fa-lg"></i> Thêm câu hỏi mới (Trắc nghiệm, Tự luận, Thang điểm,
+                Upload...)
             </div>
         </section>
 
@@ -644,22 +755,36 @@
                 <div class="setting-group">
                     <label class="setting-label">Bảng màu chủ đạo:</label>
                     <div class="theme-palette-grid">
-                        <button class="palette-btn active" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);" onclick="selectThemePreset('#6366f1', 'linear-gradient(135deg, #6366f1, #8b5cf6)')" title="Indigo Galaxy"></button>
-                        <button class="palette-btn" style="background: linear-gradient(135deg, #ec4899, #f43f5e);" onclick="selectThemePreset('#ec4899', 'linear-gradient(135deg, #ec4899, #f43f5e)')" title="Sakura Blossom"></button>
-                        <button class="palette-btn" style="background: linear-gradient(135deg, #10b981, #06b6d4);" onclick="selectThemePreset('#10b981', 'linear-gradient(135deg, #10b981, #06b6d4)')" title="Emerald Modern"></button>
-                        <button class="palette-btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444);" onclick="selectThemePreset('#f59e0b', 'linear-gradient(135deg, #f59e0b, #ef4444)')" title="Sunset Gold"></button>
-                        <button class="palette-btn" style="background: linear-gradient(135deg, #0ea5e9, #3b82f6);" onclick="selectThemePreset('#0ea5e9', 'linear-gradient(135deg, #0ea5e9, #3b82f6)')" title="Ocean Deep"></button>
+                        <button class="palette-btn active"
+                            style="background: linear-gradient(135deg, #6366f1, #8b5cf6);"
+                            onclick="selectThemePreset('#6366f1', 'linear-gradient(135deg, #6366f1, #8b5cf6)')"
+                            title="Indigo Galaxy"></button>
+                        <button class="palette-btn" style="background: linear-gradient(135deg, #ec4899, #f43f5e);"
+                            onclick="selectThemePreset('#ec4899', 'linear-gradient(135deg, #ec4899, #f43f5e)')"
+                            title="Sakura Blossom"></button>
+                        <button class="palette-btn" style="background: linear-gradient(135deg, #10b981, #06b6d4);"
+                            onclick="selectThemePreset('#10b981', 'linear-gradient(135deg, #10b981, #06b6d4)')"
+                            title="Emerald Modern"></button>
+                        <button class="palette-btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444);"
+                            onclick="selectThemePreset('#f59e0b', 'linear-gradient(135deg, #f59e0b, #ef4444)')"
+                            title="Sunset Gold"></button>
+                        <button class="palette-btn" style="background: linear-gradient(135deg, #0ea5e9, #3b82f6);"
+                            onclick="selectThemePreset('#0ea5e9', 'linear-gradient(135deg, #0ea5e9, #3b82f6)')"
+                            title="Ocean Deep"></button>
                     </div>
                 </div>
 
                 <div class="setting-group">
                     <label class="setting-label">Màu tùy chọn (HEX):</label>
-                    <input type="color" id="theme-custom-color" value="#6366f1" class="setting-input" style="height: 40px; padding: 2px 4px; cursor: pointer;" onchange="updateCustomColor(this.value)">
+                    <input type="color" id="theme-custom-color" value="#6366f1" class="setting-input"
+                        style="height: 40px; padding: 2px 4px; cursor: pointer;"
+                        onchange="updateCustomColor(this.value)">
                 </div>
 
                 <div class="setting-group">
                     <label class="setting-label">Icon Banner đầu trang (FontAwesome):</label>
-                    <input type="text" id="theme-banner-icon" class="setting-input" value="fa-brands fa-wpforms" placeholder="fa-brands fa-wpforms, fa-star, fa-heart..." oninput="updateBannerIcon(this.value)">
+                    <input type="text" id="theme-banner-icon" class="setting-input" value="fa-brands fa-wpforms"
+                        placeholder="fa-brands fa-wpforms, fa-star, fa-heart..." oninput="updateBannerIcon(this.value)">
                 </div>
             </div>
 
@@ -671,12 +796,14 @@
 
                 <div class="setting-group">
                     <label class="setting-label">Chữ hiển thị trên nút:</label>
-                    <input type="text" id="btn-submit-text" class="setting-input" value="Gửi vào Vũ Trụ MHEnt" placeholder="VD: Nộp danh sách, Đăng ký...">
+                    <input type="text" id="btn-submit-text" class="setting-input" value="Gửi vào Vũ Trụ MHEnt"
+                        placeholder="VD: Nộp danh sách, Đăng ký...">
                 </div>
 
                 <div class="setting-group">
                     <label class="setting-label">Lời nhắn sau khi gửi thành công:</label>
-                    <textarea id="post-submit-msg" class="setting-input" style="min-height: 60px;" placeholder="Lời cảm ơn hoặc hướng dẫn tiếp theo...">💖 Cảm ơn cậu! Câu trả lời đã được hệ thống MHEnt ghi nhận thành công.</textarea>
+                    <textarea id="post-submit-msg" class="setting-input" style="min-height: 60px;"
+                        placeholder="Lời cảm ơn hoặc hướng dẫn tiếp theo...">💖 Cảm ơn cậu! Câu trả lời đã được hệ thống MHEnt ghi nhận thành công.</textarea>
                 </div>
             </div>
 
@@ -708,10 +835,12 @@
                     </label>
                 </div>
 
-                <div class="setting-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
+                <div class="setting-group"
+                    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
                     <div>
                         <div style="font-weight: 700; font-size: 14px;">Gửi email bản sao cho người điền</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">Gửi từ noreply@mhentuniverse.com kèm chữ ký chính thức</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Gửi từ noreply@mhentuniverse.com kèm chữ
+                            ký chính thức</div>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="setting-send-copy-email" checked>
@@ -796,7 +925,7 @@
 
         // INIT LOAD
         document.getElementById('display-form-code').innerText = `MÃ: ${formId}`;
-        
+
         // CHECK IF EDITING EXISTING FORM
         async function loadExistingForm() {
             if (urlParams.get('id')) {
@@ -843,7 +972,7 @@
         }
 
         // QUESTION CRUD
-        window.addNewQuestion = function(defaultTitle = "Câu hỏi mới", defaultType = "text", defaultOptions = ["Tùy chọn 1", "Tùy chọn 2"]) {
+        window.addNewQuestion = function (defaultTitle = "Câu hỏi mới", defaultType = "text", defaultOptions = ["Tùy chọn 1", "Tùy chọn 2"]) {
             const newQ = {
                 id: "q_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
                 title: defaultTitle,
@@ -857,12 +986,12 @@
             renderAllQuestions();
         };
 
-        window.removeQuestion = function(idx) {
+        window.removeQuestion = function (idx) {
             formConfig.fields.splice(idx, 1);
             renderAllQuestions();
         };
 
-        window.duplicateQuestion = function(idx) {
+        window.duplicateQuestion = function (idx) {
             const copy = JSON.parse(JSON.stringify(formConfig.fields[idx]));
             copy.id = "q_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5);
             copy.title += " (Bản sao)";
@@ -870,7 +999,7 @@
             renderAllQuestions();
         };
 
-        window.moveQuestion = function(idx, direction) {
+        window.moveQuestion = function (idx, direction) {
             const targetIdx = idx + direction;
             if (targetIdx < 0 || targetIdx >= formConfig.fields.length) return;
             const temp = formConfig.fields[idx];
@@ -879,7 +1008,7 @@
             renderAllQuestions();
         };
 
-        window.updateQuestionType = function(idx, newType) {
+        window.updateQuestionType = function (idx, newType) {
             formConfig.fields[idx].type = newType;
             if (['radio', 'checkbox', 'select'].includes(newType) && (!formConfig.fields[idx].options || formConfig.fields[idx].options.length === 0)) {
                 formConfig.fields[idx].options = ["Lựa chọn 1", "Lựa chọn 2"];
@@ -887,13 +1016,13 @@
             renderAllQuestions();
         };
 
-        window.addOption = function(qIdx) {
+        window.addOption = function (qIdx) {
             if (!formConfig.fields[qIdx].options) formConfig.fields[qIdx].options = [];
             formConfig.fields[qIdx].options.push(`Lựa chọn ${formConfig.fields[qIdx].options.length + 1}`);
             renderAllQuestions();
         };
 
-        window.removeOption = function(qIdx, optIdx) {
+        window.removeOption = function (qIdx, optIdx) {
             formConfig.fields[qIdx].options.splice(optIdx, 1);
             renderAllQuestions();
         };
@@ -980,7 +1109,7 @@
         }
 
         // THEME & CUSTOMIZATION CONTROLS
-        window.selectThemePreset = function(color, gradient) {
+        window.selectThemePreset = function (color, gradient) {
             formConfig.theme.primaryColor = color;
             formConfig.theme.gradient = gradient;
             document.documentElement.style.setProperty('--primary-accent', color);
@@ -990,7 +1119,7 @@
             renderAllQuestions();
         };
 
-        window.updateCustomColor = function(color) {
+        window.updateCustomColor = function (color) {
             formConfig.theme.primaryColor = color;
             formConfig.theme.gradient = `linear-gradient(135deg, ${color}, #1e293b)`;
             document.documentElement.style.setProperty('--primary-accent', color);
@@ -999,7 +1128,7 @@
             renderAllQuestions();
         };
 
-        window.updateBannerIcon = function(iconClass) {
+        window.updateBannerIcon = function (iconClass) {
             let ic = (iconClass || '').trim();
             if (!ic || ic.includes('wpforms')) ic = 'fa-brands fa-wpforms';
             else if (ic.startsWith('fa-solid') || ic.startsWith('fa-brands') || ic.startsWith('fa-regular')) ic = ic;
@@ -1014,7 +1143,7 @@
         };
 
         // SAVE FORM TO CLOUD
-        window.saveFormToCloud = async function() {
+        window.saveFormToCloud = async function () {
             const btn = document.getElementById('btn-save-form');
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...`;
@@ -1059,12 +1188,12 @@
             }
         };
 
-        window.openConnectedSheet = function() {
+        window.openConnectedSheet = function () {
             window.location.href = `/tools/forms/sheet?id=${formId}`;
         };
 
         // LIVE PREVIEW MODAL
-        window.openLivePreview = function() {
+        window.openLivePreview = function () {
             const modal = document.getElementById('preview-modal');
             const render = document.getElementById('preview-content-render');
 
@@ -1092,8 +1221,8 @@
                     ${q.type === 'text' ? '<input type="text" style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled placeholder="Câu trả lời ngắn...">' : ''}
                     ${q.type === 'textarea' ? '<textarea style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled placeholder="Đoạn văn..."></textarea>' : ''}
                     ${['radio', 'checkbox'].includes(q.type) ? (q.options || []).map(o => `<div style="margin: 4px 0;"><label><input type="${q.type}" disabled> ${o}</label></div>`).join('') : ''}
-                    ${q.type === 'select' ? `<select style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled><option>-- Chọn một tùy chọn --</option>${(q.options||[]).map(o=>`<option>${o}</option>`).join('')}</select>` : ''}
-                    ${q.type === 'slider' ? `<input type="range" min="${q.sliderMin||1}" max="${q.sliderMax||5}" style="width: 100%;" disabled>` : ''}
+                    ${q.type === 'select' ? `<select style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled><option>-- Chọn một tùy chọn --</option>${(q.options || []).map(o => `<option>${o}</option>`).join('')}</select>` : ''}
+                    ${q.type === 'slider' ? `<input type="range" min="${q.sliderMin || 1}" max="${q.sliderMax || 5}" style="width: 100%;" disabled>` : ''}
                     ${q.type === 'date' ? `<input type="date" style="padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled>` : ''}
                     ${q.type === 'file' ? `<input type="file" disabled>` : ''}
                 </div>
@@ -1114,7 +1243,7 @@
             modal.classList.add('show');
         };
 
-        window.closeLivePreview = function() {
+        window.closeLivePreview = function () {
             document.getElementById('preview-modal').classList.remove('show');
         };
 
@@ -1124,4 +1253,5 @@
     <script src="/js/mhent-ui.js"></script>
     <script src="/js/aisa-widget.js" defer></script>
 </body>
+
 </html>
