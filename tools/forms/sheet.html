@@ -564,8 +564,9 @@
             if (presets.phone) thHtml += `<th>Số điện thoại</th>`;
             if (presets.org) thHtml += `<th>Đơn vị / Lớp</th>`;
 
-            (formDef.fields || []).forEach((q, idx) => {
-                thHtml += `<th title="${q.title}">${idx + 1}. ${q.title}</th>`;
+            (formDef.fields || []).forEach((q) => {
+                if (q.type === 'section') return; // Bỏ qua phân trang/mục
+                thHtml += `<th title="${q.title}">${q.title}</th>`;
             });
 
             thHtml += `
@@ -655,7 +656,7 @@
             }
 
             const presets = formMetadata?.presets || {};
-            const fields = formMetadata?.fields || [];
+            const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
 
             tbody.innerHTML = list.map((r, rowIdx) => {
                 const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : 'Mới tạo');
@@ -804,7 +805,7 @@
             }
 
             const presets = formMetadata?.presets || {};
-            const fields = formMetadata?.fields || [];
+            const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
 
             // Build array of objects
             const exportData = filteredResponses.map((r, idx) => {
@@ -818,10 +819,10 @@
                 if (presets.phone) row["Số điện thoại"] = r.userPhone || '';
                 if (presets.org) row["Đơn vị / Lớp"] = r.userOrg || '';
 
-                fields.forEach((q, qIdx) => {
+                fields.forEach((q) => {
                     let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
                     if (Array.isArray(val)) val = val.join(', ');
-                    row[`${qIdx + 1}. ${q.title}`] = val;
+                    row[q.title] = val;
                 });
 
                 row["Ghi chú"] = r.note || '';
@@ -856,14 +857,14 @@
             }
 
             const presets = formMetadata?.presets || {};
-            const fields = formMetadata?.fields || [];
+            const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
 
             const headers = ["STT", "Thời gian nộp", "Trạng thái"];
             if (presets.name !== false) headers.push("Họ và tên");
             if (presets.email !== false) headers.push("Email");
             if (presets.phone) headers.push("Số điện thoại");
             if (presets.org) headers.push("Đơn vị / Lớp");
-            fields.forEach((q, idx) => headers.push(`${idx + 1}. ${q.title}`));
+            fields.forEach(q => headers.push(q.title));
             headers.push("Ghi chú");
 
             const rows = [headers];

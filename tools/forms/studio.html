@@ -500,6 +500,106 @@
             transform: translateY(-2px);
         }
 
+        .add-section-bar {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        .add-section-bar:hover {
+            background: rgba(139, 92, 246, 0.08);
+            border-color: #7c3aed;
+            color: #7c3aed;
+        }
+
+        /* QUESTION DESCRIPTION INPUT */
+        .question-desc-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px dashed var(--border-soft);
+            padding: 6px 2px;
+            font-size: 13.5px;
+            color: var(--text-muted);
+            outline: none;
+            margin-top: 6px;
+            transition: all 0.2s;
+        }
+
+        .question-desc-input:focus {
+            border-bottom-color: var(--primary-accent);
+            color: var(--text-main);
+        }
+
+        /* SECTION CARD */
+        .section-card {
+            border-left: 6px solid #8b5cf6 !important;
+            background: rgba(139, 92, 246, 0.02);
+            position: relative;
+        }
+
+        .section-title-input {
+            font-size: 19px !important;
+            font-weight: 800 !important;
+            border: none !important;
+            border-bottom: 2px dashed rgba(139, 92, 246, 0.3) !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            padding: 6px 0 !important;
+            color: var(--text-main);
+        }
+
+        .section-title-input:focus {
+            border-bottom-color: #8b5cf6 !important;
+        }
+
+        .section-desc-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px dashed var(--border-soft);
+            background: transparent;
+            padding: 8px 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            outline: none;
+            resize: vertical;
+            min-height: 48px;
+            margin-top: 8px;
+        }
+
+        .section-desc-input:focus {
+            border-bottom-color: #8b5cf6;
+            color: var(--text-main);
+        }
+
+        /* OTHER CHOICE OPTION */
+        .other-option-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(99, 102, 241, 0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px dashed rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-add-other-opt {
+            background: transparent;
+            border: 1px dashed var(--border-soft);
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-add-other-opt:hover {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
         /* SIDE PANEL (SETTINGS & THEME) */
         .side-settings {
             position: sticky;
@@ -737,10 +837,14 @@
                 <!-- Dynamically rendered question cards -->
             </div>
 
-            <!-- ADD QUESTION BUTTON -->
-            <div class="add-question-bar" onclick="addNewQuestion()">
-                <i class="fa-solid fa-circle-plus fa-lg"></i> Thêm câu hỏi mới (Trắc nghiệm, Tự luận, Thang điểm,
-                Upload...)
+            <!-- ADD QUESTION & SECTION BUTTONS -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 30px;">
+                <div class="add-question-bar" onclick="addNewQuestion()" style="margin-bottom: 0;">
+                    <i class="fa-solid fa-circle-plus fa-lg"></i> Thêm câu hỏi mới
+                </div>
+                <div class="add-question-bar add-section-bar" onclick="addNewSection()" style="margin-bottom: 0;">
+                    <i class="fa-solid fa-layer-group fa-lg"></i> Thêm Mục mới / Phân trang
+                </div>
             </div>
         </section>
 
@@ -985,11 +1089,25 @@
 
         // ĐỒNG BỘ DỮ LIỆU ĐANG NHẬP TRÊN GIAO DIỆN VÀO STATE
         function syncQuestionsFromDOM() {
-            const cards = document.querySelectorAll('#questions-container .question-card');
+            const cards = document.querySelectorAll('#questions-container .studio-card');
             cards.forEach((card, idx) => {
                 if (!formConfig.fields[idx]) return;
+                
+                // Nếu là thẻ Section / Phân trang
+                if (formConfig.fields[idx].type === 'section') {
+                    const titleInput = card.querySelector('.section-title-input');
+                    if (titleInput) formConfig.fields[idx].title = titleInput.value;
+                    const descInput = card.querySelector('.section-desc-input');
+                    if (descInput) formConfig.fields[idx].description = descInput.value;
+                    return;
+                }
+
+                // Nếu là thẻ câu hỏi thông thường
                 const titleInput = card.querySelector('.question-input');
                 if (titleInput) formConfig.fields[idx].title = titleInput.value;
+
+                const descInput = card.querySelector('.question-desc-input');
+                if (descInput) formConfig.fields[idx].description = descInput.value;
 
                 const typeSelect = card.querySelector('.question-type-select');
                 if (typeSelect) formConfig.fields[idx].type = typeSelect.value;
@@ -1017,6 +1135,20 @@
             }
         };
 
+        window.updateQuestionDescription = function (idx, val) {
+            if (formConfig.fields[idx]) {
+                formConfig.fields[idx].description = val;
+            }
+        };
+
+        window.toggleHasOther = function (idx, isEnabled) {
+            syncQuestionsFromDOM();
+            if (formConfig.fields[idx]) {
+                formConfig.fields[idx].hasOther = !!isEnabled;
+            }
+            renderAllQuestions();
+        };
+
         window.updateQuestionOption = function (qIdx, optIdx, val) {
             if (formConfig.fields[qIdx] && formConfig.fields[qIdx].options) {
                 formConfig.fields[qIdx].options[optIdx] = val;
@@ -1035,15 +1167,17 @@
             }
         };
 
-        // QUESTION CRUD
+        // QUESTION & SECTION CRUD
         window.addNewQuestion = function (defaultTitle = "Câu hỏi mới", defaultType = "text", defaultOptions = ["Tùy chọn 1", "Tùy chọn 2"]) {
             syncQuestionsFromDOM();
             const newQ = {
                 id: "q_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
                 title: defaultTitle,
+                description: "",
                 type: defaultType,
                 required: false,
                 options: defaultOptions,
+                hasOther: false,
                 sliderMin: 1,
                 sliderMax: 5
             };
@@ -1051,11 +1185,38 @@
             renderAllQuestions();
 
             setTimeout(() => {
-                const cards = document.querySelectorAll('#questions-container .question-card');
+                const cards = document.querySelectorAll('#questions-container .studio-card');
                 if (cards.length > 0) {
                     const lastCard = cards[cards.length - 1];
                     lastCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     const input = lastCard.querySelector('.question-input');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }
+            }, 60);
+        };
+
+        window.addNewSection = function () {
+            syncQuestionsFromDOM();
+            const secCount = formConfig.fields.filter(f => f.type === 'section').length + 1;
+            const newSec = {
+                id: "sec_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
+                type: "section",
+                title: `Mục ${secCount}: Tiêu đề mục mới`,
+                description: "",
+                isPageBreak: true
+            };
+            formConfig.fields.push(newSec);
+            renderAllQuestions();
+
+            setTimeout(() => {
+                const cards = document.querySelectorAll('#questions-container .studio-card');
+                if (cards.length > 0) {
+                    const lastCard = cards[cards.length - 1];
+                    lastCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    const input = lastCard.querySelector('.section-title-input');
                     if (input) {
                         input.focus();
                         input.select();
@@ -1073,7 +1234,7 @@
         window.duplicateQuestion = function (idx) {
             syncQuestionsFromDOM();
             const copy = JSON.parse(JSON.stringify(formConfig.fields[idx]));
-            copy.id = "q_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5);
+            copy.id = (copy.type === 'section' ? 'sec_' : 'q_') + Date.now() + "_" + Math.random().toString(36).substring(2, 5);
             copy.title += " (Bản sao)";
             formConfig.fields.splice(idx + 1, 0, copy);
             renderAllQuestions();
@@ -1116,24 +1277,79 @@
             container.innerHTML = '';
 
             formConfig.fields.forEach((q, idx) => {
+                // NẾU LÀ SECTION (PHẦN MỚI / PHÂN TRANG)
+                if (q.type === 'section') {
+                    const secCard = document.createElement('div');
+                    secCard.className = 'studio-card section-card';
+                    secCard.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-layer-group"></i> PHẦN MỚI / PHÂN TRANG (SECTION)
+                            </span>
+                            <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">(Tự động chia thành trang mới khi điền)</span>
+                        </div>
+                        <input type="text" class="section-title-input" value="${escapeHtml(q.title)}" placeholder="Tiêu đề mục..." oninput="updateQuestionTitle(${idx}, this.value)">
+                        <textarea class="section-desc-input" placeholder="Mô tả hoặc hướng dẫn cho mục này (không bắt buộc)..." oninput="updateQuestionDescription(${idx}, this.value)">${escapeHtml(q.description || '')}</textarea>
+                        
+                        <div class="question-bottom-bar" style="margin-top: 14px;">
+                            <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">
+                                <i class="fa-solid fa-circle-info"></i> Các câu hỏi bên dưới sẽ nằm trong mục/trang này.
+                            </div>
+                            <div class="question-actions-right">
+                                <button class="btn-action-icon" onclick="moveQuestion(${idx}, -1)" title="Di chuyển lên"><i class="fa-solid fa-arrow-up"></i></button>
+                                <button class="btn-action-icon" onclick="moveQuestion(${idx}, 1)" title="Di chuyển xuống"><i class="fa-solid fa-arrow-down"></i></button>
+                                <button class="btn-action-icon" onclick="duplicateQuestion(${idx})" title="Nhân bản mục"><i class="fa-regular fa-copy"></i></button>
+                                <button class="btn-action-icon danger" onclick="removeQuestion(${idx})" title="Xóa mục"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(secCard);
+                    return;
+                }
+
+                // NẾU LÀ CÂU HỎI THÔNG THƯỜNG
                 const card = document.createElement('div');
                 card.className = 'studio-card question-card';
                 card.style.borderLeftColor = formConfig.theme.primaryColor || 'var(--primary-accent)';
 
                 let optionsHtml = '';
                 if (['radio', 'checkbox', 'select'].includes(q.type)) {
-                    optionsHtml = `
-                        <div class="options-list">
-                            ${(q.options || []).map((opt, optIdx) => `
-                                <div class="option-row">
-                                    <span class="option-bullet">${q.type === 'radio' ? '⚪' : (q.type === 'checkbox' ? '◻️' : '▾')}</span>
-                                    <input type="text" class="option-input" value="${escapeHtml(opt)}" oninput="updateQuestionOption(${idx}, ${optIdx}, this.value)">
-                                    <button class="btn-remove-opt" onclick="removeOption(${idx}, ${optIdx})" title="Xóa lựa chọn"><i class="fa-solid fa-xmark"></i></button>
-                                </div>
-                            `).join('')}
+                    const regularOptsHtml = (q.options || []).map((opt, optIdx) => `
+                        <div class="option-row">
+                            <span class="option-bullet">${q.type === 'radio' ? '⚪' : (q.type === 'checkbox' ? '◻️' : '▾')}</span>
+                            <input type="text" class="option-input" value="${escapeHtml(opt)}" oninput="updateQuestionOption(${idx}, ${optIdx}, this.value)">
+                            <button class="btn-remove-opt" onclick="removeOption(${idx}, ${optIdx})" title="Xóa lựa chọn"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    `).join('');
+
+                    const otherOptHtml = (q.hasOther && ['radio', 'checkbox'].includes(q.type)) ? `
+                        <div class="other-option-row">
+                            <span class="option-bullet">✏️</span>
+                            <span style="font-size: 13.5px; font-weight: 700; color: var(--primary-accent); flex: 1;">
+                                Mục "Khác..." (Người điền tự nhập câu trả lời riêng)
+                            </span>
+                            <button class="btn-remove-opt" onclick="toggleHasOther(${idx}, false)" title="Xóa mục Khác"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    ` : '';
+
+                    const addButtonsHtml = `
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
                             <button class="btn-add-opt" onclick="addOption(${idx})">
                                 <i class="fa-solid fa-plus"></i> Thêm lựa chọn
                             </button>
+                            ${(!q.hasOther && ['radio', 'checkbox'].includes(q.type)) ? `
+                                <button class="btn-add-other-opt" onclick="toggleHasOther(${idx}, true)">
+                                    <i class="fa-solid fa-pen-to-square"></i> Thêm mục "Khác..."
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+
+                    optionsHtml = `
+                        <div class="options-list">
+                            ${regularOptsHtml}
+                            ${otherOptHtml}
+                            ${addButtonsHtml}
                         </div>
                     `;
                 } else if (q.type === 'slider') {
@@ -1156,7 +1372,10 @@
 
                 card.innerHTML = `
                     <div class="question-top-row">
-                        <input type="text" class="question-input" value="${escapeHtml(q.title)}" placeholder="Nhập câu hỏi..." oninput="updateQuestionTitle(${idx}, this.value)">
+                        <div>
+                            <input type="text" class="question-input" value="${escapeHtml(q.title)}" placeholder="Nhập câu hỏi..." oninput="updateQuestionTitle(${idx}, this.value)">
+                            <input type="text" class="question-desc-input" value="${escapeHtml(q.description || '')}" placeholder="Mô tả / hướng dẫn cho câu hỏi này (không bắt buộc)..." oninput="updateQuestionDescription(${idx}, this.value)">
+                        </div>
                         <select class="question-type-select" onchange="updateQuestionType(${idx}, this.value)">
                             <option value="text" ${q.type === 'text' ? 'selected' : ''}>📝 Văn bản ngắn</option>
                             <option value="textarea" ${q.type === 'textarea' ? 'selected' : ''}>📄 Đoạn văn bản dài</option>
@@ -1192,7 +1411,82 @@
             });
         }
 
-        // THEME & CUSTOMIZATION CONTROLS
+        // LIVE PREVIEW MODAL
+        window.openLivePreview = function () {
+            syncQuestionsFromDOM();
+            const modal = document.getElementById('preview-modal');
+            const render = document.getElementById('preview-content-render');
+
+            const pTitle = document.getElementById('form-title').value || 'Biểu mẫu';
+            const pDesc = document.getElementById('form-desc').value || '';
+            const pBtnText = document.getElementById('btn-submit-text').value || 'Gửi';
+
+            let presetsPreview = '';
+            if (document.getElementById('preset-name').checked) {
+                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Họ và tên *</label><input type="text" placeholder="Nhập họ và tên của cậu..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
+            }
+            if (document.getElementById('preset-email').checked) {
+                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Email *</label><input type="email" placeholder="email@example.com..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
+            }
+            if (document.getElementById('preset-phone').checked) {
+                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Số điện thoại / Zalo</label><input type="text" placeholder="09xxxxxxxx..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
+            }
+            if (document.getElementById('preset-org').checked) {
+                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Đơn vị / Trường / Tổ chức</label><input type="text" placeholder="Tên trường, công ty..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
+            }
+
+            let questionsPreview = formConfig.fields.map((q) => {
+                if (q.type === 'section') {
+                    return `
+                        <div style="background: rgba(139, 92, 246, 0.08); border-left: 5px solid #8b5cf6; padding: 14px 18px; border-radius: 12px; margin: 24px 0 14px;">
+                            <div style="font-size: 11.5px; font-weight: 800; color: #8b5cf6; text-transform: uppercase;">📑 PHẦN MỚI / PHÂN TRANG</div>
+                            <h3 style="margin: 4px 0 4px; font-size: 17px; color: var(--text-main);">${escapeHtml(q.title)}</h3>
+                            ${q.description ? `<p style="margin: 0; font-size: 13.5px; color: var(--text-muted);">${escapeHtml(q.description)}</p>` : ''}
+                        </div>
+                    `;
+                }
+
+                let choicesHtml = '';
+                if (['radio', 'checkbox'].includes(q.type)) {
+                    choicesHtml = (q.options || []).map(o => `<div style="margin: 5px 0;"><label style="display: flex; gap: 8px; align-items: center;"><input type="${q.type}" disabled> ${escapeHtml(o)}</label></div>`).join('');
+                    if (q.hasOther) {
+                        choicesHtml += `<div style="margin: 5px 0;"><label style="display: flex; gap: 8px; align-items: center;"><input type="${q.type}" disabled> <span>Khác:</span> <input type="text" disabled placeholder="..." style="border: none; border-bottom: 1px dashed var(--border-soft); width: 140px;"></label></div>`;
+                    }
+                }
+
+                return `
+                    <div style="margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px dashed var(--border-soft);">
+                        <label style="font-weight: 800; display: block; margin-bottom: 4px;">${escapeHtml(q.title)} ${q.required ? '<span style="color: red;">*</span>' : ''}</label>
+                        ${q.description ? `<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">${escapeHtml(q.description)}</div>` : ''}
+                        ${q.type === 'text' ? '<input type="text" style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled placeholder="Câu trả lời ngắn...">' : ''}
+                        ${q.type === 'textarea' ? '<textarea style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled placeholder="Đoạn văn..."></textarea>' : ''}
+                        ${choicesHtml}
+                        ${q.type === 'select' ? `<select style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled><option>-- Chọn một tùy chọn --</option>${(q.options || []).map(o => `<option>${escapeHtml(o)}</option>`).join('')}</select>` : ''}
+                        ${q.type === 'slider' ? `<input type="range" min="${q.sliderMin || 1}" max="${q.sliderMax || 5}" style="width: 100%;" disabled>` : ''}
+                        ${q.type === 'date' ? `<input type="date" style="padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled>` : ''}
+                        ${q.type === 'file' ? `<input type="text" placeholder="Dán liên kết tệp..." style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            render.innerHTML = `
+                <div style="background: ${formConfig.theme.gradient || 'linear-gradient(135deg, #6366f1, #8b5cf6)'}; color: white; padding: 25px; border-radius: 16px; margin-bottom: 20px; text-align: left;">
+                    <i class="${(formConfig.theme.icon && formConfig.theme.icon.includes('wpforms')) ? 'fa-brands fa-wpforms' : (formConfig.theme.icon || 'fa-brands fa-wpforms')} fa-2x" style="margin-bottom: 12px; display: block;"></i>
+                    <h2 style="margin: 0 0 8px; font-size: 22px;">${escapeHtml(pTitle)}</h2>
+                    <p style="margin: 0; opacity: 0.95; font-size: 14px; line-height: 1.5; white-space: pre-line;">${escapeHtml(pDesc)}</p>
+                </div>
+                ${presetsPreview}
+                ${questionsPreview}
+                <button style="width: 100%; padding: 14px; background: ${formConfig.theme.primaryColor || '#6366f1'}; color: white; border: none; border-radius: 50px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 10px;">
+                    <i class="fa-solid fa-paper-plane"></i> ${escapeHtml(pBtnText)}
+                </button>
+            `;
+            modal.classList.add('show');
+        };
+
+        window.closeLivePreview = function () {
+            document.getElementById('preview-modal').classList.remove('show');
+        };
         window.selectThemePreset = function (color, gradient) {
             formConfig.theme.primaryColor = color;
             formConfig.theme.gradient = gradient;
@@ -1279,62 +1573,6 @@
 
         window.openConnectedSheet = function () {
             window.location.href = `/tools/forms/sheet?id=${formId}`;
-        };
-
-        // LIVE PREVIEW MODAL
-        window.openLivePreview = function () {
-            syncQuestionsFromDOM();
-            const modal = document.getElementById('preview-modal');
-            const render = document.getElementById('preview-content-render');
-
-            const pTitle = document.getElementById('form-title').value || 'Biểu mẫu';
-            const pDesc = document.getElementById('form-desc').value || '';
-            const pBtnText = document.getElementById('btn-submit-text').value || 'Gửi';
-
-            let presetsPreview = '';
-            if (document.getElementById('preset-name').checked) {
-                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Họ và tên *</label><input type="text" placeholder="Nhập họ và tên của cậu..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
-            }
-            if (document.getElementById('preset-email').checked) {
-                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Email *</label><input type="email" placeholder="email@example.com..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
-            }
-            if (document.getElementById('preset-phone').checked) {
-                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Số điện thoại / Zalo</label><input type="text" placeholder="09xxxxxxxx..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
-            }
-            if (document.getElementById('preset-org').checked) {
-                presetsPreview += `<div style="margin-bottom: 12px;"><label style="font-weight: bold; display: block; margin-bottom: 4px;">Đơn vị / Trường / Tổ chức</label><input type="text" placeholder="Tên trường, công ty..." style="width: 100%; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled></div>`;
-            }
-
-            let questionsPreview = formConfig.fields.map((q, idx) => `
-                <div style="margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px dashed var(--border-soft);">
-                    <label style="font-weight: 800; display: block; margin-bottom: 6px;">${idx + 1}. ${q.title} ${q.required ? '<span style="color: red;">*</span>' : ''}</label>
-                    ${q.type === 'text' ? '<input type="text" style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled placeholder="Câu trả lời ngắn...">' : ''}
-                    ${q.type === 'textarea' ? '<textarea style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled placeholder="Đoạn văn..."></textarea>' : ''}
-                    ${['radio', 'checkbox'].includes(q.type) ? (q.options || []).map(o => `<div style="margin: 4px 0;"><label><input type="${q.type}" disabled> ${o}</label></div>`).join('') : ''}
-                    ${q.type === 'select' ? `<select style="width: 100%; padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled><option>-- Chọn một tùy chọn --</option>${(q.options || []).map(o => `<option>${o}</option>`).join('')}</select>` : ''}
-                    ${q.type === 'slider' ? `<input type="range" min="${q.sliderMin || 1}" max="${q.sliderMax || 5}" style="width: 100%;" disabled>` : ''}
-                    ${q.type === 'date' ? `<input type="date" style="padding: 8px; border: 1px solid var(--border-soft); border-radius: 8px;" disabled>` : ''}
-                    ${q.type === 'file' ? `<input type="file" disabled>` : ''}
-                </div>
-            `).join('');
-
-            render.innerHTML = `
-                <div style="background: ${formConfig.theme.gradient || 'linear-gradient(135deg, #6366f1, #8b5cf6)'}; color: white; padding: 25px; border-radius: 16px; margin-bottom: 20px; text-align: center;">
-                    <i class="${(formConfig.theme.icon && formConfig.theme.icon.includes('wpforms')) ? 'fa-brands fa-wpforms' : (formConfig.theme.icon || 'fa-brands fa-wpforms')} fa-2x" style="margin-bottom: 10px;"></i>
-                    <h2 style="margin: 0 0 8px;">${pTitle}</h2>
-                    <p style="margin: 0; opacity: 0.9; font-size: 14px;">${pDesc}</p>
-                </div>
-                ${presetsPreview}
-                ${questionsPreview}
-                <button style="width: 100%; padding: 14px; background: ${formConfig.theme.primaryColor || '#6366f1'}; color: white; border: none; border-radius: 50px; font-weight: 800; font-size: 16px; cursor: pointer;">
-                    <i class="fa-solid fa-paper-plane"></i> ${pBtnText}
-                </button>
-            `;
-            modal.classList.add('show');
-        };
-
-        window.closeLivePreview = function () {
-            document.getElementById('preview-modal').classList.remove('show');
         };
 
         loadExistingForm();

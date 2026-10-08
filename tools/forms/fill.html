@@ -60,10 +60,38 @@
             padding-bottom: 60px;
         }
 
+        /* CONTAINER & 2-COLUMN PC / 1-COLUMN MOBILE GRID */
         .form-runner-container {
-            max-width: 680px;
+            max-width: 1140px;
             margin: 0 auto;
-            padding: 0 16px;
+            padding: 10px 20px 60px;
+        }
+
+        .runner-form-grid {
+            display: grid;
+            grid-template-columns: 390px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .runner-left-col {
+            position: sticky;
+            top: 75px;
+            max-height: calc(100vh - 95px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            padding-bottom: 20px;
+        }
+        .runner-left-col::-webkit-scrollbar {
+            width: 4px;
+        }
+        .runner-left-col::-webkit-scrollbar-thumb {
+            background: var(--border-soft);
+            border-radius: 4px;
+        }
+
+        .runner-right-col {
+            min-width: 0;
         }
 
         .runner-card {
@@ -80,50 +108,143 @@
             box-shadow: 0 14px 35px rgba(0, 0, 0, 0.07);
         }
 
-        /* HEADER CARD */
+        /* HEADER CARD (LEFT-ALIGNED) */
         .runner-header-card {
             border-top: 8px solid var(--primary-accent);
-            text-align: center;
+            text-align: left;
             overflow: hidden;
+            margin-bottom: 0;
         }
         .runner-banner {
             height: 110px;
             border-radius: 14px;
-            margin-bottom: 22px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 42px;
+            font-size: 38px;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.12);
         }
         .runner-title {
-            font-size: 30px;
+            font-size: 26px;
             font-weight: 900;
             color: var(--text-main);
-            margin: 0 0 10px;
-            line-height: 1.3;
+            margin: 0 0 12px;
+            line-height: 1.35;
+            text-align: left;
+            word-break: break-word;
         }
         .runner-desc {
-            font-size: 15px;
+            font-size: 14.5px;
             color: var(--text-muted);
-            margin: 0 0 18px;
-            line-height: 1.6;
+            margin: 0 0 20px;
+            line-height: 1.65;
             white-space: pre-line;
+            text-align: left;
+            word-break: break-word;
         }
         .runner-meta-strip {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             background: rgba(99, 102, 241, 0.08);
-            padding: 6px 16px;
+            padding: 7px 16px;
             border-radius: 30px;
             font-size: 13px;
             font-weight: 700;
             color: var(--primary-accent);
+            text-align: left;
         }
 
-        /* FIELD GROUPS */
+        /* PROGRESS BAR FOR MULTI-PAGE */
+        .runner-progress-card {
+            padding: 16px 22px;
+            margin-bottom: 18px;
+            border-radius: 18px;
+        }
+        .progress-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13.5px;
+            font-weight: 800;
+        }
+        .progress-step-text {
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .progress-percent-text {
+            color: var(--text-muted);
+        }
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(99, 102, 241, 0.12);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-accent);
+            border-radius: 10px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* SECTION HEADER CARD */
+        .section-header-card {
+            border-left: 6px solid var(--primary-accent);
+            margin-bottom: 18px;
+            padding: 20px 24px;
+            background: var(--card-bg);
+            border-radius: 18px;
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+        }
+        .section-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-accent);
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0 0 6px;
+            color: var(--text-main);
+        }
+        .section-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.55;
+            white-space: pre-line;
+        }
+
+        /* UNIFIED QUESTION GROUP CARD */
+        .question-group-card {
+            padding: 26px 28px;
+            margin-bottom: 22px;
+        }
+        .question-block {
+            position: relative;
+        }
+        .question-divider {
+            height: 1px;
+            background: var(--border-soft);
+            margin: 26px 0;
+        }
+
+        /* FIELD GROUPS & QUESTION DETAILS */
         .field-group {
             margin-bottom: 4px;
         }
@@ -134,6 +255,14 @@
             color: var(--text-main);
             margin-bottom: 8px;
             line-height: 1.4;
+        }
+        .field-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin: -4px 0 12px;
+            line-height: 1.5;
+            white-space: pre-line;
+            font-weight: 500;
         }
         .required-asterisk {
             color: #ef4444;
@@ -174,11 +303,34 @@
             border-color: var(--primary-accent);
             background: rgba(99, 102, 241, 0.04);
         }
-        .choice-option input {
+        .choice-option input[type="radio"],
+        .choice-option input[type="checkbox"] {
             width: 18px;
             height: 18px;
             accent-color: var(--primary-accent);
             cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* CHOICE OTHER ("MỤC KHÁC") */
+        .choice-other-item {
+            flex-wrap: wrap;
+        }
+        .choice-other-item .other-text-field {
+            flex: 1;
+            min-width: 180px;
+            border: none;
+            border-bottom: 2px dashed var(--border-soft);
+            background: transparent;
+            color: var(--text-main);
+            font-size: 14.5px;
+            padding: 4px 6px;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .choice-other-item .other-text-field:focus {
+            border-bottom-color: var(--primary-accent);
         }
 
         /* SLIDER RATING */
@@ -198,6 +350,46 @@
             font-weight: 800;
             color: var(--text-muted);
             margin-top: 8px;
+        }
+
+        /* PAGE NAVIGATION BUTTONS */
+        .page-nav-bar {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            margin-bottom: 40px;
+        }
+        .btn-page-nav {
+            padding: 14px 26px;
+            border-radius: 50px;
+            border: 1px solid var(--border-soft);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-page-nav:hover {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+        }
+        .btn-page-nav.btn-next {
+            background: var(--primary-accent);
+            color: white;
+            border: none;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+            margin-left: auto;
+        }
+        .btn-page-nav.btn-next:hover {
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
         }
 
         /* SUBMIT BUTTON */
@@ -251,6 +443,30 @@
             50% { transform: scale(1.08); }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* RESPONSIVE LAYOUT FOR MOBILE */
+        @media (max-width: 991px) {
+            .form-runner-container {
+                max-width: 680px;
+                padding: 10px 14px 50px;
+            }
+            .runner-form-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+            .runner-left-col {
+                position: static;
+                max-height: none;
+                overflow-y: visible;
+                padding-bottom: 0;
+            }
+            .runner-card {
+                padding: 22px 18px;
+            }
+            .question-group-card {
+                padding: 22px 18px;
+            }
+        }
     </style>
     <script src="/js/config.js"></script>
 </head>
@@ -289,33 +505,47 @@
 
         <!-- MAIN FORM RUNNER -->
         <form id="active-form" style="display: none;">
-            <!-- HEADER -->
-            <div class="runner-card runner-header-card" id="card-header">
-                <div class="runner-banner" id="runner-banner">
-                    <i class="fa-brands fa-wpforms" id="runner-banner-icon"></i>
+            <div class="runner-form-grid">
+                <!-- LEFT COLUMN: Sticky Form Header (PC) / Stacked on Mobile -->
+                <div class="runner-left-col">
+                    <div class="runner-card runner-header-card" id="card-header">
+                        <div class="runner-banner" id="runner-banner">
+                            <i class="fa-brands fa-wpforms" id="runner-banner-icon"></i>
+                        </div>
+                        <h1 class="runner-title" id="runner-title">Tiêu đề biểu mẫu</h1>
+                        <p class="runner-desc" id="runner-desc">Mô tả biểu mẫu</p>
+                        <div class="runner-meta-strip">
+                            <i class="fa-solid fa-shield-halved"></i> Xác thực qua Hệ thống MHEnt Universe
+                        </div>
+                    </div>
                 </div>
-                <h1 class="runner-title" id="runner-title">Tiêu đề biểu mẫu</h1>
-                <p class="runner-desc" id="runner-desc">Mô tả biểu mẫu</p>
-                <div class="runner-meta-strip">
-                    <i class="fa-solid fa-shield-halved"></i> Xác thực qua Hệ thống MHEnt Universe
+
+                <!-- RIGHT COLUMN: Progress + Presets + Dynamic Page Cards + Actions -->
+                <div class="runner-right-col">
+                    <!-- PROGRESS BAR (If Multi-page) -->
+                    <div class="runner-card runner-progress-card" id="runner-progress-card" style="display: none;">
+                        <div class="progress-info-row">
+                            <span class="progress-step-text" id="progress-step-text">
+                                <i class="fa-solid fa-layer-group"></i> Mục 1 / 1
+                            </span>
+                            <span class="progress-percent-text" id="progress-percent-text">100%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progress-fill-bar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- CORE PRESETS CARD (Rendered on Page 1) -->
+                    <div class="runner-card" id="card-presets" style="display: none;">
+                        <h3 style="margin: 0 0 16px; font-size: 17px; color: var(--primary-accent); font-weight: 800;">
+                            <i class="fa-solid fa-id-card"></i> Thông tin người điền
+                        </h3>
+                        <div id="presets-container"></div>
+                    </div>
+
+                    <!-- PAGES CONTAINER (Each Page holds section header, questions group card, and pagination) -->
+                    <div id="pages-render-container"></div>
                 </div>
-            </div>
-
-            <!-- CORE PRESETS -->
-            <div class="runner-card" id="card-presets" style="display: none;">
-                <h3 style="margin: 0 0 16px; font-size: 18px; color: var(--primary-accent);"><i class="fa-solid fa-id-card"></i> Thông tin người điền</h3>
-                <div id="presets-container"></div>
-            </div>
-
-            <!-- CUSTOM QUESTIONS -->
-            <div id="questions-render-container"></div>
-
-            <!-- SUBMIT BUTTON -->
-            <div style="margin-top: 10px; margin-bottom: 40px;">
-                <button type="submit" class="btn-runner-submit" id="btn-submit">
-                    <i class="fa-solid fa-paper-plane" id="btn-submit-icon"></i>
-                    <span id="btn-submit-text">Gửi vào Vũ Trụ MHEnt</span>
-                </button>
             </div>
         </form>
 
@@ -416,6 +646,100 @@
             document.getElementById('error-box').style.display = 'block';
         }
 
+        function escapeHtml(str) {
+            if (!str && str !== 0) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // PAGINATION & OTHER OPTION CONTROLS (EXPOSED TO WINDOW)
+        window.currentPageIdx = 0;
+        window.totalPages = 1;
+
+        window.selectOtherRadio = function(qid) {
+            const radio = document.querySelector(`input[name="q_${qid}"][value="__other__"]`);
+            if (radio) radio.checked = true;
+        };
+
+        window.checkOtherCheckbox = function(qid) {
+            const cb = document.getElementById(`other_cb_${qid}`);
+            if (cb) cb.checked = true;
+        };
+
+        window.handleOtherToggle = function(qid, isOther) {
+            if (!isOther) {
+                const textInp = document.getElementById(`other_input_${qid}`);
+                if (textInp) textInp.value = '';
+            }
+        };
+
+        window.updateProgress = function(pageIdx, total) {
+            const stepText = document.getElementById('progress-step-text');
+            const percentText = document.getElementById('progress-percent-text');
+            const fillBar = document.getElementById('progress-fill-bar');
+            if (!stepText || !percentText || !fillBar) return;
+            const pct = Math.round(((pageIdx + 1) / total) * 100);
+            stepText.innerHTML = `<i class="fa-solid fa-layer-group"></i> Mục ${pageIdx + 1} / ${total}`;
+            percentText.innerText = `${pct}%`;
+            fillBar.style.width = `${pct}%`;
+        };
+
+        window.goToPage = function(pageIdx) {
+            if (pageIdx < 0 || pageIdx >= window.totalPages) return;
+            document.querySelectorAll('.form-page').forEach((p, idx) => {
+                p.style.display = (idx === pageIdx) ? 'block' : 'none';
+            });
+            // Ẩn presets card nếu sang trang 2 trở đi
+            const presetsCard = document.getElementById('card-presets');
+            if (presetsCard && presetsCard.dataset.hasPresets === 'true') {
+                presetsCard.style.display = (pageIdx === 0) ? 'block' : 'none';
+            }
+            window.currentPageIdx = pageIdx;
+            window.updateProgress(pageIdx, window.totalPages);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.validateAndGoToPage = function(targetIdx) {
+            const curPage = document.getElementById(`form-page-${window.currentPageIdx}`);
+            if (!curPage) return;
+
+            // 1. Kiểm tra các ô input, textarea, select bắt buộc trên trang hiện tại
+            const reqControls = curPage.querySelectorAll('input[required], textarea[required], select[required]');
+            for (let inp of reqControls) {
+                if (!inp.checkValidity()) {
+                    inp.reportValidity();
+                    inp.focus();
+                    if (window.showToast) {
+                        window.showToast("Còn câu hỏi bắt buộc", "Vui lòng hoàn thành câu hỏi bắt buộc ở mục này trước khi chuyển tiếp nha!", "warning");
+                    }
+                    return;
+                }
+            }
+
+            // 2. Kiểm tra nhóm radio bắt buộc trên trang hiện tại
+            const radioGroups = new Set();
+            curPage.querySelectorAll('input[type="radio"][required]').forEach(r => radioGroups.add(r.name));
+            for (let gName of radioGroups) {
+                const checked = curPage.querySelector(`input[name="${gName}"]:checked`);
+                if (!checked) {
+                    const firstRadio = curPage.querySelector(`input[name="${gName}"]`);
+                    if (firstRadio) {
+                        firstRadio.focus();
+                        if (window.showToast) {
+                            window.showToast("Còn câu hỏi bắt buộc", "Vui lòng chọn câu trả lời bắt buộc ở mục này trước khi tiếp tục nha!", "warning");
+                        }
+                        return;
+                    }
+                }
+            }
+
+            window.goToPage(targetIdx);
+        };
+
         function renderForm(data) {
             document.getElementById('loading-box').style.display = 'none';
             document.getElementById('active-form').style.display = 'block';
@@ -438,12 +762,7 @@
             document.getElementById('runner-title').innerText = data.title || 'Biểu mẫu';
             document.getElementById('runner-desc').innerText = data.description || '';
 
-            // Submit Button
-            if (data.submitButton?.text) {
-                document.getElementById('btn-submit-text').innerText = data.submitButton.text;
-            }
-
-            // Render Presets
+            // Render Presets (Họ tên, email, sđt, đơn vị)
             const presets = data.presets || {};
             const presetsContainer = document.getElementById('presets-container');
             presetsContainer.innerHTML = '';
@@ -485,79 +804,201 @@
                     </div>
                 `;
             }
+            const presetsCardEl = document.getElementById('card-presets');
             if (hasPresets) {
-                document.getElementById('card-presets').style.display = 'block';
+                presetsCardEl.dataset.hasPresets = 'true';
+                presetsCardEl.style.display = 'block';
+            } else {
+                presetsCardEl.dataset.hasPresets = 'false';
+                presetsCardEl.style.display = 'none';
             }
 
-            // Render Questions
-            const qContainer = document.getElementById('questions-render-container');
-            qContainer.innerHTML = '';
+            // CHIA TRANG & NHÓM CÂU HỎI THEO SECTION
+            const pages = [];
+            let curPage = { section: null, fields: [] };
 
-            (data.fields || []).forEach((q, idx) => {
-                const card = document.createElement('div');
-                card.className = 'runner-card';
-                card.id = `card_q_${q.id}`;
+            (data.fields || []).forEach(item => {
+                if (item.type === 'section') {
+                    if (curPage.fields.length > 0 || curPage.section) {
+                        pages.push(curPage);
+                        curPage = { section: item, fields: [] };
+                    } else {
+                        curPage.section = item;
+                    }
+                } else {
+                    curPage.fields.push(item);
+                }
+            });
+            if (curPage.fields.length > 0 || curPage.section) {
+                pages.push(curPage);
+            }
+            if (pages.length === 0) {
+                pages.push({ section: null, fields: [] });
+            }
 
-                let inputHtml = '';
-                const reqAttr = q.required ? 'required' : '';
+            window.formPages = pages;
+            window.totalPages = pages.length;
+            window.currentPageIdx = 0;
 
-                if (q.type === 'text') {
-                    inputHtml = `<input type="text" name="q_${q.id}" class="field-input" ${reqAttr} placeholder="Câu trả lời của cậu...">`;
-                } else if (q.type === 'textarea') {
-                    inputHtml = `<textarea name="q_${q.id}" class="field-input" rows="3" ${reqAttr} placeholder="Nhập nội dung chi tiết..."></textarea>`;
-                } else if (q.type === 'radio') {
-                    inputHtml = (q.options || []).map((opt, optIdx) => `
-                        <label class="choice-option">
-                            <input type="radio" name="q_${q.id}" value="${opt}" ${reqAttr && optIdx === 0 ? 'required' : ''}>
-                            <span>${opt}</span>
-                        </label>
-                    `).join('');
-                } else if (q.type === 'checkbox') {
-                    inputHtml = (q.options || []).map(opt => `
-                        <label class="choice-option">
-                            <input type="checkbox" name="q_${q.id}" value="${opt}">
-                            <span>${opt}</span>
-                        </label>
-                    `).join('');
-                } else if (q.type === 'select') {
-                    inputHtml = `
-                        <select name="q_${q.id}" class="field-input" ${reqAttr}>
-                            <option value="">-- Vui lòng chọn một mục --</option>
-                            ${(q.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                        </select>
-                    `;
-                } else if (q.type === 'slider') {
-                    const min = q.sliderMin || 1;
-                    const max = q.sliderMax || 5;
-                    inputHtml = `
-                        <div class="slider-wrap">
-                            <div style="text-align: center; font-size: 20px; font-weight: 900; color: var(--primary-accent); margin-bottom: 8px;" id="val_q_${q.id}">${Math.round((min+max)/2)}</div>
-                            <input type="range" name="q_${q.id}" class="slider-control" min="${min}" max="${max}" value="${Math.round((min+max)/2)}" oninput="document.getElementById('val_q_${q.id}').innerText = this.value">
-                            <div class="slider-scale-values">
-                                <span>${min}</span>
-                                <span>${max}</span>
-                            </div>
+            // Thanh tiến trình nếu có từ 2 trang trở lên
+            const progressCard = document.getElementById('runner-progress-card');
+            if (pages.length > 1) {
+                progressCard.style.display = 'block';
+                window.updateProgress(0, pages.length);
+            } else {
+                progressCard.style.display = 'none';
+            }
+
+            // RENDER CÁC TRANG VÀ NHÓM CÂU HỎI
+            const pagesContainer = document.getElementById('pages-render-container');
+            pagesContainer.innerHTML = '';
+
+            pages.forEach((page, pIdx) => {
+                const pageEl = document.createElement('div');
+                pageEl.className = 'form-page';
+                pageEl.id = `form-page-${pIdx}`;
+                pageEl.style.display = (pIdx === 0) ? 'block' : 'none';
+
+                let pageContent = '';
+
+                // Header của Section (nếu có)
+                if (page.section) {
+                    pageContent += `
+                        <div class="section-header-card" style="border-left-color: ${primaryColor};">
+                            ${pages.length > 1 ? `<div class="section-badge" style="color: ${primaryColor}; background: rgba(99,102,241,0.08);">MỤC ${pIdx + 1} / ${pages.length}</div>` : ''}
+                            <h2 class="section-title">${escapeHtml(page.section.title)}</h2>
+                            ${page.section.description ? `<p class="section-desc">${escapeHtml(page.section.description)}</p>` : ''}
                         </div>
-                    `;
-                } else if (q.type === 'date') {
-                    inputHtml = `<input type="date" name="q_${q.id}" class="field-input" ${reqAttr}>`;
-                } else if (q.type === 'file') {
-                    inputHtml = `
-                        <input type="text" name="q_${q.id}" class="field-input" ${reqAttr} placeholder="Dán liên kết tệp Google Drive, OneDrive hoặc hình ảnh công khai...">
-                        <small style="color: var(--text-muted); display: block; margin-top: 6px;"><i class="fa-solid fa-circle-info"></i> Hãy chắc chắn link được mở quyền xem công khai nha.</small>
                     `;
                 }
 
-                card.innerHTML = `
-                    <div class="field-group">
-                        <label class="field-label">
-                            ${idx + 1}. ${q.title}
-                            ${q.required ? '<span class="required-asterisk">*</span>' : ''}
-                        </label>
-                        ${inputHtml}
+                // Nhóm các câu hỏi vào trong 1 khung (Group Card)
+                if (page.fields.length > 0) {
+                    let questionsInsideGroup = '';
+                    page.fields.forEach((q, qIndex) => {
+                        const reqAttr = q.required ? 'required' : '';
+                        let inputHtml = '';
+
+                        if (q.type === 'text') {
+                            inputHtml = `<input type="text" name="q_${q.id}" class="field-input" ${reqAttr} placeholder="Câu trả lời của cậu...">`;
+                        } else if (q.type === 'textarea') {
+                            inputHtml = `<textarea name="q_${q.id}" class="field-input" rows="3" ${reqAttr} placeholder="Nhập nội dung chi tiết..."></textarea>`;
+                        } else if (q.type === 'radio') {
+                            const regularOpts = (q.options || []).map((opt, optIdx) => `
+                                <label class="choice-option">
+                                    <input type="radio" name="q_${q.id}" value="${escapeHtml(opt)}" ${reqAttr && optIdx === 0 ? 'required' : ''} onchange="window.handleOtherToggle('${q.id}', false)">
+                                    <span>${escapeHtml(opt)}</span>
+                                </label>
+                            `).join('');
+
+                            const otherOpt = q.hasOther ? `
+                                <label class="choice-option choice-other-item" id="other_label_${q.id}">
+                                    <input type="radio" name="q_${q.id}" value="__other__" onchange="window.handleOtherToggle('${q.id}', true)">
+                                    <span style="font-weight: 700;">Khác:</span>
+                                    <input type="text" id="other_input_${q.id}" class="other-text-field" placeholder="Nhập câu trả lời khác..." onfocus="window.selectOtherRadio('${q.id}')">
+                                </label>
+                            ` : '';
+
+                            inputHtml = regularOpts + otherOpt;
+                        } else if (q.type === 'checkbox') {
+                            const regularOpts = (q.options || []).map(opt => `
+                                <label class="choice-option">
+                                    <input type="checkbox" name="q_${q.id}" value="${escapeHtml(opt)}">
+                                    <span>${escapeHtml(opt)}</span>
+                                </label>
+                            `).join('');
+
+                            const otherOpt = q.hasOther ? `
+                                <label class="choice-option choice-other-item" id="other_label_${q.id}">
+                                    <input type="checkbox" name="q_${q.id}" value="__other__" id="other_cb_${q.id}">
+                                    <span style="font-weight: 700;">Khác:</span>
+                                    <input type="text" id="other_input_${q.id}" class="other-text-field" placeholder="Nhập câu trả lời khác..." onfocus="window.checkOtherCheckbox('${q.id}')">
+                                </label>
+                            ` : '';
+
+                            inputHtml = regularOpts + otherOpt;
+                        } else if (q.type === 'select') {
+                            inputHtml = `
+                                <select name="q_${q.id}" class="field-input" ${reqAttr}>
+                                    <option value="">-- Vui lòng chọn một mục --</option>
+                                    ${(q.options || []).map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+                                </select>
+                            `;
+                        } else if (q.type === 'slider') {
+                            const min = q.sliderMin || 1;
+                            const max = q.sliderMax || 5;
+                            inputHtml = `
+                                <div class="slider-wrap">
+                                    <div style="text-align: center; font-size: 20px; font-weight: 900; color: var(--primary-accent); margin-bottom: 8px;" id="val_q_${q.id}">${Math.round((min+max)/2)}</div>
+                                    <input type="range" name="q_${q.id}" class="slider-control" min="${min}" max="${max}" value="${Math.round((min+max)/2)}" oninput="document.getElementById('val_q_${q.id}').innerText = this.value">
+                                    <div class="slider-scale-values">
+                                        <span>${min}</span>
+                                        <span>${max}</span>
+                                    </div>
+                                </div>
+                            `;
+                        } else if (q.type === 'date') {
+                            inputHtml = `<input type="date" name="q_${q.id}" class="field-input" ${reqAttr}>`;
+                        } else if (q.type === 'file') {
+                            inputHtml = `
+                                <input type="text" name="q_${q.id}" class="field-input" ${reqAttr} placeholder="Dán liên kết tệp Google Drive, OneDrive hoặc hình ảnh công khai...">
+                                <small style="color: var(--text-muted); display: block; margin-top: 6px;"><i class="fa-solid fa-circle-info"></i> Hãy chắc chắn link được mở quyền xem công khai nha.</small>
+                            `;
+                        }
+
+                        // Divider giữa các câu trong cùng khung
+                        const dividerHtml = (qIndex > 0) ? `<div class="question-divider"></div>` : '';
+
+                        questionsInsideGroup += `
+                            ${dividerHtml}
+                            <div class="question-block" id="block_q_${q.id}">
+                                <label class="field-label">
+                                    ${escapeHtml(q.title)}
+                                    ${q.required ? '<span class="required-asterisk">*</span>' : ''}
+                                </label>
+                                ${q.description ? `<div class="field-desc">${escapeHtml(q.description)}</div>` : ''}
+                                ${inputHtml}
+                            </div>
+                        `;
+                    });
+
+                    pageContent += `
+                        <div class="runner-card question-group-card">
+                            ${questionsInsideGroup}
+                        </div>
+                    `;
+                }
+
+                // Nút điều hướng phân trang (Quay lại / Tiếp tục / Nộp bài)
+                const isLastPage = (pIdx === pages.length - 1);
+                const isFirstPage = (pIdx === 0);
+
+                const prevBtnHtml = !isFirstPage ? `
+                    <button type="button" class="btn-page-nav btn-prev" onclick="window.goToPage(${pIdx - 1})">
+                        <i class="fa-solid fa-arrow-left"></i> Quay lại
+                    </button>
+                ` : '<div></div>';
+
+                const nextBtnHtml = !isLastPage ? `
+                    <button type="button" class="btn-page-nav btn-next" onclick="window.validateAndGoToPage(${pIdx + 1})">
+                        Tiếp tục <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                ` : `
+                    <button type="submit" class="btn-runner-submit" id="btn-submit" style="width: auto; min-width: 220px;">
+                        <i class="fa-solid fa-paper-plane" id="btn-submit-icon"></i>
+                        <span id="btn-submit-text">${data.submitButton?.text || 'Gửi vào Vũ Trụ MHEnt'}</span>
+                    </button>
+                `;
+
+                pageContent += `
+                    <div class="page-nav-bar">
+                        ${prevBtnHtml}
+                        ${nextBtnHtml}
                     </div>
                 `;
-                qContainer.appendChild(card);
+
+                pageEl.innerHTML = pageContent;
+                pagesContainer.appendChild(pageEl);
             });
         }
 
@@ -573,8 +1014,10 @@
             }
 
             const btnSubmit = document.getElementById('btn-submit');
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang truyền dữ liệu...`;
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang truyền dữ liệu...`;
+            }
 
             try {
                 // Collect Presets
@@ -583,18 +1026,35 @@
                 const userPhone = document.getElementById('input-preset-phone')?.value.trim() || '';
                 const userOrg = document.getElementById('input-preset-org')?.value.trim() || '';
 
-                // Collect Answers
+                // Collect Answers (Bỏ qua các mục section divider)
                 const answersMap = {};
                 const answersList = [];
 
                 (formConfig.fields || []).forEach(q => {
+                    if (q.type === 'section') return; // Không phải câu hỏi
+
                     let val = null;
                     if (q.type === 'checkbox') {
                         const checkedNodes = document.querySelectorAll(`input[name="q_${q.id}"]:checked`);
-                        val = Array.from(checkedNodes).map(n => n.value);
+                        val = Array.from(checkedNodes).map(n => {
+                            if (n.value === '__other__') {
+                                const customVal = document.getElementById(`other_input_${q.id}`)?.value.trim();
+                                return customVal ? `Khác: ${customVal}` : 'Khác';
+                            }
+                            return n.value;
+                        });
                     } else if (q.type === 'radio') {
                         const checkedNode = document.querySelector(`input[name="q_${q.id}"]:checked`);
-                        val = checkedNode ? checkedNode.value : '';
+                        if (checkedNode) {
+                            if (checkedNode.value === '__other__') {
+                                const customVal = document.getElementById(`other_input_${q.id}`)?.value.trim();
+                                val = customVal ? `Khác: ${customVal}` : 'Khác';
+                            } else {
+                                val = checkedNode.value;
+                            }
+                        } else {
+                            val = '';
+                        }
                     } else {
                         const inputNode = document.querySelector(`[name="q_${q.id}"]`);
                         val = inputNode ? inputNode.value : '';
