@@ -511,6 +511,31 @@
                 sessionStorage.removeItem('mhent_login_source');
                 sessionStorage.removeItem('mhent_auth_pending_redirect');
 
+                if (source === 'mhentstudy' || source === 'study') {
+                    const token = await user.getIdToken(); 
+                    const email = encodeURIComponent(user.email || '');
+                    const name = encodeURIComponent(user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'));
+                    const photo = encodeURIComponent(user.photoURL || '');
+                    const deepLink = `mhentstudy://auth?uid=${user.uid}&email=${email}&name=${name}&photo=${photo}&token=${token}`;
+                    
+                    document.body.innerHTML = `
+                        <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#070b13; color:#f8fafc; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:24px; box-sizing:border-box;">
+                            <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; border: 2px solid #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">🎓</div>
+                            <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #38bdf8;">Đăng Nhập Thành Công!</h1>
+                            <p style="font-size: 15px; color: #94a3b8; max-width: 380px; line-height: 1.6; margin-bottom: 25px;">Hệ thống đang tự động mở lại ứng dụng <strong>MHEnt. Study</strong>...</p>
+                            <a href="${deepLink}" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; padding: 14px 28px; border-radius: 9999px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); font-size: 15px;">
+                                🚀 Mở MHEnt. Study ngay
+                            </a>
+                            <p style="opacity: 0.6; font-size: 13px; margin-top: 25px;">(Nếu ứng dụng không tự mở, hãy nhấn vào nút phía trên nha)</p>
+                        </div>
+                    `;
+
+                    setTimeout(() => {
+                        window.location.href = deepLink;
+                    }, 500);
+                    return;
+                }
+
                 if (source === 'app') {
                     const token = await user.getIdToken(); 
                     const deepLink = `mhent://auth?uid=${user.uid}&token=${token}`;
@@ -608,6 +633,13 @@
             }, 2500);
 
             const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sourceParam = urlParams.get('source') || sessionStorage.getItem('mhent_login_source');
+            if (user && (sourceParam === 'mhentstudy' || sourceParam === 'study' || sourceParam === 'app')) {
+                showLoading("Đang chuyển tiếp về ứng dụng...");
+                await handleLoginSuccess(user);
+                return;
+            }
                 if (user && !resolved) {
                     resolved = true;
                     clearTimeout(timer);
@@ -621,6 +653,17 @@
 
         // Chạy kiểm tra kết quả Redirect ngay khi mở trang
         checkRedirectAuthResult();
+
+        // Tự động kích hoạt Google nếu app yêu cầu autoGoogle
+        const studyUrlParams = new URLSearchParams(window.location.search);
+        if (studyUrlParams.get('autoGoogle') === '1') {
+            setTimeout(() => {
+                if (!auth.currentUser && typeof executeGoogleLogin === 'function') {
+                    executeGoogleLogin();
+                }
+            }, 600);
+        }
+
 
         // Lưới an toàn: Lắng nghe trạng thái Auth chung
         onAuthStateChanged(auth, async (user) => {
