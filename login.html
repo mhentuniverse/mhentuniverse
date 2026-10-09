@@ -649,46 +649,39 @@
             try {
                 const result = await getRedirectResult(auth);
                 if (result && result.user) {
-                    clearLoginSource();
                     showLoading("Đang đồng bộ Hộ chiếu vào App...");
                     await handleLoginSuccess(result.user);
                     return;
                 }
             } catch (error) {
-                clearLoginSource();
-                hideLoading();
                 console.error("Lỗi nhận kết quả Google Redirect:", error);
-
                 if (error.code === 'auth/unauthorized-domain') {
                     showPopup('Tên miền hiện tại chưa được cấp phép trong Firebase Auth (auth/unauthorized-domain).', true);
-                } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    showPopup('Không thể đăng nhập Google: ' + (error.message || 'Lỗi xác thực'), true);
+                    hideLoading();
+                    return;
                 }
-                return;
             }
 
-            // Nếu getRedirectResult không có nhưng user đã có trong phiên
+            // Nếu user đã có phiên đăng nhập sẵn
             if (auth.currentUser) {
-                clearLoginSource();
                 showLoading("Đang đồng bộ Hộ chiếu vào App...");
                 await handleLoginSuccess(auth.currentUser);
                 return;
             }
 
+            // Chờ onAuthStateChanged giải mã phiên (tối đa 6s) - KHÔNG XÓA LOGIN SOURCE KHI HẾT GIỜ!
             let resolved = false;
             const timer = setTimeout(() => {
                 if (!resolved) {
-                    clearLoginSource();
                     hideLoading();
                 }
-            }, 3000);
+            }, 6000);
 
             const unsubscribe = onAuthStateChanged(auth, async (user) => {
                 if (user && !resolved) {
                     resolved = true;
                     clearTimeout(timer);
-                    clearLoginSource();
-                    showLoading("Đang chuyển hướng vào hệ thống...");
+                    showLoading("Đang kết nối Hộ chiếu vào App...");
                     if (typeof unsubscribe === 'function') unsubscribe();
                     await handleLoginSuccess(user);
                 }
@@ -698,40 +691,20 @@
         // Chạy kiểm tra kết quả Redirect ngay khi mở trang
         checkRedirectAuthResult();
 
-        // Lắng nghe trạng thái Auth: Nếu người dùng ĐÃ có phiên từ trước
+        // Lắng nghe trạng thái Auth: Nếu người dùng ĐÃ có phiên từ trước hoặc vừa đăng nhập
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const currentSource = getLoginSource();
                 const pending = isPendingRedirect();
                 if (pending || currentSource === 'mhentstudy' || currentSource === 'study' || currentSource === 'app') {
-                    clearLoginSource();
                     showLoading("Đang kết nối Hộ chiếu vào App...");
                     await handleLoginSuccess(user);
                 }
             }
         });
 
-        // Xử lý autoGoogle nếu có yêu cầu từ App
-        const autoGoogleParam = initUrlParams.get('autoGoogle');
-        if (autoGoogleParam === '1') {
-            // Xóa autoGoogle khỏi URL để không bao giờ bị vòng lặp khi reload
-            if (window.history && window.history.replaceState) {
-                const cleanUrl = new URL(window.location.href);
-                cleanUrl.searchParams.delete('autoGoogle');
-                window.history.replaceState({}, '', cleanUrl.toString());
-            }
-
-            setTimeout(() => {
-                if (!auth.currentUser && typeof executeGoogleLogin === 'function') {
-                    executeGoogleLogin();
-                } else if (auth.currentUser) {
-                    handleLoginSuccess(auth.currentUser);
-                }
-            }, 400);
-        }
-
         // ==========================================
-        // XỬ LÝ ĐĂNG NHẬP GOOGLE (POPUP TRÊN DESKTOP + REDIRECT TRÊN MOBILE)
+        // XỬ LÝ ĐĂNG NHẬP GOOGLE (POPUP TRỰC TIẾP + FALLBACK REDIRECT)
         // ==========================================
         async function executeGoogleLogin() {
             const currentSource = getLoginSource();
@@ -743,30 +716,20 @@
 
             showLoading("Đang kết nối Google...");
 
-            // Trên Mobile / In-App WebView: Dùng Redirect trực tiếp để hiện danh sách tài khoản Google
-            if (isMobileOrInApp()) {
-                try {
-                    setPendingRedirect();
-                    showLoading("Đang mở danh sách tài khoản Google...");
-                    await signInWithRedirect(auth, provider);
-                    return;
-                } catch (redirErr) {
-                    clearLoginSource();
-                    hideLoading();
-                    console.error("Lỗi Redirect Google:", redirErr);
-                    showPopup("Không thể kết nối Google: " + redirErr.message, true);
-                    return;
-                }
-            }
-
-            // Trên máy tính Desktop: Dùng signInWithPopup
             try {
+                // Ưu tiên mở Popup trực tiếp theo cử chỉ chạm của người dùng
                 const result = await signInWithPopup(auth, provider);
-                showLoading("Đang đồng bộ dữ liệu...");
+                showLoading("Đang đồng bộ dữ liệu vào App...");
                 await handleLoginSuccess(result.user);
             } catch (error) {
                 console.warn("Google Popup kết quả:", error.code, error.message);
 
+                if (error.code === 'auth/popup-closed-by-user') {
+                    hideLoading();
+                    return;
+                }
+
+                // Nếu popup bị chặn (do WebView đặc thù hoặc popup blocker) -> Fallback sang Redirect
                 const shouldFallbackToRedirect = [
                     'auth/popup-blocked',
                     'auth/operation-not-supported-in-this-environment',
@@ -776,12 +739,12 @@
                 if (shouldFallbackToRedirect) {
                     try {
                         setPendingRedirect();
-                        showLoading("Đang chuyển hướng sang Google...");
+                        showLoading("Đang mở danh sách tài khoản Google...");
                         await signInWithRedirect(auth, provider);
                         return;
                     } catch (redirError) {
-                        clearLoginSource();
                         hideLoading();
+                        console.error("Lỗi Fallback Redirect:", redirError);
                         showPopup('Không thể chuyển hướng đăng nhập Google!', true);
                         return;
                     }
@@ -790,7 +753,7 @@
                 hideLoading();
                 if (error.code === 'auth/unauthorized-domain') {
                     showPopup('Tên miền web chưa được thêm vào mục Authorized Domains của Firebase!', true);
-                } else if (error.code !== 'auth/popup-closed-by-user') {
+                } else {
                     showPopup('Đăng nhập Google thất bại: ' + (error.message || 'Lỗi xác thực'), true);
                 }
             }
