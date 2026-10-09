@@ -648,8 +648,12 @@
         // Chạy kiểm tra kết quả Redirect ngay khi mở trang
         checkRedirectAuthResult();
 
-        // Tự động kích hoạt Google nếu app yêu cầu autoGoogle
+        // Tự động lưu source và kích hoạt Google nếu app yêu cầu autoGoogle
         const studyUrlParams = new URLSearchParams(window.location.search);
+        const sourceFromUrl = studyUrlParams.get('source');
+        if (sourceFromUrl) {
+            sessionStorage.setItem('mhent_login_source', sourceFromUrl);
+        }
         if (studyUrlParams.get('autoGoogle') === '1') {
             setTimeout(() => {
                 if (!auth.currentUser && typeof executeGoogleLogin === 'function') {
@@ -661,10 +665,14 @@
 
         // Lưới an toàn: Lắng nghe trạng thái Auth chung
         onAuthStateChanged(auth, async (user) => {
-            if (user && sessionStorage.getItem('mhent_auth_pending_redirect') === 'true') {
-                sessionStorage.removeItem('mhent_auth_pending_redirect');
-                showLoading("Đang chuyển hướng vào hệ thống...");
-                await handleLoginSuccess(user);
+            if (user) {
+                const currentSource = studyUrlParams.get('source') || sessionStorage.getItem('mhent_login_source');
+                const isPending = sessionStorage.getItem('mhent_auth_pending_redirect') === 'true';
+                if (isPending || currentSource === 'mhentstudy' || currentSource === 'study' || currentSource === 'app') {
+                    sessionStorage.removeItem('mhent_auth_pending_redirect');
+                    showLoading("Đang kết nối Hộ chiếu vào App...");
+                    await handleLoginSuccess(user);
+                }
             }
         });
 
