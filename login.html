@@ -633,13 +633,7 @@
             }, 2500);
 
             const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sourceParam = urlParams.get('source') || sessionStorage.getItem('mhent_login_source');
-            if (user && (sourceParam === 'mhentstudy' || sourceParam === 'study' || sourceParam === 'app')) {
-                showLoading("Đang chuyển tiếp về ứng dụng...");
-                await handleLoginSuccess(user);
-                return;
-            }
+
                 if (user && !resolved) {
                     resolved = true;
                     clearTimeout(timer);
