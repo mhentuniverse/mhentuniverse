@@ -480,6 +480,47 @@
             return referrerRedirect || '/';
         }
 
+        // ==========================================
+        // QUẢN LÝ SOURCE & PHIÊN SSO AN TOÀN TUYỆT ĐỐI (LOCALSTORAGE + SESSIONSTORAGE)
+        // ==========================================
+        function getLoginSource() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('source') || 
+                   sessionStorage.getItem('mhent_login_source') || 
+                   localStorage.getItem('mhent_login_source') || 
+                   '';
+        }
+
+        function setLoginSource(source) {
+            if (!source) return;
+            try { sessionStorage.setItem('mhent_login_source', source); } catch(e) {}
+            try { localStorage.setItem('mhent_login_source', source); } catch(e) {}
+        }
+
+        function clearLoginSource() {
+            try { sessionStorage.removeItem('mhent_login_source'); } catch(e) {}
+            try { localStorage.removeItem('mhent_login_source'); } catch(e) {}
+            try { sessionStorage.removeItem('mhent_auth_pending_redirect'); } catch(e) {}
+            try { localStorage.removeItem('mhent_auth_pending_redirect'); } catch(e) {}
+        }
+
+        function setPendingRedirect() {
+            try { sessionStorage.setItem('mhent_auth_pending_redirect', 'true'); } catch(e) {}
+            try { localStorage.setItem('mhent_auth_pending_redirect', 'true'); } catch(e) {}
+        }
+
+        function isPendingRedirect() {
+            return sessionStorage.getItem('mhent_auth_pending_redirect') === 'true' || 
+                   localStorage.getItem('mhent_auth_pending_redirect') === 'true';
+        }
+
+        // Lưu source ngay khi mở trang
+        const initUrlParams = new URLSearchParams(window.location.search);
+        const initSource = initUrlParams.get('source');
+        if (initSource) {
+            setLoginSource(initSource);
+        }
+
         // BỘ NÃO ĐIỀU HƯỚNG THÔNG MINH
         let isHandlingSuccess = false;
         async function handleLoginSuccess(user) {
@@ -487,7 +528,72 @@
             isHandlingSuccess = true;
 
             try {
-                // Kiểm tra và khởi tạo dữ liệu Mây nếu là tài khoản mới
+                const source = getLoginSource();
+                console.log("[MHEnt Login] handleLoginSuccess, user:", user.uid, "source:", source);
+
+                // 🎓 TRƯỜNG HỢP 1: YÊU CẦU TỪ APP MHENT STUDY (ƯU TIÊN TUYỆT ĐỐI)
+                if (source === 'mhentstudy' || source === 'study') {
+                    clearLoginSource();
+
+                    let token = '';
+                    try { token = await user.getIdToken(); } catch(e) {}
+
+                    const email = encodeURIComponent(user.email || '');
+                    const name = encodeURIComponent(user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'));
+                    const photo = encodeURIComponent(user.photoURL || '');
+                    const deepLink = `mhentstudy://auth?uid=${user.uid}&email=${email}&name=${name}&photo=${photo}&token=${token}`;
+
+                    document.body.innerHTML = `
+                        <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#070b13; color:#f8fafc; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:24px; box-sizing:border-box;">
+                            <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; border: 2px solid #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">🎓</div>
+                            <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #38bdf8;">Đăng Nhập Thành Công!</h1>
+                            <p style="font-size: 15px; color: #94a3b8; max-width: 380px; line-height: 1.6; margin-bottom: 25px;">Hệ thống đang tự động mở lại ứng dụng <strong>MHEnt. Study</strong>...</p>
+                            <a href="${deepLink}" id="btn-open-app" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; padding: 14px 28px; border-radius: 9999px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); font-size: 16px;">
+                                🚀 Mở MHEnt. Study ngay
+                            </a>
+                            <p style="opacity: 0.6; font-size: 13px; margin-top: 25px;">(Nếu ứng dụng không tự mở trong 2 giây, hãy nhấn vào nút phía trên nha)</p>
+                        </div>
+                    `;
+
+                    // Ghi profile ngầm không chặn luồng
+                    setDoc(doc(db, "users", user.uid), { 
+                        email: user.email || "", 
+                        displayName: user.displayName || "",
+                        photoURL: user.photoURL || "",
+                        role: "user", 
+                        createdAt: new Date().toISOString()
+                    }, { merge: true }).catch(() => {});
+
+                    // Mở app qua deep link
+                    window.location.href = deepLink;
+                    setTimeout(() => {
+                        const btn = document.getElementById('btn-open-app');
+                        if (btn) btn.click();
+                    }, 400);
+                    return;
+                }
+
+                // 📱 TRƯỜNG HỢP 2: YÊU CẦU TỪ APP MHENT UNIVERSE
+                if (source === 'app') {
+                    clearLoginSource();
+                    let token = '';
+                    try { token = await user.getIdToken(); } catch(e) {}
+                    const deepLink = `mhent://auth?uid=${user.uid}&token=${token}`;
+                    
+                    document.body.innerHTML = `
+                        <div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#ff85a2; color:white; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:20px; box-sizing:border-box;">
+                            <h1 style="font-size: 80px; margin: 0;">✅</h1>
+                            <h1 style="margin-top:10px;">🎉 Đăng nhập thành công!</h1>
+                            <p style="font-size:16px;">Hệ thống đang tự động mở lại App MHEnt Universe...</p>
+                            <a href="${deepLink}" style="margin-top:15px; color:white; font-weight:bold; text-decoration:underline;">Nhấn vào đây nếu app không tự mở</a>
+                        </div>
+                    `;
+
+                    window.location.href = deepLink;
+                    return;
+                }
+
+                // 🌐 TRƯỜNG HỢP 3: ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
 
@@ -502,73 +608,17 @@
                     }, { merge: true });
                 }
 
-                // 🚀 KIỂM TRA XEM CÓ PHẢI APP YÊU CẦU KHÔNG
-                const urlParams = new URLSearchParams(window.location.search);
-                const source = urlParams.get('source') || sessionStorage.getItem('mhent_login_source');
-                
-                // Dọn dẹp session tạm
-                sessionStorage.removeItem('mhent_login_redirect');
-                sessionStorage.removeItem('mhent_login_source');
-                sessionStorage.removeItem('mhent_auth_pending_redirect');
-
-                if (source === 'mhentstudy' || source === 'study') {
-                    const token = await user.getIdToken(); 
-                    const email = encodeURIComponent(user.email || '');
-                    const name = encodeURIComponent(user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'));
-                    const photo = encodeURIComponent(user.photoURL || '');
-                    const deepLink = `mhentstudy://auth?uid=${user.uid}&email=${email}&name=${name}&photo=${photo}&token=${token}`;
-                    
-                    document.body.innerHTML = `
-                        <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#070b13; color:#f8fafc; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:24px; box-sizing:border-box;">
-                            <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; border: 2px solid #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">🎓</div>
-                            <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #38bdf8;">Đăng Nhập Thành Công!</h1>
-                            <p style="font-size: 15px; color: #94a3b8; max-width: 380px; line-height: 1.6; margin-bottom: 25px;">Hệ thống đang tự động mở lại ứng dụng <strong>MHEnt. Study</strong>...</p>
-                            <a href="${deepLink}" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; padding: 14px 28px; border-radius: 9999px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); font-size: 15px;">
-                                🚀 Mở MHEnt. Study ngay
-                            </a>
-                            <p style="opacity: 0.6; font-size: 13px; margin-top: 25px;">(Nếu ứng dụng không tự mở, hãy nhấn vào nút phía trên nha)</p>
-                        </div>
-                    `;
-
-                    setTimeout(() => {
-                        window.location.href = deepLink;
-                    }, 500);
-                    return;
-                }
-
-                if (source === 'app') {
-                    const token = await user.getIdToken(); 
-                    const deepLink = `mhent://auth?uid=${user.uid}&token=${token}`;
-                    
-                    document.body.innerHTML = `
-                        <div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#ff85a2; color:white; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:20px; box-sizing:border-box;">
-                            <h1 style="font-size: 80px; margin: 0;">✅</h1>
-                            <h1 style="margin-top:10px;">🎉 Đăng nhập thành công!</h1>
-                            <p style="font-size:16px;">Hệ thống đang tự động mở lại App MHEnt Universe...</p>
-                            <p style="opacity:0.9;"><i>(Cậu có thể đóng tab trình duyệt này lại rồi đó nha)</i></p>
-                        </div>
-                    `;
-
-                    setTimeout(() => {
-                        window.location.href = deepLink;
-                    }, 1000);
-                    return;
-                }
-
-                // 🌐 NẾU LÀ ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG
                 const returnPath = getReturnPath();
                 const isProfileReady = userSnap.exists() ? userSnap.data().isProfileSetup : false;
                 
                 if (isProfileReady) {
-                    // ✅ ĐÃ CÓ HỒ SƠ: Trả về trang cũ hoặc về Hub
                     if (typeof showPopup === 'function') {
                         showPopup('Đang kết nối cổng không gian...', false);
                     }
                     setTimeout(() => {
                         window.location.href = returnPath || '/';
-                    }, 1200);
+                    }, 1000);
                 } else {
-                    // 🆕 USER MỚI: Đẩy đi làm hồ sơ
                     if (typeof showPopup === 'function') {
                         showPopup('Chào mừng tiểu hành tinh mới! Đang chuyển hướng thiết lập hồ sơ...', false);
                     }
@@ -578,7 +628,7 @@
                             profileUrl += '&redirect=' + encodeURIComponent(returnPath);
                         }
                         window.location.href = profileUrl;
-                    }, 1200);
+                    }, 1000);
                 }
             } catch (error) { 
                 console.error("Lỗi điều hướng đăng nhập:", error);
@@ -587,39 +637,40 @@
         }
 
         // ==========================================
-        // XỬ LÝ KẾT QUẢ TRẢ VỀ TỪ REDIRECT GOOGLE (FALLBACK CHO IN-APP WEBVIEW)
+        // XỬ LÝ KẾT QUẢ TRẢ VỀ TỪ REDIRECT GOOGLE
         // ==========================================
         async function checkRedirectAuthResult() {
-            const isPendingRedirect = sessionStorage.getItem('mhent_auth_pending_redirect') === 'true';
-            if (!isPendingRedirect) return;
+            const pending = isPendingRedirect();
+            const source = getLoginSource();
+            if (!pending && !source) return;
 
             showLoading("Đang xác thực tài khoản Google...");
 
             try {
                 const result = await getRedirectResult(auth);
                 if (result && result.user) {
-                    sessionStorage.removeItem('mhent_auth_pending_redirect');
-                    showLoading("Đang khởi tạo Hộ chiếu...");
+                    clearLoginSource();
+                    showLoading("Đang đồng bộ Hộ chiếu vào App...");
                     await handleLoginSuccess(result.user);
                     return;
                 }
             } catch (error) {
-                sessionStorage.removeItem('mhent_auth_pending_redirect');
+                clearLoginSource();
                 hideLoading();
                 console.error("Lỗi nhận kết quả Google Redirect:", error);
 
                 if (error.code === 'auth/unauthorized-domain') {
-                    showPopup('Tên miền hiện tại chưa được cấp phép trong Firebase Auth (auth/unauthorized-domain). Vui lòng cấu hình Authorized Domains trên Firebase Console!', true);
+                    showPopup('Tên miền hiện tại chưa được cấp phép trong Firebase Auth (auth/unauthorized-domain).', true);
                 } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                     showPopup('Không thể đăng nhập Google: ' + (error.message || 'Lỗi xác thực'), true);
                 }
                 return;
             }
 
-            // Nếu getRedirectResult trả về null, chờ onAuthStateChanged giải mã phiên (tối đa 2.5s)
+            // Nếu getRedirectResult không có nhưng user đã có trong phiên
             if (auth.currentUser) {
-                sessionStorage.removeItem('mhent_auth_pending_redirect');
-                showLoading("Đang chuyển hướng vào hệ thống...");
+                clearLoginSource();
+                showLoading("Đang đồng bộ Hộ chiếu vào App...");
                 await handleLoginSuccess(auth.currentUser);
                 return;
             }
@@ -627,17 +678,16 @@
             let resolved = false;
             const timer = setTimeout(() => {
                 if (!resolved) {
-                    sessionStorage.removeItem('mhent_auth_pending_redirect');
+                    clearLoginSource();
                     hideLoading();
                 }
-            }, 2500);
+            }, 3000);
 
             const unsubscribe = onAuthStateChanged(auth, async (user) => {
-
                 if (user && !resolved) {
                     resolved = true;
                     clearTimeout(timer);
-                    sessionStorage.removeItem('mhent_auth_pending_redirect');
+                    clearLoginSource();
                     showLoading("Đang chuyển hướng vào hệ thống...");
                     if (typeof unsubscribe === 'function') unsubscribe();
                     await handleLoginSuccess(user);
@@ -648,49 +698,68 @@
         // Chạy kiểm tra kết quả Redirect ngay khi mở trang
         checkRedirectAuthResult();
 
-        // Tự động lưu source và kích hoạt Google nếu app yêu cầu autoGoogle
-        const studyUrlParams = new URLSearchParams(window.location.search);
-        const sourceFromUrl = studyUrlParams.get('source');
-        if (sourceFromUrl) {
-            sessionStorage.setItem('mhent_login_source', sourceFromUrl);
-        }
-        if (studyUrlParams.get('autoGoogle') === '1') {
-            setTimeout(() => {
-                if (!auth.currentUser && typeof executeGoogleLogin === 'function') {
-                    executeGoogleLogin();
-                }
-            }, 600);
-        }
-
-
-        // Lưới an toàn: Lắng nghe trạng thái Auth chung
+        // Lắng nghe trạng thái Auth: Nếu người dùng ĐÃ có phiên từ trước
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const currentSource = studyUrlParams.get('source') || sessionStorage.getItem('mhent_login_source');
-                const isPending = sessionStorage.getItem('mhent_auth_pending_redirect') === 'true';
-                if (isPending || currentSource === 'mhentstudy' || currentSource === 'study' || currentSource === 'app') {
-                    sessionStorage.removeItem('mhent_auth_pending_redirect');
+                const currentSource = getLoginSource();
+                const pending = isPendingRedirect();
+                if (pending || currentSource === 'mhentstudy' || currentSource === 'study' || currentSource === 'app') {
+                    clearLoginSource();
                     showLoading("Đang kết nối Hộ chiếu vào App...");
                     await handleLoginSuccess(user);
                 }
             }
         });
 
+        // Xử lý autoGoogle nếu có yêu cầu từ App
+        const autoGoogleParam = initUrlParams.get('autoGoogle');
+        if (autoGoogleParam === '1') {
+            // Xóa autoGoogle khỏi URL để không bao giờ bị vòng lặp khi reload
+            if (window.history && window.history.replaceState) {
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('autoGoogle');
+                window.history.replaceState({}, '', cleanUrl.toString());
+            }
+
+            setTimeout(() => {
+                if (!auth.currentUser && typeof executeGoogleLogin === 'function') {
+                    executeGoogleLogin();
+                } else if (auth.currentUser) {
+                    handleLoginSuccess(auth.currentUser);
+                }
+            }, 400);
+        }
+
         // ==========================================
-        // XỬ LÝ ĐĂNG NHẬP GOOGLE (POPUP TRỰC TIẾP + FALLBACK REDIRECT)
+        // XỬ LÝ ĐĂNG NHẬP GOOGLE (POPUP TRÊN DESKTOP + REDIRECT TRÊN MOBILE)
         // ==========================================
         async function executeGoogleLogin() {
-            // Lưu lại thông tin đích đến vào sessionStorage
+            const currentSource = getLoginSource();
+            if (currentSource) setLoginSource(currentSource);
+
             const urlParams = new URLSearchParams(window.location.search);
             const redirectParam = urlParams.get('redirect');
-            const sourceParam = urlParams.get('source');
             if (redirectParam) sessionStorage.setItem('mhent_login_redirect', redirectParam);
-            if (sourceParam) sessionStorage.setItem('mhent_login_source', sourceParam);
 
-            // Mở popup trực tiếp trên toàn bộ thiết bị (Mobile Safari, Android Chrome & Desktop)
-            // Popup trực tiếp không bị chặn cookie bên thứ 3 và nhận kết quả tức thì
             showLoading("Đang kết nối Google...");
 
+            // Trên Mobile / In-App WebView: Dùng Redirect trực tiếp để hiện danh sách tài khoản Google
+            if (isMobileOrInApp()) {
+                try {
+                    setPendingRedirect();
+                    showLoading("Đang mở danh sách tài khoản Google...");
+                    await signInWithRedirect(auth, provider);
+                    return;
+                } catch (redirErr) {
+                    clearLoginSource();
+                    hideLoading();
+                    console.error("Lỗi Redirect Google:", redirErr);
+                    showPopup("Không thể kết nối Google: " + redirErr.message, true);
+                    return;
+                }
+            }
+
+            // Trên máy tính Desktop: Dùng signInWithPopup
             try {
                 const result = await signInWithPopup(auth, provider);
                 showLoading("Đang đồng bộ dữ liệu...");
@@ -698,7 +767,6 @@
             } catch (error) {
                 console.warn("Google Popup kết quả:", error.code, error.message);
 
-                // Nếu popup bị chặn (do In-App WebView như Zalo, Facebook App hoặc Adblock) -> Chuyển hướng Redirect
                 const shouldFallbackToRedirect = [
                     'auth/popup-blocked',
                     'auth/operation-not-supported-in-this-environment',
@@ -707,14 +775,13 @@
 
                 if (shouldFallbackToRedirect) {
                     try {
-                        sessionStorage.setItem('mhent_auth_pending_redirect', 'true');
+                        setPendingRedirect();
                         showLoading("Đang chuyển hướng sang Google...");
                         await signInWithRedirect(auth, provider);
                         return;
                     } catch (redirError) {
-                        sessionStorage.removeItem('mhent_auth_pending_redirect');
+                        clearLoginSource();
                         hideLoading();
-                        console.error("Lỗi Fallback Redirect:", redirError);
                         showPopup('Không thể chuyển hướng đăng nhập Google!', true);
                         return;
                     }
