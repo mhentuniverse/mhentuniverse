@@ -534,6 +534,7 @@
             try { localStorage.removeItem('mhent_login_redirect'); } catch(e) {}
             try { sessionStorage.removeItem('mhent_auth_pending_redirect'); } catch(e) {}
             try { localStorage.removeItem('mhent_auth_pending_redirect'); } catch(e) {}
+            try { sessionStorage.removeItem('mhent_auto_google_done'); } catch(e) {}
         }
 
         function setPendingRedirect() {
@@ -896,11 +897,25 @@
             btnGoogle.addEventListener('click', executeGoogleLogin);
         }
 
-        // Tự động kích hoạt Google login nếu có cờ autoGoogle=1
-        if (initUrlParams.get('autoGoogle') === '1') {
+        // Tự động kích hoạt Google login nếu có cờ autoGoogle=1 và chưa từng thực hiện, và không phải đang chờ nhận kết quả redirect trả về
+        const isPending = isPendingRedirect();
+        if (initUrlParams.get('autoGoogle') === '1' && !isPending && !sessionStorage.getItem('mhent_auto_google_done')) {
+            try { sessionStorage.setItem('mhent_auto_google_done', 'true'); } catch(e) {}
+            // Xóa ngay cờ autoGoogle khỏi URL để không bao giờ bị lặp khi quay lại
+            try {
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('autoGoogle');
+                window.history.replaceState({}, '', cleanUrl.toString());
+            } catch(e) {}
+
+            showLoading('Đang mở danh sách tài khoản Google...');
+            setPendingRedirect();
             setTimeout(() => {
-                executeGoogleLogin();
-            }, 300);
+                signInWithRedirect(auth, provider).catch(err => {
+                    console.error('Lỗi auto signInWithRedirect:', err);
+                    hideLoading();
+                });
+            }, 200);
         }
         // ==========================================
         // XỬ LÝ ĐĂNG NHẬP / ĐĂNG KÝ EMAIL
