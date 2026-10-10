@@ -474,18 +474,33 @@
             }
         }
 
-        function getReturnPath() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const explicitRedirect = urlParams.get('redirect') || sessionStorage.getItem('mhent_login_redirect');
-            if (explicitRedirect) return explicitRedirect;
+        // ==========================================
+        // QUẢN LÝ THAM SỐ SSO & PHIÊN AN TOÀN TUYỆT ĐỐI (LOCALSTORAGE + SESSIONSTORAGE)
+        // ==========================================
+        const initUrlParams = new URLSearchParams(window.location.search);
+        const initSource = initUrlParams.get('source');
+        const initPlatform = initUrlParams.get('platform');
+        const initRedirect = initUrlParams.get('redirect');
 
-            const referrerRedirect = getSafeRedirectPath(document.referrer);
-            return referrerRedirect || '/';
+        if (initSource) {
+            try {
+                sessionStorage.setItem('mhent_login_source', initSource);
+                localStorage.setItem('mhent_login_source', initSource);
+            } catch(e) {}
+        }
+        if (initPlatform) {
+            try {
+                sessionStorage.setItem('mhent_login_platform', initPlatform);
+                localStorage.setItem('mhent_login_platform', initPlatform);
+            } catch(e) {}
+        }
+        if (initRedirect) {
+            try {
+                sessionStorage.setItem('mhent_login_redirect', initRedirect);
+                localStorage.setItem('mhent_login_redirect', initRedirect);
+            } catch(e) {}
         }
 
-        // ==========================================
-        // QUẢN LÝ SOURCE & PHIÊN SSO AN TOÀN TUYỆT ĐỐI (LOCALSTORAGE + SESSIONSTORAGE)
-        // ==========================================
         function getLoginSource() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('source') || 
@@ -494,15 +509,29 @@
                    '';
         }
 
-        function setLoginSource(source) {
-            if (!source) return;
-            try { sessionStorage.setItem('mhent_login_source', source); } catch(e) {}
-            try { localStorage.setItem('mhent_login_source', source); } catch(e) {}
+        function getLoginPlatform() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('platform') || 
+                   sessionStorage.getItem('mhent_login_platform') || 
+                   localStorage.getItem('mhent_login_platform') || 
+                   '';
+        }
+
+        function getLoginRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('redirect') || 
+                   sessionStorage.getItem('mhent_login_redirect') || 
+                   localStorage.getItem('mhent_login_redirect') || 
+                   '';
         }
 
         function clearLoginSource() {
             try { sessionStorage.removeItem('mhent_login_source'); } catch(e) {}
             try { localStorage.removeItem('mhent_login_source'); } catch(e) {}
+            try { sessionStorage.removeItem('mhent_login_platform'); } catch(e) {}
+            try { localStorage.removeItem('mhent_login_platform'); } catch(e) {}
+            try { sessionStorage.removeItem('mhent_login_redirect'); } catch(e) {}
+            try { localStorage.removeItem('mhent_login_redirect'); } catch(e) {}
             try { sessionStorage.removeItem('mhent_auth_pending_redirect'); } catch(e) {}
             try { localStorage.removeItem('mhent_auth_pending_redirect'); } catch(e) {}
         }
@@ -517,11 +546,19 @@
                    localStorage.getItem('mhent_auth_pending_redirect') === 'true';
         }
 
-        // Lưu source ngay khi mở trang
-        const initUrlParams = new URLSearchParams(window.location.search);
-        const initSource = initUrlParams.get('source');
-        if (initSource) {
-            setLoginSource(initSource);
+        function getReturnPath() {
+            const explicitRedirect = getLoginRedirect();
+            const safeExplicit = getSafeRedirectPath(explicitRedirect);
+            if (safeExplicit) return safeExplicit;
+
+            const referrerRedirect = getSafeRedirectPath(document.referrer);
+            if (referrerRedirect) return referrerRedirect;
+
+            // Nếu đang ở cổng định danh accounts.mhentuniverse.com, không bao giờ quay về '/' của accounts mà luôn về trang chủ chính
+            if (window.location.hostname === 'accounts.mhentuniverse.com') {
+                return 'https://www.mhentuniverse.com/';
+            }
+            return '/';
         }
 
         // BỘ NÃO ĐIỀU HƯỚNG THÔNG MINH
@@ -532,23 +569,41 @@
 
             try {
                 const source = getLoginSource();
-                console.log("[MHEnt Login] handleLoginSuccess, user:", user.uid, "source:", source);
+                const platform = getLoginPlatform();
+                const redirectParam = getLoginRedirect();
+                console.log('[MHEnt Login] handleLoginSuccess, user:', user.uid, 'source:', source, 'platform:', platform);
 
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                let uData = userSnap.exists() ? userSnap.data() : {};
-
-                if (!userSnap.exists()) {
-                    uData = { 
-                        email: user.email || "", 
+                // Lấy thông tin user với Timeout 2.5s phòng hờ mạng chậm
+                let uData = {};
+                try {
+                    const userRef = doc(db, 'users', user.uid);
+                    const userSnap = await Promise.race([
+                        getDoc(userRef),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 2500))
+                    ]);
+                    if (userSnap && userSnap.exists()) {
+                        uData = userSnap.data();
+                    } else {
+                        uData = { 
+                            email: user.email || '', 
+                            displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'),
+                            photoURL: user.photoURL || '/assets/avt-web.jpg', 
+                            role: 'user', 
+                            streak: 1,
+                            createdAt: new Date().toISOString(),
+                            isProfileSetup: false
+                        };
+                        setDoc(userRef, uData, { merge: true }).catch(() => {});
+                    }
+                } catch(dbErr) {
+                    console.warn('[MHEnt Login] Firestore sync bypass:', dbErr);
+                    uData = {
+                        email: user.email || '',
                         displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'),
-                        photoURL: user.photoURL || "/assets/avt-web.jpg", 
-                        role: "user", 
-                        streak: 1,
-                        createdAt: new Date().toISOString(),
-                        isProfileSetup: false
+                        photoURL: user.photoURL || '/assets/avt-web.jpg',
+                        role: 'user',
+                        streak: 1
                     };
-                    await setDoc(userRef, uData, { merge: true });
                 }
 
                 let token = '';
@@ -556,10 +611,10 @@
 
                 const profile = {
                     uid: user.uid,
-                    email: user.email || "",
+                    email: user.email || '',
                     displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'),
-                    photoURL: user.photoURL || "/assets/avt-web.jpg",
-                    role: uData.role || "user",
+                    photoURL: user.photoURL || '/assets/avt-web.jpg',
+                    role: uData.role || 'user',
                     streak: uData.streak || 1
                 };
 
@@ -572,17 +627,16 @@
                 try {
                     const cookieVal = encodeURIComponent(JSON.stringify(profile));
                     const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+                    // Toàn miền con *.mhentuniverse.com
                     document.cookie = `mhent_auth_session=${cookieVal}; domain=.mhentuniverse.com; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
+                    document.cookie = `mhent_auth_session=${cookieVal}; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
                     if (token) {
                         document.cookie = `mhent_auth_token=${encodeURIComponent(token)}; domain=.mhentuniverse.com; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
+                        document.cookie = `mhent_auth_token=${encodeURIComponent(token)}; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
                     }
                 } catch (cookieErr) {
-                    console.warn("[MHEnt Auth] Lỗi ghi cookie liên miền:", cookieErr);
+                    console.warn('[MHEnt Auth] Lỗi ghi cookie liên miền:', cookieErr);
                 }
-
-                const urlParams = new URLSearchParams(window.location.search);
-                const platform = urlParams.get('platform') || sessionStorage.getItem('mhent_login_platform') || '';
-                const redirectParam = urlParams.get('redirect') || sessionStorage.getItem('mhent_login_redirect') || '';
 
                 // 🎓 TRƯỜNG HỢP 1: YÊU CẦU TỪ MHENT STUDY (APP HOẶC WEB)
                 if (source === 'mhentstudy' || source === 'study') {
@@ -594,17 +648,19 @@
                     const deepLink = `mhentstudy://auth?uid=${user.uid}&email=${email}&name=${name}&photo=${photo}&token=${token}`;
                     
                     let webStudyUrl = 'https://study.mhentuniverse.com';
-                    if (redirectParam && redirectParam.includes('study.mhentuniverse.com')) {
-                        webStudyUrl = redirectParam;
+                    if (redirectParam && (redirectParam.includes('study.mhentuniverse.com') || redirectParam.startsWith('/'))) {
+                        webStudyUrl = redirectParam.startsWith('/') ? ('https://study.mhentuniverse.com' + redirectParam) : redirectParam;
                     }
 
-                    // Nếu người dùng đến từ Web Browser (không phải app native):
-                    if (platform === 'web' || (!platform && !window.AndroidAuth && !navigator.userAgent.includes('wv'))) {
+                    // Nếu người dùng rõ ràng duyệt Web (trên PC hoặc có platform=web):
+                    const isDefiniteWeb = platform === 'web' || (!isMobileOrInApp() && platform !== 'app');
+
+                    if (isDefiniteWeb) {
                         document.body.innerHTML = `
                             <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#070b13; color:#f8fafc; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:24px; box-sizing:border-box;">
                                 <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; border: 2px solid #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">🎓</div>
                                 <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #38bdf8;">Đăng Nhập Thành Công!</h1>
-                                <p style="font-size: 15px; color: #94a3b8; max-width: 380px; line-height: 1.6; margin-bottom: 25px;">Hệ thống đang tự động chuyển hướng bạn quay lại <strong>Study Hub</strong>...</p>
+                                <p style="font-size: 15px; color: #94a3b8; max-width: 380px; line-height: 1.6; margin-bottom: 25px;">Hệ thống đang tự động đưa bạn quay lại <strong>MHEnt. Study Hub</strong>...</p>
                                 <a href="${webStudyUrl}" id="btn-return-web" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; padding: 14px 28px; border-radius: 9999px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); font-size: 16px;">
                                     🌐 Tiếp tục trên MHEnt. Study ngay
                                 </a>
@@ -612,11 +668,11 @@
                         `;
                         setTimeout(() => {
                             window.location.href = webStudyUrl;
-                        }, 700);
+                        }, 500);
                         return;
                     }
 
-                    // Nếu người dùng đến từ App APK:
+                    // Nếu từ App APK hoặc từ Thiết bị Di động (khi mở trình duyệt ngoài từ APK):
                     document.body.innerHTML = `
                         <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#070b13; color:#f8fafc; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:24px; box-sizing:border-box;">
                             <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; border: 2px solid #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">🎓</div>
@@ -634,7 +690,7 @@
                         </div>
                     `;
 
-                    // Mở app qua deep link
+                    // Kích hoạt Deep link
                     window.location.href = deepLink;
                     setTimeout(() => {
                         const btn = document.getElementById('btn-open-app');
@@ -662,31 +718,36 @@
                 }
 
                 // 🌐 TRƯỜNG HỢP 3: ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG
+                clearLoginSource();
                 const returnPath = getReturnPath();
-                const isProfileReady = userSnap.exists() ? userSnap.data().isProfileSetup : false;
+                const isProfileReady = uData && uData.isProfileSetup;
                 
                 if (isProfileReady) {
                     if (typeof showPopup === 'function') {
                         showPopup('Đang kết nối cổng không gian...', false);
                     }
                     setTimeout(() => {
-                        window.location.href = returnPath || '/';
-                    }, 1000);
+                        window.location.href = returnPath;
+                    }, 800);
                 } else {
                     if (typeof showPopup === 'function') {
                         showPopup('Chào mừng tiểu hành tinh mới! Đang chuyển hướng thiết lập hồ sơ...', false);
                     }
                     setTimeout(() => {
-                        let profileUrl = '/profile.html?setup=true'; 
-                        if (returnPath && returnPath !== '/') {
+                        let profileUrl = '/profile.html?setup=true';
+                        if (window.location.hostname === 'accounts.mhentuniverse.com') {
+                            profileUrl = 'https://www.mhentuniverse.com/profile.html?setup=true';
+                        }
+                        if (returnPath && returnPath !== '/' && returnPath !== 'https://www.mhentuniverse.com/') {
                             profileUrl += '&redirect=' + encodeURIComponent(returnPath);
                         }
                         window.location.href = profileUrl;
-                    }, 1000);
+                    }, 800);
                 }
             } catch (error) { 
-                console.error("Lỗi điều hướng đăng nhập:", error);
-                window.location.href = '/'; 
+                console.error('Lỗi điều hướng đăng nhập:', error);
+                const src = getLoginSource();
+                window.location.href = (src === 'mhentstudy' || src === 'study') ? 'https://study.mhentuniverse.com' : 'https://www.mhentuniverse.com/'; 
             }
         }
 
@@ -698,17 +759,17 @@
             const source = getLoginSource();
             if (!pending && !source) return;
 
-            showLoading("Đang xác thực tài khoản Google...");
+            showLoading('Đang xác thực tài khoản Google...');
 
             try {
                 const result = await getRedirectResult(auth);
                 if (result && result.user) {
-                    showLoading("Đang đồng bộ Hộ chiếu vào App...");
+                    showLoading('Đang đồng bộ Hộ chiếu vào App...');
                     await handleLoginSuccess(result.user);
                     return;
                 }
             } catch (error) {
-                console.error("Lỗi nhận kết quả Google Redirect:", error);
+                console.error('Lỗi nhận kết quả Google Redirect:', error);
                 if (error.code === 'auth/unauthorized-domain') {
                     showPopup('Tên miền hiện tại chưa được cấp phép trong Firebase Auth (auth/unauthorized-domain).', true);
                     hideLoading();
@@ -718,24 +779,24 @@
 
             // Nếu user đã có phiên đăng nhập sẵn
             if (auth.currentUser) {
-                showLoading("Đang đồng bộ Hộ chiếu vào App...");
+                showLoading('Đang đồng bộ Hộ chiếu vào App...');
                 await handleLoginSuccess(auth.currentUser);
                 return;
             }
 
-            // Chờ onAuthStateChanged giải mã phiên (tối đa 6s) - KHÔNG XÓA LOGIN SOURCE KHI HẾT GIỜ!
+            // Chờ onAuthStateChanged giải mã phiên (tối đa 4s)
             let resolved = false;
             const timer = setTimeout(() => {
                 if (!resolved) {
                     hideLoading();
                 }
-            }, 6000);
+            }, 4000);
 
             const unsubscribe = onAuthStateChanged(auth, async (user) => {
                 if (user && !resolved) {
                     resolved = true;
                     clearTimeout(timer);
-                    showLoading("Đang kết nối Hộ chiếu vào App...");
+                    showLoading('Đang kết nối Hộ chiếu vào App...');
                     if (typeof unsubscribe === 'function') unsubscribe();
                     await handleLoginSuccess(user);
                 }
@@ -751,7 +812,7 @@
                 const currentSource = getLoginSource();
                 const pending = isPendingRedirect();
                 if (pending || currentSource === 'mhentstudy' || currentSource === 'study' || currentSource === 'app') {
-                    showLoading("Đang kết nối Hộ chiếu vào App...");
+                    showLoading('Đang kết nối Hộ chiếu vào App...');
                     await handleLoginSuccess(user);
                 }
             }
@@ -762,28 +823,45 @@
         // ==========================================
         async function executeGoogleLogin() {
             const currentSource = getLoginSource();
-            if (currentSource) setLoginSource(currentSource);
+            if (currentSource) {
+                try {
+                    sessionStorage.setItem('mhent_login_source', currentSource);
+                    localStorage.setItem('mhent_login_source', currentSource);
+                } catch(e) {}
+            }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const redirectParam = urlParams.get('redirect');
-            if (redirectParam) sessionStorage.setItem('mhent_login_redirect', redirectParam);
+            const currentPlatform = getLoginPlatform();
+            if (currentPlatform) {
+                try {
+                    sessionStorage.setItem('mhent_login_platform', currentPlatform);
+                    localStorage.setItem('mhent_login_platform', currentPlatform);
+                } catch(e) {}
+            }
 
-            showLoading("Đang kết nối Google...");
+            const currentRedirect = getLoginRedirect();
+            if (currentRedirect) {
+                try {
+                    sessionStorage.setItem('mhent_login_redirect', currentRedirect);
+                    localStorage.setItem('mhent_login_redirect', currentRedirect);
+                } catch(e) {}
+            }
+
+            showLoading('Đang kết nối Google...');
 
             try {
                 // Ưu tiên mở Popup trực tiếp theo cử chỉ chạm của người dùng
                 const result = await signInWithPopup(auth, provider);
-                showLoading("Đang đồng bộ dữ liệu vào App...");
+                showLoading('Đang đồng bộ dữ liệu vào App...');
                 await handleLoginSuccess(result.user);
             } catch (error) {
-                console.warn("Google Popup kết quả:", error.code, error.message);
+                console.warn('Google Popup kết quả:', error.code, error.message);
 
                 if (error.code === 'auth/popup-closed-by-user') {
                     hideLoading();
                     return;
                 }
 
-                // Nếu popup bị chặn (do WebView đặc thù hoặc popup blocker) -> Fallback sang Redirect
+                // Nếu popup bị chặn (do WebView đặc thù hoặc mobile popup blocker) -> Fallback sang Redirect
                 const shouldFallbackToRedirect = [
                     'auth/popup-blocked',
                     'auth/operation-not-supported-in-this-environment',
@@ -793,12 +871,12 @@
                 if (shouldFallbackToRedirect) {
                     try {
                         setPendingRedirect();
-                        showLoading("Đang mở danh sách tài khoản Google...");
+                        showLoading('Đang mở danh sách tài khoản Google...');
                         await signInWithRedirect(auth, provider);
                         return;
                     } catch (redirError) {
                         hideLoading();
-                        console.error("Lỗi Fallback Redirect:", redirError);
+                        console.error('Lỗi Fallback Redirect:', redirError);
                         showPopup('Không thể chuyển hướng đăng nhập Google!', true);
                         return;
                     }
@@ -818,6 +896,12 @@
             btnGoogle.addEventListener('click', executeGoogleLogin);
         }
 
+        // Tự động kích hoạt Google login nếu có cờ autoGoogle=1
+        if (initUrlParams.get('autoGoogle') === '1') {
+            setTimeout(() => {
+                executeGoogleLogin();
+            }, 300);
+        }
         // ==========================================
         // XỬ LÝ ĐĂNG NHẬP / ĐĂNG KÝ EMAIL
         // ==========================================
