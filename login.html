@@ -463,9 +463,12 @@
             if (!target) return '';
             try {
                 const url = new URL(target, window.location.origin);
-                if (url.origin !== window.location.origin) return '';
+                const isAllowed = url.hostname === window.location.hostname || 
+                                  url.hostname === 'mhentuniverse.com' || 
+                                  url.hostname.endsWith('.mhentuniverse.com');
+                if (!isAllowed) return '';
                 if (['/login', '/login.html', '/auth-action.html'].includes(url.pathname)) return '';
-                return `${url.pathname}${url.search}${url.hash}`;
+                return url.href;
             } catch (error) {
                 return '';
             }
@@ -531,38 +534,105 @@
                 const source = getLoginSource();
                 console.log("[MHEnt Login] handleLoginSuccess, user:", user.uid, "source:", source);
 
-                // 🎓 TRƯỜNG HỢP 1: YÊU CẦU TỪ APP MHENT STUDY (ƯU TIÊN TUYỆT ĐỐI)
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                let uData = userSnap.exists() ? userSnap.data() : {};
+
+                if (!userSnap.exists()) {
+                    uData = { 
+                        email: user.email || "", 
+                        displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'),
+                        photoURL: user.photoURL || "/assets/avt-web.jpg", 
+                        role: "user", 
+                        streak: 1,
+                        createdAt: new Date().toISOString(),
+                        isProfileSetup: false
+                    };
+                    await setDoc(userRef, uData, { merge: true });
+                }
+
+                let token = '';
+                try { token = await user.getIdToken(); } catch(e) {}
+
+                const profile = {
+                    uid: user.uid,
+                    email: user.email || "",
+                    displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'),
+                    photoURL: user.photoURL || "/assets/avt-web.jpg",
+                    role: uData.role || "user",
+                    streak: uData.streak || 1
+                };
+
+                // Lưu LocalStorage tại miền hiện tại
+                localStorage.setItem('mhent_user_profile', JSON.stringify(profile));
+                localStorage.setItem('mhent_user_role', profile.role);
+                if (token) localStorage.setItem('mhent_app_token', token);
+
+                // 🌐 KÍCH HOẠT COOKIE LIÊN TÊN MIỀN (.mhentuniverse.com) CHO TOÀN BỘ HỆ SINH THÁI
+                try {
+                    const cookieVal = encodeURIComponent(JSON.stringify(profile));
+                    const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+                    document.cookie = `mhent_auth_session=${cookieVal}; domain=.mhentuniverse.com; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
+                    if (token) {
+                        document.cookie = `mhent_auth_token=${encodeURIComponent(token)}; domain=.mhentuniverse.com; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
+                    }
+                } catch (cookieErr) {
+                    console.warn("[MHEnt Auth] Lỗi ghi cookie liên miền:", cookieErr);
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const platform = urlParams.get('platform') || sessionStorage.getItem('mhent_login_platform') || '';
+                const redirectParam = urlParams.get('redirect') || sessionStorage.getItem('mhent_login_redirect') || '';
+
+                // 🎓 TRƯỜNG HỢP 1: YÊU CẦU TỪ MHENT STUDY (APP HOẶC WEB)
                 if (source === 'mhentstudy' || source === 'study') {
                     clearLoginSource();
 
-                    let token = '';
-                    try { token = await user.getIdToken(); } catch(e) {}
-
                     const email = encodeURIComponent(user.email || '');
-                    const name = encodeURIComponent(user.displayName || (user.email ? user.email.split('@')[0] : 'Học viên MHEnt'));
-                    const photo = encodeURIComponent(user.photoURL || '');
+                    const name = encodeURIComponent(profile.displayName);
+                    const photo = encodeURIComponent(profile.photoURL);
                     const deepLink = `mhentstudy://auth?uid=${user.uid}&email=${email}&name=${name}&photo=${photo}&token=${token}`;
+                    
+                    let webStudyUrl = 'https://study.mhentuniverse.com';
+                    if (redirectParam && redirectParam.includes('study.mhentuniverse.com')) {
+                        webStudyUrl = redirectParam;
+                    }
 
+                    // Nếu người dùng đến từ Web Browser (không phải app native):
+                    if (platform === 'web' || (!platform && !window.AndroidAuth && !navigator.userAgent.includes('wv'))) {
+                        document.body.innerHTML = `
+                            <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#070b13; color:#f8fafc; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:24px; box-sizing:border-box;">
+                                <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; border: 2px solid #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">🎓</div>
+                                <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #38bdf8;">Đăng Nhập Thành Công!</h1>
+                                <p style="font-size: 15px; color: #94a3b8; max-width: 380px; line-height: 1.6; margin-bottom: 25px;">Hệ thống đang tự động chuyển hướng bạn quay lại <strong>Study Hub</strong>...</p>
+                                <a href="${webStudyUrl}" id="btn-return-web" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; padding: 14px 28px; border-radius: 9999px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); font-size: 16px;">
+                                    🌐 Tiếp tục trên MHEnt. Study ngay
+                                </a>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            window.location.href = webStudyUrl;
+                        }, 700);
+                        return;
+                    }
+
+                    // Nếu người dùng đến từ App APK:
                     document.body.innerHTML = `
                         <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#070b13; color:#f8fafc; font-family:Nunito, sans-serif; text-align:center; flex-direction:column; padding:24px; box-sizing:border-box;">
                             <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; border: 2px solid #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">🎓</div>
                             <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #38bdf8;">Đăng Nhập Thành Công!</h1>
                             <p style="font-size: 15px; color: #94a3b8; max-width: 380px; line-height: 1.6; margin-bottom: 25px;">Hệ thống đang tự động mở lại ứng dụng <strong>MHEnt. Study</strong>...</p>
-                            <a href="${deepLink}" id="btn-open-app" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; padding: 14px 28px; border-radius: 9999px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); font-size: 16px;">
-                                🚀 Mở MHEnt. Study ngay
-                            </a>
+                            <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px;">
+                                <a href="${deepLink}" id="btn-open-app" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; padding: 14px 28px; border-radius: 9999px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); font-size: 16px;">
+                                    🚀 Mở MHEnt. Study (App APK)
+                                </a>
+                                <a href="${webStudyUrl}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #94a3b8; padding: 12px 24px; border-radius: 9999px; font-weight: 700; text-decoration: none; font-size: 14px;">
+                                    🌐 Hoặc tiếp tục trên Trình duyệt Web
+                                </a>
+                            </div>
                             <p style="opacity: 0.6; font-size: 13px; margin-top: 25px;">(Nếu ứng dụng không tự mở trong 2 giây, hãy nhấn vào nút phía trên nha)</p>
                         </div>
                     `;
-
-                    // Ghi profile ngầm không chặn luồng
-                    setDoc(doc(db, "users", user.uid), { 
-                        email: user.email || "", 
-                        displayName: user.displayName || "",
-                        photoURL: user.photoURL || "",
-                        role: "user", 
-                        createdAt: new Date().toISOString()
-                    }, { merge: true }).catch(() => {});
 
                     // Mở app qua deep link
                     window.location.href = deepLink;
@@ -576,8 +646,6 @@
                 // 📱 TRƯỜNG HỢP 2: YÊU CẦU TỪ APP MHENT UNIVERSE
                 if (source === 'app') {
                     clearLoginSource();
-                    let token = '';
-                    try { token = await user.getIdToken(); } catch(e) {}
                     const deepLink = `mhent://auth?uid=${user.uid}&token=${token}`;
                     
                     document.body.innerHTML = `
@@ -594,20 +662,6 @@
                 }
 
                 // 🌐 TRƯỜNG HỢP 3: ĐĂNG NHẬP TRÊN WEB BÌNH THƯỜNG
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (!userSnap.exists()) {
-                    await setDoc(userRef, { 
-                        email: user.email || "", 
-                        displayName: user.displayName || "",
-                        photoURL: user.photoURL || "",
-                        role: "user", 
-                        createdAt: new Date().toISOString(),
-                        isProfileSetup: false
-                    }, { merge: true });
-                }
-
                 const returnPath = getReturnPath();
                 const isProfileReady = userSnap.exists() ? userSnap.data().isProfileSetup : false;
                 
