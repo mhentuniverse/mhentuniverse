@@ -35,7 +35,7 @@ window.showPopup = function(message, isError = false) {
 // ==========================================
 // 2. POPUP XÁC NHẬN (CONFIRM)
 // ==========================================
-window.showConfirmPopup = function(title, message, onConfirm) {
+window.showConfirmPopup = function(title, message, onConfirm, onCancel) {
     removeExistingOverlays();
     const overlay = document.createElement('div');
     overlay.className = 'mhent-ui-overlay'; 
@@ -54,12 +54,59 @@ window.showConfirmPopup = function(title, message, onConfirm) {
     document.body.appendChild(overlay);
     setTimeout(() => { overlay.classList.add('show'); }, 10);
 
-    document.getElementById('mhent-cancel').onclick = () => closeConfirmPopup();
+    document.getElementById('mhent-cancel').onclick = () => {
+        closeConfirmPopup();
+        if (typeof onCancel === 'function') onCancel();
+    };
     document.getElementById('mhent-accept').onclick = () => {
         closeConfirmPopup();
         if (typeof onConfirm === 'function') onConfirm();
     };
 };
+
+// ==========================================
+// 🚀 TIỆN ÍCH DIALOG ASYNC / PROMISE CHUẨN UI
+// ==========================================
+window.mhentConfirm = function(titleOrMsg, msg) {
+    return new Promise((resolve) => {
+        const title = msg ? titleOrMsg : 'Xác nhận';
+        const content = msg ? msg : titleOrMsg;
+        window.showConfirmPopup(title, content, () => resolve(true), () => resolve(false));
+    });
+};
+
+window.mhentPrompt = function(title, placeholder = '', defaultVal = '') {
+    return new Promise((resolve) => {
+        window.showInputPopup(title, placeholder, 'Xác nhận', (val) => {
+            resolve(val);
+        });
+        const inputField = document.getElementById('mhent-custom-input');
+        if (inputField && defaultVal) inputField.value = defaultVal;
+        const cancelBtn = document.querySelector('#mhent-input-overlay .mhent-btn-cancel');
+        if (cancelBtn) {
+            cancelBtn.onclick = () => {
+                window.closeInputPopup();
+                resolve(null);
+            };
+        }
+    });
+};
+
+// ==========================================
+// 🚀 GHI ĐÈ TOÀN CỤC WINDOW.ALERT BẰNG MHENT POPUP
+// ==========================================
+if (typeof window !== 'undefined') {
+    const _nativeAlert = window.alert;
+    window.alert = function(msg) {
+        const text = String(msg !== undefined ? msg : '');
+        const isErr = /lỗi|error|thất bại|không thể|sai|chưa chọn|ít nhất|vui lòng/i.test(text);
+        if (typeof window.showPopup === 'function') {
+            window.showPopup(text, isErr);
+        } else {
+            _nativeAlert(text);
+        }
+    };
+}
 
 // ==========================================
 // HÀM TẮT POPUP CÓ ANIMATION OUT
@@ -133,14 +180,24 @@ function initializeBackToTopButton() {
     document.body.appendChild(button);
 }
 
+window.openMHEntProfile = function() {
+    window.location.href = 'https://accounts.mhentuniverse.com/profile';
+};
+
+window.openMHEntLogin = function(redirectUrl = null) {
+    const currentPath = redirectUrl || (window.location.pathname + window.location.search + window.location.hash);
+    const targetRedirect = currentPath.startsWith('http') ? currentPath : (window.location.origin + currentPath);
+    window.location.href = 'https://accounts.mhentuniverse.com/login?redirect=' + encodeURIComponent(targetRedirect);
+};
+
 window.buildLoginRedirectUrl = function(defaultPath = null) {
-    const currentPath = defaultPath || `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    if (!currentPath || currentPath.startsWith('/login') || currentPath.startsWith('/auth-action')) return '/login';
-    return `/login?redirect=${encodeURIComponent(currentPath)}`;
+    const currentPath = defaultPath || (window.location.pathname + window.location.search + window.location.hash);
+    const targetRedirect = currentPath.startsWith('http') ? currentPath : (window.location.origin + currentPath);
+    return 'https://accounts.mhentuniverse.com/login?redirect=' + encodeURIComponent(targetRedirect);
 };
 
 window.redirectToLogin = function(defaultPath = null) {
-    window.location.href = window.buildLoginRedirectUrl(defaultPath);
+    window.openMHEntLogin(defaultPath);
 };
 
 function initializeLoginRedirectButtons() {
@@ -148,11 +205,9 @@ function initializeLoginRedirectButtons() {
     document.addEventListener('click', (event) => {
         const target = event.target.closest ? event.target.closest(loginSelectors.join(',')) : null;
         if (!target || target.getAttribute('onclick') || target.closest('.dropdown-menu')) return;
-        const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-        if (currentPath.startsWith('/login') || currentPath.startsWith('/auth-action')) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+        window.openMHEntLogin();
     }, true);
 }
 
@@ -395,7 +450,7 @@ window.openSideDrawer = function() {
 
     if (!isLoggedOut) {
         menuHTML += `
-            <a onclick="window.location.href='/profile#info'; closeSideDrawer();" class="drawer-item">
+            <a onclick="window.location.href='https://accounts.mhentuniverse.com/profile'; closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-user"></i> <span>Hồ sơ cá nhân</span></div>
                 <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
             </a>
@@ -518,7 +573,7 @@ window.openSideDrawer = function() {
                 <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
             </a>
 
-            <a onclick="window.location.href='/profile#settings'; closeSideDrawer();" class="drawer-item">
+            <a onclick="window.location.href='https://accounts.mhentuniverse.com/profile'; closeSideDrawer();" class="drawer-item">
                 <div class="drawer-item-left"><i class="fa-solid fa-gear"></i> <span>Cài đặt bảo mật</span></div>
                 <i class="fa-solid fa-chevron-right" style="font-size: 14px; color: var(--text-muted);"></i>
             </a>
@@ -554,8 +609,8 @@ window.openSideDrawer = function() {
 
     overlay.innerHTML = `
         <div class="mhent-side-drawer">
-            <div class="drawer-header">
-                <button class="drawer-close-btn" onclick="closeSideDrawer()">&times;</button>
+            <div class="drawer-header" style="cursor: pointer;" onclick="window.location.href='https://accounts.mhentuniverse.com/profile';" title="Quản lý tài khoản MHEnt ID">
+                <button class="drawer-close-btn" onclick="event.stopPropagation(); closeSideDrawer();">&times;</button>
                 <img src="${userAvt}" alt="Avatar" class="drawer-avt" onerror="this.src='/assets/avt-web.jpg'">
                 <div class="drawer-name" style="margin-bottom: 2px;">${userName}</div>
                 ${teamBadgeHTML}

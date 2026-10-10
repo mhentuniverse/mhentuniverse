@@ -15,6 +15,14 @@
             } else {
                 document.documentElement.classList.remove('dark-mode');
             }
+
+            // Chuyển tiếp ngay lập tức sang Cổng Định Danh MHEnt ID
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const redirect = params.get('redirect') || '/';
+                const targetUrl = 'https://accounts.mhentuniverse.com/login?redirect=' + encodeURIComponent(redirect.startsWith('http') ? redirect : (window.location.origin + redirect));
+                window.location.replace(targetUrl);
+            } catch(e) {}
         })();
     </script>
     <meta charset="UTF-8">
