@@ -454,27 +454,28 @@ if (btnLogin) {
             window.latestWatchedId = null; 
         
             onAuthStateChanged(auth, async (user) => {
+                const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
                 const btnTheme = document.getElementById('btn-theme-toggle'); 
 
-                if (user) {
+                if (activeUser) {
                     if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                     if(btnTheme) btnTheme.style.display = 'none'; 
                     if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
                     if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'block';
 
-                    let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                    let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : "Khách");
                     if (document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
 
                     const avtElement = document.getElementById('user-avatar');
                     if (avtElement) {
-                        avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                        avtElement.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
                         avtElement.style.display = 'block'; 
                     }        
 
                     if (typeof loadNotifications === "function") loadNotifications();
 
                     try {
-                        const userSnap = await getDoc(doc(db, "users", user.uid));
+                        const userSnap = await getDoc(doc(db, "users", activeUser.uid));
                         if (userSnap.exists()) {
                             window.userLastWatched = userSnap.data().lastWatched || {};
                             window.latestWatchedId = userSnap.data().latestWatchedId || null; 
@@ -492,27 +493,27 @@ if (btnLogin) {
                     if(typeof window.renderContinueWatching === "function") window.renderContinueWatching();
                 }
 
-                    const userRef = doc(db, "users", user?.uid || 'guest');
-                    if(user) {
-                        getDoc(userRef).then((docSnap) => {
-                            const adminBtn = document.getElementById('admin-panel-btn');
-                            const studioBtn = document.getElementById('studio-panel-btn');
-                            
-                            if (adminBtn) adminBtn.style.display = 'none';
-                            if (studioBtn) studioBtn.style.display = 'none';
+                const userRef = doc(db, "users", activeUser?.uid || 'guest');
+                if(activeUser) {
+                    getDoc(userRef).then((docSnap) => {
+                        const adminBtn = document.getElementById('admin-panel-btn');
+                        const studioBtn = document.getElementById('studio-panel-btn');
+                        
+                        if (adminBtn) adminBtn.style.display = 'none';
+                        if (studioBtn) studioBtn.style.display = 'none';
 
-                            if (docSnap.exists() && docSnap.data().role) {
-                                const userRole = docSnap.data().role; 
-
-                                if (userRole.includes('admin')) {
-                                    if (adminBtn) adminBtn.style.display = 'flex';
-                                    if (studioBtn) studioBtn.style.display = 'flex'; 
-                                } else if (userRole.includes('uploader')) {
-                                    if (studioBtn) studioBtn.style.display = 'flex';
-                                }
+                        const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (activeUser.role || '');
+                        if (userRole) {
+                            const roleLower = userRole.toLowerCase();
+                            if (roleLower.includes('admin')) {
+                                if (adminBtn) adminBtn.style.display = 'flex';
+                                if (studioBtn) studioBtn.style.display = 'flex'; 
+                            } else if (roleLower.includes('uploader') || roleLower.includes('cinema')) {
+                                if (studioBtn) studioBtn.style.display = 'flex';
                             }
-                        }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
-                    }
+                        }
+                    }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
+                }
             });
 
             // ==========================================
@@ -787,7 +788,7 @@ if (btnLogin) {
                 const dot = document.querySelector('.notif-dot'); 
                 if(!notifList) return; 
                 
-                const user = auth.currentUser;
+                const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
                 if (!user) {
                     notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center;">Đăng nhập để nhận thông báo phim nhé!</p>';
                     return;
@@ -854,7 +855,7 @@ if (btnLogin) {
             };
 
             window.markAsReadAndGo = async function(movieId, movieTime, targetUrl) {
-                const user = auth.currentUser;
+                const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
                 if(user) {
                     try {
                         const userRef = doc(db, "users", user.uid);
@@ -868,7 +869,7 @@ if (btnLogin) {
             };
 
             window.markAllAsRead = async function() {
-                const user = auth.currentUser;
+                const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
                 if(!user || !window.currentLoadedNotifs) return;
 
                 try {

@@ -1047,29 +1047,31 @@
         if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
 
         onAuthStateChanged(auth, (user) => {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
             const btnTheme = document.getElementById('btn-theme-toggle'); 
-            if (user) {
+            if (activeUser) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none'; if(btnTheme) btnTheme.style.display = 'none'; 
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex'; if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'block';
-                let finalName = user.displayName || user.email.split('@')[0]; if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
-                const avtElement = document.getElementById('user-avatar'); if (avtElement) { avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg"; avtElement.style.display = 'block'; }
+                let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Khách'); if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
+                const avtElement = document.getElementById('user-avatar'); if (avtElement) { avtElement.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg"; avtElement.style.display = 'block'; }
 
-                const userRef = doc(db, "users", user.uid);
+                const userRef = doc(db, "users", activeUser.uid || 'guest');
                 getDoc(userRef).then((docSnap) => {
                     const adminBtn = document.getElementById('admin-panel-btn'); const studioBtn = document.getElementById('studio-panel-btn');
                     if (adminBtn) adminBtn.style.display = 'none';
                     document.getElementById('admin-divider').style.display = 'none';
                     if (studioBtn) studioBtn.style.display = 'none';
                     document.getElementById('studio-divider').style.display = 'none';
-                    if (docSnap.exists() && docSnap.data().role) {
-                        const userRole = docSnap.data().role; 
-                        if (userRole.includes('admin')) { 
+                    const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (activeUser.role || '');
+                    if (userRole) {
+                        const roleLower = userRole.toLowerCase();
+                        if (roleLower.includes('admin')) { 
                             if (adminBtn) adminBtn.style.display = 'flex'; 
                             document.getElementById('admin-divider').style.display = 'block';
                             if (studioBtn) studioBtn.style.display = 'flex'; 
                             document.getElementById('studio-divider').style.display = 'block';
                         } 
-                        else if (userRole.includes('cinema')) { 
+                        else if (roleLower.includes('cinema')) { 
                             if (studioBtn) studioBtn.style.display = 'flex'; 
                             document.getElementById('studio-divider').style.display = 'block';
                         }
@@ -1079,7 +1081,7 @@
                 if (window.currentMovieId && window.currentMovieData && window.currentMovieData.type === 'series') {
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.get('ep') === null) { 
-                        getDoc(doc(db, "users", user.uid)).then(userSnap => {
+                        getDoc(doc(db, "users", activeUser.uid)).then(userSnap => {
                             if (userSnap.exists() && userSnap.data().lastWatched) {
                                 const cloudEp = userSnap.data().lastWatched[window.currentMovieId];
                                 if (cloudEp !== undefined && cloudEp !== window.currentEpIndex && cloudEp < window.currentMovieData.episodes.length) { window.playVideo(cloudEp); }
@@ -1092,9 +1094,8 @@
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex'; if(btnTheme) btnTheme.style.display = 'flex'; 
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none'; if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'none';
             }
-
-            // ⚡ THAY THẾ CỤC BỊ LỖI BẰNG ĐOẠN NÀY (Tự kéo data từ mây về, không phụ thuộc vào docSnap cũ nữa):
-            getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+            if (user && user.uid) {
+                getDoc(doc(db, "users", user.uid)).then((uSnap) => {
                 const userData = uSnap.exists() ? uSnap.data() : {};
                 localStorage.setItem('mhent_user_role', userData.role || 'user');
                 localStorage.setItem('mhent_user_profile', JSON.stringify({
@@ -1111,6 +1112,7 @@
                     teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
                 }));
             }).catch(e => console.log("Lỗi lưu cache profile:", e));
+            }
         });
 
     window.isOriginalLightMode = false; 
@@ -1178,7 +1180,7 @@
         window.loadNotifications = async function() {
             const notifList = document.getElementById('notif-list'); const dot = document.querySelector('.notif-dot'); 
             if(!notifList) return; 
-            const user = auth.currentUser;
+            const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
             if (!user) { notifList.innerHTML = '<p style="padding:15px; color:#888; text-align:center;">Đăng nhập để nhận thông báo phim nhé!</p>'; return; }
             try {
                 const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef); const userData = userSnap.data() || {}; const savedMovies = userData.savedMovies || [];
@@ -1199,13 +1201,14 @@
         };
 
         window.markAsReadAndGo = async function(movieId, movieTime, targetUrl) {
-            const user = auth.currentUser;
+            const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
             if(user) { try { const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef); let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {}; readHistory[movieId] = movieTime; await setDoc(userRef, { readHistory: readHistory }, { merge: true }); } catch (error) { console.error("Lỗi đồng bộ:", error); } }
             window.location.href = targetUrl; 
         };
 
         window.markAllAsRead = async function() {
-            const user = auth.currentUser; if(!user || !window.currentLoadedNotifs) return;
+            const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
+            if(!user || !window.currentLoadedNotifs) return;
             try {
                 const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef); let readHistory = (userSnap.exists() && userSnap.data().readHistory) ? userSnap.data().readHistory : {};
                 window.currentLoadedNotifs.forEach(movie => { readHistory[movie.id] = movie.updatedAt || 0; });

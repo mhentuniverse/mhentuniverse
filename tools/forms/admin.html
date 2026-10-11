@@ -434,24 +434,27 @@
         });
 
         onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            currentUser = activeUser;
             const userSection = document.getElementById('user-section');
-            if (user) {
+            if (activeUser) {
                 userSection.innerHTML = `
                     <div class="profile-trigger" onclick="window.location.href='/profile.html'">
-                        <img src="${user.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 34px; border-radius: 50%; border: 2px solid var(--primary-accent);">
-                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${user.displayName || 'Chủ tịch'}</span>
+                        <img src="${(activeUser.photoURL && activeUser.photoURL.trim() !== '') ? activeUser.photoURL : '/assets/avt-web.jpg'}" class="user-avatar" style="width: 34px; border-radius: 50%; border: 2px solid var(--primary-accent);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${activeUser.displayName || 'Chủ tịch'}</span>
                     </div>
                 `;
                 try {
-                    const uDoc = await getDoc(doc(db, "users", user.uid));
+                    const uDoc = await getDoc(doc(db, "users", activeUser.uid));
                     if (uDoc.exists()) {
-                        currentUserRole = uDoc.data().role || '';
+                        currentUserRole = uDoc.data().role || activeUser.role || '';
+                    } else {
+                        currentUserRole = activeUser.role || '';
                     }
                 } catch(e) {
-                    console.warn(e);
+                    currentUserRole = activeUser.role || '';
                 }
-                isUserAdmin = currentUserRole.includes('admin') || user.email === 'mhent@mhentuniverse.com' || user.email === 'contact@mhentuniverse.com';
+                isUserAdmin = (currentUserRole && currentUserRole.toLowerCase().includes('admin')) || activeUser.email === 'mhent@mhentuniverse.com' || activeUser.email === 'contact@mhentuniverse.com';
             } else {
                 currentUserRole = '';
                 isUserAdmin = false;

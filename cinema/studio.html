@@ -303,12 +303,13 @@
 
         // --- 🚨 KIỂM TRA QUYỀN LỰC ĐỐI TÁC (ĐÃ MỞ KHÓA THEO SCHEMA ĐA VŨ TRỤ) ---
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (!activeUser) {
                 window.redirectToLogin();
                 return;
             }
             try {
-                const userRef = doc(db, "users", user.uid);
+                const userRef = doc(db, "users", activeUser.uid);
                 const docSnap = await getDoc(userRef);
                 const userData = docSnap.exists() ? docSnap.data() : {};
                 let userRole = userData.role || "";
@@ -396,7 +397,7 @@
                         linkDuPhong: document.getElementById('ep-dp1').value.trim(),
                         linkDuPhong2: document.getElementById('ep-dp2').value.trim(),
                         teamName: window.myTeamName,
-                        uploaderId: auth.currentUser.uid
+                        uploaderId: (auth.currentUser ? auth.currentUser.uid : (window.getMHEntUser() ? window.getMHEntUser().uid : ""))
                     }),
                     updatedAt: Date.now() 
                 });
@@ -432,7 +433,7 @@
                     desc: document.getElementById('input-desc').value.trim().replace(/\n/g, "<br>"),
                     episodes: [],
                     teamName: window.myTeamName,
-                    uploaderId: auth.currentUser.uid,
+                    uploaderId: (auth.currentUser ? auth.currentUser.uid : (window.getMHEntUser() ? window.getMHEntUser().uid : "")),
                     createdAt: Date.now() 
                 });
                 showPopup("📩 Đã gửi đề xuất! Admin Lam Chi sẽ duyệt phim của cậu sớm nhất nha!");
@@ -517,7 +518,7 @@
                     linkDuPhong: document.getElementById('edit-ep-dp1').value.trim(),
                     linkDuPhong2: document.getElementById('edit-ep-dp2').value.trim(),
                     teamName: window.myTeamName,
-                    uploaderId: auth.currentUser.uid
+                    uploaderId: (auth.currentUser ? auth.currentUser.uid : (window.getMHEntUser() ? window.getMHEntUser().uid : ""))
                 };
                 
                 await updateDoc(doc(db, "movies", movieId), { episodes: window.currentEditMovieData.episodes, updatedAt: Date.now() });

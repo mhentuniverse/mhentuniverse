@@ -441,7 +441,8 @@
 
         // AUTH MONITOR
         onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            currentUser = activeUser;
             const btnTheme = document.getElementById('btn-theme-toggle'); 
             const userProfile = document.getElementById('user-profile');
             const btnLoginEl = document.getElementById('btn-login');
@@ -450,15 +451,15 @@
             const btnStart = document.getElementById('btn-start');
             const loginWarning = document.getElementById('login-warning');
 
-            if (user) {
+            if (activeUser) {
                 if (btnLoginEl) btnLoginEl.style.display = 'none';
                 if (btnTheme) btnTheme.style.display = 'none'; 
                 if (userProfile) userProfile.style.display = 'flex';
 
-                let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Cư dân");
+                let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : "Cư dân");
                 if (userName) userName.innerText = finalName;
                 if (userAvatar) {
-                    userAvatar.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    userAvatar.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
                     userAvatar.style.display = 'block'; 
                 }
 
@@ -469,27 +470,21 @@
 
                 // Kiểm tra quyền Admin
                 try {
-                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    const docSnap = await getDoc(doc(db, "users", activeUser.uid));
                     const adminBtn = document.getElementById('admin-panel-btn');
                     const adminDiv = document.getElementById('admin-divider');
                     if (adminBtn) adminBtn.style.display = 'none';
                     if (adminDiv) adminDiv.style.display = 'none';
-                    if (docSnap.exists() && docSnap.data().role && docSnap.data().role.includes('admin')) {
+                    const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (activeUser.role || '');
+                    if (userRole && userRole.toLowerCase().includes('admin')) {
                         if (adminBtn) adminBtn.style.display = 'flex';
                         if (adminDiv) adminDiv.style.display = 'block';
                     }
-                } catch (e) {
-                    console.log("Quyền admin:", e);
-                }
+                } catch(e) {}
             } else {
                 if (btnLoginEl) btnLoginEl.style.display = 'flex';
                 if (btnTheme) btnTheme.style.display = 'flex'; 
                 if (userProfile) userProfile.style.display = 'none';
-
-                if (formConfigData?.settings?.requireLogin) {
-                    if (loginWarning) loginWarning.style.display = 'block';
-                    if (btnStart) btnStart.disabled = true;
-                }
             }
         });
 

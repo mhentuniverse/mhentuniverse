@@ -380,29 +380,29 @@ if (btnLogin) {
         if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
 
         onAuthStateChanged(auth, (user) => {
-            if (user) {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (activeUser) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
 
-                let finalName = user.displayName || user.email.split('@')[0];
+                let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Thành viên MHEnt');
                 if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
 
                 const avtElement = document.getElementById('user-avatar');
                 if (avtElement) {
-                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    avtElement.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
                     avtElement.style.display = 'block'; 
                 }
 
-                const userRef = doc(db, "users", user.uid);
+                const userRef = doc(db, "users", activeUser.uid || 'guest');
                 getDoc(userRef).then((docSnap) => {
                     const adminBtn = document.getElementById('admin-panel-btn');
                     if (adminBtn) adminBtn.style.display = 'none';
-                    document.getElementById('admin-divider') = 'none';
-                    if (docSnap.exists() && docSnap.data().role) {
-                        if (docSnap.data().role.includes('admin')) {
-                            if (adminBtn) adminBtn.style.display = 'flex';
-                            document.getElementById('admin-divider').style.display = 'block';
-                        }
+                    if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'none';
+                    const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (activeUser.role || '');
+                    if (userRole && userRole.toLowerCase().includes('admin')) {
+                        if (adminBtn) adminBtn.style.display = 'flex';
+                        if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
                     }
                 }).catch(e => console.log("Lỗi quét thẻ:", e));
             } else {

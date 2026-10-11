@@ -298,47 +298,34 @@
         window.onclick = function(e) { if (!e.target.closest('.user-section')) { document.getElementById('dropdown-account')?.classList.remove('show'); document.getElementById('dropdown-app-switcher')?.classList.remove('show'); } if (!e.target.closest('.menu-toggle') && !e.target.closest('#nav-links')) document.getElementById('nav-links')?.classList.remove('active'); };
         
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (activeUser) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
-                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+                if(document.getElementById('user-name')) document.getElementById('user-name').innerText = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Chiến binh');
+                if(document.getElementById('user-avatar')) document.getElementById('user-avatar').src = (activeUser.photoURL && activeUser.photoURL.trim() !== '') ? activeUser.photoURL : "/assets/avt-web.jpg";
 
                 try {
-                    const userSnap = await getDoc(doc(db, "users", user.uid));
-                    let userRole = userSnap.exists() ? (userSnap.data().role || 'user') : 'user';
-                    localStorage.setItem('mhent_user_role', userRole);
+                    const userSnap = await getDoc(doc(db, "users", activeUser.uid));
+                    let userRole = userSnap.exists() ? (userSnap.data().role || 'user') : (activeUser.role || 'user');
 
-                    if (userRole.includes('admin') || userRole.includes('arena')) {
+                    if (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('arena')) {
                         document.getElementById('studio-panel-btn').style.display = 'block';
                         document.getElementById('admin-divider').style.display = 'block';
-                        if(userRole.includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
+                        if(userRole.toLowerCase().includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
                     }
-                } catch(e) { localStorage.setItem('mhent_user_role', 'user'); }
+                } catch(e) {
+                    let userRole = activeUser.role || 'user';
+                    if (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('arena')) {
+                        document.getElementById('studio-panel-btn').style.display = 'block';
+                        document.getElementById('admin-divider').style.display = 'block';
+                        if(userRole.toLowerCase().includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
+                    }
+                }
             } else {
-                localStorage.setItem('mhent_user_role', 'guest');
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
-
-            // ⚡ THAY THẾ CỤC BỊ LỖI BẰNG ĐOẠN NÀY (Tự kéo data từ mây về, không phụ thuộc vào docSnap cũ nữa):
-            getDoc(doc(db, "users", user.uid)).then((uSnap) => {
-                const userData = uSnap.exists() ? uSnap.data() : {};
-                localStorage.setItem('mhent_user_role', userData.role || 'user');
-                localStorage.setItem('mhent_user_profile', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName || user.email.split('@')[0],
-                    photoURL: user.photoURL || "/assets/avt-web.jpg",
-                    role: userData.role || 'user',
-                    teamCinema: userData.teamCinema || userData.teamName || '',
-                    teamArena: userData.teamArena || userData.teamName || '',
-                    teamManga: userData.teamManga || userData.teamName || '',
-                    teamMusic: userData.teamMusic || userData.teamName || '',
-                    teamNovel: userData.teamNovel || userData.teamName || '',
-                    teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
-                }));
-            }).catch(e => console.log("Lỗi lưu cache profile:", e));
         });
 
         // 3. LOGIC LOAD DANH SÁCH TỪ SUPABASE (CÓ TYPING POPUP)

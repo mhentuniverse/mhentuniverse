@@ -483,12 +483,13 @@
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (!activeUser) {
                 window.redirectToLogin();
                 return;
             }
             try {
-                const docSnap = await getDoc(doc(db, "users", user.uid));
+                const docSnap = await getDoc(doc(db, "users", activeUser.uid));
                 const userData = docSnap.exists() ? docSnap.data() : {};
                 const userRole = userData.role || '';
 

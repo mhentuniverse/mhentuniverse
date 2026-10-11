@@ -840,50 +840,49 @@
 
         // AUTH MONITOR & POPULATE NAVBAR
         onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            currentUser = activeUser;
             const btnTheme = document.getElementById('btn-theme-toggle'); 
             const userProfile = document.getElementById('user-profile');
             const btnLoginEl = document.getElementById('btn-login');
             const userName = document.getElementById('user-name');
             const userAvatar = document.getElementById('user-avatar');
 
-            if (user) {
+            if (activeUser) {
                 if (btnLoginEl) btnLoginEl.style.display = 'none';
                 if (btnTheme) btnTheme.style.display = 'none'; 
                 if (userProfile) userProfile.style.display = 'flex';
 
-                let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Cư dân");
+                let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : "Cư dân");
                 if (userName) userName.innerText = finalName;
                 if (userAvatar) {
-                    userAvatar.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    userAvatar.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
                     userAvatar.style.display = 'block'; 
                 }
 
                 // Tự động điền thông tin vào các trường preset nếu có
                 const nameInput = document.getElementById('input-preset-name');
                 const emailInput = document.getElementById('input-preset-email');
-                if (nameInput && !nameInput.value) nameInput.value = user.displayName || '';
-                if (emailInput && !emailInput.value) emailInput.value = user.email || '';
+                if (nameInput && !nameInput.value) nameInput.value = activeUser.displayName || '';
+                if (emailInput && !emailInput.value) emailInput.value = activeUser.email || '';
 
                 // Kiểm tra quyền Admin để hiện Admin Panel
-                let userRole = '';
+                let userRole = activeUser.role || '';
                 try {
-                    const docSnap = await getDoc(doc(db, "users", user.uid));
-                    const adminBtn = document.getElementById('admin-panel-btn');
-                    const adminDiv = document.getElementById('admin-divider');
-                    if (adminBtn) adminBtn.style.display = 'none';
-                    if (adminDiv) adminDiv.style.display = 'none';
+                    const docSnap = await getDoc(doc(db, "users", activeUser.uid));
                     if (docSnap.exists() && docSnap.data().role) {
                         userRole = docSnap.data().role;
-                        if (userRole.includes('admin')) {
-                            if (adminBtn) adminBtn.style.display = 'flex';
-                            if (adminDiv) adminDiv.style.display = 'block';
-                        }
                     }
-                } catch (e) {
-                    console.log("Quyền admin:", e);
+                } catch(e) { console.warn(e); }
+
+                const adminBtn = document.getElementById('admin-panel-btn');
+                const adminDiv = document.getElementById('admin-divider');
+                if (adminBtn) adminBtn.style.display = 'none';
+                if (adminDiv) adminDiv.style.display = 'none';
+                if (userRole && userRole.toLowerCase().includes('admin')) {
+                    if (adminBtn) adminBtn.style.display = 'flex';
+                    if (adminDiv) adminDiv.style.display = 'block';
                 }
-                updateCreatorAdminShortcuts(userRole);
             } else {
                 if (btnLoginEl) btnLoginEl.style.display = 'flex';
                 if (btnTheme) btnTheme.style.display = 'flex'; 

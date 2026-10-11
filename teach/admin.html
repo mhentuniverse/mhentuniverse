@@ -690,9 +690,10 @@
 
         // ⚡ THAY THẾ AN TOÀN BÊN TRONG .THEN() VÀ MỞ CỔNG CREATOR/TEACHER
         onAuthStateChanged(auth, async (user) => {
-            if (!user) window.redirectToLogin();
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (!activeUser) window.redirectToLogin();
             else {
-                getDoc(doc(db, "users", user.uid)).then((docSnap) => {
+                getDoc(doc(db, "users", activeUser.uid)).then((docSnap) => {
                     const userData = docSnap.exists() ? docSnap.data() : {};
                     const role = userData.role || 'user';
                     window.currentUserRole = role;

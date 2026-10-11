@@ -461,7 +461,8 @@
         else { document.getElementById('display-room-id').innerText = roomId; }
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { currentUser = user; connectToRoom(); } 
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (activeUser) { currentUser = activeUser; connectToRoom(); } 
             else { window.redirectToLogin(); }
         });
 

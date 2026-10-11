@@ -276,37 +276,22 @@
 
             let currentUserUid = null;
             onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUserUid = user.uid;
+                const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+                if (activeUser) {
+                    currentUserUid = activeUser.uid;
                     document.getElementById('btn-login').style.display = 'none';
                     document.getElementById('user-profile').style.display = 'flex';
-                    let finalName = user.displayName || (user.email ? user.email.split('@')[0] : "Khách");
+                    let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : "Khách");
                     document.getElementById('user-name').innerText = finalName;
-                    if(user.photoURL) document.getElementById('user-avatar').src = user.photoURL;
+                    if(activeUser.photoURL) document.getElementById('user-avatar').src = activeUser.photoURL;
                     fetchPresets(); 
 
-                    // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN()
-                    getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+                    const userRef = doc(db, "users", activeUser.uid || 'guest');
+                    getDoc(userRef).then((uSnap) => {
                         const userData = uSnap.exists() ? uSnap.data() : {};
-                        const userRole = userData.role || 'user';
-                        localStorage.setItem('mhent_user_role', userRole);
-                        localStorage.setItem('mhent_user_profile', JSON.stringify({
-                            uid: user.uid, email: user.email,
-                            displayName: user.displayName || finalName,
-                            photoURL: user.photoURL || "/assets/avt-web.jpg",
-                            role: userRole,
-                            teamCinema: userData.teamCinema || userData.teamName || '',
-                            teamArena: userData.teamArena || userData.teamName || '',
-                            teamManga: userData.teamManga || userData.teamName || '',
-                            teamMusic: userData.teamMusic || userData.teamName || '',
-                            teamNovel: userData.teamNovel || userData.teamName || '',
-                            teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
-                        }));
                     }).catch(e => console.log("Lỗi nạp cache profile:", e));
 
                 } else {
-                    localStorage.setItem('mhent_user_role', 'guest');
-                    localStorage.removeItem('mhent_user_profile');
                     document.getElementById('btn-login').style.display = 'flex';
                     document.getElementById('user-profile').style.display = 'none';
                     document.getElementById('preset-list').innerHTML = `<p style="color: #ef4444; width: 100%; text-align: center; font-weight: 700;">Vui lòng đăng nhập để sử dụng công cụ này!</p>`;

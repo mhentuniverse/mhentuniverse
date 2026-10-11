@@ -606,42 +606,26 @@
         if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
 
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (activeUser) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
 
-                let finalName = user.displayName || user.email.split('@')[0];
+                let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Thành viên MHEnt');
                 if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
 
                 const avtElement = document.getElementById('user-avatar');
                 if (avtElement) {
-                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    avtElement.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
                     avtElement.style.display = 'block'; 
                 }
 
-                // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN() (Bảo vệ quyền Creator/Admin)
-                getDoc(doc(firestore, "users", user.uid)).then((uSnap) => {
+                const userRef = doc(firestore, "users", activeUser.uid || 'guest');
+                getDoc(userRef).then((uSnap) => {
                     const userData = uSnap.exists() ? uSnap.data() : {};
-                    const userRole = userData.role || 'user';
-                    localStorage.setItem('mhent_user_role', userRole);
-                    localStorage.setItem('mhent_user_profile', JSON.stringify({
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName || finalName,
-                        photoURL: user.photoURL || "/assets/avt-web.jpg",
-                        role: userRole,
-                        teamCinema: userData.teamCinema || userData.teamName || '',
-                        teamArena: userData.teamArena || userData.teamName || '',
-                        teamManga: userData.teamManga || userData.teamName || '',
-                        teamMusic: userData.teamMusic || userData.teamName || '',
-                        teamNovel: userData.teamNovel || userData.teamName || '',
-                        teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
-                    }));
                 }).catch(e => console.log("Lỗi nạp cache profile:", e));
 
             } else {
-                localStorage.setItem('mhent_user_role', 'guest');
-                localStorage.removeItem('mhent_user_profile');
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }

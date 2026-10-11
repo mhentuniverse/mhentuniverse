@@ -282,8 +282,9 @@
         };
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) return window.redirectToLogin();
-            const snap = await getDoc(doc(db, "users", user.uid));
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (!activeUser) return window.redirectToLogin();
+            const snap = await getDoc(doc(db, "users", activeUser.uid));
             const role = snap.exists() ? (snap.data().role || '') : '';
             
             // ⚡ VÁ LỖI QUYÈN HAN: MỞ CỔNG CHO CÁC ROLE ADMIN, GAME, XIANGQI, CREATOR

@@ -769,38 +769,33 @@ if (btnLogin) {
             };
 
             onAuthStateChanged(auth, (user) => {
-            
+                const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
                 const btnTheme = document.getElementById('btn-theme-toggle'); 
-                if (user) {
+                if (activeUser) {
                     if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                     if(btnTheme) btnTheme.style.display = 'none'; 
                     if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
                     if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'block';
 
-                    // Gắn Tên
-                    let finalName = user.displayName || user.email.split('@')[0];
+                    let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Khách');
                     if(document.getElementById('user-name')) document.getElementById('user-name').innerText = finalName;
 
-                    // Gắn Ảnh
-                    // Xử lý Avatar (Luôn hiển thị: Có ảnh dùng ảnh User, không có dùng mặc định)
                     const avtElement = document.getElementById('user-avatar');
                     if (avtElement) {
-                        avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                        avtElement.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
                         avtElement.style.display = 'block'; 
                     }
                     
                     if (typeof loadNotifications === "function") loadNotifications();
 
-                    // --- BỔ SUNG: ĐỒNG BỘ NÚT "LƯU PHIM" VÀ "XEM TIẾP TẬP..." TỪ MÂY ---
                     const urlParams = new URLSearchParams(window.location.search);
                     const currentMovieId = urlParams.get('id');
                     
                     if (currentMovieId) {
-                        getDoc(doc(db, "users", user.uid)).then((userSnap) => {
+                        getDoc(doc(db, "users", activeUser.uid)).then((userSnap) => {
                             if (userSnap.exists()) {
                                 const userData = userSnap.data();
                                 
-                                // 1. Check nút Lưu Phim
                                 if (userData.savedMovies && userData.savedMovies.includes(currentMovieId)) {
                                     const saveBtn = document.getElementById('btn-save-movie');
                                     if (saveBtn) {
@@ -810,7 +805,6 @@ if (btnLogin) {
                                     }
                                 }
                                 
-                                // 2. Check nút Xem Tiếp Tập...
                                 if (userData.lastWatched && userData.lastWatched[currentMovieId] !== undefined) {
                                     let cloudEpIndex = userData.lastWatched[currentMovieId];
                                     let epNumber = parseInt(cloudEpIndex) + 1;
@@ -818,19 +812,17 @@ if (btnLogin) {
                                     let mainBtn = document.getElementById('btn-watch-main');
                                     let continueBtn = document.getElementById('btn-continue-watch');
                                     
-                                    if (mainBtn && continueBtn) {
-                                        // Đổi nút chính thành Xem từ đầu (Bắt buộc chạy Tập 1)
-                                        mainBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem từ đầu';
-                                        mainBtn.onclick = function() { window.location.href = '/cinema/watch?id=' + currentMovieId + '&ep=0'; };
-                                        
-                                        // Hiển thị nút Xem tiếp tập lấy từ Mây
-                                        continueBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; vertical-align: -3px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Tiếp tục xem Tập ' + epNumber;
-                                        continueBtn.href = '/cinema/watch?id=' + currentMovieId + '&ep=' + cloudEpIndex;
+                                    if (mainBtn) mainBtn.style.display = 'none';
+                                    if (continueBtn) {
                                         continueBtn.style.display = 'inline-flex';
+                                        continueBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Xem tiếp Tập ${epNumber}`;
+                                        continueBtn.onclick = function() {
+                                            window.location.href = `/cinema/watch?id=${currentMovieId}&ep=${cloudEpIndex}`;
+                                        };
                                     }
                                 }
                             }
-                        }).catch(e => console.error("Lỗi đồng bộ mây:", e));
+                        }).catch(e => console.log("Lỗi đồng bộ phim:", e));
                     }
                 } else {
                     if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
@@ -838,7 +830,6 @@ if (btnLogin) {
                     if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
                     if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'none';
                 }
-
                 // 🚨 LOGIC PHÂN QUYỀN ĐA VŨ TRỤ V2.0 🚨
                     const userRef = doc(db, "users", user?.uid || 'guest');
                     if(user) {
@@ -870,8 +861,8 @@ if (btnLogin) {
                         }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
                     }
 
-                    // ⚡ THAY THẾ CỤC BỊ LỖI BẰNG ĐOẠN NÀY (Tự kéo data từ mây về, không phụ thuộc vào docSnap cũ nữa):
-            getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+                    if (user && user.uid) {
+                getDoc(doc(db, "users", user.uid)).then((uSnap) => {
                 const userData = uSnap.exists() ? uSnap.data() : {};
                 localStorage.setItem('mhent_user_role', userData.role || 'user');
                 localStorage.setItem('mhent_user_profile', JSON.stringify({
@@ -888,6 +879,7 @@ if (btnLogin) {
                     teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
                 }));
             }).catch(e => console.log("Lỗi lưu cache profile:", e));
+            }
             });
 
             window.rateMovie = async function(stars) {
@@ -1010,8 +1002,8 @@ if (btnLogin) {
             };
 
             window.markAllAsRead = async function() {
-                const user = auth.currentUser;
-                if(!user || !window.currentLoadedNotifs) return;
+                const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
+            if(!user || !window.currentLoadedNotifs) return;
 
                 try {
                     const userRef = doc(db, "users", user.uid);

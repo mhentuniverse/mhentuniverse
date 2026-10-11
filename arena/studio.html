@@ -328,9 +328,10 @@
         });
 
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (activeUser) {
                 try {
-                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    const userSnap = await getDoc(doc(db, "users", activeUser.uid));
                     const userData = userSnap.exists() ? userSnap.data() : {};
                     let role = userData.role || "";
                     if (role.includes('admin') || role.includes('arena') || role.includes('creator')) {

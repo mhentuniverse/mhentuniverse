@@ -401,8 +401,8 @@
                 } catch (error) { console.error("Lỗi:", error); }
             } else { window.redirectToLogin('/profile.html'); }
 
-            // ⚡ THAY THẾ CỤC BỊ LỖI BẰNG ĐOẠN NÀY (Tự kéo data từ mây về, không phụ thuộc vào docSnap cũ nữa):
-            getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+            if (user && user.uid) {
+                getDoc(doc(db, "users", user.uid)).then((uSnap) => {
                 const userData = uSnap.exists() ? uSnap.data() : {};
                 localStorage.setItem('mhent_user_role', userData.role || 'user');
                 localStorage.setItem('mhent_user_profile', JSON.stringify({
@@ -419,6 +419,7 @@
                     teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
                 }));
             }).catch(e => console.log("Lỗi lưu cache profile:", e));
+            }
         });
 
         // HÀM CẬP NHẬT 

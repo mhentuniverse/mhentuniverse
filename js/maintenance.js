@@ -104,10 +104,12 @@ onSnapshot(doc(db, "system", "status"), (docSnap) => {
 
 // Radar 2: Quét thẻ Admin
 onAuthStateChanged(auth, async (user) => {
-    if (user) {
+    const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+    if (activeUser) {
         try {
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists() && userDoc.data().role && userDoc.data().role.includes('admin')) {
+            const userDoc = await getDoc(doc(db, "users", activeUser.uid));
+            const role = (userDoc.exists() && userDoc.data().role) ? userDoc.data().role : (activeUser.role || '');
+            if (role && role.toLowerCase().includes('admin')) {
                 isAdmin = true;
                 if(isSystemDown) {
                     document.getElementById('admin-bypass-notice').style.display = 'block';
@@ -116,7 +118,7 @@ onAuthStateChanged(auth, async (user) => {
                 isAdmin = false;
             }
         } catch (error) {
-            isAdmin = false;
+            isAdmin = (activeUser.role && activeUser.role.toLowerCase().includes('admin')) || false;
         }
     } else {
         isAdmin = false;

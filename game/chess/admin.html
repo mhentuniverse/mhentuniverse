@@ -310,10 +310,9 @@
         };
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) return window.redirectToLogin();
-            
-            // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN()
-            getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (!activeUser) return window.redirectToLogin();
+            getDoc(doc(db, "users", activeUser.uid)).then((uSnap) => {
                 const userData = uSnap.exists() ? uSnap.data() : {};
                 const userRole = userData.role || 'user';
 

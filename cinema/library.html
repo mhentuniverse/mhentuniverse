@@ -549,32 +549,30 @@ if (btnLogin) {
         // 🔥 THEO DÕI TRẠNG THÁI VÀ LÔI PHIM TỪ THƯ VIỆN 
         // ==========================================
         onAuthStateChanged(auth, async (user) => {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
             const btnTheme = document.getElementById('btn-theme-toggle'); 
             const container = document.getElementById('library-list-container');
             const adminBtn = document.getElementById('admin-panel-btn');
 
-            if (user) {
-                // --- Xử lý Navbar ---
+            if (activeUser) {
                 document.getElementById('btn-login').style.display = 'none';
                 if(btnTheme) btnTheme.style.display = 'none'; 
                 document.getElementById('user-profile').style.display = 'flex';
                 document.getElementById('bell-container').style.display = 'block';
 
-                let finalName = user.displayName || user.email.split('@')[0];
+                let finalName = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Thành viên');
                 document.getElementById('user-name').innerText = finalName;
 
-                // Luôn hiển thị Avatar: Có ảnh dùng ảnh User, không có dùng mặc định
                 const avtElement = document.getElementById('user-avatar');
                 if (avtElement) {
-                    avtElement.src = (user.photoURL && user.photoURL.trim() !== "") ? user.photoURL : "/assets/avt-web.jpg";
+                    avtElement.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
                     avtElement.style.display = 'block'; 
                 }
 
                 if (typeof loadNotifications === "function") loadNotifications();
                 
-                // --- Xử lý Tải Phim Thư Viện ---
                 try {
-                    const userRef = doc(db, "users", user.uid);
+                    const userRef = doc(db, "users", activeUser.uid);
                     const userSnap = await getDoc(userRef);
 
                     if (userSnap.exists() && userSnap.data().savedMovies && userSnap.data().savedMovies.length > 0) {
@@ -585,102 +583,72 @@ if (btnLogin) {
                             const movieSnap = await getDoc(doc(db, "movies", movieId));
                             if (movieSnap.exists()) {
                                 const movie = movieSnap.data();
-                                let currentStatus = movie.type === 'movie' ? (movie.episodes?.length > 0 ? "Current: Full" : "Current: None") : `Current: Episode ${movie.episodes?.length || 0}`;
-
-                                const cardHTML = `
-                                    <div class="movie-card" id="lib-card-${movieId}" style="position: relative;">
-                                        <a onclick="window.location.href='/cinema/description?id=${movieId}'" style="cursor: pointer;">
-                                            <img src="${movie.poster}" alt="${movie.title}" class="anime-poster">
-                                        </a>
-                                        <button onclick="removeFromLibrary('${movieId}')" class="btn-remove-lib" title="Xóa khỏi thư viện">❌</button>
-                                        
-                                        <div class="movie-info">
-                                            <h3>${movie.title}</h3>
-                                            <p>${currentStatus}</p>
-                                            <a onclick="window.location.href='/cinema/description?id=${movieId}'" style="cursor: pointer;" class="watch-link">▶ Xem thông tin</a>
-                                        </div>
+                                
+                                const card = document.createElement('div');
+                                card.className = 'movie-card';
+                                card.style.cursor = 'pointer';
+                                
+                                card.onclick = () => { window.location.href = `/cinema/description?id=${movieId}`; };
+                                
+                                const isSeries = movie.type === 'series';
+                                const badgeText = isSeries ? `TẬP ${movie.episodes ? movie.episodes.length : 0}` : 'MOVIE';
+                                const badgeClass = isSeries ? 'badge-series' : 'badge-movie';
+                                
+                                card.innerHTML = `
+                                    <div class="poster-wrapper">
+                                        <img src="${movie.poster || '/assets/default-poster.jpg'}" alt="${movie.title}">
+                                        <span class="badge ${badgeClass}">${badgeText}</span>
+                                        <button class="btn-unsave" onclick="event.stopPropagation(); removeMovieFromLibrary('${movieId}')" title="Xóa khỏi thư viện">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        </button>
                                     </div>
+                                    <h3 class="movie-title">${movie.title}</h3>
+                                    <div class="movie-meta">${movie.releaseYear || ''} • ${movie.genre || ''}</div>
                                 `;
-                                container.innerHTML += cardHTML;
+                                container.appendChild(card);
                             }
                         }
                     } else {
-                        container.innerHTML = `
-                            <div style="text-align: center; width: 100%; padding: 50px 0;">
-                                <h3 style="color: #ccc;">Thư viện trống trơn hà... 🏜️</h3>
-                                <p style="color: #888;">Cậu mau ra trang chủ dạo một vòng và tìm phim yêu thích lưu vào đây đi!</p>
-                                <a href="index" class="btn-primary" style="margin-top: 15px;">Dạo quanh Rạp phim</a>
-                            </div>
-                        `;
+                        container.innerHTML = '<p class="empty-msg">Cậu chưa lưu bộ phim nào cả! Hãy dạo quanh Rạp và nhấn "Lưu phim" nhé. ⭐</p>';
                     }
                 } catch (error) {
-                    console.error("Lỗi khi tải thư viện:", error);
-                    container.innerHTML = `<p style="color:red;">❌ Có lỗi xảy ra khi tải thư viện.</p>`;
+                    console.error("Lỗi tải phim đã lưu:", error);
+                    container.innerHTML = '<p class="empty-msg" style="color: #ff5c8a;">Có lỗi xảy ra khi tải thư viện của cậu.</p>';
                 }
-                
             } else {
-                // Chưa đăng nhập
                 document.getElementById('btn-login').style.display = 'flex';
                 if(btnTheme) btnTheme.style.display = 'flex'; 
                 document.getElementById('user-profile').style.display = 'none';
                 document.getElementById('bell-container').style.display = 'none';
-
-                container.innerHTML = `
-                    <div style="text-align: center; width: 100%; padding: 50px 0;">
-                        <h3 style="color: #ff85a2;">Cậu cần đăng nhập để xem thư viện nhé! 🥺</h3>
-                        <a href="login" class="btn-primary" style="margin-top: 15px;">Đăng nhập ngay</a>
-                    </div>
-                `;
+                container.innerHTML = '<p class="empty-msg">Vui lòng đăng nhập để xem thư viện phim của cậu nhé! 🎬</p>';
             }
-            // 🚨 LOGIC PHÂN QUYỀN ĐA VŨ TRỤ V2.0 🚨
-            const userRef = doc(db, "users", user?.uid || 'guest');
-            if(user) {
+
+            const userRef = doc(db, "users", activeUser?.uid || 'guest');
+            if(activeUser) {
                 getDoc(userRef).then((docSnap) => {
                     const adminBtn = document.getElementById('admin-panel-btn');
                     const studioBtn = document.getElementById('studio-panel-btn');
                     
-                    // Mặc định giấu cả 2 nút đi khi chưa biết là ai
                     if (adminBtn) adminBtn.style.display = 'none';
-                    document.getElementById('admin-divider').style.display = 'none';
+                    if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'none';
                     if (studioBtn) studioBtn.style.display = 'none';
-                    document.getElementById('studio-divider').style.display = 'none';
+                    if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'none';
 
-                    if (docSnap.exists() && docSnap.data().role) {
-                        const userRole = docSnap.data().role; // Rút thẻ căn cước từ mây về
-
-                        if (userRole.includes('admin')) {
-                            // Nếu là Chủ tịch -> Mở cửa Căn cứ Admin
+                    const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (activeUser.role || '');
+                    if (userRole) {
+                        const roleLower = userRole.toLowerCase();
+                        if (roleLower.includes('admin')) {
                             if (adminBtn) adminBtn.style.display = 'flex';
-                            document.getElementById('admin-divider').style.display = 'block';
-                            if (studioBtn) studioBtn.style.display = 'flex'; // Chủ tịch cũng có quyền vào Studio
-                            document.getElementById('studio-divider').style.display = 'block';
-                        } else if (userRole.includes('cinema')) {
-                            // Nếu là Đối tác Nhóm dịch -> Mở cửa Phòng Studio
+                            if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
                             if (studioBtn) studioBtn.style.display = 'flex';
-                            document.getElementById('studio-divider').style.display = 'block';
+                            if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
+                        } else if (roleLower.includes('cinema')) {
+                            if (studioBtn) studioBtn.style.display = 'flex';
+                            if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
                         }
                     }
                 }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
             }
-
-            // ⚡ THAY THẾ CỤC BỊ LỖI BẰNG ĐOẠN NÀY (Tự kéo data từ mây về, không phụ thuộc vào docSnap cũ nữa):
-            getDoc(doc(db, "users", user.uid)).then((uSnap) => {
-                const userData = uSnap.exists() ? uSnap.data() : {};
-                localStorage.setItem('mhent_user_role', userData.role || 'user');
-                localStorage.setItem('mhent_user_profile', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName || user.email.split('@')[0],
-                    photoURL: user.photoURL || "/assets/avt-web.jpg",
-                    role: userData.role || 'user',
-                    teamCinema: userData.teamCinema || userData.teamName || '',
-                    teamArena: userData.teamArena || userData.teamName || '',
-                    teamManga: userData.teamManga || userData.teamName || '',
-                    teamMusic: userData.teamMusic || userData.teamName || '',
-                    teamNovel: userData.teamNovel || userData.teamName || '',
-                    teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
-                }));
-            }).catch(e => console.log("Lỗi lưu cache profile:", e));
         });
 
         // ==========================================
@@ -813,7 +781,7 @@ if (btnLogin) {
         };
 
         window.markAllAsRead = async function() {
-            const user = auth.currentUser;
+            const user = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
             if(!user || !window.currentLoadedNotifs) return;
 
             try {

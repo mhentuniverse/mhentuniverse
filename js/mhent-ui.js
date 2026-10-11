@@ -180,6 +180,208 @@ function initializeBackToTopButton() {
     document.body.appendChild(button);
 }
 
+// ==========================================================================
+// 🌐 MHENT UNIVERSE SINGLE SIGN-ON (SSO) & SESSION BRIDGE
+// Tự động nhận diện thẻ MHEnt ID từ accounts.mhentuniverse.com trên toàn miền (*.mhentuniverse.com)
+// ==========================================================================
+function getMHEntSessionCookie() {
+    try {
+        const match = document.cookie.match(/(?:^|;\s*)mhent_auth_session=([^;]*)/);
+        if (match && match[1]) {
+            const raw = decodeURIComponent(match[1]);
+            const user = JSON.parse(raw);
+            if (user && (user.uid || user.email)) {
+                return user;
+            }
+        }
+    } catch (e) {
+        console.warn("[MHEnt UI] Lỗi đọc cookie mhent_auth_session:", e);
+    }
+    return null;
+}
+
+function getMHEntAuthTokenCookie() {
+    try {
+        const match = document.cookie.match(/(?:^|;\s*)mhent_auth_token=([^;]*)/);
+        if (match && match[1]) {
+            return decodeURIComponent(match[1]);
+        }
+    } catch (e) {}
+    return null;
+}
+
+window.syncMHEntSessionCookie = function() {
+    const cookieUser = getMHEntSessionCookie();
+    const token = getMHEntAuthTokenCookie();
+
+    if (cookieUser) {
+        localStorage.setItem('mhent_user_profile', JSON.stringify(cookieUser));
+        localStorage.setItem('mhent_user_role', (cookieUser.role || 'user').toLowerCase());
+        if (cookieUser.uid) localStorage.setItem('mhent_app_uid', cookieUser.uid);
+        if (token) localStorage.setItem('mhent_app_token', token);
+
+        window.currentUserProfile = cookieUser;
+        window.currentUserRole = (cookieUser.role || 'user').toLowerCase();
+        window.currentUserEmail = cookieUser.email || '';
+        return cookieUser;
+    }
+
+    const isDomain = window.location.hostname.endsWith('mhentuniverse.com');
+    if (isDomain) {
+        localStorage.removeItem('mhent_user_profile');
+        localStorage.removeItem('mhent_app_token');
+        localStorage.removeItem('mhent_app_uid');
+        localStorage.setItem('mhent_user_role', 'guest');
+        window.currentUserProfile = null;
+        window.currentUserRole = 'guest';
+        window.currentUserEmail = '';
+        return null;
+    }
+
+    try {
+        const local = localStorage.getItem('mhent_user_profile');
+        if (local) {
+            const parsed = JSON.parse(local);
+            if (parsed && (parsed.uid || parsed.email)) {
+                window.currentUserProfile = parsed;
+                window.currentUserRole = (parsed.role || 'user').toLowerCase();
+                window.currentUserEmail = parsed.email || '';
+                return parsed;
+            }
+        }
+    } catch(e) {}
+
+    window.currentUserProfile = null;
+    window.currentUserRole = 'guest';
+    window.currentUserEmail = '';
+    return null;
+};
+
+window.getMHEntUser = function() {
+    if (window.currentUserProfile && (window.currentUserProfile.uid || window.currentUserProfile.email)) {
+        return window.currentUserProfile;
+    }
+    return window.syncMHEntSessionCookie();
+};
+
+window.mhentLogout = async function() {
+    try {
+        const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js");
+        const { getApps } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js");
+        if (getApps().length > 0) {
+            await signOut(getAuth());
+        }
+    } catch(e) {}
+
+    localStorage.removeItem('mhent_user_profile');
+    localStorage.removeItem('mhent_app_token');
+    localStorage.removeItem('mhent_app_uid');
+    localStorage.setItem('mhent_user_role', 'guest');
+    window.currentUserProfile = null;
+    window.currentUserRole = 'guest';
+    window.currentUserEmail = '';
+
+    const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `mhent_auth_session=; domain=.mhentuniverse.com; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+    document.cookie = `mhent_auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+    document.cookie = `mhent_auth_token=; domain=.mhentuniverse.com; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+    document.cookie = `mhent_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+
+    if (typeof window.showToast === 'function') {
+        window.showToast('Thông báo', 'Đã đăng xuất tài khoản MHEnt!', 'info');
+    }
+    setTimeout(() => {
+        window.location.href = '/';
+    }, 400);
+};
+
+window.syncMHEntNavbarUI = function() {
+    const user = window.getMHEntUser();
+    const isLogged = Boolean(user && (user.uid || user.email));
+
+    if (isLogged) {
+        document.documentElement.classList.add('mhent-logged-in');
+        document.documentElement.classList.remove('mhent-logged-out');
+        if (document.body) {
+            document.body.classList.add('mhent-logged-in');
+            document.body.classList.remove('mhent-logged-out');
+        }
+    } else {
+        document.documentElement.classList.add('mhent-logged-out');
+        document.documentElement.classList.remove('mhent-logged-in');
+        if (document.body) {
+            document.body.classList.add('mhent-logged-out');
+            document.body.classList.remove('mhent-logged-in');
+        }
+    }
+
+    const btnLoginList = document.querySelectorAll('#btn-login, .btn-login-nav, .btn-auth');
+    const userProfileList = document.querySelectorAll('#user-profile, .user-profile');
+    const userAvatarList = document.querySelectorAll('#user-avatar, .user-avatar');
+    const userNameList = document.querySelectorAll('#user-name, .user-name');
+    const bellContainer = document.getElementById('bell-container');
+
+    if (isLogged) {
+        btnLoginList.forEach(el => {
+            if (el.tagName === 'BUTTON' && (el.closest('.auth-box') || el.closest('.form-container') || el.closest('#mhent-typing-overlay'))) return;
+            el.style.setProperty('display', 'none', 'important');
+        });
+
+        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Thành viên MHEnt');
+        const photoURL = (user.photoURL && user.photoURL.trim() !== '') ? user.photoURL : '/assets/avt-web.jpg';
+
+        userProfileList.forEach(el => {
+            el.style.setProperty('display', 'flex', 'important');
+        });
+
+        userAvatarList.forEach(el => {
+            if (el.tagName === 'IMG') {
+                el.src = photoURL;
+                el.style.display = 'block';
+            }
+        });
+
+        userNameList.forEach(el => {
+            el.textContent = displayName;
+        });
+
+        if (bellContainer) {
+            bellContainer.style.setProperty('display', 'block', 'important');
+        }
+
+        const userRole = (user.role || localStorage.getItem('mhent_user_role') || '').toLowerCase();
+        const isRootAdmin = userRole.includes('admin') || userRole.includes('root') || userRole.includes('boss') || userRole.includes('chủ tịch');
+
+        const adminBtn = document.getElementById('admin-panel-btn');
+        const adminDivider = document.getElementById('admin-divider');
+        const studioBtn = document.getElementById('studio-panel-btn');
+        const studioDivider = document.getElementById('studio-divider');
+
+        const canAdmin = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('game') || userRole.includes('edu');
+        const canStudio = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('studio') || userRole.includes('creator');
+
+        if (adminBtn) adminBtn.style.display = canAdmin ? 'flex' : 'none';
+        if (adminDivider) adminDivider.style.display = canAdmin ? 'block' : 'none';
+        if (studioBtn) studioBtn.style.display = canStudio ? 'flex' : 'none';
+        if (studioDivider) studioDivider.style.display = canStudio ? 'block' : 'none';
+
+    } else {
+        btnLoginList.forEach(el => {
+            if (el.tagName === 'BUTTON' && (el.closest('.auth-box') || el.closest('.form-container'))) return;
+            el.style.removeProperty('display');
+        });
+        userProfileList.forEach(el => {
+            el.style.setProperty('display', 'none', 'important');
+        });
+        if (bellContainer) {
+            bellContainer.style.setProperty('display', 'none', 'important');
+        }
+    }
+};
+
+// Chạy khởi tạo đồng bộ ngay lập tức!
+try { window.syncMHEntSessionCookie(); } catch(e) {}
+
 window.openMHEntProfile = function() {
     window.location.href = 'https://accounts.mhentuniverse.com/profile';
 };
@@ -209,6 +411,15 @@ function initializeLoginRedirectButtons() {
         event.stopImmediatePropagation();
         window.openMHEntLogin();
     }, true);
+
+    document.addEventListener('click', (event) => {
+        const logoutTarget = event.target.closest ? event.target.closest('#btn-logout, .btn-logout, .drawer-btn-logout') : null;
+        if (logoutTarget) {
+            event.preventDefault();
+            event.stopPropagation();
+            window.mhentLogout();
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -335,35 +546,17 @@ window.openSideDrawer = function() {
     let oldDrawer = document.getElementById('mhent-side-drawer-overlay');
     if (oldDrawer) oldDrawer.remove();
 
-    // [1] LẤY DỮ LIỆU TỪ BỘ NHỚ CACHE ĐA VŨ TRỤ (localStorage)
-    let cachedProfileStr = localStorage.getItem('mhent_user_profile') || '{}';
-    let cachedProfile = {};
-    try { cachedProfile = JSON.parse(cachedProfileStr); } catch(e) { cachedProfile = {}; }
-
-    // 👉 CHÌA KHÓA VÀNG: Đưa hết về chữ thường để chống lỗi phân biệt Hoa/Thường (Admin, Root Admin -> admin, root)
+    // [1] LẤY DỮ LIỆU TỪ CỔNG ĐỊNH DANH MHENT ID (Cookie + localStorage)
+    let cachedProfile = window.getMHEntUser() || {};
     let userRole = (cachedProfile.role || localStorage.getItem('mhent_user_role') || '').toLowerCase();
     let currentPath = window.location.pathname;
 
     // [2] QUÉT THỰC TẾ TRÊN DOM
-    let loginBtn = document.getElementById('btn-login');
-    let profileEl = document.getElementById('user-profile');
     let nameEl = document.getElementById('user-name') || document.getElementById('creator-name-title');
     let avtEl = document.getElementById('user-avatar');
     
-    let isLoginBtnVisible = loginBtn && (window.getComputedStyle(loginBtn).display !== 'none' || loginBtn.style.display === 'block' || loginBtn.style.display === 'inline-block' || loginBtn.style.display === 'flex');
-    let isProfileVisible = profileEl && window.getComputedStyle(profileEl).display !== 'none';
-    
     let isProtectedPage = currentPath.includes('/admin') || currentPath.includes('/studio');
-    let hasValidMemory = (cachedProfile.email !== undefined && cachedProfile.email !== "") || 
-                         (userRole !== '' && userRole !== 'guest' && userRole !== 'null');
-
-    let isLoggedOut = true;
-    if (isLoginBtnVisible && !isProtectedPage) {
-        isLoggedOut = true;
-        if (userRole !== 'guest') localStorage.setItem('mhent_user_role', 'guest');
-    } else if (isProtectedPage || isProfileVisible || hasValidMemory || (nameEl && nameEl.innerText !== "Đang tải..." && nameEl.innerText.trim() !== "")) {
-        isLoggedOut = false;
-    }
+    let isLoggedOut = !cachedProfile || (!cachedProfile.uid && !cachedProfile.email);
 
     // [3] XÁC ĐỊNH VŨ TRỤ HIỆN TẠI VÀ TÊN NHÓM (TEAM NAME)
     let activeUniKey = Object.keys(MHENT_UNIVERSES).find(key => {
@@ -598,11 +791,11 @@ window.openSideDrawer = function() {
     }
 
     let footerHTML = !isLoggedOut ? `
-        <button class="drawer-btn-logout" onclick="closeSideDrawer(); localStorage.setItem('mhent_user_role', 'guest'); localStorage.removeItem('mhent_user_profile'); window.currentUserEmail = ''; let btn = document.getElementById('btn-logout'); if(btn) btn.click(); else window.location.href='/';">
+        <button class="drawer-btn-logout" onclick="closeSideDrawer(); window.mhentLogout();">
             <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
         </button>
     ` : `
-        <button class="drawer-btn-logout" style="background: var(--theme-accent, #ff85a2); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(255,133,162,0.3);" onclick="closeSideDrawer(); if(window.redirectToLogin) window.redirectToLogin(); else window.location.href='/login';">
+        <button class="drawer-btn-logout" style="background: var(--theme-accent, #ff85a2); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(255,133,162,0.3);" onclick="closeSideDrawer(); window.openMHEntLogin();">
             <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập / Đăng ký
         </button>
     `;
@@ -632,10 +825,34 @@ window.openSideDrawer = function() {
 };
 
 // ==========================================================================
-// ⚡ RADAR TỰ ĐỘNG ĐỒNG BỘ FIRESTORE TRÊN MỌI TRANG (NEVER FORGET ROLE AGAIN!)
+// ⚡ RADAR TỰ ĐỘNG ĐỒNG BỘ FIRESTORE & NAVBAR TRÊN MỌI TRANG (NEVER FORGET ROLE AGAIN!)
 // ==========================================================================
 window.addEventListener('DOMContentLoaded', () => {
+    window.syncMHEntNavbarUI();
+
+    // Thiết lập Observer tự động bảo vệ Navbar khỏi bị các script khác ẩn/hiện sai
+    try {
+        const userSection = document.querySelector('.user-section') || document.querySelector('.nav-right');
+        if (userSection && window.MutationObserver) {
+            const observer = new MutationObserver(() => {
+                const user = window.getMHEntUser();
+                if (user && (user.uid || user.email)) {
+                    const btnLogin = document.getElementById('btn-login');
+                    const userProfile = document.getElementById('user-profile');
+                    if (btnLogin && btnLogin.style.display !== 'none') {
+                        btnLogin.style.setProperty('display', 'none', 'important');
+                    }
+                    if (userProfile && userProfile.style.display === 'none') {
+                        userProfile.style.setProperty('display', 'flex', 'important');
+                    }
+                }
+            });
+            observer.observe(userSection, { attributes: true, subtree: true, attributeFilter: ['style', 'class'] });
+        }
+    } catch(e) {}
+
     setTimeout(async () => {
+        window.syncMHEntNavbarUI();
         try {
             const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js");
             const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js");
@@ -644,34 +861,71 @@ window.addEventListener('DOMContentLoaded', () => {
             if (getApps().length > 0) {
                 const auth = getAuth();
                 const db = getFirestore();
+
+                // 1. Đồng bộ quyền từ Firestore bằng MHEnt ID Session
+                const sessionUser = window.getMHEntUser();
+                if (sessionUser && sessionUser.uid) {
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", sessionUser.uid));
+                        if (userSnap.exists()) {
+                            const uData = userSnap.data();
+                            const updated = {
+                                ...sessionUser,
+                                role: (uData.role || sessionUser.role || 'user').toLowerCase(),
+                                displayName: uData.displayName || sessionUser.displayName,
+                                photoURL: uData.photoURL || sessionUser.photoURL,
+                                teamCinema: uData.teamCinema || uData.teamName || sessionUser.teamCinema || '',
+                                teamArena: uData.teamArena || uData.teamName || sessionUser.teamArena || '',
+                                teamManga: uData.teamManga || uData.teamName || sessionUser.teamManga || '',
+                                teamMusic: uData.teamMusic || uData.teamName || sessionUser.teamMusic || '',
+                                teamNovel: uData.teamNovel || uData.teamName || sessionUser.teamNovel || '',
+                                teamEdu: uData.teamEdu || uData.teamTeach || uData.teamName || sessionUser.teamEdu || ''
+                            };
+                            localStorage.setItem('mhent_user_role', updated.role);
+                            localStorage.setItem('mhent_user_profile', JSON.stringify(updated));
+                            window.currentUserProfile = updated;
+                            window.currentUserRole = updated.role;
+                            window.syncMHEntNavbarUI();
+                        }
+                    } catch(e) {}
+                }
+
+                // 2. Lắng nghe Firebase Auth trực tiếp
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         try {
                             const userSnap = await getDoc(doc(db, "users", user.uid));
                             if (userSnap.exists()) {
                                 const uData = userSnap.data();
-                                localStorage.setItem('mhent_user_role', uData.role || 'user');
-                                localStorage.setItem('mhent_user_profile', JSON.stringify({
+                                const profile = {
                                     uid: user.uid,
                                     email: user.email,
                                     displayName: user.displayName || user.email.split('@')[0],
                                     photoURL: user.photoURL || "/assets/avt-web.jpg",
-                                    role: uData.role || 'user',
+                                    role: (uData.role || 'user').toLowerCase(),
                                     teamCinema: uData.teamCinema || uData.teamName || '',
                                     teamArena: uData.teamArena || uData.teamName || '',
                                     teamManga: uData.teamManga || uData.teamName || '',
                                     teamMusic: uData.teamMusic || uData.teamName || '',
                                     teamNovel: uData.teamNovel || uData.teamName || '',
                                     teamEdu: uData.teamEdu || uData.teamTeach || uData.teamName || ''
-                                }));
+                                };
+                                localStorage.setItem('mhent_user_role', profile.role);
+                                localStorage.setItem('mhent_user_profile', JSON.stringify(profile));
+                                window.currentUserProfile = profile;
+                                window.currentUserRole = profile.role;
+                                window.syncMHEntNavbarUI();
                             }
                         } catch(e) {}
+                    } else {
+                        window.syncMHEntNavbarUI();
                     }
                 });
             }
         } catch(e) {}
-    }, 500);
+    }, 300);
 });
+window.addEventListener('load', () => window.syncMHEntNavbarUI());
 
 // 3. HÀM ĐÓNG MENU TRƯỢT NGANG
 window.closeSideDrawer = function() {

@@ -338,12 +338,13 @@
 
         // --- 🚨 KIỂM TRA QUYỀN LỰC TỐI CAO ---
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (!activeUser) {
                 window.redirectToLogin();
                 return;
             }
             try {
-                const userRef = doc(db, "users", user.uid);
+                const userRef = doc(db, "users", activeUser.uid);
                 const docSnap = await getDoc(userRef);
                 const userData = docSnap.exists() ? docSnap.data() : {};
                 const userRole = userData.role || '';

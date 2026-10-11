@@ -425,44 +425,28 @@
         localStorage.setItem('mhent_dark_mode', 'on');
 
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user; listenForRooms();
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (activeUser) {
+                currentUser = activeUser; listenForRooms();
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-                document.getElementById('user-name').innerText = user.displayName || "Khách";
-                document.getElementById('user-avatar').src = user.photoURL || "/assets/avt-web.jpg";
+                document.getElementById('user-name').innerText = activeUser.displayName || "Khách";
+                document.getElementById('user-avatar').src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
 
-                // ⚡ NẠP CACHE ĐA VŨ TRỤ AN TOÀN BÊN TRONG .THEN()
-                getDoc(doc(db, "users", user.uid)).then((uSnap) => {
+                const userRef = doc(db, "users", activeUser.uid || 'guest');
+                getDoc(userRef).then((uSnap) => {
                     const userData = uSnap.exists() ? uSnap.data() : {};
-                    const userRole = userData.role || 'user';
+                    const userRole = userData.role || activeUser.role || 'user';
 
-                    if (userRole.includes('admin') || userRole.includes('game') || userRole.includes('xiangqi')) {
+                    if (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('game') || userRole.toLowerCase().includes('xiangqi')) {
                         const adminBtn = document.getElementById('admin-panel-btn');
                         if (adminBtn) adminBtn.style.display = 'flex';
                         if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
                     }
-
-                    localStorage.setItem('mhent_user_role', userRole);
-                    localStorage.setItem('mhent_user_profile', JSON.stringify({
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName || user.email.split('@')[0],
-                        photoURL: user.photoURL || "/assets/avt-web.jpg",
-                        role: userRole,
-                        teamCinema: userData.teamCinema || userData.teamName || '',
-                        teamArena: userData.teamArena || userData.teamName || '',
-                        teamManga: userData.teamManga || userData.teamName || '',
-                        teamMusic: userData.teamMusic || userData.teamName || '',
-                        teamNovel: userData.teamNovel || userData.teamName || '',
-                        teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
-                    }));
                 }).catch(e => console.log("Lỗi nạp cache profile:", e));
 
             } else {
                 currentUser = null; 
-                localStorage.setItem('mhent_user_role', 'guest');
-                localStorage.removeItem('mhent_user_profile');
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
