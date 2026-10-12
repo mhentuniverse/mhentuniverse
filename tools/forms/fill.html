@@ -723,6 +723,9 @@
                         </div>
                     </div>
 
+                    <!-- ACCOUNT & EMAIL BADGE CARD (Rendered at top of form) -->
+                    <div class="runner-card" id="card-account-email" style="display: none; padding: 18px 22px; border-radius: 18px; margin-bottom: 18px; border: 1px solid var(--border-soft); background: var(--card-bg); box-shadow: 0 4px 15px rgba(0,0,0,0.02);"></div>
+
                     <!-- CORE PRESETS CARD (Rendered on Page 1) -->
                     <div class="runner-card" id="card-presets" style="display: none;">
                         <h3 style="margin: 0 0 16px; font-size: 17px; color: var(--primary-accent); font-weight: 800;">
@@ -884,50 +887,91 @@
                     if (adminBtn) adminBtn.style.display = 'flex';
                     if (adminDiv) adminDiv.style.display = 'block';
                 }
-                renderEmailCopyCard();
+                renderAccountEmailCard();
             } else {
                 if (btnLoginEl) btnLoginEl.style.display = 'flex';
                 if (btnTheme) btnTheme.style.display = 'flex'; 
                 if (userProfile) userProfile.style.display = 'none';
-                renderEmailCopyCard();
+                renderAccountEmailCard();
             }
         });
 
-        function renderEmailCopyCard() {
-            const cardEl = document.getElementById('email-copy-pref-card');
+        function renderAccountEmailCard() {
+            const cardEl = document.getElementById('card-account-email');
             if (!cardEl) return;
+
+            // Kiểm tra cài đặt form: Bật tự động gửi hay tắt
+            const isAutoSend = formConfig?.settings?.sendCopyEmail !== false;
 
             if (currentUser && currentUser.email) {
                 cardEl.style.display = 'block';
-                cardEl.innerHTML = `
-                    <div style="display: flex; align-items: flex-start; gap: 14px;">
-                        <input type="checkbox" id="cb-send-email-copy" checked style="width: 20px; height: 20px; accent-color: var(--primary-accent); margin-top: 3px; cursor: pointer;">
-                        <div style="flex: 1;">
-                            <label for="cb-send-email-copy" style="font-weight: 800; font-size: 15px; color: var(--text-main); cursor: pointer; display: block; margin-bottom: 4px;">
-                                Gửi bản sao câu trả lời đến email tài khoản của tôi
-                            </label>
-                            <div style="font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">
-                                <i class="fa-solid fa-envelope-circle-check" style="color: #10b981; margin-right: 4px;"></i>
-                                Hệ thống sẽ lưu email <strong style="color: var(--primary-accent);">${escapeHtml(currentUser.email)}</strong> kèm theo câu trả lời và tự động gửi 1 bản sao xác nhận về hòm thư này.
+
+                if (isAutoSend) {
+                    // CÀI ĐẶT BẬT: CHỈ CẦN THÔNG BÁO (KHÔNG CẦN CHECKBOX)
+                    cardEl.innerHTML = `
+                        <div style="display: flex; align-items: flex-start; gap: 14px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(99, 102, 241, 0.12); color: var(--primary-accent); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; margin-top: 2px;">
+                                <i class="fa-solid fa-envelope-circle-check"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 800; font-size: 14.5px; color: var(--text-main); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span>Tài khoản ghi nhận:</span>
+                                    <span style="color: var(--primary-accent); font-weight: 900;">${escapeHtml(currentUser.email)}</span>
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;">
+                                    <i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 4px;"></i>
+                                    Email tài khoản của bạn sẽ được lưu kèm theo câu trả lời và hệ thống sẽ tự động gửi 1 bản sao phản hồi về hòm thư này.
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    // CÀI ĐẶT TẮT: TÙY USER MUỐN HAY KHÔNG (HIỂN THỊ CHECKBOX ĐỂ CHỌN)
+                    cardEl.innerHTML = `
+                        <div style="display: flex; align-items: flex-start; gap: 14px;">
+                            <input type="checkbox" id="cb-send-email-copy" style="width: 20px; height: 20px; accent-color: var(--primary-accent); margin-top: 3px; cursor: pointer;">
+                            <div style="flex: 1;">
+                                <label for="cb-send-email-copy" style="font-weight: 800; font-size: 14.5px; color: var(--text-main); cursor: pointer; display: block; margin-bottom: 3px;">
+                                    Gửi bản sao câu trả lời đến email tài khoản của tôi (<span style="color: var(--primary-accent);">${escapeHtml(currentUser.email)}</span>)
+                                </label>
+                                <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                                    Tùy chọn: Tích chọn nếu bạn muốn lưu email tài khoản và nhận bản sao câu trả lời sau khi nộp biểu mẫu.
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             } else {
                 cardEl.style.display = 'block';
-                cardEl.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--text-muted);"></i>
-                            <div style="font-size: 13.5px; color: var(--text-muted);">
-                                Bạn đang điền biểu mẫu với tư cách khách vãng lai.
+                if (isAutoSend) {
+                    cardEl.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--text-muted);"></i>
+                                <div style="font-size: 13.5px; color: var(--text-muted);">
+                                    Biểu mẫu này tự động lưu email & gửi bản sao câu trả lời cho người điền.
+                                </div>
                             </div>
+                            <a href="javascript:void(0)" onclick="window.redirectToLogin(window.location.href)" style="font-size: 13.5px; font-weight: 800; color: var(--primary-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập tài khoản MHEnt ID
+                            </a>
                         </div>
-                        <a href="javascript:void(0)" onclick="window.redirectToLogin(window.location.href)" style="font-size: 13.5px; font-weight: 800; color: var(--primary-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập tài khoản để nhận bản sao qua Email
-                        </a>
-                    </div>
-                `;
+                    `;
+                } else {
+                    cardEl.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--text-muted);"></i>
+                                <div style="font-size: 13.5px; color: var(--text-muted);">
+                                    Bạn đang điền biểu mẫu với tư cách khách vãng lai.
+                                </div>
+                            </div>
+                            <a href="javascript:void(0)" onclick="window.redirectToLogin(window.location.href)" style="font-size: 13.5px; font-weight: 800; color: var(--primary-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập tài khoản
+                            </a>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -1036,10 +1080,14 @@
             document.querySelectorAll('.form-page').forEach((p, idx) => {
                 p.style.display = (idx === pageIdx) ? 'block' : 'none';
             });
-            // Ẩn presets card nếu sang trang 2 trở đi
+            // Ẩn presets card và account card nếu sang trang 2 trở đi
             const presetsCard = document.getElementById('card-presets');
             if (presetsCard && presetsCard.dataset.hasPresets === 'true') {
                 presetsCard.style.display = (pageIdx === 0) ? 'block' : 'none';
+            }
+            const accountCard = document.getElementById('card-account-email');
+            if (accountCard) {
+                accountCard.style.display = (pageIdx === 0) ? 'block' : 'none';
             }
             window.currentPageIdx = pageIdx;
             window.updateProgress(pageIdx, window.totalPages);
@@ -1316,12 +1364,6 @@
                 const isLastPage = (pIdx === pages.length - 1);
                 const isFirstPage = (pIdx === 0);
 
-                if (isLastPage) {
-                    pageContent += `
-                        <div class="runner-card email-copy-preference-card" id="email-copy-pref-card" style="margin-bottom: 20px; padding: 18px 22px; border-radius: 16px; border: 1px solid var(--border-soft); background: var(--card-bg); box-shadow: 0 4px 15px rgba(0,0,0,0.02);"></div>
-                    `;
-                }
-
                 const prevBtnHtml = !isFirstPage ? `
                     <button type="button" class="btn-page-nav btn-prev" onclick="window.goToPage(${pIdx - 1})">
                         <i class="fa-solid fa-arrow-left"></i> Quay lại
@@ -1350,7 +1392,7 @@
                 pagesContainer.appendChild(pageEl);
             });
 
-            renderEmailCopyCard();
+            renderAccountEmailCard();
         }
 
         // FORM SUBMIT HANDLER
@@ -1437,15 +1479,14 @@
                     }
                 });
 
-                // Tùy chọn gửi bản sao và đính kèm email tài khoản
+                // Xác định tùy chọn gửi bản sao & lưu email tài khoản
+                const isAutoSend = formConfig?.settings?.sendCopyEmail !== false;
                 const cbCopy = document.getElementById('cb-send-email-copy');
-                const wantsAccountEmail = cbCopy ? cbCopy.checked : true;
+                const userWantsCopy = isAutoSend ? true : (cbCopy ? cbCopy.checked : false);
 
-                // Sử dụng email tài khoản đang đăng nhập nếu được check hoặc nếu userEmail chưa có
-                if (currentUser?.email) {
-                    if (wantsAccountEmail || !userEmail) {
-                        userEmail = currentUser.email;
-                    }
+                // Nếu userWantsCopy là true và có tài khoản: gán email tài khoản vào userEmail nếu chưa có
+                if (userWantsCopy && currentUser?.email) {
+                    if (!userEmail) userEmail = currentUser.email;
                 }
                 if (!userName && currentUser?.displayName) {
                     userName = currentUser.displayName;
@@ -1480,8 +1521,8 @@
                     console.log("Không thể tăng biến đếm:", cErr);
                 }
 
-                // TỰ ĐỘNG GỬI EMAIL BẢN SAO CHO NGƯỜI ĐIỀN (NẾU CÓ EMAIL VÀ ĐỒNG Ý GỬI)
-                const shouldSendCopy = wantsAccountEmail && userEmail && userEmail.includes('@') && (formConfig.settings?.sendCopyEmail !== false);
+                // GỬI EMAIL BẢN SAO CHO NGƯỜI ĐIỀN (NẾU CÓ EMAIL VÀ ĐỒNG Ý GỬI)
+                const shouldSendCopy = userWantsCopy && userEmail && userEmail.includes('@');
                 if (shouldSendCopy) {
                     const qaSummary = [];
                     if (userName) qaSummary.push({ label: 'Họ và tên', value: userName });
