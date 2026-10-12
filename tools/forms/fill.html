@@ -558,6 +558,7 @@
         }
     </style>
     <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -767,7 +768,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let currentUser = null;
+        let currentUser = (window.getMHEntUser && window.getMHEntUser()) || null;
         let formConfig = null;
         const urlParams = new URLSearchParams(window.location.search);
         const formId = urlParams.get('id');
@@ -883,12 +884,52 @@
                     if (adminBtn) adminBtn.style.display = 'flex';
                     if (adminDiv) adminDiv.style.display = 'block';
                 }
+                renderEmailCopyCard();
             } else {
                 if (btnLoginEl) btnLoginEl.style.display = 'flex';
                 if (btnTheme) btnTheme.style.display = 'flex'; 
                 if (userProfile) userProfile.style.display = 'none';
+                renderEmailCopyCard();
             }
         });
+
+        function renderEmailCopyCard() {
+            const cardEl = document.getElementById('email-copy-pref-card');
+            if (!cardEl) return;
+
+            if (currentUser && currentUser.email) {
+                cardEl.style.display = 'block';
+                cardEl.innerHTML = `
+                    <div style="display: flex; align-items: flex-start; gap: 14px;">
+                        <input type="checkbox" id="cb-send-email-copy" checked style="width: 20px; height: 20px; accent-color: var(--primary-accent); margin-top: 3px; cursor: pointer;">
+                        <div style="flex: 1;">
+                            <label for="cb-send-email-copy" style="font-weight: 800; font-size: 15px; color: var(--text-main); cursor: pointer; display: block; margin-bottom: 4px;">
+                                Gửi bản sao câu trả lời đến email tài khoản của tôi
+                            </label>
+                            <div style="font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">
+                                <i class="fa-solid fa-envelope-circle-check" style="color: #10b981; margin-right: 4px;"></i>
+                                Hệ thống sẽ lưu email <strong style="color: var(--primary-accent);">${escapeHtml(currentUser.email)}</strong> kèm theo câu trả lời và tự động gửi 1 bản sao xác nhận về hòm thư này.
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                cardEl.style.display = 'block';
+                cardEl.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--text-muted);"></i>
+                            <div style="font-size: 13.5px; color: var(--text-muted);">
+                                Bạn đang điền biểu mẫu với tư cách khách vãng lai.
+                            </div>
+                        </div>
+                        <a href="javascript:void(0)" onclick="window.redirectToLogin(window.location.href)" style="font-size: 13.5px; font-weight: 800; color: var(--primary-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập tài khoản để nhận bản sao qua Email
+                        </a>
+                    </div>
+                `;
+            }
+        }
 
         function updateCreatorAdminShortcuts(role) {
             if (!formConfig || !currentUser) return;
@@ -1275,6 +1316,12 @@
                 const isLastPage = (pIdx === pages.length - 1);
                 const isFirstPage = (pIdx === 0);
 
+                if (isLastPage) {
+                    pageContent += `
+                        <div class="runner-card email-copy-preference-card" id="email-copy-pref-card" style="margin-bottom: 20px; padding: 18px 22px; border-radius: 16px; border: 1px solid var(--border-soft); background: var(--card-bg); box-shadow: 0 4px 15px rgba(0,0,0,0.02);"></div>
+                    `;
+                }
+
                 const prevBtnHtml = !isFirstPage ? `
                     <button type="button" class="btn-page-nav btn-prev" onclick="window.goToPage(${pIdx - 1})">
                         <i class="fa-solid fa-arrow-left"></i> Quay lại
@@ -1302,6 +1349,8 @@
                 pageEl.innerHTML = pageContent;
                 pagesContainer.appendChild(pageEl);
             });
+
+            renderEmailCopyCard();
         }
 
         // FORM SUBMIT HANDLER
@@ -1322,11 +1371,11 @@
             }
 
             try {
-                // Collect Presets
-                const userName = document.getElementById('input-preset-name')?.value.trim() || currentUser?.displayName || '';
-                const userEmail = document.getElementById('input-preset-email')?.value.trim() || currentUser?.email || '';
-                const userPhone = document.getElementById('input-preset-phone')?.value.trim() || '';
-                const userOrg = document.getElementById('input-preset-org')?.value.trim() || '';
+                // Collect Presets (nếu có bật trong cài đặt)
+                let userName = document.getElementById('input-preset-name')?.value.trim() || '';
+                let userEmail = document.getElementById('input-preset-email')?.value.trim() || '';
+                let userPhone = document.getElementById('input-preset-phone')?.value.trim() || '';
+                let userOrg = document.getElementById('input-preset-org')?.value.trim() || '';
 
                 // Collect Answers (Bỏ qua các mục section divider)
                 const answersMap = {};
@@ -1371,6 +1420,37 @@
                     });
                 });
 
+                // TỰ ĐỘNG NHẬN DIỆN: Nếu các trường preset chưa có, quét trong các câu trả lời
+                answersList.forEach(item => {
+                    const t = (item.title || '').toLowerCase();
+                    const v = (item.answer || '').toString().trim();
+                    if (!v) return;
+
+                    if (!userEmail && (t.includes('email') || t.includes('hòm thư') || item.type === 'email') && v.includes('@')) {
+                        userEmail = v;
+                    }
+                    if (!userName && (t.includes('họ và tên') || t.includes('họ tên') || t.includes('tên của bạn'))) {
+                        userName = v;
+                    }
+                    if (!userPhone && (t.includes('số điện thoại') || t.includes('sđt') || t.includes('zalo') || item.type === 'tel')) {
+                        userPhone = v;
+                    }
+                });
+
+                // Tùy chọn gửi bản sao và đính kèm email tài khoản
+                const cbCopy = document.getElementById('cb-send-email-copy');
+                const wantsAccountEmail = cbCopy ? cbCopy.checked : true;
+
+                // Sử dụng email tài khoản đang đăng nhập nếu được check hoặc nếu userEmail chưa có
+                if (currentUser?.email) {
+                    if (wantsAccountEmail || !userEmail) {
+                        userEmail = currentUser.email;
+                    }
+                }
+                if (!userName && currentUser?.displayName) {
+                    userName = currentUser.displayName;
+                }
+
                 // Prepare Submission Document
                 const submissionDoc = {
                     formId: formId,
@@ -1400,11 +1480,12 @@
                     console.log("Không thể tăng biến đếm:", cErr);
                 }
 
-                // TỰ ĐỘNG GỬI EMAIL BẢN SAO CHO NGƯỜI ĐIỀN (NẾU CÓ EMAIL VÀ BẬT CÀI ĐẶT)
-                if (userEmail && userEmail.includes('@') && formConfig.settings?.sendCopyEmail !== false) {
+                // TỰ ĐỘNG GỬI EMAIL BẢN SAO CHO NGƯỜI ĐIỀN (NẾU CÓ EMAIL VÀ ĐỒNG Ý GỬI)
+                const shouldSendCopy = wantsAccountEmail && userEmail && userEmail.includes('@') && (formConfig.settings?.sendCopyEmail !== false);
+                if (shouldSendCopy) {
                     const qaSummary = [];
                     if (userName) qaSummary.push({ label: 'Họ và tên', value: userName });
-                    if (userEmail) qaSummary.push({ label: 'Email liên hệ', value: userEmail });
+                    if (userEmail) qaSummary.push({ label: 'Email tài khoản / liên hệ', value: userEmail });
                     if (userPhone) qaSummary.push({ label: 'Số điện thoại / Zalo', value: userPhone });
                     if (userOrg) qaSummary.push({ label: 'Đơn vị / Trường / Tổ chức', value: userOrg });
 
@@ -1422,6 +1503,9 @@
                             }
                         })
                         .catch(e => console.warn("Lỗi gửi mail bản sao:", e));
+                } else {
+                    const badge = document.getElementById('email-sent-badge');
+                    if (badge) badge.style.display = 'none';
                 }
 
                 // Show Success Card
@@ -1519,15 +1603,12 @@
             try {
                 await fetch(MAILER_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({
                         action: "send",
                         subject: emailSubject,
                         body: emailBody,
                         emails: [targetEmail],
-                        senderName: "MHEnt. Universe (No-Reply)",
-                        from: "noreply@mhentuniverse.com",
-                        replyTo: "noreply@mhentuniverse.com"
+                        senderName: "MHEnt. Universe (No-Reply)"
                     })
                 });
             } catch (mErr) {
@@ -1537,7 +1618,6 @@
 
         initForm();
     </script>
-    <script src="/js/mhent-ui.js"></script>
     <script src="/js/aisa-widget.js" defer></script>
 </body>
 </html>

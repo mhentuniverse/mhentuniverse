@@ -64,11 +64,13 @@
         body {
             background-color: var(--bg-canvas);
             color: var(--text-main);
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             margin: 0;
             padding-top: 60px;
             display: flex;
             flex-direction: column;
+            box-sizing: border-box;
         }
 
         /* SHEET HEADER BAR */
@@ -81,9 +83,7 @@
             justify-content: space-between;
             gap: 16px;
             flex-wrap: wrap;
-            position: sticky;
-            top: 60px;
-            z-index: 40;
+            flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(0,0,0,0.02);
         }
 
@@ -159,6 +159,7 @@
             justify-content: space-between;
             gap: 12px;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
         .toolbar-left, .toolbar-right {
             display: flex;
@@ -254,9 +255,9 @@
             flex: 1;
             overflow: auto;
             position: relative;
-            max-height: calc(100vh - 200px);
             background: var(--bg-canvas);
             padding: 16px 24px;
+            min-height: 0;
         }
 
         .mhent-sheet-table {
@@ -383,6 +384,7 @@
         .print-header { display: none; }
     </style>
     <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -782,13 +784,18 @@
                 <th>Trạng thái</th>
             `;
 
-            const presets = formDef.presets || {};
-            if (presets.name !== false) thHtml += `<th>Họ và tên</th>`;
-            if (presets.email !== false) thHtml += `<th>Email</th>`;
-            if (presets.phone) thHtml += `<th>Số điện thoại</th>`;
-            if (presets.org) thHtml += `<th>Đơn vị / Lớp</th>`;
+            const presets = formDef?.presets || {};
+            const showName = (presets.name !== false) || responsesData.some(r => !!r.userName);
+            const showEmail = (presets.email !== false) || responsesData.some(r => !!r.userEmail);
+            const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
+            const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
 
-            (formDef.fields || []).forEach((q) => {
+            if (showName) thHtml += `<th>Họ và tên</th>`;
+            if (showEmail) thHtml += `<th>Email</th>`;
+            if (showPhone) thHtml += `<th>Số điện thoại</th>`;
+            if (showOrg) thHtml += `<th>Đơn vị / Lớp</th>`;
+
+            (formDef?.fields || []).forEach((q) => {
                 if (q.type === 'section') return; // Bỏ qua phân trang/mục
                 thHtml += `<th title="${q.title}">${q.title}</th>`;
             });
@@ -826,9 +833,11 @@
                 document.getElementById('loading-spinner').style.display = 'none';
                 document.getElementById('table-wrapper').style.display = 'block';
 
+                if (formMetadata) renderTableHeaders(formMetadata);
                 filterResponses();
             }, (error) => {
                 console.error("Lỗi realtime:", error);
+                document.getElementById('loading-spinner').innerHTML = `<p style="color: red; font-weight: bold; font-size: 15px;"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi đồng bộ dữ liệu: ${error.message}<br><small style="color: #64748b; font-weight: normal;">Vui lòng kiểm tra quyền truy cập Firestore hoặc thử tải lại trang.</small></p>`;
             });
         }
 
@@ -881,6 +890,10 @@
 
             const presets = formMetadata?.presets || {};
             const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
+            const showName = (presets.name !== false) || responsesData.some(r => !!r.userName);
+            const showEmail = (presets.email !== false) || responsesData.some(r => !!r.userEmail);
+            const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
+            const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
 
             tbody.innerHTML = list.map((r, rowIdx) => {
                 const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : 'Mới tạo');
@@ -904,17 +917,17 @@
                     </td>
                 `;
 
-                // Presets
-                if (presets.name !== false) {
+                // Presets & Account Fields
+                if (showName) {
                     rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userName', this.innerText)">${r.userName || ''}</div></td>`;
                 }
-                if (presets.email !== false) {
+                if (showEmail) {
                     rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userEmail', this.innerText)">${r.userEmail || ''}</div></td>`;
                 }
-                if (presets.phone) {
+                if (showPhone) {
                     rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userPhone', this.innerText)">${r.userPhone || ''}</div></td>`;
                 }
-                if (presets.org) {
+                if (showOrg) {
                     rowHtml += `<td><div class="editable-cell" contenteditable="true" onblur="updateCellField('${r.docId}', 'userOrg', this.innerText)">${r.userOrg || ''}</div></td>`;
                 }
 
@@ -1030,6 +1043,10 @@
 
             const presets = formMetadata?.presets || {};
             const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
+            const showName = (presets.name !== false) || responsesData.some(r => !!r.userName);
+            const showEmail = (presets.email !== false) || responsesData.some(r => !!r.userEmail);
+            const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
+            const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
 
             // Build array of objects
             const exportData = filteredResponses.map((r, idx) => {
@@ -1038,10 +1055,10 @@
                 row["Thời gian nộp"] = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
                 row["Trạng thái"] = r.status || 'Chờ duyệt';
 
-                if (presets.name !== false) row["Họ và tên"] = r.userName || '';
-                if (presets.email !== false) row["Email"] = r.userEmail || '';
-                if (presets.phone) row["Số điện thoại"] = r.userPhone || '';
-                if (presets.org) row["Đơn vị / Lớp"] = r.userOrg || '';
+                if (showName) row["Họ và tên"] = r.userName || '';
+                if (showEmail) row["Email"] = r.userEmail || '';
+                if (showPhone) row["Số điện thoại"] = r.userPhone || '';
+                if (showOrg) row["Đơn vị / Lớp"] = r.userOrg || '';
 
                 fields.forEach((q) => {
                     let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
@@ -1082,12 +1099,16 @@
 
             const presets = formMetadata?.presets || {};
             const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
+            const showName = (presets.name !== false) || responsesData.some(r => !!r.userName);
+            const showEmail = (presets.email !== false) || responsesData.some(r => !!r.userEmail);
+            const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
+            const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
 
             const headers = ["STT", "Thời gian nộp", "Trạng thái"];
-            if (presets.name !== false) headers.push("Họ và tên");
-            if (presets.email !== false) headers.push("Email");
-            if (presets.phone) headers.push("Số điện thoại");
-            if (presets.org) headers.push("Đơn vị / Lớp");
+            if (showName) headers.push("Họ và tên");
+            if (showEmail) headers.push("Email");
+            if (showPhone) headers.push("Số điện thoại");
+            if (showOrg) headers.push("Đơn vị / Lớp");
             fields.forEach(q => headers.push(q.title));
             headers.push("Ghi chú");
 
@@ -1097,10 +1118,10 @@
                 const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
                 const row = [idx + 1, dateStr, r.status || 'Chờ duyệt'];
 
-                if (presets.name !== false) row.push(r.userName || '');
-                if (presets.email !== false) row.push(r.userEmail || '');
-                if (presets.phone) row.push(r.userPhone || '');
-                if (presets.org) row.push(r.userOrg || '');
+                if (showName) row.push(r.userName || '');
+                if (showEmail) row.push(r.userEmail || '');
+                if (showPhone) row.push(r.userPhone || '');
+                if (showOrg) row.push(r.userOrg || '');
 
                 fields.forEach(q => {
                     let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
@@ -1146,7 +1167,6 @@
 
         loadSheet();
     </script>
-    <script src="/js/mhent-ui.js"></script>
     <script src="/js/aisa-widget.js" defer></script>
 </body>
 </html>

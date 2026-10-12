@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email in ['mhent@mhentuniverse.com', 'contact@mhentuniverse.com'] ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role.matches('.*admin.*'))
+      );
+    }
+
+    // 1. NGƯỜI DÙNG (users)
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // 2. BIỂU MẪU (mhent_forms)
+    match /mhent_forms/{formId} {
+      allow read, write: if true;
+    }
+
+    // 3. CÂU TRẢ LỜI BIỂU MẪU (mhent_form_responses)
+    match /mhent_form_responses/{responseId} {
+      // Cho phép mọi người nộp bài và cho phép bảng tính Sheet đọc/sửa/xóa câu trả lời
+      allow read, write: if true;
+    }
+
+    // 4. PHIM & RẠP PHIM (movies, pending_movies, reports)
+    match /movies/{movieId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    match /pending_movies/{movieId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /reports/{reportId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated();
+    }
+
+    // 5. NHẬT KÝ & CHIẾN DỊCH MAIL (logs, mail_campaigns, system_settings)
+    match /logs/{logId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated();
+    }
+    match /mail_campaigns/{campaignId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /system_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
