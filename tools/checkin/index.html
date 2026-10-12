@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHEnt. Check-in Hub - Trạm Điểm Danh & Chấm Công Đa Năng</title>
+    <link rel="icon" type="image/x-icon" href="/assets/avt-web.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css">
+    <style>
+        :root {
+            --ci-accent: #059669;
+            --ci-accent-hover: #047857;
+            --ci-bg-soft: rgba(5, 150, 105, 0.08);
+            --ci-gradient: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-canvas, #f8fafc);
+            color: var(--text-main, #0f172a);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.dark-mode {
+            --bg-canvas: #090d16;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: #131b2e;
+            --border-soft: rgba(255, 255, 255, 0.08);
+        }
+
+        .checkin-hero {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 95, 70, 0.05));
+            border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 40px 24px 30px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        body.dark-mode .hero-badge {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .checkin-hero h1 {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 0 0 10px;
+            color: var(--text-main);
+        }
+
+        .checkin-hero h1 span {
+            background: var(--ci-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .checkin-hero p {
+            font-size: 15px;
+            color: var(--text-muted, #64748b);
+            max-width: 680px;
+            margin: 0 auto 24px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-ci {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-ci-primary {
+            background: var(--ci-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-ci-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+        }
+
+        .btn-ci-ghost {
+            background: var(--card-bg, #ffffff);
+            color: var(--text-main);
+            border: 1px solid var(--border-soft, #e2e8f0);
+        }
+
+        .btn-ci-ghost:hover {
+            background: var(--ci-bg-soft);
+            color: var(--ci-accent);
+            border-color: var(--ci-accent);
+        }
+
+        /* CONTAINER */
+        .checkin-container {
+            max-width: 1200px;
+            width: 92%;
+            margin: 30px auto;
+            flex: 1;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-soft, #e2e8f0);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .stat-val {
+            font-size: 24px;
+            font-weight: 900;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .stat-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-muted, #64748b);
+            margin: 2px 0 0;
+        }
+
+        /* SESSION GRID */
+        .session-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .session-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .session-card {
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-soft, #e2e8f0);
+            border-radius: 18px;
+            padding: 22px;
+            transition: all 0.25s;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            position: relative;
+        }
+
+        .session-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .session-type-pill {
+            align-self: flex-start;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .type-event { background: rgba(16, 185, 129, 0.12); color: #059669; }
+        .type-clock { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+        .type-open { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+
+        .session-card h3 {
+            font-size: 18px;
+            font-weight: 900;
+            margin: 0 0 8px;
+            color: var(--text-main);
+        }
+
+        .session-meta {
+            font-size: 13px;
+            color: var(--text-muted, #64748b);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+
+        .session-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .session-progress {
+            margin-bottom: 18px;
+        }
+
+        .progress-bar-bg {
+            height: 8px;
+            border-radius: 99px;
+            background: rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        body.dark-mode .progress-bar-bg {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: var(--ci-gradient);
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-muted);
+        }
+
+        .session-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 8px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-soft, #f1f5f9);
+        }
+
+        .btn-card-action {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 800;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-card-main {
+            background: var(--ci-accent);
+            color: white;
+        }
+        .btn-card-main:hover { background: var(--ci-accent-hover); }
+
+        .btn-card-scanner {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+        .btn-card-scanner:hover { background: rgba(16, 185, 129, 0.2); }
+
+        /* MODAL */
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-soft, #cbd5e1);
+            background: var(--bg-canvas, #ffffff);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--ci-accent);
+        }
+    </style>
+    <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <!-- TOP NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/tools'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--ci-accent);">
+                <span class="logo-name" style="color: var(--ci-accent);">MHEnt. Check-in Hub</span>
+            </a>
+        </div>
+        <ul class="nav-links" id="nav-links">
+            <li><a onclick="window.location.href='/tools'" style="cursor: pointer;">Tools Hub</a></li>
+            <li><a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">Forms & Sheet</a></li>
+            <li><a onclick="window.location.href='/tools/checkin'" class="active" style="cursor: pointer;">Check-in Hub</a></li>
+            <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
+        </ul>
+        <div class="nav-right">
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+            <div id="user-section" class="user-section"></div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="checkin-hero">
+        <div class="hero-badge">
+            <i class="fa-solid fa-qrcode"></i> Hệ Thống Điểm Danh & Chấm Công Đa Năng
+        </div>
+        <h1>MHEnt. <span>Check-in Hub</span> ⚡</h1>
+        <p>
+            Giải pháp điểm danh siêu tốc thế hệ mới cho MHEnt Universe: Quét QR 0.5s bằng camera, Kiosk tự phục vụ để bàn, QR động chiếu hội trường, báo cáo real-time và xuất Excel/Google Sheet.
+        </p>
+        <div class="hero-actions">
+            <button class="btn-ci btn-ci-primary" onclick="openCreateSessionModal()">
+                <i class="fa-solid fa-plus"></i> Tạo Phiên Điểm Danh Mới
+            </button>
+            <button class="btn-ci btn-ci-ghost" onclick="createSampleMockSession()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Phiên Test Thử (10 Người Mẫu)
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="checkin-container">
+        <!-- STATS BAR -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <div>
+                    <h3 class="stat-val" id="stat-total-sessions">0</h3>
+                    <p class="stat-label">Tổng phiên điểm danh</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <h3 class="stat-val" id="stat-total-attendees">0</h3>
+                    <p class="stat-label">Tổng người trong danh sách</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div>
+                    <h3 class="stat-val" id="stat-checkedin-today">0</h3>
+                    <p class="stat-label">Lượt check-in thành công</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SESSIONS SECTION -->
+        <div class="session-header-bar">
+            <div>
+                <h2 style="margin: 0; font-size: 22px; font-weight: 900; color: var(--text-main);">
+                    <i class="fa-solid fa-layer-group" style="color: var(--ci-accent);"></i> Các Phiên Điểm Danh
+                </h2>
+                <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">Quản lý phiên, mở máy quét hoặc xem bảng thống kê chi tiết</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="session-search" placeholder="Tìm kiếm phiên..." oninput="filterSessions()"
+                    style="padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none;">
+            </div>
+        </div>
+
+        <div id="session-loading" style="text-align: center; padding: 60px 0;">
+            <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--ci-accent); margin-bottom: 12px;"></i>
+            <p style="font-weight: 700; color: var(--text-muted);">Đang tải dữ liệu từ Căn Cứ MHEnt...</p>
+        </div>
+
+        <div id="session-empty" style="display: none; text-align: center; padding: 60px 20px; background: var(--card-bg); border-radius: 20px; border: 1.5px dashed var(--border-soft);">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--ci-bg-soft); color: var(--ci-accent); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <h3 style="margin: 0 0 8px; font-weight: 900; color: var(--text-main);">Chưa Có Phiên Điểm Danh Nào</h3>
+            <p style="margin: 0 0 20px; font-size: 14px; color: var(--text-muted);">Hãy tạo phiên đầu tiên hoặc bấm nút tạo phiên mẫu 10 người để test thử nhé!</p>
+            <button class="btn-ci btn-ci-primary" onclick="openCreateSessionModal()">
+                <i class="fa-solid fa-plus"></i> Tạo Phiên Mới Ngay
+            </button>
+        </div>
+
+        <div class="session-grid" id="session-grid" style="display: none;"></div>
+    </main>
+
+    <!-- CREATE SESSION MODAL -->
+    <div id="modal-create-session" class="mhent-ui-overlay" style="display: none;">
+        <div class="mhent-ui-box" style="max-width: 600px; width: 92%; padding: 26px; text-align: left; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--ci-bg-soft); color: var(--ci-accent); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                    </div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 900; color: var(--text-main);">Tạo Phiên Điểm Danh Mới</h3>
+                </div>
+                <button onclick="closeCreateSessionModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="create-session-form" onsubmit="handleCreateSession(event)">
+                <div class="form-group">
+                    <label class="form-label">Tên Sự Kiện / Phiên Điểm Danh *</label>
+                    <input type="text" id="input-session-title" class="form-input" required placeholder="Ví dụ: Đại hội Đoàn Khoa CNTT, Chấm công ngày 13/10...">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label class="form-label">Loại Điểm Danh *</label>
+                        <select id="input-session-type" class="form-select" onchange="toggleTypeOptions()">
+                            <option value="EVENT">🎯 Sự kiện / Họp (Check-in 1 lần)</option>
+                            <option value="CLOCK">⏱️ Chấm công (Check-in Vào & Ra)</option>
+                            <option value="OPEN">🌐 Tự do (Ai đến tự nhập tên)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ngày Diễn Ra *</label>
+                        <input type="date" id="input-session-date" class="form-input" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label class="form-label">Giờ Bắt Đầu</label>
+                        <input type="time" id="input-session-start" class="form-input" value="08:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mốc Tính Đi Trễ (Sau giờ này)</label>
+                        <input type="time" id="input-session-late" class="form-input" value="08:15">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nguồn Danh Sách Người Tham Gia</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn-ci btn-ci-ghost" style="padding: 6px 12px; font-size: 12px;" onclick="setImportMode('mock')">
+                            ⚡ Nạp 10 Người Mẫu
+                        </button>
+                        <button type="button" class="btn-ci btn-ci-ghost" style="padding: 6px 12px; font-size: 12px;" onclick="document.getElementById('excel-file-input').click()">
+                            📥 Tải Lên Excel (.xlsx)
+                        </button>
+                        <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleExcelUpload(event)">
+                    </div>
+                    <textarea id="input-attendees-text" class="form-textarea" rows="4"
+                        placeholder="Dán danh sách (mỗi dòng: Họ Tên | Mã SV/NV | Email | SĐT) hoặc bấm nạp mẫu ở trên..."></textarea>
+                    <span style="font-size: 11.5px; color: var(--text-muted);">Hệ thống sẽ tự động gán Mã QR duy nhất cho từng thành viên.</span>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1px solid var(--border-soft); padding-top: 14px;">
+                    <button type="button" class="btn-ci btn-ci-ghost" onclick="closeCreateSessionModal()">Hủy Bỏ</button>
+                    <button type="submit" id="btn-submit-create" class="btn-ci btn-ci-primary">
+                        <i class="fa-solid fa-check"></i> Khởi Tạo Phiên
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let sessionsList = [];
+        let currentUser = null;
+
+        // AUTH
+        onAuthStateChanged(auth, (user) => {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            currentUser = activeUser;
+            const userSection = document.getElementById('user-section');
+            if (activeUser) {
+                userSection.innerHTML = `
+                    <div class="profile-trigger" onclick="window.location.href='/profile.html'">
+                        <img src="${activeUser.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--ci-accent);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${activeUser.displayName || 'Chủ tịch'}</span>
+                    </div>
+                `;
+            } else {
+                userSection.innerHTML = `
+                    <button class="btn-login" style="background: var(--ci-accent); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold;" onclick="window.redirectToLogin()">Đăng nhập</button>
+                `;
+            }
+        });
+
+        // INIT LOAD
+        function initApp() {
+            document.getElementById('input-session-date').value = new Date().toISOString().slice(0, 10);
+            listenSessions();
+        }
+
+        // LISTEN SESSIONS REALTIME
+        function listenSessions() {
+            const q = collection(db, "mhent_checkin_sessions");
+            onSnapshot(q, (snapshot) => {
+                sessionsList = [];
+                let totalAttendees = 0;
+                let totalCheckedIn = 0;
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    data.id = docSnap.id;
+                    sessionsList.push(data);
+
+                    const attendees = data.attendees || [];
+                    totalAttendees += attendees.length;
+                    totalCheckedIn += attendees.filter(a => a.checkedIn).length;
+                });
+
+                // Sắp xếp ngày tạo giảm dần
+                sessionsList.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                document.getElementById('stat-total-sessions').innerText = sessionsList.length;
+                document.getElementById('stat-total-attendees').innerText = totalAttendees;
+                document.getElementById('stat-checkedin-today').innerText = totalCheckedIn;
+
+                renderSessions(sessionsList);
+                document.getElementById('session-loading').style.display = 'none';
+
+                if (sessionsList.length === 0) {
+                    document.getElementById('session-empty').style.display = 'block';
+                    document.getElementById('session-grid').style.display = 'none';
+                } else {
+                    document.getElementById('session-empty').style.display = 'none';
+                    document.getElementById('session-grid').style.display = 'grid';
+                }
+            }, (err) => {
+                console.error("Lỗi tải phiên:", err);
+                document.getElementById('session-loading').innerHTML = `<p style="color: red; font-weight: bold;">Lỗi kết nối: ${err.message}</p>`;
+            });
+        }
+
+        // RENDER SESSIONS
+        function renderSessions(list) {
+            const grid = document.getElementById('session-grid');
+            grid.innerHTML = list.map(s => {
+                const attendees = s.attendees || [];
+                const total = attendees.length;
+                const checkedIn = attendees.filter(a => a.checkedIn).length;
+                const pct = total > 0 ? Math.round((checkedIn / total) * 100) : (s.type === 'OPEN' ? 100 : 0);
+
+                let typeLabel = "🎯 Sự Kiện";
+                let typeClass = "type-event";
+                if (s.type === 'CLOCK') { typeLabel = "⏱️ Chấm Công"; typeClass = "type-clock"; }
+                if (s.type === 'OPEN') { typeLabel = "🌐 Tự Do"; typeClass = "type-open"; }
+
+                return `
+                    <div class="session-card">
+                        <div class="session-type-pill ${typeClass}">${typeLabel}</div>
+                        <h3>${s.title}</h3>
+                        <div class="session-meta">
+                            <div class="session-meta-item">
+                                <i class="fa-regular fa-calendar"></i>
+                                <span>Ngày: <strong>${s.date || 'Hôm nay'}</strong> (${s.startTime || '08:00'})</span>
+                            </div>
+                            <div class="session-meta-item">
+                                <i class="fa-solid fa-users"></i>
+                                <span>Số lượng: <strong>${checkedIn}/${total}</strong> người</span>
+                            </div>
+                        </div>
+
+                        <div class="session-progress">
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${pct}%"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span>Tiến độ có mặt</span>
+                                <span>${pct}%</span>
+                            </div>
+                        </div>
+
+                        <div class="session-actions">
+                            <a href="/tools/checkin/session.html?id=${s.id}" class="btn-card-action btn-card-main">
+                                <i class="fa-solid fa-table-columns"></i> Quản Lý
+                            </a>
+                            <a href="/tools/checkin/scanner.html?id=${s.id}" class="btn-card-action btn-card-scanner" title="Mở Camera Quét">
+                                <i class="fa-solid fa-camera"></i> Quét QR
+                            </a>
+                            <a href="/tools/checkin/kiosk.html?id=${s.id}" class="btn-card-action btn-ci-ghost" title="Mở Kiosk Tự Phục Vụ">
+                                <i class="fa-solid fa-desktop"></i> Kiosk
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // FILTER
+        window.filterSessions = function() {
+            const query = (document.getElementById('session-search').value || '').toLowerCase().trim();
+            const filtered = sessionsList.filter(s => (s.title || '').toLowerCase().includes(query));
+            renderSessions(filtered);
+        };
+
+        // MODAL TOGGLES
+        window.openCreateSessionModal = function() {
+            const modal = document.getElementById('modal-create-session');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        };
+
+        window.closeCreateSessionModal = function() {
+            const modal = document.getElementById('modal-create-session');
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 250);
+        };
+
+        // CREATE SAMPLE MOCK SESSION (10 MOCK ATTENDEES)
+        window.createSampleMockSession = async function() {
+            const mockAttendees = [
+                { id: "SV01", name: "Phạm Lương Quốc Anh", code: "2511130080", email: "quocanh@mhentuniverse.com", org: "BCH Đoàn Khoa CNTT", checkedIn: false, qrToken: "MHENT_QR_SV01" },
+                { id: "SV02", name: "Nguyễn Hoàng Minh", code: "2511130081", email: "hoangminh@mhentuniverse.com", org: "BCH Đoàn Khoa CNTT", checkedIn: false, qrToken: "MHENT_QR_SV02" },
+                { id: "SV03", name: "Trần Mai Phương", code: "2511130082", email: "maiphuong@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 1", checkedIn: false, qrToken: "MHENT_QR_SV03" },
+                { id: "SV04", name: "Lê Văn Tuấn", code: "2511130083", email: "vantuan@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 1", checkedIn: false, qrToken: "MHENT_QR_SV04" },
+                { id: "SV05", name: "Đặng Thị Thảo", code: "2511130084", email: "thao@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 2", checkedIn: false, qrToken: "MHENT_QR_SV05" },
+                { id: "SV06", name: "Vũ Hải Đăng", code: "2511130085", email: "haidang@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 2", checkedIn: false, qrToken: "MHENT_QR_SV06" },
+                { id: "SV07", name: "Bùi Ngọc Ánh", code: "2511130086", email: "ngocanh@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 3", checkedIn: false, qrToken: "MHENT_QR_SV07" },
+                { id: "SV08", name: "Hoàng Gia Bảo", code: "2511130087", email: "giabao@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 3", checkedIn: false, qrToken: "MHENT_QR_SV08" },
+                { id: "SV09", name: "Đỗ Cẩm Ly", code: "2511130088", email: "camly@mhentuniverse.com", org: "Đội Văn Nghệ MHEnt", checkedIn: false, qrToken: "MHENT_QR_SV09" },
+                { id: "SV10", name: "Miyazaki Haruto", code: "ADMIN01", email: "mhent@mhentuniverse.com", org: "Ban Quản Trị MHEnt", checkedIn: false, qrToken: "MHENT_QR_ADMIN" }
+            ];
+
+            try {
+                window.showToast("Đang tạo...", "Đang khởi tạo phiên mẫu 10 người thử nghiệm...", "info");
+                const docRef = await addDoc(collection(db, "mhent_checkin_sessions"), {
+                    title: "Phiên Test Mẫu: Đại Hội Đoàn Viên Thanh Niên",
+                    type: "EVENT",
+                    date: new Date().toISOString().slice(0, 10),
+                    startTime: "08:00",
+                    lateThreshold: "08:15",
+                    attendees: mockAttendees,
+                    createdBy: currentUser?.displayName || 'Admin',
+                    createdAt: serverTimestamp()
+                });
+                window.showToast("Thành công!", "Đã tạo phiên mẫu! Cậu có thể bấm mở Quản lý hoặc Quét QR ngay!", "success");
+            } catch (err) {
+                window.showToast("Lỗi", err.message, "error");
+            }
+        };
+
+        // SET MOCK DATA INTO TEXTAREA
+        window.setImportMode = function(mode) {
+            if (mode === 'mock') {
+                const sampleText = [
+                    "Phạm Lương Quốc Anh | 2511130080 | quocanh@mhentuniverse.com | 0901234567",
+                    "Nguyễn Hoàng Minh | 2511130081 | hoangminh@mhentuniverse.com | 0901234568",
+                    "Trần Mai Phương | 2511130082 | maiphuong@mhentuniverse.com | 0901234569",
+                    "Lê Văn Tuấn | 2511130083 | vantuan@mhentuniverse.com | 0901234570",
+                    "Đặng Thị Thảo | 2511130084 | thao@mhentuniverse.com | 0901234571"
+                ].join('\n');
+                document.getElementById('input-attendees-text').value = sampleText;
+                window.showToast("Đã nạp mẫu", "Đã điền danh sách mẫu vào khung!", "success");
+            }
+        };
+
+        // HANDLE EXCEL IMPORT
+        window.handleExcelUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+
+                    if (rows.length === 0) return window.showToast("Lỗi file", "File không có dữ liệu!", "error");
+
+                    // Bỏ qua dòng tiêu đề nếu có
+                    const textRows = [];
+                    rows.forEach((r, idx) => {
+                        if (idx === 0 && (String(r[0]).toLowerCase().includes('tên') || String(r[0]).toLowerCase().includes('stt'))) return;
+                        if (r.length > 0 && r[0]) {
+                            textRows.push(r.filter(Boolean).join(' | '));
+                        }
+                    });
+
+                    document.getElementById('input-attendees-text').value = textRows.join('\n');
+                    window.showToast("Đã nhập Excel!", `Đã nạp ${textRows.length} thành viên từ file Excel!`, "success");
+                } catch (err) {
+                    window.showToast("Lỗi đọc Excel", err.message, "error");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        // HANDLE CREATE SESSION
+        window.handleCreateSession = async function(event) {
+            event.preventDefault();
+            const title = document.getElementById('input-session-title').value.trim();
+            const type = document.getElementById('input-session-type').value;
+            const date = document.getElementById('input-session-date').value;
+            const startTime = document.getElementById('input-session-start').value;
+            const lateThreshold = document.getElementById('input-session-late').value;
+            const rawText = document.getElementById('input-attendees-text').value.trim();
+
+            const attendees = [];
+            if (rawText) {
+                const lines = rawText.split('\n').filter(l => l.trim().length > 0);
+                lines.forEach((line, idx) => {
+                    const parts = line.split('|').map(p => p.trim());
+                    const name = parts[0] || `Thành viên ${idx + 1}`;
+                    const code = parts[1] || `ID_${idx + 1}`;
+                    const email = parts[2] || '';
+                    const phone = parts[3] || '';
+                    const qrToken = `MHENT_QR_${Date.now()}_${idx + 1}`;
+
+                    attendees.push({
+                        id: `att_${idx + 1}`,
+                        name,
+                        code,
+                        email,
+                        phone,
+                        qrToken,
+                        checkedIn: false
+                    });
+                });
+            }
+
+            const submitBtn = document.getElementById('btn-submit-create');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang tạo...`;
+
+            try {
+                const docRef = await addDoc(collection(db, "mhent_checkin_sessions"), {
+                    title,
+                    type,
+                    date,
+                    startTime,
+                    lateThreshold,
+                    attendees,
+                    createdBy: currentUser?.displayName || 'Admin',
+                    createdAt: serverTimestamp()
+                });
+
+                closeCreateSessionModal();
+                window.showToast("Tạo Thành Công!", `Đã tạo phiên điểm danh [${title}]!`, "success");
+                window.location.href = `/tools/checkin/session.html?id=${docRef.id}`;
+            } catch (err) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-check"></i> Khởi Tạo Phiên`;
+                window.showToast("Lỗi", err.message, "error");
+            }
+        };
+
+        initApp();
+    </script>
+    <script src="/js/aisa-widget.js" defer></script>
+</body>
+
+</html>

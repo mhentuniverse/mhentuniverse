@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Anti-FOUC Dark Mode Script -->
+    <script>
+        (function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+                return match ? decodeURIComponent(match[3]) : null;
+            }
+            const saved = localStorage.getItem('mhent_dark_mode') || getCookie('mhent_dark_mode');
+            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'on' || (!saved && systemDark)) {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Màn Chiếu Live QR - MHEnt Check-in Hub</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- QRCode & Confetti CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+    <script src="/js/config.js"></script>
+
+    <style>
+        :root {
+            --ci-accent: #f59e0b;
+            --ci-accent-hover: #d97706;
+            --ci-gradient: linear-gradient(135deg, #f59e0b, #ef4444);
+            --ci-bg-soft: rgba(245, 158, 11, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-canvas: #f8fafc;
+            --border-soft: #e2e8f0;
+        }
+
+        .dark-mode {
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --bg-canvas: #090d16;
+            --border-soft: #1e293b;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* PROJECTOR HEADER */
+        .live-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 36px;
+            background: var(--card-bg);
+            border-bottom: 2px solid var(--border-soft);
+            backdrop-filter: blur(14px);
+            z-index: 100;
+        }
+
+        .live-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 99px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .live-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: pulse-red 1.4s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .live-title {
+            font-size: 22px;
+            font-weight: 900;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .live-clock {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: var(--ci-accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-live-ctrl {
+            background: var(--bg-canvas);
+            border: 1.5px solid var(--border-soft);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-live-ctrl:hover {
+            border-color: var(--ci-accent);
+            color: var(--ci-accent);
+        }
+
+        /* 2-COLUMN BIG SCREEN LAYOUT */
+        .live-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 48% 52%;
+            gap: 28px;
+            padding: 28px 36px;
+            box-sizing: border-box;
+            height: calc(100vh - 80px);
+        }
+
+        /* LEFT COLUMN: DYNAMIC QR */
+        .qr-stage-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-soft);
+            border-radius: 28px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .qr-box-outer {
+            padding: 18px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.12);
+            border: 4px solid var(--ci-accent);
+            display: inline-block;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #qr-canvas-holder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qr-canvas-holder img {
+            border-radius: 12px;
+        }
+
+        .qr-timer-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: var(--ci-bg-soft);
+            color: var(--ci-accent);
+            border-radius: 999px;
+            font-size: 13.5px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .qr-instructions {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-muted);
+            max-width: 420px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .qr-countdown-bar-wrap {
+            width: 220px;
+            height: 6px;
+            background: var(--border-soft);
+            border-radius: 99px;
+            margin-top: 14px;
+            overflow: hidden;
+        }
+
+        .qr-countdown-bar {
+            height: 100%;
+            background: var(--ci-accent);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        /* RIGHT COLUMN: STATS & LIVE FEED */
+        .feed-stage-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        /* STATS SUMMARY BAR */
+        .live-stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .live-stat-card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-soft);
+            border-radius: 18px;
+            padding: 16px 20px;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+        }
+
+        .live-stat-num {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .live-stat-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin: 4px 0 0;
+            text-transform: uppercase;
+        }
+
+        /* LIVE FEED STREAM */
+        .live-feed-card {
+            flex: 1;
+            background: var(--card-bg);
+            border: 2px solid var(--border-soft);
+            border-radius: 28px;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .live-feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 1.5px solid var(--border-soft);
+            margin-bottom: 14px;
+        }
+
+        .live-feed-title {
+            font-size: 18px;
+            font-weight: 900;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-stream-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 6px;
+        }
+
+        .live-stream-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .live-stream-list::-webkit-scrollbar-thumb {
+            background: var(--border-soft);
+            border-radius: 6px;
+        }
+
+        .stream-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            animation: slideInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .stream-item-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stream-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 18px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stream-name {
+            font-size: 16px;
+            font-weight: 800;
+            margin: 0 0 2px;
+        }
+
+        .stream-sub {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .stream-time-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+            font-size: 13px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            body { overflow-y: auto; }
+            .live-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <header class="live-navbar">
+        <div class="live-brand">
+            <span class="live-badge">
+                <span class="live-pulse"></span> TRỰC TIẾP
+            </span>
+            <h1 class="live-title" id="session-title">Hội Nghị Điểm Danh MHEnt</h1>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="live-clock" id="digital-clock">00:00:00</div>
+            <button class="btn-live-ctrl" onclick="toggleMute()" id="btn-sound">
+                <i class="fa-solid fa-volume-high" id="sound-icon"></i> <span>Âm thanh</span>
+            </button>
+            <button class="btn-live-ctrl" onclick="toggleFullscreen()">
+                <i class="fa-solid fa-expand" id="fs-icon"></i> <span>Toàn màn hình</span>
+            </button>
+            <a id="btn-back-session" href="#" class="btn-live-ctrl">
+                <i class="fa-solid fa-arrow-left"></i> <span>Quay lại</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN TWO-COLUMN VIEW -->
+    <main class="live-container">
+        <!-- LEFT: DYNAMIC QR CODE -->
+        <section class="qr-stage-card">
+            <div class="qr-timer-pill">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Mã Động Bảo Mật • Tự đổi sau <strong id="qr-sec">20s</strong></span>
+            </div>
+
+            <div class="qr-box-outer">
+                <div id="qr-canvas-holder"></div>
+            </div>
+
+            <h2 style="font-size: 24px; font-weight: 900; margin: 0 0 8px; color: var(--text-main);">
+                Quét Mã Để Vào Hội Trường
+            </h2>
+            <p class="qr-instructions">
+                Mở Camera điện thoại hoặc Zalo quét mã QR ở trên để xác nhận điểm danh tự động ngay trên máy của bạn.
+            </p>
+
+            <div class="qr-countdown-bar-wrap">
+                <div class="qr-countdown-bar" id="countdown-bar"></div>
+            </div>
+        </section>
+
+        <!-- RIGHT: STATS & STREAM -->
+        <section class="feed-stage-col">
+            <!-- STATS COUNTER -->
+            <div class="live-stats-bar">
+                <div class="live-stat-card">
+                    <h3 class="live-stat-num" id="stat-present" style="color: #10b981;">0</h3>
+                    <p class="live-stat-label">Đã Có Mặt</p>
+                </div>
+                <div class="live-stat-card">
+                    <h3 class="live-stat-num" id="stat-absent" style="color: #64748b;">0</h3>
+                    <p class="live-stat-label">Chưa Đến</p>
+                </div>
+                <div class="live-stat-card">
+                    <h3 class="live-stat-num" id="stat-rate" style="color: var(--ci-accent);">0%</h3>
+                    <p class="live-stat-label">Tỉ Lệ Tham Dự</p>
+                </div>
+            </div>
+
+            <!-- FEED LIST -->
+            <div class="live-feed-card">
+                <div class="live-feed-header">
+                    <h3 class="live-feed-title">
+                        <i class="fa-solid fa-bolt" style="color: var(--ci-accent);"></i> Dòng Sự Kiện Vào Cửa
+                    </h3>
+                    <span style="font-size: 13px; font-weight: 700; color: var(--text-muted);" id="stream-count">0 lượt check-in</span>
+                </div>
+
+                <div class="live-stream-list" id="stream-list">
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="fa-regular fa-clock" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <p style="font-size: 14px; margin: 0;">Đang chờ người tham dự đầu tiên quét mã...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FIREBASE MODULE & LOGIC -->
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('id');
+
+        let sessionData = null;
+        let attendeesList = [];
+        let previousCheckedInCount = 0;
+        let isMuted = false;
+        let qrcodeInstance = null;
+
+        let currentToken = '';
+        let qrTimerInterval = null;
+        let remainingSeconds = 20;
+
+        // DIGITAL CLOCK
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('digital-clock').textContent = now.toLocaleTimeString('vi-VN');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // CHIME AUDIO SYNTH
+        function playSuccessChime() {
+            if (isMuted) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = ctx.currentTime;
+                
+                // Arpeggio C5 -> G5 -> C6
+                [523.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.5);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.5);
+                });
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        window.toggleMute = function() {
+            isMuted = !isMuted;
+            document.getElementById('sound-icon').className = isMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+        };
+
+        if (!sessionId) {
+            alert("Thiếu mã phiên!");
+            window.location.href = '/tools/checkin';
+        }
+
+        document.getElementById('btn-back-session').href = `/tools/checkin/session.html?id=${sessionId}`;
+
+        // DYNAMIC QR CODE ROTATION
+        function generateToken() {
+            return Math.random().toString(36).substring(2, 8) + Date.now().toString(36).substring(4);
+        }
+
+        function refreshQrCode() {
+            currentToken = generateToken();
+            remainingSeconds = 20;
+            document.getElementById('qr-sec').textContent = `${remainingSeconds}s`;
+            document.getElementById('countdown-bar').style.width = '100%';
+
+            // URL that attendees will open when scanning:
+            const selfScanUrl = `${window.location.origin}/tools/checkin/scan.html?id=${sessionId}&t=${currentToken}`;
+
+            const holder = document.getElementById('qr-canvas-holder');
+            holder.innerHTML = '';
+            
+            qrcodeInstance = new QRCode(holder, {
+                text: selfScanUrl,
+                width: 250,
+                height: 250,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        function startQrTimer() {
+            refreshQrCode();
+            if (qrTimerInterval) clearInterval(qrTimerInterval);
+
+            qrTimerInterval = setInterval(() => {
+                remainingSeconds--;
+                document.getElementById('qr-sec').textContent = `${remainingSeconds}s`;
+                const pct = (remainingSeconds / 20) * 100;
+                document.getElementById('countdown-bar').style.width = `${pct}%`;
+
+                if (remainingSeconds <= 0) {
+                    refreshQrCode();
+                }
+            }, 1000);
+        }
+
+        // REALTIME LISTENER
+        const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
+        onSnapshot(sessionRef, (docSnap) => {
+            if (!docSnap.exists()) return;
+            sessionData = docSnap.data();
+            document.getElementById('session-title').textContent = sessionData.title;
+
+            attendeesList = sessionData.attendees || [];
+            updateStatsAndFeed();
+        });
+
+        function updateStatsAndFeed() {
+            const total = attendeesList.length;
+            const checkedInList = attendeesList.filter(a => a.checkedIn);
+            const present = checkedInList.length;
+            const absent = total - present;
+            const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+            document.getElementById('stat-present').textContent = present;
+            document.getElementById('stat-absent').textContent = absent;
+            document.getElementById('stat-rate').textContent = `${rate}%`;
+            document.getElementById('stream-count').textContent = `${present} / ${total} người`;
+
+            // Detect new check-ins
+            if (present > previousCheckedInCount && previousCheckedInCount > 0) {
+                playSuccessChime();
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 40,
+                        spread: 60,
+                        origin: { y: 0.8 }
+                    });
+                }
+            }
+            previousCheckedInCount = present;
+
+            // Render live feed (sort latest check-in first)
+            renderFeed(checkedInList);
+        }
+
+        function renderFeed(checkedList) {
+            const feedContainer = document.getElementById('stream-list');
+            if (checkedList.length === 0) {
+                feedContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="fa-regular fa-clock" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <p style="font-size: 14px; margin: 0;">Đang chờ người tham dự đầu tiên quét mã...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Reverse copy so newly added appears at the top
+            const reversed = [...checkedList].reverse();
+
+            feedContainer.innerHTML = reversed.slice(0, 30).map(item => {
+                const initial = (item.name || 'U').trim().charAt(0).toUpperCase();
+                return `
+                    <div class="stream-item">
+                        <div class="stream-item-left">
+                            <div class="stream-avatar">${initial}</div>
+                            <div>
+                                <h4 class="stream-name">${item.name}</h4>
+                                <p class="stream-sub">Mã: <strong>${item.code}</strong> ${item.org ? `• ${item.org}` : ''}</p>
+                            </div>
+                        </div>
+                        <div class="stream-time-badge">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>${item.checkinTime ? item.checkinTime.split(' ')[0] : 'Vừa xong'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // INIT QR
+        startQrTimer();
+
+        // FULLSCREEN
+        window.toggleFullscreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Không thể bật toàn màn hình: ${err.message}`);
+                });
+                document.getElementById('fs-icon').className = 'fa-solid fa-compress';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById('fs-icon').className = 'fa-solid fa-expand';
+                }
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máy Quét Điểm Danh Siêu Tốc - MHEnt Check-in Hub</title>
+    <link rel="icon" type="image/x-icon" href="/assets/avt-web.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root {
+            --ci-accent: #10b981;
+            --ci-accent-dark: #059669;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #090d16;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .scanner-topbar {
+            background: rgba(19, 27, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        .scanner-title {
+            font-size: 16px;
+            font-weight: 900;
+            margin: 0;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .counter-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 900;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* CAMERA VIEWPORT */
+        .scanner-viewport-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            position: relative;
+        }
+
+        .camera-card {
+            width: 100%;
+            max-width: 480px;
+            background: #131b2e;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            border: 1.5px solid rgba(16, 185, 129, 0.3);
+        }
+
+        #qr-reader {
+            width: 100% !important;
+            border: none !important;
+            background: #000;
+        }
+
+        #qr-reader__scan_region {
+            background: transparent !important;
+        }
+
+        #qr-reader__dashboard {
+            padding: 12px !important;
+            background: #131b2e !important;
+            color: #fff !important;
+        }
+
+        #qr-reader button {
+            background: var(--ci-accent) !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            font-weight: 800 !important;
+            cursor: pointer !important;
+            margin: 4px !important;
+        }
+
+        /* LASER SCANNING OVERLAY */
+        .scan-laser {
+            position: absolute;
+            top: 20%;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #10b981, #34d399, transparent);
+            box-shadow: 0 0 15px #10b981;
+            border-radius: 2px;
+            animation: laserMove 2s infinite ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes laserMove {
+            0%, 100% { top: 20%; opacity: 0.3; }
+            50% { top: 75%; opacity: 1; }
+        }
+
+        /* CONTROLS UNDER CAMERA */
+        .scanner-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+            justify-content: center;
+        }
+
+        .btn-ctrl {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-ctrl:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* POPUP RESULT BANNER */
+        #scan-result-card {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            width: 90%;
+            max-width: 440px;
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 18px 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            border: 2px solid #10b981;
+            z-index: 100;
+            transition: transform 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #scan-result-card.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #scan-result-card.warning {
+            border-color: #f59e0b;
+        }
+
+        #scan-result-card.error {
+            border-color: #ef4444;
+        }
+
+        .result-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .result-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .result-name {
+            font-size: 17px;
+            font-weight: 900;
+            margin: 0 0 2px;
+            color: white;
+        }
+
+        .result-meta {
+            font-size: 12.5px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        /* MANUAL INPUT BOTTOM BAR */
+        .manual-input-box {
+            width: 100%;
+            max-width: 480px;
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .manual-input-box input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+            font-family: inherit;
+            font-size: 13.5px;
+            outline: none;
+        }
+
+        .manual-input-box input:focus {
+            border-color: #10b981;
+        }
+
+        .btn-manual-submit {
+            background: var(--ci-accent);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+    </style>
+    <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
+</head>
+
+<body>
+    <!-- TOPBAR -->
+    <header class="scanner-topbar">
+        <div class="topbar-left">
+            <a id="btn-back-dashboard" href="#" class="btn-back" title="Quay về bảng điều khiển">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h3 class="scanner-title">
+                    <i class="fa-solid fa-camera" style="color: #10b981;"></i> Máy Quét Điểm Danh
+                </h3>
+                <span id="session-name-tag" style="font-size: 12px; color: #94a3b8;">Đang kết nối...</span>
+            </div>
+        </div>
+
+        <div>
+            <span class="counter-badge" id="counter-tag">Đã quét: 0/0</span>
+        </div>
+    </header>
+
+    <!-- SCANNER CONTAINER -->
+    <main class="scanner-viewport-container">
+        <div class="camera-card">
+            <div class="scan-laser" id="laser-line"></div>
+            <div id="qr-reader"></div>
+        </div>
+
+        <div class="scanner-controls">
+            <button class="btn-ctrl" onclick="toggleCameraFacing()">
+                <i class="fa-solid fa-camera-rotate"></i> Đổi Camera
+            </button>
+            <button class="btn-ctrl" onclick="toggleAudioBeep()" id="btn-sound">
+                <i class="fa-solid fa-volume-high"></i> Âm Thanh: BẬT
+            </button>
+        </div>
+
+        <!-- MANUAL INPUT FALLBACK -->
+        <div class="manual-input-box">
+            <input type="text" id="manual-query" placeholder="Gõ tên, mã SV hoặc dán mã QR..." onkeypress="handleManualEnter(event)">
+            <button class="btn-manual-submit" onclick="submitManualCheckin()">
+                <i class="fa-solid fa-check"></i> Điểm Danh
+            </button>
+        </div>
+    </main>
+
+    <!-- FLOATING RESULT BANNER -->
+    <div id="scan-result-card">
+        <div class="result-avatar" id="res-icon">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="result-info">
+            <h4 class="result-name" id="res-name">Phạm Lương Quốc Anh</h4>
+            <p class="result-meta" id="res-meta">Mã: 2511130080 • Check-in: 08:02</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('id');
+
+        let sessionData = null;
+        let attendees = [];
+        let html5QrCode = null;
+        let currentFacingMode = "environment"; // Cam sau
+        let soundEnabled = true;
+        let isProcessingScan = false;
+        let audioCtx = null;
+
+        if (!sessionId) {
+            alert("Thiếu mã phiên!");
+            window.location.href = '/tools/checkin';
+        }
+
+        document.getElementById('btn-back-dashboard').href = `/tools/checkin/session.html?id=${sessionId}`;
+
+        // SOUND SYNTHESIZER VIA WEB AUDIO API (NO EXTERNAL MP3 NEEDED!)
+        function playTone(freq, type, duration) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.warn("Audio Context error:", e);
+            }
+        }
+
+        function playSuccessSound() {
+            playTone(880, 'sine', 0.15); // Ting A5
+            setTimeout(() => playTone(1320, 'sine', 0.25), 80); // Ting E6
+            if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+        }
+
+        function playWarningSound() {
+            playTone(400, 'square', 0.15);
+            setTimeout(() => playTone(300, 'square', 0.2), 120);
+            if (navigator.vibrate) navigator.vibrate([200]);
+        }
+
+        window.toggleAudioBeep = function() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('btn-sound');
+            btn.innerHTML = `<i class="fa-solid fa-volume-${soundEnabled ? 'high' : 'xmark'}"></i> Âm Thanh: ${soundEnabled ? 'BẬT' : 'TẮT'}`;
+        };
+
+        // LISTEN FIRESTORE SESSION
+        const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
+        onSnapshot(sessionRef, (docSnap) => {
+            if (!docSnap.exists()) return;
+            sessionData = docSnap.data();
+            attendees = sessionData.attendees || [];
+
+            document.getElementById('session-name-tag').innerText = sessionData.title || '';
+            const checkedInCount = attendees.filter(a => a.checkedIn).length;
+            document.getElementById('counter-tag').innerText = `Đã quét: ${checkedInCount}/${attendees.length}`;
+        });
+
+        // INIT SCANNER
+        async function startCamera() {
+            html5QrCode = new Html5Qrcode("qr-reader");
+            const config = {
+                fps: 15,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            try {
+                await html5QrCode.start(
+                    { facingMode: currentFacingMode },
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                );
+            } catch (err) {
+                console.error("Lỗi camera:", err);
+                document.getElementById('qr-reader').innerHTML = `
+                    <div style="padding: 30px; text-align: center; color: #f87171;">
+                        <i class="fa-solid fa-triangle-exclamation fa-2x"></i>
+                        <p style="margin: 10px 0 0; font-size: 14px;">Không thể mở camera: ${err}</p>
+                        <p style="font-size: 12px; color: #94a3b8;">Hãy cho phép quyền truy cập Camera trên trình duyệt nhé!</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.toggleCameraFacing = async function() {
+            if (!html5QrCode) return;
+            try {
+                await html5QrCode.stop();
+                currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+                startCamera();
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        // SCAN HANDLER
+        async function onScanSuccess(decodedText) {
+            if (isProcessingScan) return;
+            isProcessingScan = true;
+
+            const text = String(decodedText).trim();
+            await processCheckinIdentifier(text);
+
+            // Delay 1.5s trước khi nhận diện lượt quét tiếp theo
+            setTimeout(() => {
+                isProcessingScan = false;
+            }, 1500);
+        }
+
+        function onScanFailure(error) {
+            // Frame không có QR - bỏ qua
+        }
+
+        // CORE CHECKIN LOGIC
+        async function processCheckinIdentifier(identifier) {
+            // Tìm trong attendees theo: qrToken, code (MSSV), id, hoặc email
+            let att = attendees.find(a => 
+                (a.qrToken && a.qrToken.toLowerCase() === identifier.toLowerCase()) ||
+                (a.code && a.code.toLowerCase() === identifier.toLowerCase()) ||
+                (a.id && a.id.toLowerCase() === identifier.toLowerCase()) ||
+                (a.email && a.email.toLowerCase() === identifier.toLowerCase())
+            );
+
+            // Nếu là phiên OPEN và chưa có trong danh sách -> Tự động thêm mới!
+            if (!att && sessionData?.type === 'OPEN') {
+                att = {
+                    id: `att_${Date.now()}`,
+                    name: identifier.includes('@') ? identifier.split('@')[0] : identifier,
+                    code: identifier,
+                    org: 'Khách tự do',
+                    qrToken: identifier,
+                    checkedIn: false
+                };
+                attendees.push(att);
+            }
+
+            if (!att) {
+                playWarningSound();
+                showResultBanner("Không Tìm Thấy!", `Mã [${identifier}] không có trong danh sách!`, "error");
+                return;
+            }
+
+            if (att.checkedIn) {
+                playWarningSound();
+                showResultBanner(att.name, `⚠️ Đã điểm danh trước đó lúc ${att.checkinTime}!`, "warning");
+                return;
+            }
+
+            // Ghi nhận check-in
+            const now = new Date();
+            const timeStr = now.toTimeString().slice(0, 8);
+
+            let isLate = false;
+            if (sessionData.lateThreshold) {
+                const [lateH, lateM] = sessionData.lateThreshold.split(':').map(Number);
+                if (now.getHours() > lateH || (now.getHours() === lateH && now.getMinutes() > lateM)) {
+                    isLate = true;
+                }
+            }
+
+            att.checkedIn = true;
+            att.checkinTime = timeStr;
+            att.isLate = isLate;
+
+            try {
+                await updateDoc(sessionRef, { attendees: attendees });
+                playSuccessSound();
+                const lateNotice = isLate ? " (⚠️ Đi trễ)" : " (Đúng giờ)";
+                showResultBanner(att.name, `✅ Điểm danh thành công lúc ${timeStr}${lateNotice}`, "success");
+            } catch (err) {
+                console.error(err);
+                showResultBanner("Lỗi", err.message, "error");
+            }
+        }
+
+        // RESULT BANNER ANIMATION
+        let bannerTimer = null;
+        function showResultBanner(name, meta, status) {
+            const card = document.getElementById('scan-result-card');
+            const resIcon = document.getElementById('res-icon');
+            const resName = document.getElementById('res-name');
+            const resMeta = document.getElementById('res-meta');
+
+            resName.innerText = name;
+            resMeta.innerText = meta;
+
+            card.className = status; // success, warning, error
+            if (status === 'success') {
+                resIcon.style.background = 'rgba(16, 185, 129, 0.2)';
+                resIcon.style.color = '#34d399';
+                resIcon.innerHTML = `<i class="fa-solid fa-check"></i>`;
+            } else if (status === 'warning') {
+                resIcon.style.background = 'rgba(245, 158, 11, 0.2)';
+                resIcon.style.color = '#fbbf24';
+                resIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+            } else {
+                resIcon.style.background = 'rgba(239, 68, 68, 0.2)';
+                resIcon.style.color = '#f87171';
+                resIcon.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+            }
+
+            card.classList.add('show');
+            if (bannerTimer) clearTimeout(bannerTimer);
+            bannerTimer = setTimeout(() => {
+                card.classList.remove('show');
+            }, 3000);
+        }
+
+        // MANUAL SEARCH ENTER
+        window.handleManualEnter = function(e) {
+            if (e.key === 'Enter') submitManualCheckin();
+        };
+
+        window.submitManualCheckin = function() {
+            const val = document.getElementById('manual-query').value.trim();
+            if (!val) return;
+            document.getElementById('manual-query').value = '';
+            processCheckinIdentifier(val);
+        };
+
+        startCamera();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Phiên Điểm Danh - MHEnt Check-in Hub</title>
+    <link rel="icon" type="image/x-icon" href="/assets/avt-web.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css">
+    <style>
+        :root {
+            --ci-accent: #059669;
+            --ci-accent-hover: #047857;
+            --ci-bg-soft: rgba(5, 150, 105, 0.08);
+            --ci-gradient: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-canvas, #f8fafc);
+            color: var(--text-main, #0f172a);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.dark-mode {
+            --bg-canvas: #090d16;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: #131b2e;
+            --border-soft: rgba(255, 255, 255, 0.08);
+        }
+
+        .dashboard-header {
+            background: var(--card-bg, #ffffff);
+            border-bottom: 1px solid var(--border-soft, #e2e8f0);
+            padding: 20px 24px;
+            position: sticky;
+            top: 60px;
+            z-index: 30;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .header-title-group h2 {
+            font-size: 22px;
+            font-weight: 900;
+            margin: 0 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-scanner { background: var(--ci-gradient); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-scanner:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45); }
+        .btn-kiosk { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
+        .btn-live { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .btn-outline { background: var(--bg-canvas); color: var(--text-main); border: 1.5px solid var(--border-soft); }
+        .btn-outline:hover { background: var(--ci-bg-soft); color: var(--ci-accent); border-color: var(--ci-accent); }
+
+        /* LIVE STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .stat-mini-card {
+            background: var(--bg-canvas, #f8fafc);
+            border: 1px solid var(--border-soft, #e2e8f0);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stat-mini-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .stat-mini-val {
+            font-size: 20px;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .stat-mini-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 2px 0 0;
+        }
+
+        /* TABLE CONTAINER */
+        .dashboard-body {
+            max-width: 1300px;
+            width: 94%;
+            margin: 24px auto;
+            flex: 1;
+        }
+
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-soft);
+            padding: 8px 14px;
+            border-radius: 10px;
+            width: 320px;
+            max-width: 100%;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            color: var(--text-main);
+            outline: none;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .table-wrapper {
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-soft, #e2e8f0);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        }
+
+        .ci-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: left;
+        }
+
+        .ci-table th {
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--text-main);
+            font-weight: 800;
+            padding: 14px 16px;
+            border-bottom: 2px solid var(--border-soft);
+        }
+
+        body.dark-mode .ci-table th {
+            background: #1e293b;
+        }
+
+        .ci-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-soft);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        .ci-table tr:hover td {
+            background: var(--ci-bg-soft);
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+
+        .badge-present { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .badge-late { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+        .badge-absent { background: rgba(148, 163, 184, 0.15); color: #64748b; }
+
+        .btn-table-action {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-checkin-now { background: var(--ci-accent); color: white; }
+        .btn-checkin-now:hover { background: var(--ci-accent-hover); }
+        .btn-undo { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .btn-undo:hover { background: rgba(239, 68, 68, 0.2); }
+
+        /* PRINT STYLES */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 8mm 6mm;
+            }
+
+            .navbar, .dashboard-header, .table-toolbar, .btn-table-action, th:last-child, td:last-child, #aisa-widget-root {
+                display: none !important;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 10px !important;
+            }
+
+            .dashboard-body {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+
+            .ci-table {
+                border-collapse: collapse !important;
+                border: 1.5px solid #222 !important;
+                font-size: 9.5px !important;
+            }
+
+            .ci-table th, .ci-table td {
+                padding: 4px 6px !important;
+                border: 1px solid #777 !important;
+                color: black !important;
+            }
+
+            .ci-table th {
+                background: #f1f5f9 !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 12px;
+                border-bottom: 2px solid #059669;
+                padding-bottom: 6px;
+            }
+
+            .print-watermark {
+                display: block !important;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-25deg);
+                font-size: 46px;
+                font-weight: 900;
+                color: rgba(5, 150, 105, 0.06);
+                letter-spacing: 5px;
+                white-space: nowrap;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .print-footer {
+                display: flex !important;
+                justify-content: space-between;
+                font-size: 8.5px;
+                color: #555;
+                margin-top: 10px;
+                padding-top: 6px;
+                border-top: 1px dashed #ccc;
+            }
+        }
+
+        .print-header, .print-watermark, .print-footer {
+            display: none;
+        }
+    </style>
+    <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <!-- PRINT HEADER -->
+    <div class="print-header">
+        <h2 style="margin: 0; color: #059669; font-size: 19px; font-weight: 900;">MIYAZAKI HARUTO ENTERTAINMENT CO., LTD.</h2>
+        <h3 id="print-session-title" style="margin: 4px 0; font-size: 15px; color: #111;">BÁO CÁO KẾT QUẢ ĐIỂM DANH</h3>
+        <p id="print-meta-date" style="font-size: 11px; color: #555; margin: 2px 0;">Ngày xuất: ...</p>
+    </div>
+    <div class="print-watermark">MHENT UNIVERSE - BẢO MẬT NỘI BỘ</div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a onclick="window.location.href='/tools/checkin'" style="cursor: pointer;">
+                <img src="/assets/avt-web.jpg" alt="Avatar Web" class="avt-img" style="border-color: var(--ci-accent);">
+                <span class="logo-name" style="color: var(--ci-accent);">MHEnt. Check-in Hub</span>
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a onclick="window.location.href='/tools/checkin'" style="cursor: pointer;">Danh Sách Phiên</a></li>
+            <li><a onclick="window.location.href='/tools'" style="cursor: pointer;">Tools Hub</a></li>
+            <li><a onclick="window.location.href='/tools/forms'" style="cursor: pointer;">Forms & Sheet</a></li>
+        </ul>
+        <div class="nav-right">
+            <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
+                <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+            <div id="user-section" class="user-section"></div>
+        </div>
+    </nav>
+
+    <!-- DASHBOARD HEADER -->
+    <header class="dashboard-header">
+        <div class="header-top">
+            <div class="header-title-group">
+                <a href="/tools/checkin" class="btn-action btn-outline" style="padding: 6px 12px; margin-bottom: 4px;" title="Quay về danh sách phiên">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <h2>
+                    <span id="session-title">Đang tải phiên...</span>
+                    <span id="session-badge-type" class="badge-status badge-present" style="font-size: 12px;">SỰ KIỆN</span>
+                </h2>
+                <div style="font-size: 13px; color: var(--text-muted); display: flex; gap: 14px; flex-wrap: wrap;">
+                    <span><i class="fa-regular fa-calendar"></i> <span id="session-date">...</span></span>
+                    <span><i class="fa-regular fa-clock"></i> Bắt đầu: <strong id="session-time">08:00</strong></span>
+                    <span><i class="fa-solid fa-hourglass-half"></i> Tính trễ sau: <strong id="session-late">08:15</strong></span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a id="btn-open-scanner" href="#" class="btn-action btn-scanner" target="_blank">
+                    <i class="fa-solid fa-camera"></i> Máy Quét Camera
+                </a>
+                <a id="btn-open-kiosk" href="#" class="btn-action btn-kiosk" target="_blank">
+                    <i class="fa-solid fa-desktop"></i> Kiosk Để Bàn
+                </a>
+                <a id="btn-open-live" href="#" class="btn-action btn-live" target="_blank">
+                    <i class="fa-solid fa-tv"></i> Màn Chiếu Live QR
+                </a>
+                <a id="btn-open-ticket" href="#" class="btn-action btn-outline" target="_blank">
+                    <i class="fa-solid fa-ticket"></i> Tra Cứu Vé
+                </a>
+                <button class="btn-action btn-outline" onclick="exportExcel()">
+                    <i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Xuất Excel
+                </button>
+                <button class="btn-action btn-outline" onclick="printReport()">
+                    <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> In PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div class="stats-grid">
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div>
+                    <h4 class="stat-mini-val" id="stat-present" style="color: #10b981;">0</h4>
+                    <p class="stat-mini-label">ĐÃ CÓ MẶT</p>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                    <i class="fa-solid fa-person-running"></i>
+                </div>
+                <div>
+                    <h4 class="stat-mini-val" id="stat-late" style="color: #f59e0b;">0</h4>
+                    <p class="stat-mini-label">ĐI TRỄ</p>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon" style="background: rgba(148, 163, 184, 0.15); color: #64748b;">
+                    <i class="fa-solid fa-user-xmark"></i>
+                </div>
+                <div>
+                    <h4 class="stat-mini-val" id="stat-absent" style="color: #64748b;">0</h4>
+                    <p class="stat-mini-label">CHƯA ĐẾN</p>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-mini-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h4 class="stat-mini-val" id="stat-rate" style="color: #6366f1;">0%</h4>
+                    <p class="stat-mini-label">TỈ LỆ CÓ MẶT</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <main class="dashboard-body">
+        <div class="table-toolbar">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i>
+                    <input type="text" id="filter-search" placeholder="Tìm theo tên, mã số, đơn vị..." oninput="filterAttendees()">
+                </div>
+                <select id="filter-status" onchange="filterAttendees()"
+                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none;">
+                    <option value="ALL">🔍 Tất cả trạng thái</option>
+                    <option value="PRESENT">✅ Đã có mặt</option>
+                    <option value="LATE">⚠️ Đi trễ</option>
+                    <option value="ABSENT">⏳ Chưa đến</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-action btn-outline" onclick="openAddAttendeeModal()">
+                    <i class="fa-solid fa-user-plus"></i> Thêm Người
+                </button>
+                <button class="btn-action btn-outline" onclick="resetAllCheckins()" title="Đặt lại trạng thái">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="ci-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th>Họ và Tên</th>
+                        <th>Mã Định Danh / MSSV</th>
+                        <th>Đơn Vị / Ghi Chú</th>
+                        <th>Giờ Check-in</th>
+                        <th>Trạng Thái</th>
+                        <th style="text-align: center; width: 140px;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody id="attendees-tbody">
+                    <!-- Dynamic Rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PRINT FOOTER -->
+        <div class="print-footer">
+            <span>🏢 Miyazaki Haruto Entertainment Co., Ltd. - Project MHEnt. Universe</span>
+            <span>Hệ Thống MHEnt Check-in Hub | Ngày in: <span id="print-footer-date"></span></span>
+        </div>
+    </main>
+
+    <!-- MODAL THÊM THÀNH VIÊN -->
+    <div id="modal-add-attendee" class="mhent-ui-overlay" style="display: none;">
+        <div class="mhent-ui-box" style="max-width: 480px; width: 92%; padding: 24px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-soft); padding-bottom: 10px;">
+                <h3 style="margin: 0; font-size: 17px; font-weight: 900; color: var(--text-main);">+ Thêm Người Vào Danh Sách</h3>
+                <button onclick="closeAddAttendeeModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="handleAddAttendee(event)">
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Họ và Tên *</label>
+                    <input type="text" id="add-name" required class="form-input" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Mã SV / Mã NV *</label>
+                    <input type="text" id="add-code" required class="form-input" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Đơn Vị / Chi Đoàn</label>
+                    <input type="text" id="add-org" class="form-input" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn-action btn-outline" onclick="closeAddAttendeeModal()">Hủy</button>
+                    <button type="submit" class="btn-action btn-scanner">Thêm Ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('id');
+
+        let sessionData = null;
+        let attendeesList = [];
+        let filteredAttendees = [];
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user || (window.getMHEntUser && window.getMHEntUser());
+            const userSection = document.getElementById('user-section');
+            if (currentUser) {
+                userSection.innerHTML = `
+                    <div class="profile-trigger" onclick="window.location.href='/profile.html'">
+                        <img src="${currentUser.photoURL || '/assets/avt-web.jpg'}" class="user-avatar" style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--ci-accent);">
+                        <span class="user-name" style="font-weight: 800; margin-left: 8px;">${currentUser.displayName || 'Chủ tịch'}</span>
+                    </div>
+                `;
+            }
+        });
+
+        if (!sessionId) {
+            alert("Không tìm thấy mã phiên điểm danh!");
+            window.location.href = '/tools/checkin';
+        }
+
+        // SETUP LINKS
+        document.getElementById('btn-open-scanner').href = `/tools/checkin/scanner.html?id=${sessionId}`;
+        document.getElementById('btn-open-kiosk').href = `/tools/checkin/kiosk.html?id=${sessionId}`;
+        document.getElementById('btn-open-live').href = `/tools/checkin/live.html?id=${sessionId}`;
+        document.getElementById('btn-open-ticket').href = `/tools/checkin/ticket.html?id=${sessionId}`;
+
+        // LISTEN REALTIME SESSION
+        const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
+        onSnapshot(sessionRef, (docSnap) => {
+            if (!docSnap.exists()) {
+                alert("Phiên điểm danh không tồn tại hoặc đã bị xóa!");
+                return window.location.href = '/tools/checkin';
+            }
+
+            sessionData = docSnap.data();
+            attendeesList = sessionData.attendees || [];
+
+            // Render Header Info
+            document.getElementById('session-title').innerText = sessionData.title || 'Phiên Không Tên';
+            document.getElementById('print-session-title').innerText = `BÁO CÁO ĐIỂM DANH: ${sessionData.title || ''}`;
+            document.getElementById('session-date').innerText = sessionData.date || 'Hôm nay';
+            document.getElementById('session-time').innerText = sessionData.startTime || '08:00';
+            document.getElementById('session-late').innerText = sessionData.lateThreshold || '08:15';
+            document.getElementById('print-meta-date').innerText = `Ngày xuất: ${new Date().toLocaleString('vi-VN')} | Đơn vị: ${sessionData.title}`;
+
+            // Calculate Stats
+            const total = attendeesList.length;
+            const presentList = attendeesList.filter(a => a.checkedIn);
+            const lateList = attendeesList.filter(a => a.checkedIn && a.isLate);
+            const absentCount = total - presentList.length;
+            const rate = total > 0 ? Math.round((presentList.length / total) * 100) : 0;
+
+            document.getElementById('stat-present').innerText = presentList.length;
+            document.getElementById('stat-late').innerText = lateList.length;
+            document.getElementById('stat-absent').innerText = absentCount;
+            document.getElementById('stat-rate').innerText = `${rate}%`;
+
+            filterAttendees();
+        });
+
+        // RENDER TABLE
+        function renderTable(list) {
+            const tbody = document.getElementById('attendees-tbody');
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted); font-weight: 700;">Không tìm thấy thành viên nào phù hợp!</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map((a, idx) => {
+                let statusBadge = `<span class="badge-status badge-absent"><i class="fa-regular fa-clock"></i> Chưa đến</span>`;
+                if (a.checkedIn) {
+                    if (a.isLate) {
+                        statusBadge = `<span class="badge-status badge-late"><i class="fa-solid fa-triangle-exclamation"></i> Đi trễ (${a.checkinTime || ''})</span>`;
+                    } else {
+                        statusBadge = `<span class="badge-status badge-present"><i class="fa-solid fa-check"></i> Có mặt (${a.checkinTime || ''})</span>`;
+                    }
+                }
+
+                return `
+                    <tr>
+                        <td style="text-align: center; font-weight: 800; color: var(--text-muted);">${idx + 1}</td>
+                        <td>
+                            <strong style="color: var(--text-main); font-size: 14px;">${a.name}</strong>
+                            ${a.email ? `<div style="font-size: 11.5px; color: var(--text-muted);">${a.email}</div>` : ''}
+                        </td>
+                        <td><span style="font-family: monospace; font-weight: 800; background: var(--ci-bg-soft); color: var(--ci-accent); padding: 3px 8px; border-radius: 6px;">${a.code}</span></td>
+                        <td>${a.org || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân lớp</span>'}</td>
+                        <td>${a.checkinTime || '<span style="color: var(--text-muted);">-</span>'}</td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align: center;">
+                            ${a.checkedIn 
+                                ? `<button class="btn-table-action btn-undo" onclick="toggleCheckin('${a.id}', false)"><i class="fa-solid fa-rotate-left"></i> Hủy</button>`
+                                : `<button class="btn-table-action btn-checkin-now" onclick="toggleCheckin('${a.id}', true)"><i class="fa-solid fa-check"></i> Có Mặt</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // FILTER
+        window.filterAttendees = function() {
+            const query = (document.getElementById('filter-search').value || '').toLowerCase().trim();
+            const statusFilter = document.getElementById('filter-status').value;
+
+            filteredAttendees = attendeesList.filter(a => {
+                const matchQuery = (a.name || '').toLowerCase().includes(query) ||
+                                   (a.code || '').toLowerCase().includes(query) ||
+                                   (a.org || '').toLowerCase().includes(query);
+
+                let matchStatus = true;
+                if (statusFilter === 'PRESENT') matchStatus = a.checkedIn && !a.isLate;
+                if (statusFilter === 'LATE') matchStatus = a.checkedIn && a.isLate;
+                if (statusFilter === 'ABSENT') matchStatus = !a.checkedIn;
+
+                return matchQuery && matchStatus;
+            });
+
+            renderTable(filteredAttendees);
+        };
+
+        // MANUAL TOGGLE CHECKIN
+        window.toggleCheckin = async function(attId, checkinState) {
+            const att = attendeesList.find(a => a.id === attId);
+            if (!att) return;
+
+            const now = new Date();
+            const timeStr = now.toTimeString().slice(0, 8);
+
+            // Check if late
+            let isLate = false;
+            if (sessionData.lateThreshold && checkinState) {
+                const [lateH, lateM] = sessionData.lateThreshold.split(':').map(Number);
+                if (now.getHours() > lateH || (now.getHours() === lateH && now.getMinutes() > lateM)) {
+                    isLate = true;
+                }
+            }
+
+            att.checkedIn = checkinState;
+            att.checkinTime = checkinState ? timeStr : null;
+            att.isLate = checkinState ? isLate : false;
+
+            try {
+                await updateDoc(sessionRef, { attendees: attendeesList });
+                window.showToast("Cập nhật", `${checkinState ? '✅ Đã ghi nhận' : '↩️ Đã hủy'} check-in cho ${att.name}`, "success");
+            } catch (err) {
+                window.showToast("Lỗi", err.message, "error");
+            }
+        };
+
+        // RESET ALL
+        window.resetAllCheckins = function() {
+            window.showConfirmPopup(
+                "Đặt lại phiên?",
+                "Cậu có chắc chắn muốn đặt lại toàn bộ trạng thái check-in về 'Chưa đến' không?",
+                async () => {
+                    attendeesList.forEach(a => {
+                        a.checkedIn = false;
+                        a.checkinTime = null;
+                        a.isLate = false;
+                    });
+                    await updateDoc(sessionRef, { attendees: attendeesList });
+                    window.showToast("Đã đặt lại", "Đã xóa toàn bộ lượt check-in của phiên này!", "info");
+                }
+            );
+        };
+
+        // ADD ATTENDEE MODAL
+        window.openAddAttendeeModal = () => {
+            const m = document.getElementById('modal-add-attendee');
+            m.style.display = 'flex';
+            setTimeout(() => m.classList.add('show'), 10);
+        };
+        window.closeAddAttendeeModal = () => {
+            const m = document.getElementById('modal-add-attendee');
+            m.classList.remove('show');
+            setTimeout(() => { m.style.display = 'none'; }, 200);
+        };
+
+        window.handleAddAttendee = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('add-name').value.trim();
+            const code = document.getElementById('add-code').value.trim();
+            const org = document.getElementById('add-org').value.trim();
+
+            const newAtt = {
+                id: `att_${Date.now()}`,
+                name,
+                code,
+                org,
+                qrToken: `MHENT_QR_${Date.now()}`,
+                checkedIn: false
+            };
+
+            attendeesList.push(newAtt);
+            await updateDoc(sessionRef, { attendees: attendeesList });
+            closeAddAttendeeModal();
+            window.showToast("Đã thêm", `Đã thêm ${name} vào danh sách!`, "success");
+            document.getElementById('add-name').value = '';
+            document.getElementById('add-code').value = '';
+            document.getElementById('add-org').value = '';
+        };
+
+        // EXPORT EXCEL
+        window.exportExcel = function() {
+            if (attendeesList.length === 0) return window.showToast("Trống", "Không có dữ liệu để xuất!", "warning");
+
+            const headers = ["STT", "Họ và Tên", "Mã SV / Mã NV", "Đơn Vị", "Trạng Thái", "Giờ Check-in"];
+            const dataRows = attendeesList.map((a, idx) => {
+                let sttStr = "Chưa đến";
+                if (a.checkedIn) sttStr = a.isLate ? "Đi trễ" : "Có mặt (Đúng giờ)";
+                return [idx + 1, a.name, a.code, a.org || '', sttStr, a.checkinTime || ''];
+            });
+
+            const aoa = [
+                ["🏢 MIYAZAKI HARUTO ENTERTAINMENT CO., LTD. - MHENT CHECK-IN HUB"],
+                [`📋 BÁO CÁO ĐIỂM DANH: ${sessionData?.title || 'Sự Kiện'}`],
+                [`Mã Phiên: ${sessionId}`, `Ngày Diễn Ra: ${sessionData?.date || ''}`, `Giờ Bắt Đầu: ${sessionData?.startTime || ''}`, `Tổng Số: ${attendeesList.length} người`],
+                ["© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved."],
+                [],
+                headers,
+                ...dataRows
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Điểm Danh");
+
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+                { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } }
+            ];
+
+            const fileName = `DiemDanh_${(sessionData?.title || 'MHEnt').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            window.showToast("Xuất Excel Thành Công", `Đã tải về tệp ${fileName}`, "success");
+        };
+
+        // PRINT REPORT
+        window.printReport = function() {
+            document.getElementById('print-footer-date').innerText = new Date().toLocaleString('vi-VN');
+            window.print();
+        };
+    </script>
+    <script src="/js/aisa-widget.js" defer></script>
+</body>
+
+</html>
