@@ -322,9 +322,8 @@
             }
 
             let userRole = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
-            const email = (activeUser.email || '').toLowerCase();
-            const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
-
+            const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || userRole.includes('root') || userRole.includes('boss') || userRole.includes('chủ tịch');
+ 
             if (userRole.includes('admin') || userRole.includes('game') || userRole.includes('chess') || isRoot) {
                 fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList();
                 supabase.channel('admin_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'chess_rooms' }, () => { fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList(); }).subscribe();

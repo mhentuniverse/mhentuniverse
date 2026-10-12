@@ -350,15 +350,40 @@ window.syncMHEntNavbarUI = function() {
         }
 
         const userRole = (user.role || localStorage.getItem('mhent_user_role') || '').toLowerCase();
-        const isRootAdmin = userRole.includes('admin') || userRole.includes('root') || userRole.includes('boss') || userRole.includes('chủ tịch');
+        const userEmail = (user.email || '').toLowerCase();
+        const isRootAdmin = userRole.includes('admin') || userRole.includes('root') || userRole.includes('boss') || userRole.includes('chủ tịch') || userEmail === 'mhent@mhentuniverse.com' || userEmail === 'contact@mhentuniverse.com';
+        const currentPath = window.location.pathname;
 
         const adminBtn = document.getElementById('admin-panel-btn');
         const adminDivider = document.getElementById('admin-divider');
         const studioBtn = document.getElementById('studio-panel-btn');
         const studioDivider = document.getElementById('studio-divider');
 
-        const canAdmin = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('game') || userRole.includes('edu') || userRole.includes('teacher') || userRole.includes('teach');
-        const canStudio = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('studio') || userRole.includes('creator') || userRole.includes('teacher') || userRole.includes('teach');
+        // Phân quyền hiển thị nút Admin & Studio theo chuẩn MHEnt Universe:
+        let canAdmin = false;
+        let canStudio = false;
+
+        if (isRootAdmin) {
+            // Admin có quyền truy cập tất cả admin và studio ở mọi phân khu
+            canAdmin = true;
+            canStudio = true;
+        } else if (currentPath.includes('/teach')) {
+            // Chỉ role teach/teacher được vào Teach Admin (Teach không có Studio riêng)
+            canAdmin = userRole.includes('teacher') || userRole.includes('teach') || userRole.includes('edu');
+            canStudio = false;
+        } else if (currentPath.includes('/cinema')) {
+            // Role cinema CHỈ vào Studio, KHÔNG vào Admin
+            canAdmin = false;
+            canStudio = userRole.includes('cinema') || userRole.includes('uploader');
+        } else if (currentPath.includes('/arena')) {
+            // Role arena CHỈ vào Studio, KHÔNG vào Admin
+            canAdmin = false;
+            canStudio = userRole.includes('arena');
+        } else {
+            // Trang chủ hoặc phân khu khác: Chỉ Admin tối cao mới thấy nút Admin Hệ Thống
+            canAdmin = isRootAdmin;
+            canStudio = false;
+        }
 
         if (adminBtn) adminBtn.style.display = canAdmin ? 'flex' : 'none';
         if (adminDivider) adminDivider.style.display = canAdmin ? 'block' : 'none';
@@ -572,12 +597,14 @@ window.openSideDrawer = function() {
     let activeTeamName = "";
     let teamBadgeHTML = "";
 
-    // 👉 QUÉT QUYÈN ROOT ADMIN SIÊU NHẠY (Nhận diện mọi từ khóa: admin, root, boss, chủ tịch)
-    let isRootAdmin = currentPath.includes('/admin') || 
-                      userRole.includes('admin') || 
+    // 👉 QUÉT QUYỀN ROOT ADMIN SIÊU NHẠY (Nhận diện mọi từ khóa: admin, root, boss, chủ tịch)
+    const email = (cachedProfile.email || '').toLowerCase();
+    let isRootAdmin = userRole.includes('admin') || 
                       userRole.includes('root') || 
                       userRole.includes('chủ tịch') || 
                       userRole.includes('boss') || 
+                      email === 'mhent@mhentuniverse.com' || 
+                      email === 'contact@mhentuniverse.com' ||
                       (window.currentUserRole && window.currentUserRole.toLowerCase().includes('admin'));
 
     // KHI ĐÃ ĐĂNG NHẬP -> XỬ LÝ QUYỀN LỰC VÀ NHÓM DỊCH ĐA VŨ TRỤ:
@@ -674,25 +701,17 @@ window.openSideDrawer = function() {
         let localAdminButtonsHTML = '';
         let rootAdminButtonHTML = '';
         
-        let isRootAdmin = currentPath.includes('/admin') || 
-                          userRole.includes('admin') || 
-                          userRole.includes('root') || 
-                          userRole.includes('chủ tịch') || 
-                          userRole.includes('boss') || 
-                          (window.currentUserRole && window.currentUserRole.toLowerCase().includes('admin'));
-
         // 1. QUÉT NÚT BẢN ĐỊA (Chỉ vẽ của Phân khu đang đứng)
         Object.keys(MHENT_UNIVERSES).forEach(key => {
             let uni = MHENT_UNIVERSES[key];
             let isCurrentUni = (currentUni && currentUni === uni);
             
             if (isCurrentUni) {
-                // Vẽ nút Studio của phân khu
-                if (uni.studioUrl) {
-                    let hasUniRole = userRole.includes(key) || (uni.roleKey && userRole.includes(uni.roleKey));
-                    let hasGeneralStudioRole = userRole.includes('studio') || userRole.includes('creator') || userRole.includes('uploader') || userRole.includes('teacher');
+                // Vẽ nút Studio của phân khu (Chỉ vẽ nếu có studioUrl và không trùng với adminUrl)
+                if (uni.studioUrl && uni.studioUrl !== uni.adminUrl) {
+                    let hasUniRole = userRole.includes(key) || (uni.roleKey && userRole.includes(uni.roleKey)) || (key === 'cinema' && userRole.includes('uploader'));
                     
-                    if (isRootAdmin || hasUniRole || hasGeneralStudioRole || uni.openCreation === true) {
+                    if (isRootAdmin || hasUniRole || uni.openCreation === true) {
                         let badgeText = uni.openCreation ? "FREE" : "CREATOR";
                         let badgeBg = uni.openCreation ? "#10b98122" : `${uni.color}22`;
                         let badgeColor = uni.openCreation ? "#10b981" : uni.color;
@@ -706,19 +725,22 @@ window.openSideDrawer = function() {
                     }
                 }
 
-                // Vẽ nút Admin riêng của phân khu (Khác /admin tối cao)
-                let canAccessUniAdmin = isRootAdmin || 
-                                        userRole.includes('admin') || 
-                                        userRole.includes('admin_' + key) || 
-                                        userRole.includes(key) || 
-                                        (uni.roleKey && (userRole.includes('admin_' + uni.roleKey) || userRole.includes(uni.roleKey))) || 
-                                        userRole.includes('game');
+                // Vẽ nút Admin riêng của phân khu
+                // QUY TẮC:
+                // - Admin (Root) truy cập tất cả admin ở tất cả phân khu
+                // - Riêng phân khu teach: role teach/teacher/edu được vào Admin Edu
+                // - Các phân khu khác (cinema, arena,...): chỉ role Admin mới vào được Admin
+                let canAccessUniAdmin = false;
+                if (isRootAdmin || userRole.includes('admin')) {
+                    canAccessUniAdmin = true;
+                } else if (key === 'teach' && (userRole.includes('teacher') || userRole.includes('teach') || userRole.includes('edu'))) {
+                    canAccessUniAdmin = true;
+                }
                 
                 // 👉 TRƯỜNG HỢP 1: Nếu phân khu có nhiều Sub-Admin (Mảng adminMenus như Vũ trụ Game)
                 if (Array.isArray(uni.adminMenus)) {
                     uni.adminMenus.forEach(subAdmin => {
-                        // Kiểm tra quyền: Chủ tịch hoặc có quyền chung của Vũ trụ Game, HOẶC có quyền riêng của từng môn (ví dụ: role 'chess')
-                        let canAccessSub = canAccessUniAdmin || (subAdmin.roleKey && (userRole.includes(subAdmin.roleKey) || userRole.includes('admin_' + subAdmin.roleKey)));
+                        let canAccessSub = isRootAdmin || userRole.includes('admin') || (subAdmin.roleKey && userRole.includes(subAdmin.roleKey));
                         
                         if (canAccessSub) {
                             localAdminButtonsHTML += `

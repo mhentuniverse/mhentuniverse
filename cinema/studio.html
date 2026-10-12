@@ -319,10 +319,9 @@
                 }
 
                 let role = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
-                const email = (activeUser.email || '').toLowerCase();
-                const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
+                const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || role.includes('root') || role.includes('boss') || role.includes('chủ tịch');
 
-                const canAccess = isRoot || role.includes('cinema') || role.includes('admin') || role.includes('creator') || role.includes('teacher') || role.includes('teach') || role.includes('studio') || role.includes('uploader');
+                const canAccess = isRoot || role.includes('admin') || role.includes('cinema') || role.includes('uploader');
 
                 if (!canAccess) {
                     showPopup("Khu vực cấm! Cậu chưa được cấp quyền Đối tác ở phân khu Cinema nha ❌", true);

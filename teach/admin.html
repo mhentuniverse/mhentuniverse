@@ -760,8 +760,11 @@
                 teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || activeUser.teamEdu || ''
             }));
 
-            if (!role.includes('admin') && !role.includes('teacher') && !role.includes('creator') && !role.includes('edu') && !role.includes('teach') && !role.includes('root') && !role.includes('boss') && !role.includes('chủ tịch')) { 
-                showPopup("Khu vực cấm!", true);
+            const isMaster = role.includes('admin') || role.includes('root') || role.includes('boss') || role.includes('chủ tịch') || activeUser.email === 'mhent@mhentuniverse.com' || activeUser.email === 'contact@mhentuniverse.com';
+            const isTeacher = role.includes('teacher') || role.includes('teach') || role.includes('edu');
+
+            if (!isMaster && !isTeacher) { 
+                showPopup("Khu vực cấm! Chỉ dành cho Quản trị viên và Thầy/Cô phụ trách đào tạo!", true);
                 setTimeout(() => window.location.href = '/', 2000); 
             } else { 
                 document.getElementById('security-shield').style.opacity = '0'; 

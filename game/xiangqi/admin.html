@@ -295,10 +295,9 @@
 
             let role = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
             const email = (activeUser.email || '').toLowerCase();
-            const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
+            const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || role.includes('root') || role.includes('boss') || role.includes('chủ tịch');
             
-            // ⚡ VÁ LỖI QUYỀN HẠN: MỞ CỔNG CHO CÁC ROLE ADMIN, GAME, XIANGQI, CREATOR, ROOT
-            if (role.includes('admin') || role.includes('game') || role.includes('xiangqi') || role.includes('creator') || isRoot) {
+            if (role.includes('admin') || role.includes('game') || role.includes('xiangqi') || isRoot) {
                 fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList();
                 supabase.channel('admin_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'xiangqi_rooms' }, () => { fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList(); }).subscribe();
             } else { 

@@ -337,10 +337,9 @@
                     }
 
                     let role = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
-                    const email = (activeUser.email || '').toLowerCase();
-                    const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
+                    const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || role.includes('root') || role.includes('boss') || role.includes('chủ tịch');
 
-                    if (role.includes('admin') || role.includes('arena') || isRoot) {
+                    if (role.includes('admin') || isRoot) {
                         window.currentUserEmail = activeUser.email || '';
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
@@ -360,6 +359,9 @@
                             teamNovel: userData.teamNovel || userData.teamName || '',
                             teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
                         }));
+                    } else if (role.includes('arena')) {
+                        showPopup("Khu vực Quản trị! Creator vui lòng chuyển hướng sang Studio Arena ⚔️", true);
+                        setTimeout(() => { window.location.href = '/arena/studio'; }, 2000);
                     } else kickOut();
                 } catch(e) { 
                     console.error("Lỗi xác thực Arena Admin:", e);
