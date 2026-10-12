@@ -16,7 +16,8 @@ window.MHENT_CONFIG = {
         KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0emtnY2hqaGVpcnh3ZWpjdHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjA0MTgsImV4cCI6MjA5MTgzNjQxOH0.Wl-sBpH1VvcR6-Y4D4UAVm1f5_brGK3cVIHRJBEhOJ0"
     },
     AISA_API_ENDPOINT: "https://api.mhentuniverse.com",
-    AISA_MODEL: "aisa-universe-v1" // Multiverse Portal Ambassador
+    AISA_MODEL: "aisa-universe-v1", // Multiverse Portal Ambassador
+    GOOGLE_CLIENT_ID: "377044322952-v5e8u5gqfl64o9kmf0n7q8pt4t4n5m4e.apps.googleusercontent.com" // Google Sheets OAuth Client ID
 };
 
 // Aliases tiện dụng để tương thích ngược & truy cập nhanh
@@ -25,3 +26,4 @@ window.supabaseUrl = window.MHENT_CONFIG.SUPABASE.URL;
 window.supabaseKey = window.MHENT_CONFIG.SUPABASE.KEY;
 window.aisaEndpoint = window.MHENT_CONFIG.AISA_API_ENDPOINT;
 window.aisaModel = window.MHENT_CONFIG.AISA_MODEL;
+window.googleClientId = window.MHENT_CONFIG.GOOGLE_CLIENT_ID;

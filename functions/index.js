@@ -132,3 +132,98 @@ exports.sendCustomAuthEmail = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', error.message);
     }
 });
+
+// ==========================================
+// 3. API XUẤT CSV CHO GOOGLE SHEET (=IMPORTDATA)
+// ==========================================
+exports.exportFormCSV = functions.https.onRequest(async (req, res) => {
+    // CORS headers cho Google và trình duyệt
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+
+    const formId = req.query.id;
+    if (!formId) {
+        res.status(400).send("Thiếu tham số 'id' của biểu mẫu.");
+        return;
+    }
+
+    try {
+        const formDoc = await admin.firestore().collection("mhent_forms").doc(formId).get();
+        if (!formDoc.exists) {
+            res.status(404).send("Biểu mẫu không tồn tại.");
+            return;
+        }
+
+        const formData = formDoc.data();
+        const presets = formData.presets || {};
+        const fields = (formData.fields || []).filter(q => q.type !== 'section');
+
+        const responsesSnap = await admin.firestore().collection("mhent_form_responses")
+            .where("formId", "==", formId)
+            .get();
+
+        const responses = [];
+        responsesSnap.forEach(doc => responses.push(doc.data()));
+
+        // Sắp xếp theo submittedAt / clientTimestamp tăng dần
+        responses.sort((a, b) => {
+            const tA = a.submittedAt?.toMillis ? a.submittedAt.toMillis() : new Date(a.clientTimestamp || 0).getTime();
+            const tB = b.submittedAt?.toMillis ? b.submittedAt.toMillis() : new Date(b.clientTimestamp || 0).getTime();
+            return tA - tB;
+        });
+
+        const showName = (presets.name !== false) || responses.some(r => !!r.userName);
+        const showEmail = (presets.email !== false) || responses.some(r => !!r.userEmail);
+        const showPhone = !!presets.phone || responses.some(r => !!r.userPhone);
+        const showOrg = !!presets.org || responses.some(r => !!r.userOrg);
+
+        const headers = ["STT", "Thời gian nộp", "Trạng thái"];
+        if (showName) headers.push("Họ và tên");
+        if (showEmail) headers.push("Email");
+        if (showPhone) headers.push("Số điện thoại");
+        if (showOrg) headers.push("Đơn vị / Lớp");
+        fields.forEach(q => headers.push(q.title));
+        headers.push("Ghi chú");
+
+        const rows = [];
+        responses.forEach((r, idx) => {
+            const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
+            const row = [idx + 1, dateStr, r.status || 'Chờ duyệt'];
+
+            if (showName) row.push(r.userName || '');
+            if (showEmail) row.push(r.userEmail || '');
+            if (showPhone) row.push(r.userPhone || '');
+            if (showOrg) row.push(r.userOrg || '');
+
+            fields.forEach(q => {
+                let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
+                if (Array.isArray(val)) val = val.join('; ');
+                row.push(val);
+            });
+
+            row.push(r.note || '');
+            rows.push(row);
+        });
+
+        let csvContent = "\uFEFF"; // UTF-8 BOM
+        const allRows = [headers, ...rows];
+        allRows.forEach(rowArr => {
+            const line = rowArr.map(cell => `"${String(cell !== undefined && cell !== null ? cell : '').replace(/"/g, '""')}"`).join(',');
+            csvContent += line + "\r\n";
+        });
+
+        res.set('Content-Type', 'text/csv; charset=utf-8');
+        res.set('Cache-Control', 'public, max-age=60, s-maxage=60'); // Cache 60s
+        res.status(200).send(csvContent);
+
+    } catch (err) {
+        console.error("Lỗi xuất CSV cho Google Sheet:", err);
+        res.status(500).send("Lỗi máy chủ khi xuất CSV: " + err.message);
+    }
+});

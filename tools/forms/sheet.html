@@ -282,6 +282,40 @@
             color: var(--sheet-accent);
         }
 
+        .btn-sheet-gsheet {
+            background: linear-gradient(135deg, #0f9d58, #34a853);
+            color: white;
+            box-shadow: 0 4px 12px rgba(15, 157, 88, 0.3);
+        }
+
+        .btn-sheet-gsheet:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(15, 157, 88, 0.45);
+        }
+
+        .gsheet-tab-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gsheet-tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .gsheet-tab-btn.active {
+            color: var(--sheet-accent);
+            background: rgba(16, 185, 129, 0.15);
+            font-weight: 900;
+        }
+
         /* SPREADSHEET TABLE CONTAINER */
         .spreadsheet-container {
             flex: 1;
@@ -426,46 +460,142 @@
 
         /* PRINT STYLES */
         @media print {
+            @page {
+                size: landscape;
+                margin: 8mm 6mm;
+            }
 
             .navbar,
             .sheet-topbar,
             .sheet-toolbar,
             .btn-row-action,
+            #sheet-auth-required,
+            #sheet-empty-state,
+            #loading-spinner,
+            #dropdown-app-switcher,
+            #aisa-widget-root,
+            .aisa-fab,
+            .aisa-bubble,
+            .aisa-chat-window,
             th:last-child,
             td:last-child {
                 display: none !important;
             }
 
-            body {
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
                 padding: 0 !important;
+                margin: 0 !important;
                 background: white !important;
                 color: black !important;
+                font-size: 10px !important;
             }
 
             .spreadsheet-container {
                 max-height: none !important;
+                height: auto !important;
                 overflow: visible !important;
                 padding: 0 !important;
+                flex: none !important;
+                display: block !important;
+                background: white !important;
+            }
+
+            #table-wrapper {
+                display: block !important;
+                overflow: visible !important;
             }
 
             .mhent-sheet-table {
-                border: 1px solid #ccc !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
+                border: 1.5px solid #222 !important;
                 box-shadow: none !important;
+                font-size: 9.5px !important;
+                table-layout: auto !important;
+            }
+
+            .mhent-sheet-table th,
+            .mhent-sheet-table td {
+                padding: 4px 6px !important;
+                border: 1px solid #777 !important;
+                white-space: normal !important;
+                word-break: break-word !important;
+                color: #111 !important;
+                line-height: 1.35 !important;
+            }
+
+            .mhent-sheet-table th {
+                background: #f1f5f9 !important;
+                font-weight: 800 !important;
+                text-align: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .mhent-sheet-table tr {
+                page-break-inside: avoid !important;
+            }
+
+            .status-badge {
+                border: 1px solid #777 !important;
+                font-size: 8.5px !important;
+                padding: 1px 4px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .print-header {
                 display: block !important;
                 text-align: center;
-                margin-bottom: 20px;
+                margin-bottom: 12px;
+                padding-bottom: 6px;
+                border-bottom: 2px solid #10b981;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .print-footer {
+                display: flex !important;
+                justify-content: space-between;
+                font-size: 8.5px;
+                color: #666;
+                margin-top: 10px;
+                padding-top: 6px;
+                border-top: 1px dashed #ccc;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .print-watermark {
+                display: block !important;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-25deg);
+                font-size: 46px;
+                font-weight: 900;
+                color: rgba(16, 185, 129, 0.06);
+                pointer-events: none;
+                z-index: 0;
+                text-transform: uppercase;
+                letter-spacing: 5px;
+                white-space: nowrap;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
 
-        .print-header {
+        .print-header,
+        .print-footer,
+        .print-watermark {
             display: none;
         }
     </style>
     <script src="/js/config.js"></script>
     <script src="/js/mhent-ui.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -601,12 +731,13 @@
         </div>
     </nav>
 
-    <!-- PRINT REPORT HEADER -->
+    <!-- PRINT REPORT HEADER & WATERMARK -->
     <div class="print-header">
-        <h2 style="margin: 0; color: #10b981;">MIYAZAKI HARUTO ENTERTAINMENT CO., LTD.</h2>
-        <h3 id="print-form-title" style="margin: 6px 0;">BÁO CÁO DANH SÁCH BIỂU MẪU</h3>
-        <p style="font-size: 13px; color: #666;" id="print-date">Ngày xuất báo cáo: ...</p>
+        <h2 style="margin: 0; color: #10b981; font-size: 19px; font-weight: 900; letter-spacing: 0.5px;">MIYAZAKI HARUTO ENTERTAINMENT CO., LTD.</h2>
+        <h3 id="print-form-title" style="margin: 6px 0; font-size: 15px; color: #111;">BÁO CÁO DANH SÁCH BIỂU MẪU</h3>
+        <p style="font-size: 11px; color: #555; margin: 4px 0;" id="print-date">Ngày xuất báo cáo: ...</p>
     </div>
+    <div class="print-watermark">MHENT UNIVERSE - BẢO MẬT NỘI BỘ</div>
 
     <!-- SHEET TOPBAR -->
     <header class="sheet-topbar" id="sheet-topbar">
@@ -671,11 +802,14 @@
             <button class="btn-sheet btn-sheet-excel" onclick="exportToExcel()">
                 <i class="fa-solid fa-file-excel"></i> Xuất Excel (.xlsx)
             </button>
-            <button class="btn-sheet btn-sheet-pdf" onclick="window.print()">
+            <button class="btn-sheet btn-sheet-pdf" onclick="printSheetPDF()">
                 <i class="fa-solid fa-file-pdf"></i> In / Báo Cáo PDF
             </button>
             <button class="btn-sheet btn-sheet-ghost" onclick="exportToCSV()">
                 <i class="fa-solid fa-file-csv"></i> Xuất CSV
+            </button>
+            <button class="btn-sheet btn-sheet-gsheet" onclick="openGoogleSheetModal()">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Đồng Bộ Google Sheet
             </button>
         </div>
     </section>
@@ -748,8 +882,124 @@
                     <!-- Dynamic rows with inline editing -->
                 </tbody>
             </table>
+            <div class="print-footer">
+                <span>🏢 Miyazaki Haruto Entertainment Co., Ltd. - Project MHEnt. Universe</span>
+                <span>Hệ Thống Quản Lý MHEnt. Sheet | In ngày: <span id="print-footer-date"></span></span>
+            </div>
         </div>
     </main>
+
+    <!-- GOOGLE SHEET SYNC MODAL -->
+    <div id="modal-gsheet" class="mhent-ui-overlay" style="display: none;">
+        <div class="mhent-ui-box" style="max-width: 660px; width: 92%; padding: 26px; text-align: left; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(15, 157, 88, 0.15); display: flex; align-items: center; justify-content: center; color: #0f9d58; font-size: 20px;">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 900; color: var(--text-main);">Đồng Bộ Google Sheet</h3>
+                        <p style="margin: 2px 0 0; font-size: 12.5px; color: var(--text-muted);">Quản lý bảng tính trên Google Drive cá nhân của cậu mà không cần code</p>
+                    </div>
+                </div>
+                <button onclick="closeGoogleSheetModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; padding: 4px 8px;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- TAB NAVIGATION -->
+            <div style="display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border-soft); padding-bottom: 10px; flex-wrap: wrap;">
+                <button id="tab-btn-importdata" class="gsheet-tab-btn active" onclick="switchGSheetTab('importdata')">
+                    <i class="fa-solid fa-bolt"></i> 1. Công Thức Tự Động (Khuyên Dùng)
+                </button>
+                <button id="tab-btn-oauth" class="gsheet-tab-btn" onclick="switchGSheetTab('oauth')">
+                    <i class="fa-brands fa-google"></i> 2. Tạo File 1-Click
+                </button>
+                <button id="tab-btn-quickcopy" class="gsheet-tab-btn" onclick="switchGSheetTab('quickcopy')">
+                    <i class="fa-solid fa-paste"></i> 3. Dán Nhanh (Ctrl+V)
+                </button>
+            </div>
+
+            <!-- TAB 1: IMPORTDATA -->
+            <div id="tab-content-importdata" class="gsheet-tab-content">
+                <div style="background: rgba(15, 157, 88, 0.07); border: 1px solid rgba(15, 157, 88, 0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
+                    <h4 style="margin: 0 0 6px; color: #0f9d58; font-size: 14px; font-weight: 800;">
+                        <i class="fa-solid fa-circle-check"></i> Tự Động Kéo Dữ Liệu & Làm Mới
+                    </h4>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-main); line-height: 1.5;">
+                        Chỉ cần dán công thức bên dưới vào ô <strong>A1</strong> của bất kỳ Google Sheet nào. Dữ liệu sẽ tự động điền vào và tự cập nhật mỗi khi có câu trả lời mới!
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">CÔNG THỨC GOOGLE SHEET (Ô A1):</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="importdata-formula-input" readonly
+                            style="flex: 1; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-family: monospace; font-size: 13px; font-weight: 700;">
+                        <button class="btn-sheet" style="background: var(--sheet-accent); color: white; white-space: nowrap; padding: 10px 18px;" onclick="copyImportDataFormula()">
+                            <i class="fa-solid fa-copy"></i> Sao Chép
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border-soft); flex-wrap: wrap; gap: 10px;">
+                    <span style="font-size: 12.5px; color: var(--text-muted);">Chưa có sẵn Google Sheet?</span>
+                    <a href="https://sheets.new" target="_blank" class="btn-sheet btn-sheet-ghost" style="text-decoration: none; font-size: 13px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Google Sheet Mới (sheets.new)
+                    </a>
+                </div>
+            </div>
+
+            <!-- TAB 2: 1-CLICK OAUTH -->
+            <div id="tab-content-oauth" class="gsheet-tab-content" style="display: none;">
+                <div style="background: rgba(99, 102, 241, 0.07); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
+                    <h4 style="margin: 0 0 6px; color: #6366f1; font-size: 14px; font-weight: 800;">
+                        <i class="fa-brands fa-google-drive"></i> Tự Động Khởi Tạo Trên Google Drive Của Cậu
+                    </h4>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-main); line-height: 1.5;">
+                        Hệ thống sẽ dùng tài khoản Google của cậu để tạo một bảng tính mới mang tên biểu mẫu này và đổ toàn bộ dữ liệu vào.
+                    </p>
+                </div>
+
+                <div id="oauth-sheet-connected-box" style="display: none; margin-bottom: 16px; padding: 14px 16px; border-radius: 12px; background: rgba(16, 185, 129, 0.08); border: 1.5px solid #10b981;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13.5px; color: #10b981;">✅ Đã liên kết Google Sheet!</div>
+                            <a id="oauth-connected-link" href="#" target="_blank" style="font-size: 12px; color: var(--sheet-accent); word-break: break-all;">Mở file trên Google Drive</a>
+                        </div>
+                        <button class="btn-sheet" style="background: #10b981; color: white; padding: 8px 14px; font-size: 12.5px;" onclick="syncExistingGoogleSheet()">
+                            <i class="fa-solid fa-arrows-rotate"></i> Cập Nhật Lại
+                        </button>
+                    </div>
+                </div>
+
+                <div style="text-align: center; padding: 14px 0;">
+                    <button id="btn-oauth-connect" class="btn-sheet" style="background: #ffffff; color: #1f2937; border: 1.5px solid #cbd5e1; padding: 12px 24px; font-size: 14px; font-weight: 800; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: pointer;" onclick="handleGoogleOAuthConnect()">
+                        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+                        <span id="oauth-btn-text">Đăng Nhập Google Để Tạo Sheet</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 3: QUICK COPY -->
+            <div id="tab-content-quickcopy" class="gsheet-tab-content" style="display: none;">
+                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
+                    <h4 style="margin: 0 0 6px; color: #d97706; font-size: 14px; font-weight: 800;">
+                        <i class="fa-solid fa-clipboard-list"></i> Sao Chép Định Dạng Bảng (TSV)
+                    </h4>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-main); line-height: 1.5;">
+                        Bấm nút bên dưới để copy toàn bộ dữ liệu. Sau đó chỉ cần mở bất kỳ file Google Sheet hoặc Excel nào và nhấn <strong>Ctrl + V</strong> là xong ngay lập tức!
+                    </p>
+                </div>
+
+                <div style="text-align: center; padding: 14px 0;">
+                    <button class="btn-sheet" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 12px 24px; font-size: 14px;" onclick="copyTableAsTSV()">
+                        <i class="fa-solid fa-copy"></i> Sao Chép Bảng (Ctrl + V)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -1194,7 +1444,16 @@
             }
         };
 
-        // EXPORT OPTIONS: EXCEL (.xlsx) - PRESERVES ALL EDITS & PERFECT VIETNAMESE
+        // PRINT TO PDF HANDLER
+        window.printSheetPDF = function () {
+            const footerDate = document.getElementById('print-footer-date');
+            if (footerDate) footerDate.innerText = new Date().toLocaleString('vi-VN');
+            const printDate = document.getElementById('print-date');
+            if (printDate) printDate.innerText = `Ngày xuất báo cáo: ${new Date().toLocaleString('vi-VN')}`;
+            window.print();
+        };
+
+        // EXPORT OPTIONS: EXCEL (.xlsx) - PRESERVES ALL EDITS, BRAND HEADER & PERFECT VIETNAMESE
         window.exportToExcel = function () {
             if (filteredResponses.length === 0) {
                 return window.showToast("Trống", "Không có dữ liệu nào để xuất!", "warning");
@@ -1207,42 +1466,72 @@
             const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
             const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
 
-            // Build array of objects
-            const exportData = filteredResponses.map((r, idx) => {
-                const row = {};
-                row["STT"] = idx + 1;
-                row["Thời gian nộp"] = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
-                row["Trạng thái"] = r.status || 'Chờ duyệt';
+            const formTitle = formMetadata?.title || 'Biểu Mẫu MHEnt';
+            const exporterName = (currentUser && currentUser.displayName) ? currentUser.displayName : 'Quản trị viên';
+            const exportDateStr = new Date().toLocaleString('vi-VN');
 
-                if (showName) row["Họ và tên"] = r.userName || '';
-                if (showEmail) row["Email"] = r.userEmail || '';
-                if (showPhone) row["Số điện thoại"] = r.userPhone || '';
-                if (showOrg) row["Đơn vị / Lớp"] = r.userOrg || '';
+            // Build Header Row
+            const headers = ["STT", "Thời gian nộp", "Trạng thái"];
+            if (showName) headers.push("Họ và tên");
+            if (showEmail) headers.push("Email");
+            if (showPhone) headers.push("Số điện thoại");
+            if (showOrg) headers.push("Đơn vị / Lớp");
+            fields.forEach(q => headers.push(q.title));
+            headers.push("Ghi chú");
+
+            // Build Data Rows
+            const dataRows = filteredResponses.map((r, idx) => {
+                const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
+                const row = [idx + 1, dateStr, r.status || 'Chờ duyệt'];
+
+                if (showName) row.push(r.userName || '');
+                if (showEmail) row.push(r.userEmail || '');
+                if (showPhone) row.push(r.userPhone || '');
+                if (showOrg) row.push(r.userOrg || '');
 
                 fields.forEach((q) => {
                     let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
                     if (Array.isArray(val)) val = val.join(', ');
-                    row[q.title] = val;
+                    row.push(val);
                 });
 
-                row["Ghi chú"] = r.note || '';
+                row.push(r.note || '');
                 return row;
             });
 
+            // Construct array-of-arrays (AOA) with Brand Metadata Block
+            const aoa = [
+                ["🏢 MIYAZAKI HARUTO ENTERTAINMENT CO., LTD. - HỆ SINH THÁI MHENT UNIVERSE"],
+                [`📋 BÁO CÁO DỮ LIỆU: ${formTitle}`],
+                [`Mã Biểu Mẫu: ${formId}`, `Thời Gian Xuất: ${exportDateStr}`, `Người Xuất: ${exporterName}`, `Tổng Bản Ghi: ${filteredResponses.length}`],
+                ["© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved."],
+                [], // Empty row separator
+                headers, // Column Headers
+                ...dataRows
+            ];
+
             // SheetJS export
-            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const worksheet = XLSX.utils.aoa_to_sheet(aoa);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Danh Sách");
 
+            // Merge top title rows across columns
+            const totalCols = Math.max(headers.length - 1, 4);
+            worksheet['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols } },
+                { s: { r: 3, c: 0 }, e: { r: 3, c: totalCols } }
+            ];
+
             // Auto calculate column widths
-            const colWidths = [];
-            if (exportData.length > 0) {
-                Object.keys(exportData[0]).forEach((k, idx) => {
-                    const maxLen = Math.max(k.length, ...exportData.map(row => String(row[k] || '').length));
-                    colWidths.push({ wch: Math.min(Math.max(maxLen + 3, 12), 45) });
-                });
-                worksheet['!cols'] = colWidths;
-            }
+            const colWidths = headers.map((h, colIdx) => {
+                const maxValLen = Math.max(
+                    String(h).length,
+                    ...dataRows.map(r => String(r[colIdx] || '').length)
+                );
+                return { wch: Math.min(Math.max(maxValLen + 3, 14), 45) };
+            });
+            worksheet['!cols'] = colWidths;
 
             const safeTitle = (formMetadata?.title || 'MHEnt_Sheet').replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]/g, '_');
             const fileName = `${safeTitle}_${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -1250,7 +1539,7 @@
             window.showToast("Xuất Excel Thành Công", `Đã tải về tệp ${fileName}`, "success");
         };
 
-        // EXPORT TO CSV (WITH UTF-8 BOM TO FIX VIETNAMESE IN EXCEL)
+        // EXPORT TO CSV (WITH UTF-8 BOM AND MHENT BRAND HEADER)
         window.exportToCSV = function () {
             if (filteredResponses.length === 0) {
                 return window.showToast("Trống", "Không có dữ liệu nào để xuất!", "warning");
@@ -1263,6 +1552,10 @@
             const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
             const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
 
+            const formTitle = formMetadata?.title || 'Biểu Mẫu MHEnt';
+            const exporterName = (currentUser && currentUser.displayName) ? currentUser.displayName : 'Quản trị viên';
+            const exportDateStr = new Date().toLocaleString('vi-VN');
+
             const headers = ["STT", "Thời gian nộp", "Trạng thái"];
             if (showName) headers.push("Họ và tên");
             if (showEmail) headers.push("Email");
@@ -1271,8 +1564,7 @@
             fields.forEach(q => headers.push(q.title));
             headers.push("Ghi chú");
 
-            const rows = [headers];
-
+            const rows = [];
             filteredResponses.forEach((r, idx) => {
                 const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
                 const row = [idx + 1, dateStr, r.status || 'Chờ duyệt'];
@@ -1292,10 +1584,17 @@
                 rows.push(row);
             });
 
-            // Convert to CSV string with proper escaping and UTF-8 BOM
+            // Convert to CSV string with brand header & UTF-8 BOM
             let csvContent = "\uFEFF"; // BOM
-            rows.forEach(rowArr => {
-                const escapedRow = rowArr.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',');
+            csvContent += `"👑 MIYAZAKI HARUTO ENTERTAINMENT CO., LTD. - MHENT. SHEET"\r\n`;
+            csvContent += `"📋 DANH SÁCH THU THẬP: ${formTitle.replace(/"/g, '""')}"\r\n`;
+            csvContent += `"🆔 Mã Biểu Mẫu: ${formId} | ⏰ Ngày Xuất: ${exportDateStr} | 👤 Người Xuất: ${exporterName} | 📊 Tổng Số: ${filteredResponses.length}"\r\n`;
+            csvContent += `"© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved."\r\n`;
+            csvContent += `--------------------------------------------------------------------------------\r\n\r\n`;
+
+            const allRows = [headers, ...rows];
+            allRows.forEach(rowArr => {
+                const escapedRow = rowArr.map(cell => `"${String(cell !== undefined && cell !== null ? cell : '').replace(/"/g, '""')}"`).join(',');
                 csvContent += escapedRow + "\r\n";
             });
 
@@ -1307,7 +1606,7 @@
             a.download = `${safeTitle}_${new Date().toISOString().slice(0, 10)}.csv`;
             a.click();
             URL.revokeObjectURL(url);
-            window.showToast("Xuất CSV Thành Công", "Đã tải về tệp CSV mã hóa UTF-8!", "success");
+            window.showToast("Xuất CSV Thành Công", "Đã tải về tệp CSV mã hóa UTF-8 với thông tin bản quyền MHEnt!", "success");
         };
 
         // UTILITIES
@@ -1318,6 +1617,258 @@
             }).catch(() => {
                 prompt("Sao chép liên kết này gửi cho mọi người:", publicUrl);
             });
+        };
+
+        // ==========================================
+        // GOOGLE SHEET MODAL & SYNC HANDLERS
+        // ==========================================
+        window.openGoogleSheetModal = function () {
+            if (!formId) return;
+
+            // 1. Cấu hình Tab 1 Formula
+            const formulaInput = document.getElementById('importdata-formula-input');
+            if (formulaInput) {
+                const endpoint = `${window.location.origin}/api/forms/csv?id=${formId}`;
+                formulaInput.value = `=IMPORTDATA("${endpoint}")`;
+            }
+
+            // 2. Cấu hình Tab 2 Connected Status
+            const connectedBox = document.getElementById('oauth-sheet-connected-box');
+            const connectedLink = document.getElementById('oauth-connected-link');
+            const oauthBtnText = document.getElementById('oauth-btn-text');
+            if (formMetadata?.googleSheetUrl) {
+                if (connectedBox) connectedBox.style.display = 'block';
+                if (connectedLink) {
+                    connectedLink.href = formMetadata.googleSheetUrl;
+                    connectedLink.innerText = formMetadata.googleSheetUrl;
+                }
+                if (oauthBtnText) oauthBtnText.innerText = "Tạo Lại Bảng Tính Khác";
+            } else {
+                if (connectedBox) connectedBox.style.display = 'none';
+                if (oauthBtnText) oauthBtnText.innerText = "Đăng Nhập Google Để Tạo Sheet";
+            }
+
+            // Mặc định mở Tab 1
+            switchGSheetTab('importdata');
+
+            const modal = document.getElementById('modal-gsheet');
+            if (modal) {
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('show'), 10);
+            }
+        };
+
+        window.closeGoogleSheetModal = function () {
+            const modal = document.getElementById('modal-gsheet');
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(() => { modal.style.display = 'none'; }, 250);
+            }
+        };
+
+        window.switchGSheetTab = function (tabId) {
+            ['importdata', 'oauth', 'quickcopy'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`tab-content-${t}`);
+                if (btn) btn.classList.toggle('active', t === tabId);
+                if (content) content.style.display = (t === tabId) ? 'block' : 'none';
+            });
+        };
+
+        window.copyImportDataFormula = function () {
+            const formulaInput = document.getElementById('importdata-formula-input');
+            if (!formulaInput) return;
+            navigator.clipboard.writeText(formulaInput.value).then(() => {
+                window.showToast("Đã sao chép công thức!", "Mở Google Sheet và dán vào ô A1 nhé!", "success");
+            }).catch(() => {
+                prompt("Sao chép công thức này dán vào ô A1:", formulaInput.value);
+            });
+        };
+
+        window.copyTableAsTSV = function () {
+            if (filteredResponses.length === 0) {
+                return window.showToast("Trống", "Không có dữ liệu nào để sao chép!", "warning");
+            }
+
+            const presets = formMetadata?.presets || {};
+            const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
+            const showName = (presets.name !== false) || responsesData.some(r => !!r.userName);
+            const showEmail = (presets.email !== false) || responsesData.some(r => !!r.userEmail);
+            const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
+            const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
+
+            const headers = ["STT", "Thời gian nộp", "Trạng thái"];
+            if (showName) headers.push("Họ và tên");
+            if (showEmail) headers.push("Email");
+            if (showPhone) headers.push("Số điện thoại");
+            if (showOrg) headers.push("Đơn vị / Lớp");
+            fields.forEach(q => headers.push(q.title));
+            headers.push("Ghi chú");
+
+            let tsv = headers.join('\t') + '\n';
+            filteredResponses.forEach((r, idx) => {
+                const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
+                const row = [idx + 1, dateStr, r.status || 'Chờ duyệt'];
+
+                if (showName) row.push(r.userName || '');
+                if (showEmail) row.push(r.userEmail || '');
+                if (showPhone) row.push(r.userPhone || '');
+                if (showOrg) row.push(r.userOrg || '');
+
+                fields.forEach(q => {
+                    let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
+                    if (Array.isArray(val)) val = val.join('; ');
+                    row.push(String(val).replace(/[\t\r\n]/g, ' '));
+                });
+
+                row.push(String(r.note || '').replace(/[\t\r\n]/g, ' '));
+                tsv += row.join('\t') + '\n';
+            });
+
+            navigator.clipboard.writeText(tsv).then(() => {
+                window.showToast("Đã sao chép bảng!", "Mở Google Sheet hoặc Excel và nhấn Ctrl + V để dán ngay!", "success");
+            }).catch(() => {
+                window.showToast("Lỗi", "Không thể truy cập clipboard của trình duyệt.", "error");
+            });
+        };
+
+        // 1-CLICK GOOGLE SHEETS OAUTH SYNC
+        window.handleGoogleOAuthConnect = function () {
+            if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+                return window.showToast("Đang tải...", "Thư viện Google Identity đang khởi tạo, vui lòng bấm lại sau 2 giây!", "info");
+            }
+
+            const clientId = window.googleClientId || window.MHENT_CONFIG?.GOOGLE_CLIENT_ID;
+
+            const tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
+                callback: async (resp) => {
+                    if (resp.error) {
+                        return window.showToast("Lỗi xác thực Google", resp.error_description || resp.error, "error");
+                    }
+                    if (resp.access_token) {
+                        await createAndPopulateGoogleSheet(resp.access_token);
+                    }
+                }
+            });
+
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        };
+
+        async function createAndPopulateGoogleSheet(accessToken) {
+            window.showToast("Đang xử lý", "Đang tự động khởi tạo Google Sheet trên Drive của bạn...", "info");
+            try {
+                const title = `[MHEnt Sheet] ${formMetadata?.title || 'Biểu Mẫu'}`;
+
+                // 1. Tạo File Google Sheet mới
+                const createRes = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        properties: { title: title }
+                    })
+                });
+
+                if (!createRes.ok) {
+                    const errJson = await createRes.json();
+                    throw new Error(errJson.error?.message || "Không thể tạo file Google Sheet.");
+                }
+
+                const sheetObj = await createRes.json();
+                const spreadsheetId = sheetObj.spreadsheetId;
+                const spreadsheetUrl = sheetObj.spreadsheetUrl;
+
+                // 2. Chuẩn bị dữ liệu bảng tính
+                const presets = formMetadata?.presets || {};
+                const fields = (formMetadata?.fields || []).filter(q => q.type !== 'section');
+                const showName = (presets.name !== false) || responsesData.some(r => !!r.userName);
+                const showEmail = (presets.email !== false) || responsesData.some(r => !!r.userEmail);
+                const showPhone = !!presets.phone || responsesData.some(r => !!r.userPhone);
+                const showOrg = !!presets.org || responsesData.some(r => !!r.userOrg);
+
+                const headers = ["STT", "Thời gian nộp", "Trạng thái"];
+                if (showName) headers.push("Họ và tên");
+                if (showEmail) headers.push("Email");
+                if (showPhone) headers.push("Số điện thoại");
+                if (showOrg) headers.push("Đơn vị / Lớp");
+                fields.forEach(q => headers.push(q.title));
+                headers.push("Ghi chú");
+
+                const dataRows = filteredResponses.map((r, idx) => {
+                    const dateStr = r.submittedAt?.toDate ? r.submittedAt.toDate().toLocaleString('vi-VN') : (r.clientTimestamp ? new Date(r.clientTimestamp).toLocaleString('vi-VN') : '');
+                    const row = [idx + 1, dateStr, r.status || 'Chờ duyệt'];
+
+                    if (showName) row.push(r.userName || '');
+                    if (showEmail) row.push(r.userEmail || '');
+                    if (showPhone) row.push(r.userPhone || '');
+                    if (showOrg) row.push(r.userOrg || '');
+
+                    fields.forEach(q => {
+                        let val = (r.answers && r.answers[q.id] !== undefined) ? r.answers[q.id] : '';
+                        if (Array.isArray(val)) val = val.join(', ');
+                        row.push(val);
+                    });
+
+                    row.push(r.note || '');
+                    return row;
+                });
+
+                const aoa = [
+                    ["MIYAZAKI HARUTO ENTERTAINMENT CO., LTD. - HỆ SINH THÁI MHENT UNIVERSE"],
+                    [`DANH SÁCH THU THẬP: ${formMetadata?.title || 'Biểu Mẫu'}`],
+                    [`Mã Biểu Mẫu: ${formId}`, `Thời Gian Xuất: ${new Date().toLocaleString('vi-VN')}`, `Người Xuất: ${(currentUser && currentUser.displayName) || 'MHEnt Admin'}`, `Tổng Bản Ghi: ${filteredResponses.length}`],
+                    ["© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved."],
+                    [],
+                    headers,
+                    ...dataRows
+                ];
+
+                // 3. Đổ dữ liệu vào sheet vừa tạo
+                await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A1:append?valueInputOption=USER_ENTERED`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ values: aoa })
+                });
+
+                // 4. Lưu liên kết vào Firestore
+                await updateDoc(doc(db, "mhent_forms", formId), {
+                    googleSheetId: spreadsheetId,
+                    googleSheetUrl: spreadsheetUrl,
+                    lastSyncedGoogleSheet: serverTimestamp()
+                });
+
+                if (formMetadata) {
+                    formMetadata.googleSheetId = spreadsheetId;
+                    formMetadata.googleSheetUrl = spreadsheetUrl;
+                }
+
+                // Cập nhật UI modal
+                const connectedBox = document.getElementById('oauth-sheet-connected-box');
+                const connectedLink = document.getElementById('oauth-connected-link');
+                if (connectedBox) connectedBox.style.display = 'block';
+                if (connectedLink) {
+                    connectedLink.href = spreadsheetUrl;
+                    connectedLink.innerText = spreadsheetUrl;
+                }
+
+                window.showToast("Thành Công Rực Rỡ!", "Đã tạo Google Sheet mới và đồng bộ dữ liệu vào Google Drive của cậu!", "success");
+                window.open(spreadsheetUrl, '_blank');
+
+            } catch (err) {
+                console.error("Lỗi tạo Google Sheet:", err);
+                window.showToast("Lỗi đồng bộ", err.message, "error");
+            }
+        }
+
+        window.syncExistingGoogleSheet = function () {
+            handleGoogleOAuthConnect();
         };
 
         window.openStudioEditor = function () {
