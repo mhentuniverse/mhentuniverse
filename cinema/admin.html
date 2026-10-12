@@ -344,26 +344,35 @@
                 return;
             }
             try {
-                const userRef = doc(db, "users", activeUser.uid);
-                const docSnap = await getDoc(userRef);
-                const userData = docSnap.exists() ? docSnap.data() : {};
-                const userRole = userData.role || '';
+                let userData = {};
+                try {
+                    const userRef = doc(db, "users", activeUser.uid);
+                    const docSnap = await getDoc(userRef);
+                    if (docSnap.exists()) userData = docSnap.data();
+                } catch (e) {
+                    console.warn("Không thể tải Firestore profile trong cinema/admin, dùng activeUser:", e);
+                }
 
-                if (!userRole.includes('admin')) {
+                let role = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
+                const email = (activeUser.email || '').toLowerCase();
+                const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
+
+                if (!role.includes('admin') && !role.includes('cinema') && !isRoot) {
                     showPopup("Khu vực cấm! Cậu không có quyền truy cập vào đây nha ❌", true);
                     setTimeout(() => { window.location.href = '/cinema/'; }, 2000);
+                    return;
                 } else {
                     document.getElementById('security-shield').style.opacity = '0';
                     setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
                 }
 
-                localStorage.setItem('mhent_user_role', userData.role || 'user');
+                localStorage.setItem('mhent_user_role', role);
                 localStorage.setItem('mhent_user_profile', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName || user.email.split('@')[0],
-                    photoURL: user.photoURL || "/assets/avt-web.jpg",
-                    role: userData.role || 'user',
+                    uid: activeUser.uid,
+                    email: activeUser.email,
+                    displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Admin'),
+                    photoURL: activeUser.photoURL || "/assets/avt-web.jpg",
+                    role: role,
                     teamCinema: userData.teamCinema || userData.teamName || '',
                     teamArena: userData.teamArena || userData.teamName || '',
                     teamManga: userData.teamManga || userData.teamName || '',

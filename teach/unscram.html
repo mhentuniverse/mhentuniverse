@@ -58,6 +58,46 @@
         .block-lightblue { background: linear-gradient(135deg, #38bdf8, #0ea5e9); border-color: #7dd3fc; }
 
         .sentence-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30, 41, 59, 0.8); padding: 5px 20px; border-radius: 20px; font-weight: 800; color: #94a3b8; border: 1px solid #334155; }
+
+        /* 🔤 KIỂU Ô CHỮ CÁI CHO CHẾ ĐỘ WORD (TỪ ĐƠN) */
+        .letter-block {
+            min-width: 64px;
+            height: 64px;
+            padding: 0 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            border-radius: 18px;
+            box-sizing: border-box;
+            line-height: 1;
+        }
+        .letter-medium {
+            min-width: 52px;
+            height: 52px;
+            padding: 0 10px;
+            font-size: 26px;
+            border-radius: 14px;
+        }
+        .letter-compact {
+            min-width: 44px;
+            height: 44px;
+            padding: 0 6px;
+            font-size: 22px;
+            border-radius: 12px;
+        }
+        #mode-badge {
+            font-size: 13px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            margin-left: 14px;
+            letter-spacing: 0.5px;
+            vertical-align: middle;
+        }
     </style>
     <script src="/js/config.js"></script>
 </head>
@@ -69,7 +109,10 @@
         <div class="header">
             <div style="display: flex; align-items: center; gap: 20px;">
                 <a href="/teach/admin" style="color: #94a3b8; font-size: 24px; transition: 0.2s;"><i class="fa-solid fa-circle-arrow-left"></i></a>
-                <h1><i class="fa-solid fa-hurricane"></i> Word Tornado</h1>
+                <div style="display: flex; align-items: center;">
+                    <h1><i class="fa-solid fa-hurricane"></i> Word Tornado</h1>
+                    <span id="mode-badge" style="display: none;"></span>
+                </div>
             </div>
             
             <div class="controls">
@@ -93,6 +136,7 @@
     <script src="/js/mhent-ui.js"></script>
     <script>
         let sentenceList = [];
+        let wordList = [];
         let pairList = [];
         let currentIndex = 0;
         let currentMode = 'sentence';
@@ -113,6 +157,28 @@
             }
         });
 
+        function updateModeBadge(mode) {
+            const badge = document.getElementById('mode-badge');
+            if (!badge) return;
+            badge.style.display = 'inline-block';
+            if (mode === 'word') {
+                badge.innerText = 'Word Mode (Xếp Chữ Cái)';
+                badge.style.color = '#38bdf8';
+                badge.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+                badge.style.background = 'rgba(56, 189, 248, 0.15)';
+            } else if (mode === 'columns') {
+                badge.innerText = 'Column Mode (Cột Màu)';
+                badge.style.color = '#38bdf8';
+                badge.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+                badge.style.background = 'rgba(56, 189, 248, 0.15)';
+            } else {
+                badge.innerText = 'Sentence Mode (Ghép Câu)';
+                badge.style.color = '#38bdf8';
+                badge.style.borderColor = 'rgba(14, 165, 233, 0.4)';
+                badge.style.background = 'rgba(14, 165, 233, 0.15)';
+            }
+        }
+
         function processGamePayload(payload) {
             if (!payload) return;
             document.getElementById('waiting-msg').style.display = 'none';
@@ -120,6 +186,8 @@
 
             if (payload.mode === 'columns') {
                 initColumnsGame(payload);
+            } else if (payload.mode === 'word') {
+                initWordGame(payload.words || payload.sentences || []);
             } else {
                 initSentenceGame(payload.sentences || []);
             }
@@ -127,13 +195,23 @@
 
         function initSentenceGame(sentences) {
             currentMode = 'sentence';
+            updateModeBadge('sentence');
             sentenceList = sentences || [];
             currentIndex = 0;
             loadSentence(currentIndex);
         }
 
+        function initWordGame(words) {
+            currentMode = 'word';
+            updateModeBadge('word');
+            wordList = words || [];
+            currentIndex = 0;
+            loadWord(currentIndex);
+        }
+
         function initColumnsGame(payload) {
             currentMode = 'columns';
+            updateModeBadge('columns');
             pairList = (payload.pairs || []).filter(pair => pair.left && pair.right);
             columnColors = payload.columnColors || columnColors;
             loadColumns();
@@ -161,6 +239,16 @@
                 } catch(e) {
                     if(waitingMsg) waitingMsg.innerHTML = `<i class="fa-solid fa-wifi" style="color:#ef4444;"></i><br><br>Lỗi mạng rùi cậu ơi!`;
                 }
+            } else {
+                try {
+                    const saved = localStorage.getItem('mhent_unscram_cmd');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (parsed && parsed.payload) {
+                            processGamePayload(parsed.payload);
+                        }
+                    }
+                } catch(e) {}
             }
         });
 
@@ -198,6 +286,56 @@
 
                 blocks.push({ el, x, y, vx, vy, width: rect.width, height: rect.height, order: i });
                 el.style.transform = `translate(${arenaRect.width/2 - rect.width/2}px, ${arenaRect.height/2 - rect.height/2}px)`;
+            });
+        }
+
+        function loadWord(index) {
+            clearArena();
+            if(!wordList || wordList.length === 0) return;
+            const arena = document.getElementById('arena');
+            currentIndex = index;
+            document.getElementById('counter').innerText = `Từ ${index + 1} / ${wordList.length}`;
+
+            const rawText = (wordList[index] || "").trim();
+            if (!rawText) return;
+
+            const subWords = rawText.split(/\s+/).filter(w => w !== "");
+            const totalChars = subWords.reduce((sum, w) => sum + Array.from(w).length, 0);
+            let sizeClass = '';
+            if (totalChars > 14) {
+                sizeClass = 'letter-compact';
+            } else if (totalChars > 9) {
+                sizeClass = 'letter-medium';
+            }
+
+            let charOrder = 0;
+            subWords.forEach((wordStr, wordIdx) => {
+                const chars = Array.from(wordStr);
+                chars.forEach((ch, chIdx) => {
+                    const el = document.createElement('div');
+                    const randomColorClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+                    el.className = `word-block letter-block ${randomColorClass} ${sizeClass}`.trim();
+                    el.innerText = ch;
+                    arena.appendChild(el);
+
+                    const rect = el.getBoundingClientRect();
+                    const arenaRect = arena.getBoundingClientRect();
+                    let x = Math.random() * (arenaRect.width - rect.width - 40) + 20;
+                    let y = Math.random() * (arenaRect.height - rect.height - 40) + 20;
+                    let vx = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
+                    let vy = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 2 + 1);
+
+                    const isLastCharOfWord = (chIdx === chars.length - 1) && (wordIdx < subWords.length - 1);
+                    blocks.push({
+                        el, x, y, vx, vy,
+                        width: rect.width,
+                        height: rect.height,
+                        order: charOrder,
+                        spaceAfter: isLastCharOfWord
+                    });
+                    charOrder++;
+                    el.style.transform = `translate(${arenaRect.width/2 - rect.width/2}px, ${arenaRect.height/2 - rect.height/2}px)`;
+                });
             });
         }
 
@@ -267,7 +405,8 @@
             }
 
             const arenaRect = document.getElementById('arena').getBoundingClientRect();
-            const gapX = 20;
+            const gapX = currentMode === 'word' ? 12 : 20;
+            const extraWordGap = currentMode === 'word' ? 24 : 0;
             const gapY = 30;
             const maxWidth = arenaRect.width - 100;
 
@@ -277,17 +416,22 @@
             let currentLineWidth = 0;
 
             blocks.forEach(b => {
+                const itemSpacing = gapX + (b.spaceAfter ? extraWordGap : 0);
                 if (currentLineWidth + b.width > maxWidth && currentLine.length > 0) {
-                    lines.push({ items: currentLine, width: currentLineWidth - gapX });
+                    const prevLast = currentLine[currentLine.length - 1];
+                    const trailing = prevLast.spaceAfter ? (gapX + extraWordGap) : gapX;
+                    lines.push({ items: currentLine, width: currentLineWidth - trailing });
                     currentLine = [b];
-                    currentLineWidth = b.width + gapX;
+                    currentLineWidth = b.width + itemSpacing;
                 } else {
                     currentLine.push(b);
-                    currentLineWidth += b.width + gapX;
+                    currentLineWidth += b.width + itemSpacing;
                 }
             });
             if (currentLine.length > 0) {
-                lines.push({ items: currentLine, width: currentLineWidth - gapX });
+                const lastItem = currentLine[currentLine.length - 1];
+                const trailing = lastItem.spaceAfter ? (gapX + extraWordGap) : gapX;
+                lines.push({ items: currentLine, width: currentLineWidth - trailing });
             }
 
             const blockHeight = blocks[0].height;
@@ -301,7 +445,7 @@
                     b.x = currentX;
                     b.y = startY;
                     b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
-                    currentX += b.width + gapX;
+                    currentX += b.width + gapX + (b.spaceAfter ? extraWordGap : 0);
                 });
                 startY += blockHeight + gapY;
             });
@@ -337,13 +481,29 @@
         }
 
         function nextSentence() {
-            if (currentMode !== 'sentence') return;
-            if(currentIndex < sentenceList.length - 1) { currentIndex++; loadSentence(currentIndex); }
+            if (currentMode === 'columns') return;
+            if (currentMode === 'word') {
+                if(currentIndex < wordList.length - 1) { currentIndex++; loadWord(currentIndex); }
+            } else {
+                if(currentIndex < sentenceList.length - 1) { currentIndex++; loadSentence(currentIndex); }
+            }
         }
         function prevSentence() {
-            if (currentMode !== 'sentence') return;
-            if(currentIndex > 0) { currentIndex--; loadSentence(currentIndex); }
+            if (currentMode === 'columns') return;
+            if (currentMode === 'word') {
+                if(currentIndex > 0) { currentIndex--; loadWord(currentIndex); }
+            } else {
+                if(currentIndex > 0) { currentIndex--; loadSentence(currentIndex); }
+            }
         }
+
+        window.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === 'ArrowRight') { nextSentence(); }
+            else if (e.key === 'ArrowLeft') { prevSentence(); }
+            else if (e.key === ' ') { e.preventDefault(); startShuffle(); }
+            else if (e.key === 'Enter') { e.preventDefault(); revealAnswer(); }
+        });
 
     </script>
     <script type="module" src="/js/maintenance.js"></script>

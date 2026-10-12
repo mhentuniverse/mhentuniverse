@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -312,33 +312,42 @@
         onAuthStateChanged(auth, async (user) => {
             const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
             if (!activeUser) return window.redirectToLogin();
-            getDoc(doc(db, "users", activeUser.uid)).then((uSnap) => {
-                const userData = uSnap.exists() ? uSnap.data() : {};
-                const userRole = userData.role || 'user';
 
-                if (userRole.includes('admin') || userRole.includes('game')) {
-                    fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList();
-                    supabase.channel('admin_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'chess_rooms' }, () => { fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList(); }).subscribe();
-                } else { 
-                    showPopup("Không có quyền!", true); 
-                    setTimeout(() => window.location.href = '/game/chess', 2000); 
-                }
+            let userData = {};
+            try {
+                const uSnap = await getDoc(doc(db, "users", activeUser.uid));
+                if (uSnap.exists()) userData = uSnap.data();
+            } catch (e) {
+                console.warn("Không thể tải Firestore profile trong chess/admin, dùng activeUser:", e);
+            }
 
-                localStorage.setItem('mhent_user_role', userRole);
-                localStorage.setItem('mhent_user_profile', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName || user.email.split('@')[0],
-                    photoURL: user.photoURL || "/assets/avt-web.jpg",
-                    role: userRole,
-                    teamCinema: userData.teamCinema || userData.teamName || '',
-                    teamArena: userData.teamArena || userData.teamName || '',
-                    teamManga: userData.teamManga || userData.teamName || '',
-                    teamMusic: userData.teamMusic || userData.teamName || '',
-                    teamNovel: userData.teamNovel || userData.teamName || '',
-                    teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
-                }));
-            }).catch(e => console.log("Lỗi nạp cache profile:", e));
+            let userRole = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
+            const email = (activeUser.email || '').toLowerCase();
+            const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
+
+            if (userRole.includes('admin') || userRole.includes('game') || userRole.includes('chess') || isRoot) {
+                fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList();
+                supabase.channel('admin_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'chess_rooms' }, () => { fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList(); }).subscribe();
+            } else { 
+                showPopup("Không có quyền!", true); 
+                setTimeout(() => window.location.href = '/game/chess', 2000); 
+                return;
+            }
+
+            localStorage.setItem('mhent_user_role', userRole);
+            localStorage.setItem('mhent_user_profile', JSON.stringify({
+                uid: activeUser.uid,
+                email: activeUser.email,
+                displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Admin'),
+                photoURL: activeUser.photoURL || "/assets/avt-web.jpg",
+                role: userRole,
+                teamCinema: userData.teamCinema || userData.teamName || '',
+                teamArena: userData.teamArena || userData.teamName || '',
+                teamManga: userData.teamManga || userData.teamName || '',
+                teamMusic: userData.teamMusic || userData.teamName || '',
+                teamNovel: userData.teamNovel || userData.teamName || '',
+                teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+            }));
         });
 
         async function fetchRooms() { const { data } = await supabase.from('chess_rooms').select('*').order('created_at', { ascending: false }); roomsData = data || []; renderRooms(); }

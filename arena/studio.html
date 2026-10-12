@@ -331,27 +331,36 @@
             const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
             if (activeUser) {
                 try {
-                    const userSnap = await getDoc(doc(db, "users", activeUser.uid));
-                    const userData = userSnap.exists() ? userSnap.data() : {};
-                    let role = userData.role || "";
-                    if (role.includes('admin') || role.includes('arena') || role.includes('creator')) {
-                        window.currentUserEmail = user.email;
+                    let userData = {};
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", activeUser.uid));
+                        if (userSnap.exists()) userData = userSnap.data();
+                    } catch (e) {
+                        console.warn("Không thể tải Firestore profile trong arena/studio, dùng activeUser:", e);
+                    }
+
+                    let role = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
+                    const email = (activeUser.email || '').toLowerCase();
+                    const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
+
+                    if (role.includes('admin') || role.includes('arena') || role.includes('creator') || role.includes('teacher') || role.includes('teach') || role.includes('studio') || isRoot) {
+                        window.currentUserEmail = activeUser.email || '';
                         document.getElementById('security-shield').style.opacity = '0';
                         setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
-                        if(document.getElementById('creator-name-title')) {
-                            document.getElementById('creator-name-title').innerText = user.displayName || user.email.split('@')[0];
-                            document.getElementById('creator-email-display').innerText = user.email;
+                        if (document.getElementById('creator-name-title')) {
+                            document.getElementById('creator-name-title').innerText = activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Creator');
+                            document.getElementById('creator-email-display').innerText = activeUser.email || '';
                             document.getElementById('creator-email-display').style.display = 'inline';
                         }
                         loadAllQuizzesIntoSelects();
 
-                        localStorage.setItem('mhent_user_role', userData.role || 'user');
+                        localStorage.setItem('mhent_user_role', role);
                         localStorage.setItem('mhent_user_profile', JSON.stringify({
-                            uid: user.uid,
-                            email: user.email,
-                            displayName: user.displayName || user.email.split('@')[0],
-                            photoURL: user.photoURL || "/assets/avt-web.jpg",
-                            role: userData.role || 'user',
+                            uid: activeUser.uid,
+                            email: activeUser.email,
+                            displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Creator'),
+                            photoURL: activeUser.photoURL || "/assets/avt-web.jpg",
+                            role: role,
                             teamCinema: userData.teamCinema || userData.teamName || '',
                             teamArena: userData.teamArena || userData.teamName || '',
                             teamManga: userData.teamManga || userData.teamName || '',

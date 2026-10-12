@@ -357,8 +357,8 @@ window.syncMHEntNavbarUI = function() {
         const studioBtn = document.getElementById('studio-panel-btn');
         const studioDivider = document.getElementById('studio-divider');
 
-        const canAdmin = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('game') || userRole.includes('edu');
-        const canStudio = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('studio') || userRole.includes('creator');
+        const canAdmin = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('game') || userRole.includes('edu') || userRole.includes('teacher') || userRole.includes('teach');
+        const canStudio = isRootAdmin || userRole.includes('cinema') || userRole.includes('arena') || userRole.includes('studio') || userRole.includes('creator') || userRole.includes('teacher') || userRole.includes('teach');
 
         if (adminBtn) adminBtn.style.display = canAdmin ? 'flex' : 'none';
         if (adminDivider) adminDivider.style.display = canAdmin ? 'block' : 'none';
@@ -707,7 +707,12 @@ window.openSideDrawer = function() {
                 }
 
                 // Vẽ nút Admin riêng của phân khu (Khác /admin tối cao)
-                let canAccessUniAdmin = isRootAdmin || userRole.includes('admin_' + key) || (uni.roleKey && userRole.includes('admin_' + uni.roleKey)) || userRole.includes('game');
+                let canAccessUniAdmin = isRootAdmin || 
+                                        userRole.includes('admin') || 
+                                        userRole.includes('admin_' + key) || 
+                                        userRole.includes(key) || 
+                                        (uni.roleKey && (userRole.includes('admin_' + uni.roleKey) || userRole.includes(uni.roleKey))) || 
+                                        userRole.includes('game');
                 
                 // 👉 TRƯỜNG HỢP 1: Nếu phân khu có nhiều Sub-Admin (Mảng adminMenus như Vũ trụ Game)
                 if (Array.isArray(uni.adminMenus)) {

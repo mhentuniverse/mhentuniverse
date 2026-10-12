@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -573,14 +573,39 @@
 
                     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
                         <span style="font-weight: 800; color: #475569;">Chọn kiểu Unscramble:</span>
-                        <button id="unscram-mode-sentence-btn" class="btn-admin" style="background: #0ea5e9; padding: 10px 18px;" onclick="switchUnscramMode('sentence')">Câu thường</button>
-                        <button id="unscram-mode-columns-btn" class="btn-admin" style="background: #64748b; padding: 10px 18px;" onclick="switchUnscramMode('columns')">Cột màu</button>
+                        <div style="display: inline-flex; background: #e2e8f0; padding: 4px; border-radius: 12px; gap: 4px;">
+                            <button id="unscram-mode-sentence-btn" type="button" class="btn-admin" style="background: #0ea5e9; color: #fff; padding: 8px 18px; font-size: 14px; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s;" onclick="switchUnscramMode('sentence')">
+                                <i class="fa-solid fa-align-left"></i> Câu (Sentence)
+                            </button>
+                            <button id="unscram-mode-word-btn" type="button" class="btn-admin" style="background: transparent; color: #64748b; padding: 8px 18px; font-size: 14px; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s;" onclick="switchUnscramMode('word')">
+                                <i class="fa-solid fa-font"></i> Từ (Word)
+                            </button>
+                        </div>
+                        <button id="unscram-mode-columns-btn" type="button" class="btn-admin" style="background: #64748b; color: #fff; padding: 10px 18px; border: none; cursor: pointer;" onclick="switchUnscramMode('columns')">
+                            <i class="fa-solid fa-table-columns"></i> Cột màu
+                        </button>
                     </div>
 
                     <div id="unscram-sentence-mode">
                         <div class="data-box">
-                            <label style="color: #475569; font-weight: 800; margin-bottom: 10px; display: block;">Nhập danh sách câu (Mỗi câu nằm trên 1 dòng):</label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                <label id="unscram-text-label" style="color: #475569; font-weight: 800; margin: 0; display: block; font-size: 15px;">
+                                    Nhập danh sách câu (Mỗi câu nằm trên 1 dòng - xáo trộn các từ):
+                                </label>
+                                <div style="display: inline-flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; color: #475569;">
+                                    <span style="color: #64748b;"><i class="fa-solid fa-sliders"></i> Toggle kiểu:</span>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0; color: #0284c7;">
+                                        <input type="radio" name="unscram_sub_type" id="unscram-radio-sentence" value="sentence" checked onchange="switchUnscramMode('sentence')" style="accent-color: #0ea5e9; cursor: pointer;"> Câu (Sentence)
+                                    </label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0; color: #0ea5e9;">
+                                        <input type="radio" name="unscram_sub_type" id="unscram-radio-word" value="word" onchange="switchUnscramMode('word')" style="accent-color: #0ea5e9; cursor: pointer;"> Từ (Word)
+                                    </label>
+                                </div>
+                            </div>
                             <textarea id="unscram-sentences" class="admin-textarea" style="height: 250px; font-size: 16px; line-height: 1.5;" placeholder="Ví dụ:&#10;I wanna buy a .com domain so much!&#10;The quick brown fox jumps over the lazy dog."></textarea>
+                            <div id="unscram-help-note" style="margin-top: 8px; font-size: 13px; color: #64748b; font-weight: 700;">
+                                <i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i> Chế độ Câu (Sentence): Hệ thống sẽ xáo trộn các <b>TỪ</b> trong câu. Khi bấm xếp lại sẽ ghép thành câu hoàn chỉnh.
+                            </div>
                         </div>
                     </div>
 
@@ -689,38 +714,59 @@
         };
 
         // ⚡ THAY THẾ AN TOÀN BÊN TRONG .THEN() VÀ MỞ CỔNG CREATOR/TEACHER
+        window.getTeachActiveUid = function() {
+            const u = (window.auth && window.auth.currentUser) || (window.getMHEntUser && window.getMHEntUser()) || window.activeMHEntUser;
+            if (u && u.uid) return u.uid;
+            try {
+                const cached = JSON.parse(localStorage.getItem('mhent_user_profile') || '{}');
+                if (cached.uid) return cached.uid;
+            } catch(e) {}
+            return '';
+        };
+
         onAuthStateChanged(auth, async (user) => {
             const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
-            if (!activeUser) window.redirectToLogin();
-            else {
-                getDoc(doc(db, "users", activeUser.uid)).then((docSnap) => {
-                    const userData = docSnap.exists() ? docSnap.data() : {};
-                    const role = userData.role || 'user';
-                    window.currentUserRole = role;
+            window.activeMHEntUser = activeUser;
+            if (!activeUser) {
+                window.redirectToLogin();
+                return;
+            }
 
-                    localStorage.setItem('mhent_user_role', role);
-                    localStorage.setItem('mhent_user_profile', JSON.stringify({
-                        uid: user.uid, email: user.email,
-                        displayName: user.displayName || user.email.split('@')[0],
-                        photoURL: user.photoURL || "/assets/avt-web.jpg",
-                        role: role,
-                        teamCinema: userData.teamCinema || userData.teamName || '',
-                        teamArena: userData.teamArena || userData.teamName || '',
-                        teamManga: userData.teamManga || userData.teamName || '',
-                        teamMusic: userData.teamMusic || userData.teamName || '',
-                        teamNovel: userData.teamNovel || userData.teamName || '',
-                        teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
-                    }));
+            let userData = {};
+            let role = (activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
+            try {
+                const docSnap = await getDoc(doc(db, "users", activeUser.uid));
+                if (docSnap.exists()) {
+                    userData = docSnap.data();
+                    if (userData.role) role = userData.role.toLowerCase();
+                }
+            } catch (e) {
+                console.warn("Không thể đọc Firestore users, dùng quyền từ session:", e);
+            }
 
-                    if (!role.includes('admin') && !role.includes('teacher') && !role.includes('creator') && !role.includes('edu') && !role.includes('teach')) { 
-                        showPopup("Khu vực cấm!", true); setTimeout(()=>window.location.href = '/', 2000); 
-                    } else { 
-                        document.getElementById('security-shield').style.opacity = '0'; 
-                        setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); 
-                        
-                        ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing'].forEach(t => loadCloudGames(t));
-                    }
-                }).catch(e => { window.location.href = '/teach'; });
+            window.currentUserRole = role;
+            localStorage.setItem('mhent_user_role', role);
+            localStorage.setItem('mhent_user_profile', JSON.stringify({
+                uid: activeUser.uid,
+                email: activeUser.email || '',
+                displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Thầy/Cô'),
+                photoURL: activeUser.photoURL || "/assets/avt-web.jpg",
+                role: role,
+                teamCinema: userData.teamCinema || userData.teamName || '',
+                teamArena: userData.teamArena || userData.teamName || '',
+                teamManga: userData.teamManga || userData.teamName || '',
+                teamMusic: userData.teamMusic || userData.teamName || '',
+                teamNovel: userData.teamNovel || userData.teamName || '',
+                teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || activeUser.teamEdu || ''
+            }));
+
+            if (!role.includes('admin') && !role.includes('teacher') && !role.includes('creator') && !role.includes('edu') && !role.includes('teach') && !role.includes('root') && !role.includes('boss') && !role.includes('chủ tịch')) { 
+                showPopup("Khu vực cấm!", true);
+                setTimeout(() => window.location.href = '/', 2000); 
+            } else { 
+                document.getElementById('security-shield').style.opacity = '0'; 
+                setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); 
+                ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing'].forEach(t => loadCloudGames(t));
             }
         });
         
@@ -760,18 +806,40 @@
             const sentencePanel = document.getElementById('unscram-sentence-mode');
             const columnPanel = document.getElementById('unscram-column-mode');
             const sentenceBtn = document.getElementById('unscram-mode-sentence-btn');
+            const wordBtn = document.getElementById('unscram-mode-word-btn');
             const columnBtn = document.getElementById('unscram-mode-columns-btn');
+            const radioSentence = document.getElementById('unscram-radio-sentence');
+            const radioWord = document.getElementById('unscram-radio-word');
+            const label = document.getElementById('unscram-text-label');
+            const textarea = document.getElementById('unscram-sentences');
+            const helpNote = document.getElementById('unscram-help-note');
 
             if (mode === 'columns') {
                 sentencePanel.style.display = 'none';
                 columnPanel.style.display = 'block';
-                sentenceBtn.style.background = '#64748b';
-                columnBtn.style.background = '#0ea5e9';
+                if (sentenceBtn) { sentenceBtn.style.background = 'transparent'; sentenceBtn.style.color = '#64748b'; }
+                if (wordBtn) { wordBtn.style.background = 'transparent'; wordBtn.style.color = '#64748b'; }
+                if (columnBtn) { columnBtn.style.background = '#0ea5e9'; columnBtn.style.color = '#fff'; }
+            } else if (mode === 'word') {
+                sentencePanel.style.display = 'block';
+                columnPanel.style.display = 'none';
+                if (sentenceBtn) { sentenceBtn.style.background = 'transparent'; sentenceBtn.style.color = '#64748b'; }
+                if (wordBtn) { wordBtn.style.background = '#0ea5e9'; wordBtn.style.color = '#fff'; }
+                if (columnBtn) { columnBtn.style.background = '#64748b'; columnBtn.style.color = '#fff'; }
+                if (radioWord) radioWord.checked = true;
+                if (label) label.innerText = 'Nhập danh sách từ (Mỗi từ nằm trên 1 dòng - xáo trộn các chữ cái):';
+                if (textarea) textarea.placeholder = 'Ví dụ:\nELEPHANT\nBEAUTIFUL\nUNIVERSE\nWELCOME';
+                if (helpNote) helpNote.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i> Chế độ Từ (Word): Hệ thống sẽ xáo trộn các <b>CHỮ CÁI</b> của từng từ. Khi bấm xếp lại sẽ ghép thành từ hoàn chỉnh.';
             } else {
                 sentencePanel.style.display = 'block';
                 columnPanel.style.display = 'none';
-                sentenceBtn.style.background = '#0ea5e9';
-                columnBtn.style.background = '#64748b';
+                if (sentenceBtn) { sentenceBtn.style.background = '#0ea5e9'; sentenceBtn.style.color = '#fff'; }
+                if (wordBtn) { wordBtn.style.background = 'transparent'; wordBtn.style.color = '#64748b'; }
+                if (columnBtn) { columnBtn.style.background = '#64748b'; columnBtn.style.color = '#fff'; }
+                if (radioSentence) radioSentence.checked = true;
+                if (label) label.innerText = 'Nhập danh sách câu (Mỗi câu nằm trên 1 dòng - xáo trộn các từ):';
+                if (textarea) textarea.placeholder = 'Ví dụ:\nI wanna buy a .com domain so much!\nThe quick brown fox jumps over the lazy dog.';
+                if (helpNote) helpNote.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i> Chế độ Câu (Sentence): Hệ thống sẽ xáo trộn các <b>TỪ</b> trong câu. Khi bấm xếp lại sẽ ghép thành câu hoàn chỉnh.';
             }
         };
 
@@ -934,6 +1002,8 @@
             localStorage.setItem('mhent_unscram_cmd', JSON.stringify({ action: 'SYNC', payload: payload, rand: Math.random() }));
             if (payload.mode === 'columns') {
                 showToast("Tuyệt vời!", `Đã gửi ${payload.pairs.length} cặp cột màu sang Máy chiếu!`, "success");
+            } else if (payload.mode === 'word') {
+                showToast("Tuyệt vời!", `Đã gửi ${(payload.words || payload.sentences).length} từ xáo trộn chữ cái sang Máy chiếu!`, "success");
             } else {
                 showToast("Tuyệt vời!", `Đã gửi ${payload.sentences.length} câu bão táp sang Máy chiếu!`, "success");
             }
@@ -1026,14 +1096,15 @@
         window.cloudState = { vocab: [], baam: [], spin: [], tug: [], bomb: [], blast: [], unscram: [], racing: [] };
 
         window.loadCloudGames = async function(gameType) {
-            if(!window.auth || !window.auth.currentUser) return;
+            const uid = window.getTeachActiveUid ? window.getTeachActiveUid() : '';
+            if(!uid) return;
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
             if(selector) selector.innerHTML = '<option value="">Đang tải dữ liệu từ Két sắt...</option>';
 
             try {
                 const res = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' })
+                    body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: uid, role: window.currentUserRole || 'user' })
                 });
                 const result = await res.json();
                 if(result.success) {
@@ -1157,9 +1228,15 @@
                     return { mode: 'columns', pairs: pairs, columnColors: { left: leftColor, right: rightColor } };
                 }
                 const text = document.getElementById('unscram-sentences').value;
-                const sentences = text.split('\n').map(s => s.trim()).filter(s => s !== "");
-                if (sentences.length === 0) { showToast("Lỗi", "Nhập ít nhất 1 câu chứ cậu!", "error"); return null; }
-                return { mode: 'sentence', sentences: sentences };
+                const items = text.split('\n').map(s => s.trim()).filter(s => s !== "");
+                if (items.length === 0) { 
+                    showToast("Lỗi", mode === 'word' ? "Nhập ít nhất 1 từ chứ cậu!" : "Nhập ít nhất 1 câu chứ cậu!", "error"); 
+                    return null; 
+                }
+                if (mode === 'word') {
+                    return { mode: 'word', words: items, sentences: items };
+                }
+                return { mode: 'sentence', sentences: items };
             }
             if(gameType === 'racing') {
                 let questions = [];
@@ -1253,6 +1330,8 @@
                     document.getElementById('unscram-pair-lines').value = (data.pairs || []).map(pair => `${pair.left} | ${pair.right}`).join('\n');
                     document.getElementById('unscram-color-left').value = (data.columnColors && data.columnColors.left) || '#ef4444';
                     document.getElementById('unscram-color-right').value = (data.columnColors && data.columnColors.right) || '#38bdf8';
+                } else if (mode === 'word') {
+                    document.getElementById('unscram-sentences').value = (data.words || data.sentences || []).join('\n');
                 } else {
                     document.getElementById('unscram-sentences').value = (data.sentences || []).join('\n');
                 }
@@ -1277,7 +1356,8 @@
         };
 
         window.saveToCloud = async function(gameType, isNew = false) {
-            if(!window.auth.currentUser) return showToast('Lỗi', 'Cậu cần đăng nhập!', 'error');
+            const uid = window.getTeachActiveUid ? window.getTeachActiveUid() : '';
+            if(!uid) return showToast('Lỗi', 'Cậu cần đăng nhập!', 'error');
             const nameInput = document.querySelector(`.cloud-data-name-${gameType}`);
             const dataName = nameInput.value.trim();
             if(!dataName) return showToast('Lỗi', 'Vui lòng nhập Tên bộ dữ liệu nhé!', 'error');
@@ -1305,12 +1385,12 @@
             try {
                 const res = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'saveGame', uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user', gameType: gameType, dataName: dataName, gameData: gameData, rowId: rowId })
+                    body: JSON.stringify({ action: 'saveGame', uid: uid, role: window.currentUserRole || 'user', gameType: gameType, dataName: dataName, gameData: gameData, rowId: rowId })
                 });
                 const result = await res.json();
                 if(result.success) {
                     showToast('Thành công', isNew ? 'Tạo bộ dữ liệu trên Đám mây thành công!' : 'Đã cập nhật dữ liệu!', 'success');
-                    const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
+                    const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: uid, role: window.currentUserRole || 'user' }) });
                     const loadResult = await loadRes.json();
                     if(loadResult.success) {
                         window.cloudState[gameType] = loadResult.games || [];
@@ -1324,7 +1404,8 @@
         };
 
         window.deleteFromCloud = function(gameType) {
-            if(!window.auth.currentUser) return;
+            const uid = window.getTeachActiveUid ? window.getTeachActiveUid() : '';
+            if(!uid) return showToast('Lỗi', 'Cậu cần đăng nhập!', 'error');
             const selector = document.querySelector(`.cloud-selector-${gameType}`);
             const rowId = selector.value;
             if(!rowId) return showToast('Lỗi', 'Cậu chưa chọn bộ dữ liệu để xóa!', 'error');
@@ -1335,7 +1416,7 @@
                 try {
                     const res = await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify({ action: 'deleteGame', uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user', gameType: gameType, rowId: rowId })
+                        body: JSON.stringify({ action: 'deleteGame', uid: uid, role: window.currentUserRole || 'user', gameType: gameType, rowId: rowId })
                     });
                     const result = await res.json();
                     
@@ -1343,7 +1424,7 @@
                         showToast('Thành công', 'Đã xóa bộ dữ liệu!', 'success');
                         document.querySelector(`.cloud-data-name-${gameType}`).value = '';
                         
-                        const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: window.auth.currentUser.uid, role: window.currentUserRole || 'user' }) });
+                        const loadRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'loadGames', gameType: gameType, uid: uid, role: window.currentUserRole || 'user' }) });
                         const loadResult = await loadRes.json();
                         if(loadResult.success) {
                             window.cloudState[gameType] = loadResult.games || [];

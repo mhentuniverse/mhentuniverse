@@ -489,30 +489,41 @@
                 return;
             }
             try {
-                const docSnap = await getDoc(doc(db, "users", activeUser.uid));
-                const userData = docSnap.exists() ? docSnap.data() : {};
-                const userRole = userData.role || '';
-
-                if (!userRole.includes('admin')) {
-                    showPopup("Cảnh báo: Cậu không phải Giám đốc! Trục xuất ngay lập tức!");
-                    window.location.href = '/';
-                } else {
-                    document.getElementById('security-shield').style.opacity = '0';
-                    setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
-                    loadAllUsers();
-                    loadAuditLogs();
-                    loadSystemStatus();
-                    updateDashboardStats();
-                    loadMailHistory();
+                let userData = {};
+                let userRole = (activeUser.role || localStorage.getItem('mhent_user_role') || '').toLowerCase();
+                try {
+                    const docSnap = await getDoc(doc(db, "users", activeUser.uid));
+                    if (docSnap.exists()) {
+                        userData = docSnap.data();
+                        if (userData.role) userRole = userData.role.toLowerCase();
+                    }
+                } catch (e) {
+                    console.warn("Không thể đọc Firestore users, dùng quyền từ session:", e);
                 }
 
-                localStorage.setItem('mhent_user_role', userData.role || 'user');
+                const isRoot = userRole.includes('admin') || userRole.includes('teacher') || userRole.includes('teach') || userRole.includes('root') || userRole.includes('boss') || userRole.includes('chủ tịch') || activeUser.email === 'mhent@mhentuniverse.com' || activeUser.email === 'contact@mhentuniverse.com';
+
+                if (!isRoot) {
+                    showPopup("Cảnh báo: Cậu không có quyền Quản trị! Trục xuất ngay lập tức!");
+                    window.location.href = '/';
+                    return;
+                }
+
+                document.getElementById('security-shield').style.opacity = '0';
+                setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500);
+                loadAllUsers();
+                loadAuditLogs();
+                loadSystemStatus();
+                updateDashboardStats();
+                loadMailHistory();
+
+                localStorage.setItem('mhent_user_role', userRole);
                 localStorage.setItem('mhent_user_profile', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName || user.email.split('@')[0],
-                    photoURL: user.photoURL || "/assets/avt-web.jpg",
-                    role: userData.role || 'user',
+                    uid: activeUser.uid,
+                    email: activeUser.email || '',
+                    displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Giám đốc'),
+                    photoURL: activeUser.photoURL || "/assets/avt-web.jpg",
+                    role: userRole,
                     teamCinema: userData.teamCinema || userData.teamName || '',
                     teamArena: userData.teamArena || userData.teamName || '',
                     teamManga: userData.teamManga || userData.teamName || '',
@@ -829,9 +840,10 @@
         // CAMERA CHẠY BẰNG CƠM (AUDIT LOGS)
         // ==========================================
         window.logAdminAction = async function (actionText, moduleName) {
-            if (!auth.currentUser) return;
+            const u = auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
+            if (!u) return;
             try {
-                let adminName = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
+                let adminName = u.displayName || (u.email ? u.email.split('@')[0] : 'Admin');
                 await addDoc(collection(db, "logs"), {
                     timestamp: Date.now(),
                     adminName: adminName,

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -284,17 +284,43 @@
         onAuthStateChanged(auth, async (user) => {
             const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
             if (!activeUser) return window.redirectToLogin();
-            const snap = await getDoc(doc(db, "users", activeUser.uid));
-            const role = snap.exists() ? (snap.data().role || '') : '';
+
+            let userData = {};
+            try {
+                const snap = await getDoc(doc(db, "users", activeUser.uid));
+                if (snap.exists()) userData = snap.data();
+            } catch (e) {
+                console.warn("Không thể tải Firestore profile trong xiangqi/admin, dùng activeUser:", e);
+            }
+
+            let role = (userData.role || activeUser.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
+            const email = (activeUser.email || '').toLowerCase();
+            const isRoot = email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com';
             
-            // ⚡ VÁ LỖI QUYÈN HAN: MỞ CỔNG CHO CÁC ROLE ADMIN, GAME, XIANGQI, CREATOR
-            if (role.includes('admin') || role.includes('game') || role.includes('xiangqi') || role.includes('creator')) {
+            // ⚡ VÁ LỖI QUYỀN HẠN: MỞ CỔNG CHO CÁC ROLE ADMIN, GAME, XIANGQI, CREATOR, ROOT
+            if (role.includes('admin') || role.includes('game') || role.includes('xiangqi') || role.includes('creator') || isRoot) {
                 fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList();
                 supabase.channel('admin_rooms').on('postgres_changes', { event: '*', schema: 'public', table: 'xiangqi_rooms' }, () => { fetchRooms(); loadRoomSelectOptions(); loadBulkRoomList(); }).subscribe();
             } else { 
                 showPopup("Không có quyền!", true); 
                 setTimeout(() => window.location.href = '/game/xiangqi', 2000); 
+                return;
             }
+
+            localStorage.setItem('mhent_user_role', role);
+            localStorage.setItem('mhent_user_profile', JSON.stringify({
+                uid: activeUser.uid,
+                email: activeUser.email,
+                displayName: activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Admin'),
+                photoURL: activeUser.photoURL || "/assets/avt-web.jpg",
+                role: role,
+                teamCinema: userData.teamCinema || userData.teamName || '',
+                teamArena: userData.teamArena || userData.teamName || '',
+                teamManga: userData.teamManga || userData.teamName || '',
+                teamMusic: userData.teamMusic || userData.teamName || '',
+                teamNovel: userData.teamNovel || userData.teamName || '',
+                teamEdu: userData.teamEdu || userData.teamTeach || userData.teamName || ''
+            }));
         });
 
         async function fetchRooms() { const { data } = await supabase.from('xiangqi_rooms').select('*').order('created_at', { ascending: false }); roomsData = data || []; renderRooms(); }
