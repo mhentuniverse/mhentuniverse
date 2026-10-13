@@ -236,8 +236,45 @@
             border-bottom: 2px solid var(--border-soft);
         }
 
+        .ci-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .ci-table th.sortable:hover {
+            background: rgba(16, 185, 129, 0.16);
+            color: var(--ci-accent);
+        }
+
+        .ci-table th.sortable.active-sort {
+            background: rgba(16, 185, 129, 0.14);
+            color: var(--ci-accent);
+        }
+
+        .sort-indicator {
+            margin-left: 5px;
+            font-size: 11px;
+            opacity: 0.4;
+            transition: all 0.2s ease;
+        }
+
+        .ci-table th.sortable:hover .sort-indicator,
+        .ci-table th.sortable.active-sort .sort-indicator {
+            opacity: 1;
+            color: var(--ci-accent);
+        }
+
         .dark-mode .ci-table th {
             background: #1e293b;
+        }
+
+        .dark-mode .ci-table th.sortable:hover {
+            background: rgba(16, 185, 129, 0.22);
+        }
+
+        .dark-mode .ci-table th.sortable.active-sort {
+            background: rgba(16, 185, 129, 0.18);
         }
 
         .ci-table td {
@@ -528,11 +565,28 @@
                     <input type="text" id="filter-search" placeholder="Tìm theo tên, mã số, đơn vị..." oninput="filterAttendees()">
                 </div>
                 <select id="filter-status" onchange="filterAttendees()"
-                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none;">
+                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; cursor: pointer;">
                     <option value="ALL">🔍 Tất cả trạng thái</option>
                     <option value="PRESENT">✅ Đã có mặt</option>
                     <option value="LATE">⚠️ Đi trễ</option>
                     <option value="ABSENT">⏳ Chưa đến</option>
+                </select>
+                <select id="filter-sort" onchange="handleSortSelectChange()"
+                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; cursor: pointer;"
+                    title="Tùy chọn sắp xếp danh sách">
+                    <option value="DEFAULT">⏱️ Thứ tự nhập (Ban đầu)</option>
+                    <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
+                    <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
+                    <option value="FULLNAME_ASC">📝 Họ và Tên A → Z</option>
+                    <option value="FULLNAME_DESC">📝 Họ và Tên Z → A</option>
+                    <option value="CODE_ASC">🔢 Mã Số A → Z</option>
+                    <option value="CODE_DESC">🔢 Mã Số Z → A</option>
+                    <option value="ORG_ASC">🏢 Đơn Vị A → Z</option>
+                    <option value="ORG_DESC">🏢 Đơn Vị Z → A</option>
+                    <option value="CHECKIN_DESC">⚡ Giờ check-in mới nhất</option>
+                    <option value="CHECKIN_ASC">⏳ Giờ check-in sớm nhất</option>
+                    <option value="STATUS_PRESENT">✅ Đã có mặt lên trước</option>
+                    <option value="STATUS_ABSENT">⏳ Chưa đến lên trước</option>
                 </select>
             </div>
 
@@ -556,12 +610,24 @@
                         <th style="width: 40px; text-align: center;">
                             <input type="checkbox" id="check-all-attendees" onchange="toggleSelectAllAttendees(this.checked)" style="cursor: pointer; transform: scale(1.15);" title="Chọn tất cả">
                         </th>
-                        <th style="width: 45px; text-align: center;">STT</th>
-                        <th>Họ và Tên & Email</th>
-                        <th>Mã Định Danh / MSSV</th>
-                        <th>Đơn Vị / Ghi Chú</th>
-                        <th>Giờ Check-in</th>
-                        <th>Trạng Thái</th>
+                        <th id="th-col-default" class="sortable active-sort" style="width: 60px; text-align: center;" onclick="toggleColumnSort('DEFAULT')" title="Bấm để xếp theo thứ tự nhập ban đầu">
+                            STT <i class="fa-solid fa-arrow-down-1-9 sort-indicator" id="th-sort-icon-default"></i>
+                        </th>
+                        <th id="th-col-name" class="sortable" onclick="toggleColumnSort('NAME')" title="Bấm để đổi chiều A-Z / Z-A theo Tên (Chuẩn Tiếng Việt)">
+                            Họ và Tên & Email <i class="fa-solid fa-sort sort-indicator" id="th-sort-icon-name"></i>
+                        </th>
+                        <th id="th-col-code" class="sortable" onclick="toggleColumnSort('CODE')" title="Bấm để đổi chiều A-Z / Z-A theo Mã Số">
+                            Mã Định Danh / MSSV <i class="fa-solid fa-sort sort-indicator" id="th-sort-icon-code"></i>
+                        </th>
+                        <th id="th-col-org" class="sortable" onclick="toggleColumnSort('ORG')" title="Bấm để đổi chiều A-Z / Z-A theo Đơn Vị">
+                            Đơn Vị / Ghi Chú <i class="fa-solid fa-sort sort-indicator" id="th-sort-icon-org"></i>
+                        </th>
+                        <th id="th-col-checkin" class="sortable" onclick="toggleColumnSort('CHECKIN')" title="Bấm để đổi chiều Giờ Check-in mới nhất / sớm nhất">
+                            Giờ Check-in <i class="fa-solid fa-sort sort-indicator" id="th-sort-icon-checkin"></i>
+                        </th>
+                        <th id="th-col-status" class="sortable" onclick="toggleColumnSort('STATUS')" title="Bấm để đổi chiều Đã có mặt / Chưa đến lên đầu">
+                            Trạng Thái <i class="fa-solid fa-sort sort-indicator" id="th-sort-icon-status"></i>
+                        </th>
                         <th style="text-align: center; width: 185px;">Thao Tác</th>
                     </tr>
                 </thead>
@@ -804,6 +870,7 @@
         let filteredAttendees = [];
         let currentUser = (window.getMHEntUser && window.getMHEntUser()) || null;
         let selectedAttendeeIds = new Set();
+        let currentSort = 'DEFAULT';
 
         const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
 
@@ -913,7 +980,10 @@
             }
 
             sessionData = docSnap.data();
-            attendeesList = sessionData.attendees || [];
+            attendeesList = (sessionData.attendees || []).map((att, idx) => ({
+                ...att,
+                _originalIndex: att._originalIndex !== undefined ? att._originalIndex : idx
+            }));
 
             // Kiểm tra phân quyền truy cập & điều khiển Admin/Owner
             updateLockScreenState();
@@ -1023,12 +1093,197 @@
             updateSelectedCountBadge();
         }
 
-        // FILTER
+        // HỖ TRỢ SẮP XẾP TÊN CHUẨN TIẾNG VIỆT (TÊN CHÍNH -> HỌ & ĐỆM)
+        function getVietnameseSortKeys(fullName) {
+            if (!fullName) return { lastName: '', firstName: '', full: '' };
+            const clean = String(fullName).trim();
+            const parts = clean.split(/\s+/);
+            if (parts.length <= 1) return { lastName: '', firstName: clean, full: clean };
+            const firstName = parts[parts.length - 1];
+            const lastName = parts.slice(0, parts.length - 1).join(' ');
+            return { lastName, firstName, full: clean };
+        }
+
+        function sortAttendeeList(list, sortType) {
+            const copy = [...list];
+            switch (sortType) {
+                case 'NAME_ASC':
+                    return copy.sort((a, b) => {
+                        const kA = getVietnameseSortKeys(a.name);
+                        const kB = getVietnameseSortKeys(b.name);
+                        const cmp = kA.firstName.localeCompare(kB.firstName, 'vi');
+                        if (cmp !== 0) return cmp;
+                        return kA.lastName.localeCompare(kB.lastName, 'vi');
+                    });
+                case 'NAME_DESC':
+                    return copy.sort((a, b) => {
+                        const kA = getVietnameseSortKeys(a.name);
+                        const kB = getVietnameseSortKeys(b.name);
+                        const cmp = kB.firstName.localeCompare(kA.firstName, 'vi');
+                        if (cmp !== 0) return cmp;
+                        return kB.lastName.localeCompare(kA.lastName, 'vi');
+                    });
+                case 'FULLNAME_ASC':
+                    return copy.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'vi'));
+                case 'FULLNAME_DESC':
+                    return copy.sort((a, b) => (b.name || '').localeCompare(a.name || '', 'vi'));
+                case 'CODE_ASC':
+                    return copy.sort((a, b) => (a.code || '').localeCompare(b.code || '', 'vi', { numeric: true }));
+                case 'CODE_DESC':
+                    return copy.sort((a, b) => (b.code || '').localeCompare(a.code || '', 'vi', { numeric: true }));
+                case 'ORG_ASC':
+                    return copy.sort((a, b) => (a.org || '').localeCompare(b.org || '', 'vi'));
+                case 'ORG_DESC':
+                    return copy.sort((a, b) => (b.org || '').localeCompare(a.org || '', 'vi'));
+                case 'CHECKIN_DESC':
+                    return copy.sort((a, b) => {
+                        if (a.checkedIn && b.checkedIn) {
+                            return (b.checkinTime || '').localeCompare(a.checkinTime || '');
+                        }
+                        if (a.checkedIn && !b.checkedIn) return -1;
+                        if (!a.checkedIn && b.checkedIn) return 1;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'CHECKIN_ASC':
+                    return copy.sort((a, b) => {
+                        if (a.checkedIn && b.checkedIn) {
+                            return (a.checkinTime || '').localeCompare(b.checkinTime || '');
+                        }
+                        if (a.checkedIn && !b.checkedIn) return -1;
+                        if (!a.checkedIn && b.checkedIn) return 1;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'STATUS_PRESENT':
+                    return copy.sort((a, b) => {
+                        if (a.checkedIn !== b.checkedIn) return a.checkedIn ? -1 : 1;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'STATUS_ABSENT':
+                    return copy.sort((a, b) => {
+                        if (a.checkedIn !== b.checkedIn) return a.checkedIn ? 1 : -1;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'DEFAULT':
+                default:
+                    return copy.sort((a, b) => (a._originalIndex ?? 0) - (b._originalIndex ?? 0));
+            }
+        }
+
+        window.toggleColumnSort = function(column) {
+            if (column === 'DEFAULT') {
+                currentSort = 'DEFAULT';
+            } else if (column === 'NAME') {
+                currentSort = (currentSort === 'NAME_ASC') ? 'NAME_DESC' : 'NAME_ASC';
+            } else if (column === 'CODE') {
+                currentSort = (currentSort === 'CODE_ASC') ? 'CODE_DESC' : 'CODE_ASC';
+            } else if (column === 'ORG') {
+                currentSort = (currentSort === 'ORG_ASC') ? 'ORG_DESC' : 'ORG_ASC';
+            } else if (column === 'CHECKIN') {
+                currentSort = (currentSort === 'CHECKIN_DESC') ? 'CHECKIN_ASC' : 'CHECKIN_DESC';
+            } else if (column === 'STATUS') {
+                currentSort = (currentSort === 'STATUS_PRESENT') ? 'STATUS_ABSENT' : 'STATUS_PRESENT';
+            }
+
+            const selectEl = document.getElementById('filter-sort');
+            if (selectEl) selectEl.value = currentSort;
+
+            updateSortHeaderIcons();
+            filterAttendees();
+        };
+
+        window.handleSortSelectChange = function() {
+            const selectEl = document.getElementById('filter-sort');
+            if (selectEl) currentSort = selectEl.value;
+            updateSortHeaderIcons();
+            filterAttendees();
+        };
+
+        function updateSortHeaderIcons() {
+            const cols = [
+                { id: 'th-col-default', icon: 'th-sort-icon-default' },
+                { id: 'th-col-name', icon: 'th-sort-icon-name' },
+                { id: 'th-col-code', icon: 'th-sort-icon-code' },
+                { id: 'th-col-org', icon: 'th-sort-icon-org' },
+                { id: 'th-col-checkin', icon: 'th-sort-icon-checkin' },
+                { id: 'th-col-status', icon: 'th-sort-icon-status' }
+            ];
+
+            cols.forEach(c => {
+                const iconEl = document.getElementById(c.icon);
+                const thEl = document.getElementById(c.id);
+                if (iconEl) iconEl.className = 'fa-solid fa-sort sort-indicator';
+                if (thEl) thEl.classList.remove('active-sort');
+            });
+
+            if (currentSort === 'DEFAULT') {
+                const icon = document.getElementById('th-sort-icon-default');
+                const th = document.getElementById('th-col-default');
+                if (icon) icon.className = 'fa-solid fa-arrow-down-1-9 sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'NAME_ASC') {
+                const icon = document.getElementById('th-sort-icon-name');
+                const th = document.getElementById('th-col-name');
+                if (icon) icon.className = 'fa-solid fa-arrow-down-a-z sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'NAME_DESC') {
+                const icon = document.getElementById('th-sort-icon-name');
+                const th = document.getElementById('th-col-name');
+                if (icon) icon.className = 'fa-solid fa-arrow-up-z-a sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'FULLNAME_ASC') {
+                const icon = document.getElementById('th-sort-icon-name');
+                const th = document.getElementById('th-col-name');
+                if (icon) icon.className = 'fa-solid fa-arrow-down-a-z sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'FULLNAME_DESC') {
+                const icon = document.getElementById('th-sort-icon-name');
+                const th = document.getElementById('th-col-name');
+                if (icon) icon.className = 'fa-solid fa-arrow-up-z-a sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'CODE_ASC') {
+                const icon = document.getElementById('th-sort-icon-code');
+                const th = document.getElementById('th-col-code');
+                if (icon) icon.className = 'fa-solid fa-arrow-down-a-z sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'CODE_DESC') {
+                const icon = document.getElementById('th-sort-icon-code');
+                const th = document.getElementById('th-col-code');
+                if (icon) icon.className = 'fa-solid fa-arrow-up-z-a sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'ORG_ASC') {
+                const icon = document.getElementById('th-sort-icon-org');
+                const th = document.getElementById('th-col-org');
+                if (icon) icon.className = 'fa-solid fa-arrow-down-a-z sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'ORG_DESC') {
+                const icon = document.getElementById('th-sort-icon-org');
+                const th = document.getElementById('th-col-org');
+                if (icon) icon.className = 'fa-solid fa-arrow-up-z-a sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'CHECKIN_DESC') {
+                const icon = document.getElementById('th-sort-icon-checkin');
+                const th = document.getElementById('th-col-checkin');
+                if (icon) icon.className = 'fa-solid fa-arrow-down-wide-short sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'CHECKIN_ASC') {
+                const icon = document.getElementById('th-sort-icon-checkin');
+                const th = document.getElementById('th-col-checkin');
+                if (icon) icon.className = 'fa-solid fa-arrow-up-short-wide sort-indicator';
+                if (th) th.classList.add('active-sort');
+            } else if (currentSort === 'STATUS_PRESENT' || currentSort === 'STATUS_ABSENT') {
+                const icon = document.getElementById('th-sort-icon-status');
+                const th = document.getElementById('th-col-status');
+                if (icon) icon.className = currentSort === 'STATUS_PRESENT' ? 'fa-solid fa-check-double sort-indicator' : 'fa-solid fa-clock sort-indicator';
+                if (th) th.classList.add('active-sort');
+            }
+        }
+
+        // FILTER & SORT
         window.filterAttendees = function() {
             const query = (document.getElementById('filter-search').value || '').toLowerCase().trim();
             const statusFilter = document.getElementById('filter-status').value;
 
-            filteredAttendees = attendeesList.filter(a => {
+            const matched = attendeesList.filter(a => {
                 const matchQuery = (a.name || '').toLowerCase().includes(query) ||
                                    (a.code || '').toLowerCase().includes(query) ||
                                    (a.org || '').toLowerCase().includes(query) ||
@@ -1042,6 +1297,7 @@
                 return matchQuery && matchStatus;
             });
 
+            filteredAttendees = sortAttendeeList(matched, currentSort);
             renderTable(filteredAttendees);
         };
 
@@ -1118,7 +1374,8 @@
                 org,
                 qrToken: `MHENT_QR_${Date.now()}`,
                 checkedIn: false,
-                ticketSent: false
+                ticketSent: false,
+                _originalIndex: attendeesList.length
             };
 
             attendeesList.push(newAtt);
@@ -1502,10 +1759,11 @@
 
         // EXPORT EXCEL
         window.exportExcel = function() {
-            if (attendeesList.length === 0) return window.showToast("Trống", "Không có dữ liệu để xuất!", "warning");
+            const listToExport = (filteredAttendees && filteredAttendees.length > 0) ? filteredAttendees : attendeesList;
+            if (listToExport.length === 0) return window.showToast("Trống", "Không có dữ liệu để xuất!", "warning");
 
             const headers = ["STT", "Họ và Tên", "Mã SV / Mã NV", "Đơn Vị", "Trạng Thái", "Giờ Check-in"];
-            const dataRows = attendeesList.map((a, idx) => {
+            const dataRows = listToExport.map((a, idx) => {
                 let sttStr = "Chưa đến";
                 if (a.checkedIn) sttStr = a.isLate ? "Đi trễ" : "Có mặt (Đúng giờ)";
                 return [idx + 1, a.name, a.code, a.org || '', sttStr, a.checkinTime || ''];
@@ -1514,7 +1772,7 @@
             const aoa = [
                 ["🏢 MIYAZAKI HARUTO ENTERTAINMENT CO., LTD. - MHENT CHECK-IN HUB"],
                 [`📋 BÁO CÁO ĐIỂM DANH: ${sessionData?.title || 'Sự Kiện'}`],
-                [`Mã Phiên: ${sessionId}`, `Ngày Diễn Ra: ${sessionData?.date || ''}`, `Giờ Bắt Đầu: ${sessionData?.startTime || ''}`, `Tổng Số: ${attendeesList.length} người`],
+                [`Mã Phiên: ${sessionId}`, `Ngày Diễn Ra: ${sessionData?.date || ''}`, `Giờ Bắt Đầu: ${sessionData?.startTime || ''}`, `Tổng Số Xuất: ${listToExport.length}/${attendeesList.length} người`],
                 ["© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved."],
                 [],
                 headers,

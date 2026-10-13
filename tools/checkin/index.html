@@ -515,9 +515,20 @@
                 </h2>
                 <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">Quản lý phiên, mở máy quét hoặc xem bảng thống kê chi tiết</p>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <input type="text" id="session-search" placeholder="🔍 Tìm kiếm phiên..." oninput="filterSessions()"
-                    style="padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; width: 200px;">
+                    style="padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; width: 190px;">
+                <select id="session-sort" onchange="filterSessions()"
+                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; cursor: pointer;"
+                    title="Sắp xếp danh sách phiên">
+                    <option value="DATE_DESC">📅 Mới nhất (Ngày/Giờ)</option>
+                    <option value="DATE_ASC">📅 Cũ nhất</option>
+                    <option value="TITLE_ASC">🔤 Tên sự kiện A → Z</option>
+                    <option value="TITLE_DESC">🔤 Tên sự kiện Z → A</option>
+                    <option value="COUNT_DESC">👥 Số người tham gia (Nhiều nhất)</option>
+                    <option value="COUNT_ASC">👥 Số người tham gia (Ít nhất)</option>
+                    <option value="RATE_DESC">📊 Tỉ lệ có mặt cao nhất</option>
+                </select>
             </div>
         </div>
 
@@ -769,7 +780,30 @@
             }
 
             const finalList = tabList.filter(s => (s.title || '').toLowerCase().includes(query));
-            renderSessions(finalList);
+
+            const sortMode = document.getElementById('session-sort')?.value || 'DATE_DESC';
+            let sortedList = [...finalList];
+            if (sortMode === 'DATE_DESC') {
+                sortedList.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.startTime || '').localeCompare(a.startTime || ''));
+            } else if (sortMode === 'DATE_ASC') {
+                sortedList.sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.startTime || '').localeCompare(b.startTime || ''));
+            } else if (sortMode === 'TITLE_ASC') {
+                sortedList.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'vi'));
+            } else if (sortMode === 'TITLE_DESC') {
+                sortedList.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'vi'));
+            } else if (sortMode === 'COUNT_DESC') {
+                sortedList.sort((a, b) => ((b.attendees || []).length) - ((a.attendees || []).length));
+            } else if (sortMode === 'COUNT_ASC') {
+                sortedList.sort((a, b) => ((a.attendees || []).length) - ((b.attendees || []).length));
+            } else if (sortMode === 'RATE_DESC') {
+                sortedList.sort((a, b) => {
+                    const rateA = (a.attendees?.length || 0) > 0 ? (a.attendees.filter(x => x.checkedIn).length / a.attendees.length) : 0;
+                    const rateB = (b.attendees?.length || 0) > 0 ? (b.attendees.filter(x => x.checkedIn).length / b.attendees.length) : 0;
+                    return rateB - rateA;
+                });
+            }
+
+            renderSessions(sortedList);
 
             if (finalList.length === 0) {
                 document.getElementById('session-empty').style.display = 'block';
