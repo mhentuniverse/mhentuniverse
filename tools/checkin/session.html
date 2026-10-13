@@ -312,6 +312,10 @@
         .btn-checkin-now:hover { background: var(--ci-accent-hover); }
         .btn-undo { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
         .btn-undo:hover { background: rgba(239, 68, 68, 0.2); }
+        .btn-ticket-mail { background: rgba(99, 102, 241, 0.12); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); }
+        .btn-ticket-mail:hover { background: #6366f1; color: #ffffff; }
+        .btn-ticket-sent { background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .btn-ticket-sent:hover { background: #10b981; color: #ffffff; }
 
         /* PRINT STYLES */
         @media print {
@@ -532,7 +536,10 @@
                 </select>
             </div>
 
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button id="btn-bulk-email" class="btn-action btn-outline" style="border-color: rgba(99, 102, 241, 0.4); color: var(--ci-accent);" onclick="openBulkEmailModal()" title="Gửi vé mời E-Ticket qua email cho các thành viên được chọn">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi Vé Đã Chọn (<span id="count-selected-att">0</span>)
+                </button>
                 <button class="btn-action btn-outline" onclick="openAddAttendeeModal()">
                     <i class="fa-solid fa-user-plus"></i> Thêm Người
                 </button>
@@ -546,13 +553,16 @@
             <table class="ci-table">
                 <thead>
                     <tr>
-                        <th style="width: 50px; text-align: center;">STT</th>
-                        <th>Họ và Tên</th>
+                        <th style="width: 40px; text-align: center;">
+                            <input type="checkbox" id="check-all-attendees" onchange="toggleSelectAllAttendees(this.checked)" style="cursor: pointer; transform: scale(1.15);" title="Chọn tất cả">
+                        </th>
+                        <th style="width: 45px; text-align: center;">STT</th>
+                        <th>Họ và Tên & Email</th>
                         <th>Mã Định Danh / MSSV</th>
                         <th>Đơn Vị / Ghi Chú</th>
                         <th>Giờ Check-in</th>
                         <th>Trạng Thái</th>
-                        <th style="text-align: center; width: 140px;">Thao Tác</th>
+                        <th style="text-align: center; width: 185px;">Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody id="attendees-tbody">
@@ -580,21 +590,101 @@
             <form onsubmit="handleAddAttendee(event)">
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Họ và Tên *</label>
-                    <input type="text" id="add-name" required class="form-input" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    <input type="text" id="add-name" required class="form-input" placeholder="Nguyễn Văn A" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
                 </div>
                 <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Mã SV / Mã NV *</label>
-                    <input type="text" id="add-code" required class="form-input" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Email Nhận Vé E-Ticket <span style="font-weight: 600; color: var(--text-muted);">(Tùy chọn)</span></label>
+                    <input type="email" id="add-email" class="form-input" placeholder="nguyenvana@gmail.com" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Mã SV / Mã NV / Mã Định Danh *</label>
+                    <input type="text" id="add-code" required class="form-input" placeholder="SV-001 hoặc MH-2026" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Đơn Vị / Chi Đoàn</label>
-                    <input type="text" id="add-org" class="form-input" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    <input type="text" id="add-org" class="form-input" placeholder="Lớp K24 / Khách mời" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn-action btn-outline" onclick="closeAddAttendeeModal()">Hủy</button>
                     <button type="submit" class="btn-action btn-scanner">Thêm Ngay</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL GỬI VÉ E-TICKET HÀNG LOẠT -->
+    <div id="modal-bulk-email" class="mhent-ui-overlay" style="display: none;">
+        <div class="mhent-ui-box" style="max-width: 540px; width: 92%; padding: 26px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.12); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 17px; font-weight: 900; color: var(--text-main);">Gửi Vé Điện Tử (E-Ticket)</h3>
+                        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">Gửi vé mời kèm mã QR cá nhân từ noreply@mhentuniverse.com</p>
+                    </div>
+                </div>
+                <button onclick="closeBulkEmailModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 12.5px; line-height: 1.5; color: var(--text-main);">
+                <div style="font-weight: 800; color: #6366f1; margin-bottom: 4px;">
+                    <i class="fa-solid fa-circle-info"></i> Cơ Chế Gửi Vé Tự Động:
+                </div>
+                Hệ thống sẽ gửi email chính thức từ <strong>noreply@mhentuniverse.com</strong> kèm theo Thẻ Vé Điện Tử (E-Ticket), mã QR quét check-in và link tra cứu vé HD.
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 8px;">Chọn Phạm Vi Gửi Vé:</label>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--border-soft); border-radius: 10px; cursor: pointer; background: var(--bg-canvas);">
+                        <input type="radio" name="bulk-target-scope" value="SELECTED" checked style="transform: scale(1.15); cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13px; color: var(--text-main);">Chỉ gửi cho người ĐƯỢC CHỌN qua checkbox</div>
+                            <div style="font-size: 11.5px; color: var(--text-muted);">Có <strong id="bulk-stat-selected" style="color: var(--ci-accent);">0</strong> người hợp lệ có email trong danh sách chọn</div>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--border-soft); border-radius: 10px; cursor: pointer; background: var(--bg-canvas);">
+                        <input type="radio" name="bulk-target-scope" value="ALL_VALID" style="transform: scale(1.15); cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13px; color: var(--text-main);">Gửi cho TẤT CẢ người có email trong phiên</div>
+                            <div style="font-size: 11.5px; color: var(--text-muted);">Có <strong id="bulk-stat-all" style="color: var(--ci-accent);">0</strong> người có email hợp lệ</div>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--border-soft); border-radius: 10px; cursor: pointer; background: var(--bg-canvas);">
+                        <input type="radio" name="bulk-target-scope" value="UNSENT_ONLY" style="transform: scale(1.15); cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 13px; color: var(--text-main);">Chỉ gửi những người CHƯA TỪNG ĐƯỢC GỬI VÉ</div>
+                            <div style="font-size: 11.5px; color: var(--text-muted);">Có <strong id="bulk-stat-unsent" style="color: var(--ci-accent);">0</strong> người chưa nhận vé</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- TIẾN ĐỘ GỬI MAIL (ẨN KHI CHƯA CHẠY) -->
+            <div id="bulk-progress-box" style="display: none; margin-bottom: 16px; background: var(--bg-canvas); border: 1.5px solid var(--border-soft); border-radius: 12px; padding: 14px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
+                    <span id="bulk-progress-status" style="color: var(--text-main);">Đang chuẩn bị gửi...</span>
+                    <span id="bulk-progress-pct" style="color: var(--ci-accent);">0%</span>
+                </div>
+                <div style="width: 100%; height: 10px; background: rgba(0,0,0,0.06); border-radius: 5px; overflow: hidden; margin-bottom: 8px;">
+                    <div id="bulk-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.3s ease;"></div>
+                </div>
+                <div id="bulk-progress-detail" style="font-size: 11.5px; color: var(--text-muted); font-family: monospace;">...</div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-soft); padding-top: 14px;">
+                <button type="button" class="btn-action btn-outline" id="btn-close-bulk" onclick="closeBulkEmailModal()">Đóng</button>
+                <button type="button" class="btn-action btn-scanner" id="btn-start-bulk" onclick="handleStartBulkSend()" style="background: #6366f1;">
+                    <i class="fa-solid fa-paper-plane"></i> Tiến Hành Gửi Vé
+                </button>
+            </div>
         </div>
     </div>
 
@@ -710,6 +800,26 @@
         let attendeesList = [];
         let filteredAttendees = [];
         let currentUser = null;
+        let selectedAttendeeIds = new Set();
+
+        const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
+
+        const OFFICIAL_SIGNATURE = `
+            <table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; color: #333; margin-top: 25px; border-top: 2px solid #6366f1; padding-top: 15px; width: 100%;">
+                <tr>
+                    <td style="padding-right: 20px; vertical-align: top; width: 85px;">
+                        <img src="https://www.mhentuniverse.com/assets/icon-logo.png" width="85" style="display: block;">
+                    </td>
+                    <td style="font-family: Arial, sans-serif; font-size: 13.5px; color: #333;">
+                        <strong style="color: #6366f1; font-size: 15px; text-transform: uppercase;">Miyazaki Haruto Entertainment Co., Ltd.</strong><br>
+                        📍 <span style="color: #64748b;">Operating in Vietnam and Online World</span><br><br>
+                        ✉️ <strong>Email:</strong> <a href="mailto:contact@mhentuniverse.com" style="color: #6366f1; text-decoration: none;">contact@mhentuniverse.com</a><br>
+                        🌐 <strong>Website:</strong> <a href="https://www.mhentuniverse.com" style="color: #6366f1; text-decoration: none;">MHEnt. Universe</a><br>
+                        🔗 <strong>Check-in Hub:</strong> <a href="https://www.mhentuniverse.com/tools/checkin" style="color: #6366f1; text-decoration: none;">MHEnt Check-in Hub</a><br>
+                        <p style="font-style: italic; color: #94a3b8; font-size: 12px; margin-top: 8px;">— Khơi nguồn sáng tạo vô tận —</p>
+                    </td>
+                </tr>
+            </table>`;
 
         // KIỂM TRA QUYỀN TRUY CẬP (OWNER / MANAGERS / PIN / ADMIN)
         function checkAccessPermission(data, user) {
@@ -843,7 +953,8 @@
         function renderTable(list) {
             const tbody = document.getElementById('attendees-tbody');
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted); font-weight: 700;">Không tìm thấy thành viên nào phù hợp!</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted); font-weight: 700;">Không tìm thấy thành viên nào phù hợp!</td></tr>`;
+                updateSelectedCountBadge();
                 return;
             }
 
@@ -857,26 +968,54 @@
                     }
                 }
 
+                let ticketBadge = '';
+                if (a.ticketSent) {
+                    ticketBadge = `<div style="margin-top: 4px;"><span class="badge-status" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 10.5px; padding: 2px 7px;" title="Vé đã gửi: ${a.ticketSentAt || ''}"><i class="fa-solid fa-paper-plane"></i> Đã gửi vé</span></div>`;
+                }
+
+                const isChecked = selectedAttendeeIds.has(a.id);
+
                 return `
-                    <tr>
+                    <tr style="${isChecked ? 'background: rgba(99, 102, 241, 0.04);' : ''}">
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="att-select-check" value="${a.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectAttendee('${a.id}', this.checked)" style="cursor: pointer; transform: scale(1.15);">
+                        </td>
                         <td style="text-align: center; font-weight: 800; color: var(--text-muted);">${idx + 1}</td>
                         <td>
                             <strong style="color: var(--text-main); font-size: 14px;">${a.name}</strong>
-                            ${a.email ? `<div style="font-size: 11.5px; color: var(--text-muted);">${a.email}</div>` : ''}
+                            ${a.email 
+                                ? `<div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; gap: 5px;">
+                                     <i class="fa-regular fa-envelope"></i> <span>${a.email}</span>
+                                     <button type="button" onclick="promptAddEmail('${a.id}')" title="Sửa email" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:10.5px; padding:0 2px;"><i class="fa-solid fa-pen"></i></button>
+                                   </div>` 
+                                : `<div style="font-size: 11px; color: #f59e0b; margin-top: 2px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="promptAddEmail('${a.id}')" title="Nhấn để thêm email nhận vé">
+                                     <i class="fa-solid fa-circle-exclamation"></i> <u>Chưa có email (thêm)</u>
+                                   </div>`
+                            }
                         </td>
                         <td><span style="font-family: monospace; font-weight: 800; background: var(--ci-bg-soft); color: var(--ci-accent); padding: 3px 8px; border-radius: 6px;">${a.code}</span></td>
                         <td>${a.org || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân lớp</span>'}</td>
                         <td>${a.checkinTime || '<span style="color: var(--text-muted);">-</span>'}</td>
-                        <td>${statusBadge}</td>
+                        <td>
+                            ${statusBadge}
+                            ${ticketBadge}
+                        </td>
                         <td style="text-align: center;">
-                            ${a.checkedIn 
-                                ? `<button class="btn-table-action btn-undo" onclick="toggleCheckin('${a.id}', false)"><i class="fa-solid fa-rotate-left"></i> Hủy</button>`
-                                : `<button class="btn-table-action btn-checkin-now" onclick="toggleCheckin('${a.id}', true)"><i class="fa-solid fa-check"></i> Có Mặt</button>`
-                            }
+                            <div style="display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                                ${a.checkedIn 
+                                    ? `<button class="btn-table-action btn-undo" onclick="toggleCheckin('${a.id}', false)" title="Hủy trạng thái có mặt"><i class="fa-solid fa-rotate-left"></i> Hủy</button>`
+                                    : `<button class="btn-table-action btn-checkin-now" onclick="toggleCheckin('${a.id}', true)" title="Điểm danh ngay"><i class="fa-solid fa-check"></i> Có Mặt</button>`
+                                }
+                                <button class="btn-table-action ${a.ticketSent ? 'btn-ticket-sent' : 'btn-ticket-mail'}" id="btn-send-${a.id}" onclick="sendSingleTicketEmail('${a.id}')" title="${a.ticketSent ? 'Vé đã gửi lúc: ' + (a.ticketSentAt || '') + '. Nhấn để gửi lại' : 'Gửi vé điện tử E-Ticket kèm mã QR qua email'}">
+                                    <i class="fa-solid ${a.ticketSent ? 'fa-arrow-rotate-right' : 'fa-paper-plane'}"></i> ${a.ticketSent ? 'Gửi lại' : 'Gửi vé'}
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+
+            updateSelectedCountBadge();
         }
 
         // FILTER
@@ -887,7 +1026,8 @@
             filteredAttendees = attendeesList.filter(a => {
                 const matchQuery = (a.name || '').toLowerCase().includes(query) ||
                                    (a.code || '').toLowerCase().includes(query) ||
-                                   (a.org || '').toLowerCase().includes(query);
+                                   (a.org || '').toLowerCase().includes(query) ||
+                                   (a.email || '').toLowerCase().includes(query);
 
                 let matchStatus = true;
                 if (statusFilter === 'PRESENT') matchStatus = a.checkedIn && !a.isLate;
@@ -961,16 +1101,19 @@
         window.handleAddAttendee = async function(e) {
             e.preventDefault();
             const name = document.getElementById('add-name').value.trim();
+            const email = (document.getElementById('add-email').value || '').trim();
             const code = document.getElementById('add-code').value.trim();
             const org = document.getElementById('add-org').value.trim();
 
             const newAtt = {
                 id: `att_${Date.now()}`,
                 name,
+                email,
                 code,
                 org,
                 qrToken: `MHENT_QR_${Date.now()}`,
-                checkedIn: false
+                checkedIn: false,
+                ticketSent: false
             };
 
             attendeesList.push(newAtt);
@@ -978,8 +1121,334 @@
             closeAddAttendeeModal();
             window.showToast("Đã thêm", `Đã thêm ${name} vào danh sách!`, "success");
             document.getElementById('add-name').value = '';
+            document.getElementById('add-email').value = '';
             document.getElementById('add-code').value = '';
             document.getElementById('add-org').value = '';
+        };
+
+        // QUICK PROMPT ADD/EDIT EMAIL
+        window.promptAddEmail = async function(attId) {
+            const att = attendeesList.find(a => a.id === attId);
+            if (!att) return;
+            const currentEmail = att.email || '';
+            const newEmail = prompt(`Nhập địa chỉ email nhận vé cho "${att.name}" (Mã: ${att.code}):`, currentEmail);
+            if (newEmail === null) return;
+            const trimmed = newEmail.trim();
+            if (trimmed && !trimmed.includes('@')) {
+                return window.showToast("Email không hợp lệ", "Vui lòng nhập đúng định dạng email (vd: abc@gmail.com)!", "warning");
+            }
+            att.email = trimmed;
+            try {
+                await updateDoc(sessionRef, { attendees: attendeesList });
+                window.showToast("Cập Nhật Email", `Đã cập nhật email cho ${att.name}`, "success");
+            } catch (err) {
+                window.showToast("Lỗi Cập Nhật", err.message, "error");
+            }
+        };
+
+        // CHECKBOX & BULK SELECTION
+        window.toggleSelectAllAttendees = function(checked) {
+            if (checked) {
+                filteredAttendees.forEach(a => selectedAttendeeIds.add(a.id));
+            } else {
+                filteredAttendees.forEach(a => selectedAttendeeIds.delete(a.id));
+            }
+            updateSelectedCountBadge();
+            renderTable(filteredAttendees);
+        };
+
+        window.toggleSelectAttendee = function(attId, checked) {
+            if (checked) {
+                selectedAttendeeIds.add(attId);
+            } else {
+                selectedAttendeeIds.delete(attId);
+            }
+            updateSelectedCountBadge();
+        };
+
+        function updateSelectedCountBadge() {
+            const countBadge = document.getElementById('count-selected-att');
+            if (countBadge) countBadge.textContent = selectedAttendeeIds.size;
+
+            const checkAllBox = document.getElementById('check-all-attendees');
+            if (checkAllBox) {
+                if (filteredAttendees.length > 0 && filteredAttendees.every(a => selectedAttendeeIds.has(a.id))) {
+                    checkAllBox.checked = true;
+                    checkAllBox.indeterminate = false;
+                } else if (filteredAttendees.some(a => selectedAttendeeIds.has(a.id))) {
+                    checkAllBox.checked = false;
+                    checkAllBox.indeterminate = true;
+                } else {
+                    checkAllBox.checked = false;
+                    checkAllBox.indeterminate = false;
+                }
+            }
+        }
+
+        // TICKET EMAIL BUILDER
+        function buildTicketEmailHtml(attendee, session) {
+            const ticketUrl = `https://www.mhentuniverse.com/tools/checkin/ticket.html?id=${sessionId}&code=${encodeURIComponent(attendee.code)}`;
+            const qrData = `mhent-ci:${sessionId}:${attendee.code}`;
+            const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrData)}`;
+
+            return `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 620px; margin: 0 auto; color: #1e293b; background-color: #f8fafc; padding: 20px 10px;">
+                <div style="background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); padding: 30px 24px; border-radius: 16px 16px 0 0; text-align: center; color: #ffffff;">
+                    <div style="font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #cbd5e1; margin-bottom: 6px;">
+                        MIYAZAKI HARUTO ENTERTAINMENT CO., LTD.
+                    </div>
+                    <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 900; letter-spacing: -0.5px;">VÉ THAM DỰ ĐIỆN TỬ (E-TICKET)</h1>
+                    <p style="margin: 0; font-size: 14px; color: #e0e7ff; font-weight: 600;">Hệ Thống Điểm Danh & Quản Lý Sự Kiện MHEnt Check-in Hub</p>
+                </div>
+
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 16px 16px; padding: 28px 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.04);">
+                    <div style="margin-bottom: 20px;">
+                        <p style="font-size: 15px; margin: 0 0 6px;">Thân gửi <strong>${attendee.name}</strong>,</p>
+                        <p style="font-size: 14px; margin: 0; color: #475569; line-height: 1.6;">
+                            Ban tổ chức xin trân trọng gửi đến bạn thông tin Thẻ Tham Dự / Vé Điện Tử chính thức cho sự kiện <strong>${session?.title || 'Sự kiện MHEnt'}</strong>.
+                        </p>
+                    </div>
+
+                    <!-- EVENT DETAILS CARD -->
+                    <div style="background: #f1f5f9; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; border-left: 4px solid #6366f1;">
+                        <div style="font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 12px;">
+                            📋 THÔNG TIN SỰ KIỆN & ĐẠI BIỂU
+                        </div>
+                        <table cellpadding="4" cellspacing="0" style="width: 100%; font-size: 13.5px; color: #334155;">
+                            <tr>
+                                <td style="width: 38%; color: #64748b; font-weight: 600;">Sự Kiện:</td>
+                                <td style="font-weight: 800; color: #1e293b;">${session?.title || 'Chưa đặt tên'}</td>
+                            </tr>
+                            <tr>
+                                <td style="color: #64748b; font-weight: 600;">Thời Gian:</td>
+                                <td style="font-weight: 700; color: #4338ca;">${session?.startTime || '08:00'} • Ngày ${session?.date || 'Hôm nay'}</td>
+                            </tr>
+                            <tr>
+                                <td style="color: #64748b; font-weight: 600;">Họ và Tên:</td>
+                                <td style="font-weight: 800; color: #0f172a;">${attendee.name}</td>
+                            </tr>
+                            <tr>
+                                <td style="color: #64748b; font-weight: 600;">Mã Định Danh:</td>
+                                <td><span style="font-family: monospace; font-weight: 800; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px;">${attendee.code}</span></td>
+                            </tr>
+                            <tr>
+                                <td style="color: #64748b; font-weight: 600;">Đơn Vị / Chi Đoàn:</td>
+                                <td style="font-weight: 600;">${attendee.org || 'Đại biểu / Khách mời'}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- QR CODE BOX -->
+                    <div style="text-align: center; background: #faf5ff; border: 2px dashed #c084fc; border-radius: 14px; padding: 22px 16px; margin-bottom: 24px;">
+                        <div style="font-size: 13px; font-weight: 800; color: #7e22ce; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                            MÃ QR CHECK-IN CỦA BẠN
+                        </div>
+                        <div style="display: inline-block; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                            <img src="${qrImgUrl}" alt="QR Check-in" width="200" height="200" style="display: block; border-radius: 4px;">
+                        </div>
+                        <div style="margin-top: 10px; font-family: monospace; font-size: 13px; font-weight: 800; color: #475569;">
+                            Mã số: ${attendee.code}
+                        </div>
+                        <p style="margin: 8px 0 0; font-size: 12.5px; color: #6b21a8; font-weight: 600;">
+                            Vui lòng mở ảnh này trên điện thoại hoặc in ra để quét tại quầy lễ tân / Kiosk điểm danh.
+                        </p>
+                    </div>
+
+                    <!-- BUTTON VIEW FULL TICKET -->
+                    <div style="text-align: center; margin-bottom: 26px;">
+                        <a href="${ticketUrl}" target="_blank" style="display: inline-block; background: #6366f1; color: #ffffff; font-weight: 800; font-size: 14.5px; text-decoration: none; padding: 12px 28px; border-radius: 10px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+                            🎟️ Mở Vé Điện Tử & Tải Ảnh Vé HD
+                        </a>
+                        <div style="font-size: 11.5px; color: #94a3b8; margin-top: 6px;">
+                            (Hoặc sao chép liên kết: <a href="${ticketUrl}" style="color: #6366f1; word-break: break-all;">${ticketUrl}</a>)
+                        </div>
+                    </div>
+
+                    <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 20px;">
+                        ⚠️ <strong>Lưu ý:</strong> Mã QR này là vé định danh riêng của bạn. Để đảm bảo tính chính xác và bảo mật của sự kiện, vui lòng không chia sẻ mã này cho người khác.
+                    </div>
+
+                    <p style="font-size: 12px; color: #94a3b8; font-style: italic; margin-bottom: 20px;">
+                        Email này được gửi tự động từ hệ thống quản lý vé <b>noreply@mhentuniverse.com</b>. Vui lòng không trả lời trực tiếp email này. Nếu có thắc mắc, vui lòng liên hệ ban tổ chức sự kiện qua <a href="mailto:contact@mhentuniverse.com" style="color: #6366f1;">contact@mhentuniverse.com</a>.
+                    </p>
+
+                    ${OFFICIAL_SIGNATURE}
+                </div>
+            </div>
+            `;
+        }
+
+        // SEND EMAIL VIA GAS MAILER
+        async function sendEmailViaMailer(targetEmail, subject, htmlBody) {
+            const response = await fetch(MAILER_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "send",
+                    subject: subject,
+                    body: htmlBody,
+                    emails: [targetEmail],
+                    senderName: "MHEnt. Universe (No-Reply)"
+                })
+            });
+            return response;
+        }
+
+        // SEND TICKET TO INDIVIDUAL ATTENDEE
+        window.sendSingleTicketEmail = async function(attId) {
+            const att = attendeesList.find(a => a.id === attId);
+            if (!att) return;
+
+            if (!att.email || !att.email.includes('@')) {
+                const inputMail = prompt(`Thành viên "${att.name}" (${att.code}) chưa có địa chỉ email nhận vé.\n\nVui lòng nhập email của người này:`);
+                if (!inputMail) return;
+                const cleanMail = inputMail.trim();
+                if (!cleanMail || !cleanMail.includes('@')) {
+                    return window.showToast("Email không hợp lệ", "Định dạng email không đúng!", "error");
+                }
+                att.email = cleanMail;
+            }
+
+            const btn = document.getElementById(`btn-send-${att.id}`);
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+            }
+
+            try {
+                const subject = `🎟️ [Vé Tham Dự] ${sessionData?.title || 'Sự Kiện MHEnt'} - E-Ticket của ${att.name}`;
+                const emailHtml = buildTicketEmailHtml(att, sessionData);
+                await sendEmailViaMailer(att.email, subject, emailHtml);
+
+                att.ticketSent = true;
+                att.ticketSentAt = new Date().toLocaleString('vi-VN');
+                await updateDoc(sessionRef, { attendees: attendeesList });
+
+                window.showToast("Đã Gửi Vé Thành Công!", `Đã gửi E-Ticket kèm mã QR đến ${att.email}!`, "success");
+            } catch (err) {
+                console.error("Lỗi gửi vé đơn:", err);
+                window.showToast("Lỗi Gửi Email", err.message || "Không thể kết nối đến máy chủ gửi thư!", "error");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
+        };
+
+        // BULK EMAIL MODAL CONTROLS
+        window.openBulkEmailModal = function() {
+            const selectedList = attendeesList.filter(a => selectedAttendeeIds.has(a.id) && a.email && a.email.includes('@'));
+            const allValidList = attendeesList.filter(a => a.email && a.email.includes('@'));
+            const unsentList = attendeesList.filter(a => a.email && a.email.includes('@') && !a.ticketSent);
+
+            document.getElementById('bulk-stat-selected').textContent = selectedList.length;
+            document.getElementById('bulk-stat-all').textContent = allValidList.length;
+            document.getElementById('bulk-stat-unsent').textContent = unsentList.length;
+
+            document.getElementById('bulk-progress-box').style.display = 'none';
+            document.getElementById('bulk-progress-bar').style.width = '0%';
+            document.getElementById('bulk-progress-pct').textContent = '0%';
+            document.getElementById('btn-start-bulk').disabled = false;
+            document.getElementById('btn-close-bulk').disabled = false;
+            document.getElementById('btn-start-bulk').innerHTML = `<i class="fa-solid fa-paper-plane"></i> Tiến Hành Gửi Vé`;
+
+            const m = document.getElementById('modal-bulk-email');
+            m.style.display = 'flex';
+            setTimeout(() => m.classList.add('show'), 10);
+        };
+
+        window.closeBulkEmailModal = function() {
+            const m = document.getElementById('modal-bulk-email');
+            m.classList.remove('show');
+            setTimeout(() => { m.style.display = 'none'; }, 200);
+        };
+
+        window.handleStartBulkSend = async function() {
+            const scopeRadios = document.getElementsByName('bulk-target-scope');
+            let scope = 'SELECTED';
+            for (const r of scopeRadios) {
+                if (r.checked) {
+                    scope = r.value;
+                    break;
+                }
+            }
+
+            let targetList = [];
+            if (scope === 'SELECTED') {
+                targetList = attendeesList.filter(a => selectedAttendeeIds.has(a.id) && a.email && a.email.includes('@'));
+                if (targetList.length === 0) {
+                    return window.showToast("Chưa chọn ai", "Vui lòng tích chọn ít nhất 1 người có email hợp lệ trong bảng trước khi gửi!", "warning");
+                }
+            } else if (scope === 'ALL_VALID') {
+                targetList = attendeesList.filter(a => a.email && a.email.includes('@'));
+                if (targetList.length === 0) {
+                    return window.showToast("Không có email", "Phiên này chưa có thành viên nào có địa chỉ email hợp lệ!", "warning");
+                }
+            } else if (scope === 'UNSENT_ONLY') {
+                targetList = attendeesList.filter(a => a.email && a.email.includes('@') && !a.ticketSent);
+                if (targetList.length === 0) {
+                    return window.showToast("Đã gửi hết", "Tất cả các thành viên có email đều đã được gửi vé trước đó!", "info");
+                }
+            }
+
+            if (!confirm(`Xác nhận bắt đầu gửi vé E-Ticket cho ${targetList.length} người qua email noreply@mhentuniverse.com?`)) {
+                return;
+            }
+
+            const progressBox = document.getElementById('bulk-progress-box');
+            const progressBar = document.getElementById('bulk-progress-bar');
+            const progressStatus = document.getElementById('bulk-progress-status');
+            const progressPct = document.getElementById('bulk-progress-pct');
+            const progressDetail = document.getElementById('bulk-progress-detail');
+            const btnStart = document.getElementById('btn-start-bulk');
+            const btnClose = document.getElementById('btn-close-bulk');
+
+            progressBox.style.display = 'block';
+            btnStart.disabled = true;
+            btnClose.disabled = true;
+            btnStart.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (let i = 0; i < targetList.length; i++) {
+                const att = targetList[i];
+                const pct = Math.round(((i + 1) / targetList.length) * 100);
+                progressStatus.textContent = `Đang gửi ${i + 1}/${targetList.length}...`;
+                progressPct.textContent = `${pct}%`;
+                progressBar.style.width = `${pct}%`;
+                progressDetail.textContent = `→ Đang gửi: ${att.name} (${att.email})`;
+
+                try {
+                    const subject = `🎟️ [Vé Tham Dự] ${sessionData?.title || 'Sự Kiện MHEnt'} - E-Ticket của ${att.name}`;
+                    const emailHtml = buildTicketEmailHtml(att, sessionData);
+                    await sendEmailViaMailer(att.email, subject, emailHtml);
+                    att.ticketSent = true;
+                    att.ticketSentAt = new Date().toLocaleString('vi-VN');
+                    successCount++;
+                } catch (err) {
+                    console.error(`Lỗi gửi vé cho ${att.name}:`, err);
+                    failCount++;
+                }
+
+                // Chờ 300ms chống nghẽn Google Apps Script
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            try {
+                await updateDoc(sessionRef, { attendees: attendeesList });
+            } catch (err) {
+                console.error("Lỗi cập nhật trạng thái gửi vé vào Firestore:", err);
+            }
+
+            progressStatus.textContent = `Hoàn tất! Thành công: ${successCount}, Thất bại: ${failCount}`;
+            progressDetail.textContent = `Đã cập nhật trạng thái vé vào cơ sở dữ liệu.`;
+            btnStart.disabled = false;
+            btnClose.disabled = false;
+            btnStart.innerHTML = `<i class="fa-solid fa-check"></i> Đã Gửi Xong (${successCount}/${targetList.length})`;
+
+            window.showToast("Gửi Vé Hoàn Tất", `Đã gửi thành công ${successCount}/${targetList.length} vé tham dự!`, "success");
         };
 
         // EXPORT EXCEL
