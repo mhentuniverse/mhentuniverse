@@ -765,11 +765,14 @@
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
         const firebaseConfig = window.firebaseConfig;
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const functions = getFunctions(app);
+        const sendTicketCallable = httpsCallable(functions, 'sendTicketEmail');
 
         let currentUser = (window.getMHEntUser && window.getMHEntUser()) || null;
         let formConfig = null;
@@ -1642,10 +1645,43 @@
             `;
 
             try {
+                // 1. Thử gửi trực tiếp qua Firebase Cloud Function chính thức (noreply@mhentuniverse.com)
+                try {
+                    const res = await sendTicketCallable({
+                        email: targetEmail,
+                        subject: emailSubject,
+                        html: emailBody,
+                        senderName: "MHEnt. Universe (No-Reply)"
+                    });
+                    if (res && res.data) return;
+                } catch (fnErr) {
+                    console.warn("Chưa gọi được sendTicketEmail (onCall), thử tiếp endpoint /api/send-email:", fnErr);
+                }
+
+                // 2. Thử gửi qua endpoint HTTP (/api/send-email)
+                try {
+                    const httpRes = await fetch("/api/send-email", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: targetEmail,
+                            subject: emailSubject,
+                            html: emailBody,
+                            senderName: "MHEnt. Universe (No-Reply)"
+                        })
+                    });
+                    if (httpRes.ok) return;
+                } catch (httpErr) {
+                    console.warn("Chưa kết nối được /api/send-email:", httpErr);
+                }
+
+                // 3. Fallback: Google Apps Script Web App
                 await fetch(MAILER_URL, {
                     method: "POST",
                     body: JSON.stringify({
                         action: "send",
+                        from: "noreply@mhentuniverse.com",
+                        senderEmail: "noreply@mhentuniverse.com",
                         subject: emailSubject,
                         body: emailBody,
                         emails: [targetEmail],

@@ -8,8 +8,8 @@ admin.initializeApp();
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'noreply@mhentuniverse.com', // Email gửi đi
-        pass: 'tnadvmjgonldimth' // Mật khẩu ứng dụng 16 chữ
+        user: 'mhent@mhentuniverse.com', // Email gửi đi
+        pass: 'jjlbdlgpnjnnmqjn' // Mật khẩu ứng dụng 16 chữ
     }
 });
 
@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 exports.sendCustomAuthEmail = functions.https.onCall(async (data, context) => {
     // Nhận các thông số từ giao diện Web truyền lên
     const { email, type, displayName, newEmail } = data;
-    
+
     let actionLink = '';
     let subject = '';
     let htmlContent = '';
@@ -26,7 +26,7 @@ exports.sendCustomAuthEmail = functions.https.onCall(async (data, context) => {
 
     // 🌟 TRICK QUAN TRỌNG: Ép link phải trỏ về tên miền xịn của MHEnt
     const actionCodeSettings = {
-        url: 'https://mhentuniverse.com/auth-action.html', 
+        url: 'https://mhentuniverse.com/auth-action.html',
         handleCodeInApp: false
     };
 
@@ -36,7 +36,7 @@ exports.sendCustomAuthEmail = functions.https.onCall(async (data, context) => {
         // ==========================================
         if (type === 'resetPassword') {
             actionLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
-            
+
             subject = '🗝️ Chìa khóa dự phòng cho tài khoản MHEnt của cậu đây!';
             htmlContent = `
                 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #334155; line-height: 1.6; max-width: 600px; margin: 0 auto; border: 2px solid #fce7f3; border-radius: 16px; padding: 30px; background-color: #ffffff; box-shadow: 0 10px 25px rgba(244, 63, 94, 0.05);">
@@ -56,13 +56,13 @@ exports.sendCustomAuthEmail = functions.https.onCall(async (data, context) => {
                     <p style="font-size: 16px; margin-top: 30px;">Nhớ giữ chìa khóa cẩn thận nha cậu ơi!<br>Thân mến,<br><strong style="color: #f43f5e;">Ban Quản Trị MHEnt. Universe</strong></p>
                 </div>
             `;
-        } 
+        }
         // ==========================================
         // TRƯỜNG HỢP 2: XÁC MINH TÀI KHOẢN (VERIFY EMAIL)
         // ==========================================
         else if (type === 'verifyEmail') {
             actionLink = await admin.auth().generateEmailVerificationLink(email, actionCodeSettings);
-            
+
             subject = '🌟 Kích hoạt thẻ căn cước đa vũ trụ MHEnt của cậu nè!';
             htmlContent = `
                 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #334155; line-height: 1.6; max-width: 600px; margin: 0 auto; border: 2px solid #e0f2fe; border-radius: 16px; padding: 30px; background-color: #ffffff; box-shadow: 0 10px 25px rgba(14, 165, 233, 0.05);">
@@ -88,11 +88,11 @@ exports.sendCustomAuthEmail = functions.https.onCall(async (data, context) => {
         // ==========================================
         else if (type === 'changeEmail') {
             if (!newEmail) throw new Error("Chưa cung cấp địa chỉ email mới để chuyển nhà!");
-            
+
             // Link xác nhận sẽ được gửi đến email MỚI để verify
             actionLink = await admin.auth().generateVerifyAndChangeEmailLink(email, newEmail, actionCodeSettings);
             targetEmail = newEmail; // Chuyển đích đến là email mới
-            
+
             subject = '💌 Xác nhận dời nhà sang hòm thư mới tại MHEnt. Universe!';
             htmlContent = `
                 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #334155; line-height: 1.6; max-width: 600px; margin: 0 auto; border: 2px solid #ede9fe; border-radius: 16px; padding: 30px; background-color: #ffffff; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.05);">
@@ -225,5 +225,88 @@ exports.exportFormCSV = functions.https.onRequest(async (req, res) => {
     } catch (err) {
         console.error("Lỗi xuất CSV cho Google Sheet:", err);
         res.status(500).send("Lỗi máy chủ khi xuất CSV: " + err.message);
+    }
+});
+
+// ==========================================
+// 4. API GỬI VÉ ĐIỆN TỬ CHECK-IN (E-TICKET) TỪ NOREPLY@MHENTUNIVERSE.COM
+// ==========================================
+exports.sendTicketEmail = functions.https.onCall(async (data, context) => {
+    const { email, to, targetEmail, subject, html, htmlBody, body, senderName } = data || {};
+    const recipient = (email || to || targetEmail || '').trim();
+    if (!recipient) {
+        throw new functions.https.HttpsError('invalid-argument', 'Thiếu địa chỉ email người nhận.');
+    }
+
+    const mailSubject = subject || '🎟️ [Vé Tham Dự] E-Ticket MHEnt';
+    const content = html || htmlBody || body || '';
+    const fromName = senderName || 'MHEnt. Universe (No-Reply)';
+
+    try {
+        await transporter.sendMail({
+            from: `"${fromName}" <noreply@mhentuniverse.com>`,
+            to: recipient,
+            replyTo: 'contact@mhentuniverse.com',
+            subject: mailSubject,
+            html: content
+        });
+
+        return { success: true, message: 'Đã gửi vé E-Ticket thành công từ noreply@mhentuniverse.com!' };
+    } catch (error) {
+        console.error('Lỗi khi gửi email vé E-Ticket:', error);
+        throw new functions.https.HttpsError('internal', error.message || 'Lỗi gửi email qua máy chủ.');
+    }
+});
+
+// ==========================================
+// 5. ENDPOINT HTTP GỬI EMAIL CHÍNH THỨC (CORS ĐẦY ĐỦ)
+// ==========================================
+exports.sendEmailHttp = functions.https.onRequest(async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+
+    if (req.method !== 'POST') {
+        res.status(405).json({ status: 'error', message: 'Phương thức không được hỗ trợ' });
+        return;
+    }
+
+    try {
+        let payload = req.body;
+        if (typeof payload === 'string') {
+            try { payload = JSON.parse(payload); } catch (e) { }
+        }
+
+        const { emails, email, to, targetEmail, subject, body, html, htmlBody, senderName } = payload || {};
+        const recipients = emails || (email || to || targetEmail ? [email || to || targetEmail] : []);
+
+        if (!recipients || recipients.length === 0) {
+            res.status(400).json({ status: 'error', message: 'Thiếu email người nhận.' });
+            return;
+        }
+
+        const mailSubject = subject || '🎟️ Thông Báo Từ MHEnt. Universe';
+        const content = html || htmlBody || body || '';
+        const fromName = senderName || 'MHEnt. Universe (No-Reply)';
+
+        for (const r of recipients) {
+            await transporter.sendMail({
+                from: `"${fromName}" <noreply@mhentuniverse.com>`,
+                to: r,
+                replyTo: 'contact@mhentuniverse.com',
+                subject: mailSubject,
+                html: content
+            });
+        }
+
+        res.status(200).json({ status: 'success', message: 'Đã gửi thư thành công từ noreply@mhentuniverse.com!' });
+    } catch (error) {
+        console.error('Lỗi gửi mail HTTP:', error);
+        res.status(500).json({ status: 'error', message: error.message });
     }
 });
