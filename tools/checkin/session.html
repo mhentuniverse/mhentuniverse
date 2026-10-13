@@ -802,7 +802,7 @@
         let sessionData = null;
         let attendeesList = [];
         let filteredAttendees = [];
-        let currentUser = null;
+        let currentUser = (window.getMHEntUser && window.getMHEntUser()) || null;
         let selectedAttendeeIds = new Set();
 
         const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
@@ -856,16 +856,18 @@
         }
 
         function canCurrentManageSession() {
-            if (!currentUser || !sessionData) return false;
-            const userEmail = (currentUser.email || '').toLowerCase();
-            const userUid = currentUser.uid || '';
+            const activeUser = currentUser || (window.getMHEntUser && window.getMHEntUser()) || auth.currentUser;
+            if (!activeUser || !sessionData) return false;
+            const userEmail = (activeUser.email || '').toLowerCase();
+            const userUid = activeUser.uid || '';
             const isAdmin = userEmail === 'mhent@mhentuniverse.com' ||
                             userEmail === 'contact@mhentuniverse.com' ||
+                            userEmail === 'miyazakiharuto.ent.co@gmail.com' ||
                             userEmail.endsWith('@mhentuniverse.com') ||
-                            (currentUser.role && currentUser.role.toLowerCase().includes('admin'));
+                            (activeUser.role && String(activeUser.role).toLowerCase().includes('admin'));
             const isOwner = (sessionData.createdByUid && sessionData.createdByUid === userUid) ||
                             (sessionData.createdByEmail && sessionData.createdByEmail.toLowerCase() === userEmail);
-            return isAdmin || isOwner;
+            return Boolean(isAdmin || isOwner);
         }
 
         function updateOwnerAdminControls() {
@@ -1607,14 +1609,15 @@
 
         // DELETE CURRENT SESSION (CREATOR & ADMIN ONLY)
         window.confirmDeleteCurrentSession = async function() {
-            if (!canCurrentManageSession()) {
-                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền xóa phiên!", "error");
+            const activeUser = currentUser || (window.getMHEntUser && window.getMHEntUser()) || auth.currentUser;
+            if (!activeUser) {
+                window.showToast("Chưa đăng nhập", "Vui lòng đăng nhập tài khoản MHEnt ID để thực hiện thao tác xóa!", "warning");
+                setTimeout(() => window.redirectToLogin(window.location.href), 1200);
                 return;
             }
 
-            if (!auth.currentUser) {
-                window.showToast("Chưa xác thực", "Vui lòng đăng nhập lại tài khoản MHEnt ID để xác thực quyền xóa với máy chủ!", "warning");
-                setTimeout(() => window.redirectToLogin(window.location.href), 1200);
+            if (!canCurrentManageSession()) {
+                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền xóa phiên!", "error");
                 return;
             }
 

@@ -667,7 +667,7 @@
         const auth = getAuth(app);
 
         let sessionsList = [];
-        let currentUser = null;
+        let currentUser = (window.getMHEntUser && window.getMHEntUser()) || null;
         let currentTab = 'ALL';
 
         // AUTH
@@ -782,16 +782,18 @@
 
         // CHECK DELETE PERMISSION (CREATOR & ADMIN ONLY)
         function canUserDeleteSession(s, user) {
-            if (!user || !s) return false;
-            const userEmail = (user.email || '').toLowerCase();
-            const userUid = user.uid || '';
+            const activeUser = user || currentUser || (window.getMHEntUser && window.getMHEntUser()) || auth.currentUser;
+            if (!activeUser || !s) return false;
+            const userEmail = (activeUser.email || '').toLowerCase();
+            const userUid = activeUser.uid || '';
             const isAdmin = userEmail === 'mhent@mhentuniverse.com' ||
                             userEmail === 'contact@mhentuniverse.com' ||
+                            userEmail === 'miyazakiharuto.ent.co@gmail.com' ||
                             userEmail.endsWith('@mhentuniverse.com') ||
-                            (user.role && user.role.toLowerCase().includes('admin'));
+                            (activeUser.role && String(activeUser.role).toLowerCase().includes('admin'));
             const isOwner = (s.createdByUid && s.createdByUid === userUid) ||
                             (s.createdByEmail && s.createdByEmail.toLowerCase() === userEmail);
-            return isAdmin || isOwner;
+            return Boolean(isAdmin || isOwner);
         }
 
         // RENDER SESSIONS
@@ -867,15 +869,16 @@
 
         // CONFIRM DELETE SESSION (CREATOR & ADMIN ONLY)
         window.confirmDeleteSession = async function(id, encodedTitle) {
-            const targetSession = sessionsList.find(s => s.id === id);
-            if (!canUserDeleteSession(targetSession, currentUser)) {
-                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền xóa phiên!", "error");
+            const activeUser = currentUser || (window.getMHEntUser && window.getMHEntUser()) || auth.currentUser;
+            if (!activeUser) {
+                window.showToast("Chưa đăng nhập", "Vui lòng đăng nhập tài khoản MHEnt ID để thực hiện thao tác xóa!", "warning");
+                setTimeout(() => window.redirectToLogin(window.location.href), 1200);
                 return;
             }
 
-            if (!auth.currentUser) {
-                window.showToast("Chưa xác thực", "Vui lòng đăng nhập tài khoản MHEnt ID để xác thực quyền xóa với máy chủ!", "warning");
-                setTimeout(() => window.redirectToLogin(window.location.href), 1200);
+            const targetSession = sessionsList.find(s => s.id === id);
+            if (!canUserDeleteSession(targetSession, activeUser)) {
+                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền xóa phiên!", "error");
                 return;
             }
 
