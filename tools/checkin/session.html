@@ -802,6 +802,28 @@
                     </span>
                 </div>
 
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
+                        <i class="fa-solid fa-arrow-down-short-wide" style="color: var(--ci-accent);"></i> Thứ Tự Sắp Xếp Mặc Định Cho Phiên (Kiosk, Tra Cứu, Bảng)
+                    </label>
+                    <select id="setting-default-sort" class="form-select" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-weight: 700;">
+                        <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
+                        <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
+                        <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
+                        <option value="FULLNAME_ASC">📝 Họ và Tên A → Z</option>
+                        <option value="FULLNAME_DESC">📝 Họ và Tên Z → A</option>
+                        <option value="CODE_ASC">🔢 Mã Số A → Z</option>
+                        <option value="CODE_DESC">🔢 Mã Số Z → A</option>
+                        <option value="ORG_ASC">🏢 Đơn Vị A → Z</option>
+                        <option value="ORG_DESC">🏢 Đơn Vị Z → A</option>
+                        <option value="CHECKIN_DESC">⚡ Giờ check-in mới nhất</option>
+                        <option value="CHECKIN_ASC">⏳ Giờ check-in sớm nhất</option>
+                    </select>
+                    <span style="font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px;">
+                        <i class="fa-solid fa-circle-info"></i> Các màn hình Kiosk tự phục vụ và Tra cứu vé sẽ tự động sắp xếp danh sách theo tùy chọn này.
+                    </span>
+                </div>
+
                 <div style="background: rgba(16, 185, 129, 0.08); border-radius: 10px; padding: 12px; margin-bottom: 18px; font-size: 12px; color: var(--text-main);">
                     <div style="font-weight: 800; margin-bottom: 4px;"><i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Chủ Sở Hữu Phiên:</div>
                     <div id="setting-owner-display" style="color: var(--text-muted);">...</div>
@@ -871,6 +893,7 @@
         let currentUser = (window.getMHEntUser && window.getMHEntUser()) || null;
         let selectedAttendeeIds = new Set();
         let currentSort = 'DEFAULT';
+        let isSortInitialized = false;
 
         const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
 
@@ -1020,6 +1043,16 @@
             document.getElementById('stat-late').innerText = lateList.length;
             document.getElementById('stat-absent').innerText = absentCount;
             document.getElementById('stat-rate').innerText = `${rate}%`;
+
+            if (!isSortInitialized) {
+                if (sessionData.defaultSort) {
+                    currentSort = sessionData.defaultSort;
+                    const selectEl = document.getElementById('filter-sort');
+                    if (selectEl) selectEl.value = currentSort;
+                    updateSortHeaderIcons();
+                }
+                isSortInitialized = true;
+            }
 
             filterAttendees();
         });
@@ -1189,6 +1222,10 @@
 
             updateSortHeaderIcons();
             filterAttendees();
+
+            if (canCurrentManageSession() && sessionData) {
+                updateDoc(sessionRef, { defaultSort: currentSort }).catch(e => console.warn(e));
+            }
         };
 
         window.handleSortSelectChange = function() {
@@ -1196,6 +1233,10 @@
             if (selectEl) currentSort = selectEl.value;
             updateSortHeaderIcons();
             filterAttendees();
+
+            if (canCurrentManageSession() && sessionData) {
+                updateDoc(sessionRef, { defaultSort: currentSort }).catch(e => console.warn(e));
+            }
         };
 
         function updateSortHeaderIcons() {
@@ -1826,6 +1867,7 @@
             document.getElementById('setting-privacy').value = sessionData.privacy || 'PUBLIC';
             document.getElementById('setting-pin').value = sessionData.accessPin || '';
             document.getElementById('setting-managers').value = (sessionData.managers || []).join(', ');
+            document.getElementById('setting-default-sort').value = sessionData.defaultSort || 'DEFAULT';
             document.getElementById('setting-owner-display').innerText = `${sessionData.createdBy || 'Chủ tịch MHEnt'} (${sessionData.createdByEmail || 'admin@mhentuniverse.com'})`;
 
             const m = document.getElementById('modal-session-settings');
@@ -1851,6 +1893,7 @@
             const accessPin = document.getElementById('setting-pin').value.trim();
             const managersRaw = document.getElementById('setting-managers').value.trim();
             const managers = managersRaw ? managersRaw.split(',').map(m => m.trim().toLowerCase()).filter(Boolean) : [];
+            const defaultSort = document.getElementById('setting-default-sort').value || 'DEFAULT';
 
             const btn = document.getElementById('btn-save-settings');
             btn.disabled = true;
@@ -1861,10 +1904,17 @@
                     title,
                     privacy,
                     accessPin,
-                    managers
+                    managers,
+                    defaultSort
                 });
+                currentSort = defaultSort;
+                const selectEl = document.getElementById('filter-sort');
+                if (selectEl) selectEl.value = currentSort;
+                updateSortHeaderIcons();
+                filterAttendees();
+
                 closeSessionSettingsModal();
-                window.showToast("Đã Cập Nhật", "Đã lưu thông tin cài đặt và phân quyền phiên!", "success");
+                window.showToast("Đã Cập Nhật", "Đã lưu cài đặt phiên và áp dụng thứ tự sắp xếp mặc định!", "success");
             } catch (err) {
                 console.error("Save settings error:", err);
                 window.showToast("Lỗi Lưu", err.message, "error");

@@ -337,17 +337,48 @@
         
         <!-- LOOKUP BAR -->
         <div class="lookup-card">
-            <h2 style="font-size: 16px; font-weight: 900; margin: 0; color: var(--text-main);">
-                <i class="fa-solid fa-magnifying-glass" style="color: var(--ci-accent);"></i> Tra Cứu Vé Tham Dự
-            </h2>
-            <p style="font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0;">
-                Nhập Mã SV / Mã NV hoặc Tên của bạn để hiển thị thẻ vé có mã QR xác thực.
-            </p>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <h2 style="font-size: 16px; font-weight: 900; margin: 0; color: var(--text-main);">
+                        <i class="fa-solid fa-magnifying-glass" style="color: var(--ci-accent);"></i> Tra Cứu Vé Tham Dự
+                    </h2>
+                    <p style="font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0;">
+                        Nhập Mã SV / Mã NV hoặc Tên của bạn để hiển thị thẻ vé có mã QR xác thực.
+                    </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-arrow-down-short-wide"></i> Thứ tự:</span>
+                    <select id="ticket-sort" onchange="handleTicketSortChange(this.value)"
+                        style="padding: 5px 10px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-size: 12px; font-weight: 700; outline: none; cursor: pointer;"
+                        title="Sắp xếp danh sách tra cứu vé">
+                        <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
+                        <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
+                        <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
+                        <option value="FULLNAME_ASC">📝 Họ và Tên A → Z</option>
+                        <option value="FULLNAME_DESC">📝 Họ và Tên Z → A</option>
+                        <option value="CODE_ASC">🔢 Mã số A → Z</option>
+                        <option value="CODE_DESC">🔢 Mã số Z → A</option>
+                        <option value="ORG_ASC">🏢 Đơn vị A → Z</option>
+                        <option value="ORG_DESC">🏢 Đơn vị Z → A</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="lookup-input-row">
                 <input type="text" id="lookup-keyword" class="lookup-input" placeholder="Ví dụ: MH-DEV-01 hoặc Yorutsuki Yurika..." onkeypress="if(event.key==='Enter') executeLookup()">
                 <button class="btn-lookup" onclick="executeLookup()">
                     <i class="fa-solid fa-search"></i> Tra Cứu
                 </button>
+            </div>
+
+            <!-- QUICK ATTENDEE SELECTOR -->
+            <div style="margin-top: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <label for="lookup-select-attendee" style="font-size: 12px; font-weight: 800; color: var(--text-muted);">
+                    <i class="fa-solid fa-list-check"></i> Chọn nhanh đại biểu (<span id="attendee-count-label">0</span> người):
+                </label>
+                <select id="lookup-select-attendee" onchange="handleSelectAttendee(this.value)"
+                    style="flex: 1; min-width: 220px; padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-size: 13px; font-weight: 700; outline: none; cursor: pointer;">
+                </select>
             </div>
         </div>
 
@@ -411,6 +442,7 @@
             <button class="btn-ticket-act btn-act-outline" onclick="viewPrevAttendee()" id="btn-prev" title="Người trước">
                 <i class="fa-solid fa-chevron-left"></i> Người trước
             </button>
+            <span id="ticket-index-counter" style="display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 800; color: var(--text-muted); padding: 0 8px; min-width: 60px;">1 / 1</span>
             <button class="btn-ticket-act btn-act-outline" onclick="viewNextAttendee()" id="btn-next" title="Người tiếp theo">
                 Người sau <i class="fa-solid fa-chevron-right"></i>
             </button>
@@ -421,7 +453,7 @@
     <!-- FIREBASE MODULE -->
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = window.firebaseConfig;
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -434,6 +466,9 @@
         let sessionData = null;
         let attendeesList = [];
         let currentIndex = 0;
+        let currentSort = 'DEFAULT';
+        let isSortManuallyChanged = false;
+        let isInitialized = false;
         let qrcodeInstance = null;
 
         if (!sessionId) {
@@ -443,36 +478,126 @@
 
         document.getElementById('btn-back-session').href = `/tools/checkin/session.html?id=${sessionId}`;
 
-        async function init() {
-            try {
-                const docRef = doc(db, "mhent_checkin_sessions", sessionId);
-                const docSnap = await getDoc(docRef);
-                if (!docSnap.exists()) {
-                    alert("Phiên không tồn tại!");
-                    return;
-                }
-                sessionData = docSnap.data();
-                document.getElementById('nav-session-title').textContent = sessionData.title;
-                document.getElementById('ticket-title').textContent = sessionData.title;
-                document.getElementById('ticket-time').textContent = `${sessionData.startTime || '08:00'} • ${sessionData.date || 'Hôm nay'}`;
+        // HỖ TRỢ SẮP XẾP TÊN CHUẨN TIẾNG VIỆT
+        function getVietnameseSortKeys(fullName) {
+            if (!fullName) return { lastName: '', firstName: '', full: '' };
+            const clean = String(fullName).trim();
+            const parts = clean.split(/\s+/);
+            if (parts.length <= 1) return { lastName: '', firstName: clean, full: clean };
+            const firstName = parts[parts.length - 1];
+            const lastName = parts.slice(0, parts.length - 1).join(' ');
+            return { lastName, firstName, full: clean };
+        }
 
-                attendeesList = sessionData.attendees || [];
-                if (attendeesList.length === 0) {
-                    alert("Phiên này chưa có danh sách người tham gia!");
-                    return;
-                }
-
-                // If specific code passed in URL
-                if (paramCode) {
-                    const foundIdx = attendeesList.findIndex(a => a.code.toLowerCase() === paramCode.toLowerCase());
-                    if (foundIdx !== -1) currentIndex = foundIdx;
-                }
-
-                renderAttendeeTicket(currentIndex);
-            } catch (err) {
-                console.error("Init ticket error:", err);
+        function sortAttendeeList(list, sortType) {
+            const copy = [...list];
+            switch (sortType) {
+                case 'NAME_ASC':
+                    return copy.sort((a, b) => {
+                        const kA = getVietnameseSortKeys(a.name);
+                        const kB = getVietnameseSortKeys(b.name);
+                        const cmp = kA.firstName.localeCompare(kB.firstName, 'vi');
+                        if (cmp !== 0) return cmp;
+                        return kA.lastName.localeCompare(kB.lastName, 'vi');
+                    });
+                case 'NAME_DESC':
+                    return copy.sort((a, b) => {
+                        const kA = getVietnameseSortKeys(a.name);
+                        const kB = getVietnameseSortKeys(b.name);
+                        const cmp = kB.firstName.localeCompare(kA.firstName, 'vi');
+                        if (cmp !== 0) return cmp;
+                        return kB.lastName.localeCompare(kA.lastName, 'vi');
+                    });
+                case 'FULLNAME_ASC':
+                    return copy.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'vi'));
+                case 'FULLNAME_DESC':
+                    return copy.sort((a, b) => (b.name || '').localeCompare(a.name || '', 'vi'));
+                case 'CODE_ASC':
+                    return copy.sort((a, b) => (a.code || '').localeCompare(b.code || '', 'vi', { numeric: true }));
+                case 'CODE_DESC':
+                    return copy.sort((a, b) => (b.code || '').localeCompare(a.code || '', 'vi', { numeric: true }));
+                case 'ORG_ASC':
+                    return copy.sort((a, b) => (a.org || '').localeCompare(b.org || '', 'vi'));
+                case 'ORG_DESC':
+                    return copy.sort((a, b) => (b.org || '').localeCompare(a.org || '', 'vi'));
+                case 'DEFAULT':
+                default:
+                    return copy.sort((a, b) => (a._originalIndex ?? 0) - (b._originalIndex ?? 0));
             }
         }
+
+        function populateAttendeeDropdown() {
+            const sel = document.getElementById('lookup-select-attendee');
+            const countLabel = document.getElementById('attendee-count-label');
+            if (countLabel) countLabel.textContent = attendeesList.length;
+            if (!sel) return;
+
+            sel.innerHTML = attendeesList.map((a, idx) => `
+                <option value="${idx}">${idx + 1}. ${a.name} (${a.code})${a.org ? ' - ' + a.org : ''}</option>
+            `).join('');
+            sel.value = currentIndex;
+        }
+
+        function applySortAndRefresh(preferredCode) {
+            attendeesList = sortAttendeeList(attendeesList, currentSort);
+            populateAttendeeDropdown();
+
+            if (preferredCode) {
+                const foundIdx = attendeesList.findIndex(a => (a.code || '').toLowerCase() === preferredCode.toLowerCase());
+                if (foundIdx !== -1) currentIndex = foundIdx;
+            } else if (currentIndex >= attendeesList.length) {
+                currentIndex = 0;
+            }
+
+            renderAttendeeTicket(currentIndex);
+        }
+
+        window.handleTicketSortChange = function(val) {
+            currentSort = val;
+            isSortManuallyChanged = true;
+            const currentCode = attendeesList[currentIndex]?.code;
+            applySortAndRefresh(currentCode);
+        };
+
+        window.handleSelectAttendee = function(idx) {
+            currentIndex = parseInt(idx, 10) || 0;
+            renderAttendeeTicket(currentIndex);
+        };
+
+        // REALTIME SESSION SYNC
+        const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
+        onSnapshot(sessionRef, (docSnap) => {
+            if (!docSnap.exists()) {
+                alert("Phiên không tồn tại hoặc đã bị xóa!");
+                window.location.href = '/tools/checkin';
+                return;
+            }
+
+            sessionData = docSnap.data();
+            document.getElementById('nav-session-title').textContent = sessionData.title;
+            document.getElementById('ticket-title').textContent = sessionData.title;
+            document.getElementById('ticket-time').textContent = `${sessionData.startTime || '08:00'} • ${sessionData.date || 'Hôm nay'}`;
+
+            attendeesList = (sessionData.attendees || []).map((att, idx) => ({
+                ...att,
+                _originalIndex: att._originalIndex !== undefined ? att._originalIndex : idx
+            }));
+
+            if (attendeesList.length === 0) {
+                alert("Phiên này chưa có danh sách người tham gia!");
+                return;
+            }
+
+            if (!isSortManuallyChanged && sessionData.defaultSort) {
+                currentSort = sessionData.defaultSort;
+                const sortSelect = document.getElementById('ticket-sort');
+                if (sortSelect) sortSelect.value = currentSort;
+            }
+
+            const activeCode = isInitialized ? attendeesList[currentIndex]?.code : paramCode;
+            isInitialized = true;
+            applySortAndRefresh(activeCode);
+        });
 
         function renderAttendeeTicket(idx) {
             if (!attendeesList[idx]) return;
@@ -489,6 +614,12 @@
             } else {
                 statusBadge.innerHTML = `<span style="color: #6366f1;">● CHƯA ĐIỂM DANH (SẴN SÀNG)</span>`;
             }
+
+            // Sync Dropdown and Counter
+            const sel = document.getElementById('lookup-select-attendee');
+            if (sel) sel.value = idx;
+            const counter = document.getElementById('ticket-index-counter');
+            if (counter) counter.textContent = `${idx + 1} / ${attendeesList.length}`;
 
             // Render QR Code formatted as: mhent-ci:SESSION_ID:ATTENDEE_CODE
             const qrHolder = document.getElementById('ticket-qrcode');
@@ -561,8 +692,6 @@
                 alert("Lỗi khi tải ảnh vé: " + err.message);
             });
         };
-
-        init();
     </script>
 </body>
 </html>

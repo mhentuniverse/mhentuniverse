@@ -520,6 +520,25 @@
                 Đã có mặt (<span id="count-present">0</span>)
             </div>
         </div>
+
+        <div style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; flex-wrap: wrap;">
+            <span style="font-size: 12.5px; font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-arrow-down-short-wide"></i> Thứ tự hiển thị:</span>
+            <select id="kiosk-sort" onchange="handleKioskSortChange(this.value)"
+                style="padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 12.5px; font-weight: 800; outline: none; cursor: pointer;"
+                title="Sắp xếp danh sách người tham dự Kiosk">
+                <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
+                <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
+                <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
+                <option value="FULLNAME_ASC">📝 Họ và Tên A → Z</option>
+                <option value="FULLNAME_DESC">📝 Họ và Tên Z → A</option>
+                <option value="CODE_ASC">🔢 Mã Số A → Z</option>
+                <option value="CODE_DESC">🔢 Mã Số Z → A</option>
+                <option value="ORG_ASC">🏢 Đơn Vị A → Z</option>
+                <option value="ORG_DESC">🏢 Đơn Vị Z → A</option>
+                <option value="CHECKIN_DESC">⚡ Giờ check-in mới nhất</option>
+                <option value="CHECKIN_ASC">⏳ Giờ check-in sớm nhất</option>
+            </select>
+        </div>
     </section>
 
     <!-- ATTENDEE CARDS GRID -->
@@ -595,6 +614,8 @@
         let sessionData = null;
         let attendeesList = [];
         let currentFilter = 'ALL';
+        let currentSort = 'DEFAULT';
+        let isSortManuallyChanged = false;
         let searchQuery = '';
         let resetTimer = null;
 
@@ -639,6 +660,78 @@
 
         document.getElementById('btn-back-session').href = `/tools/checkin/session.html?id=${sessionId}`;
 
+        // HỖ TRỢ SẮP XẾP TÊN CHUẨN TIẾNG VIỆT
+        function getVietnameseSortKeys(fullName) {
+            if (!fullName) return { lastName: '', firstName: '', full: '' };
+            const clean = String(fullName).trim();
+            const parts = clean.split(/\s+/);
+            if (parts.length <= 1) return { lastName: '', firstName: clean, full: clean };
+            const firstName = parts[parts.length - 1];
+            const lastName = parts.slice(0, parts.length - 1).join(' ');
+            return { lastName, firstName, full: clean };
+        }
+
+        function sortAttendeeList(list, sortType) {
+            const copy = [...list];
+            switch (sortType) {
+                case 'NAME_ASC':
+                    return copy.sort((a, b) => {
+                        const kA = getVietnameseSortKeys(a.name);
+                        const kB = getVietnameseSortKeys(b.name);
+                        const cmp = kA.firstName.localeCompare(kB.firstName, 'vi');
+                        if (cmp !== 0) return cmp;
+                        return kA.lastName.localeCompare(kB.lastName, 'vi');
+                    });
+                case 'NAME_DESC':
+                    return copy.sort((a, b) => {
+                        const kA = getVietnameseSortKeys(a.name);
+                        const kB = getVietnameseSortKeys(b.name);
+                        const cmp = kB.firstName.localeCompare(kA.firstName, 'vi');
+                        if (cmp !== 0) return cmp;
+                        return kB.lastName.localeCompare(kA.lastName, 'vi');
+                    });
+                case 'FULLNAME_ASC':
+                    return copy.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'vi'));
+                case 'FULLNAME_DESC':
+                    return copy.sort((a, b) => (b.name || '').localeCompare(a.name || '', 'vi'));
+                case 'CODE_ASC':
+                    return copy.sort((a, b) => (a.code || '').localeCompare(b.code || '', 'vi', { numeric: true }));
+                case 'CODE_DESC':
+                    return copy.sort((a, b) => (b.code || '').localeCompare(a.code || '', 'vi', { numeric: true }));
+                case 'ORG_ASC':
+                    return copy.sort((a, b) => (a.org || '').localeCompare(b.org || '', 'vi'));
+                case 'ORG_DESC':
+                    return copy.sort((a, b) => (b.org || '').localeCompare(a.org || '', 'vi'));
+                case 'CHECKIN_DESC':
+                    return copy.sort((a, b) => {
+                        if (a.checkedIn && b.checkedIn) {
+                            return (b.checkinTime || '').localeCompare(a.checkinTime || '');
+                        }
+                        if (a.checkedIn && !b.checkedIn) return -1;
+                        if (!a.checkedIn && b.checkedIn) return 1;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'CHECKIN_ASC':
+                    return copy.sort((a, b) => {
+                        if (a.checkedIn && b.checkedIn) {
+                            return (a.checkinTime || '').localeCompare(b.checkinTime || '');
+                        }
+                        if (a.checkedIn && !b.checkedIn) return -1;
+                        if (!a.checkedIn && b.checkedIn) return 1;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'DEFAULT':
+                default:
+                    return copy.sort((a, b) => (a._originalIndex ?? 0) - (b._originalIndex ?? 0));
+            }
+        }
+
+        window.handleKioskSortChange = function(val) {
+            currentSort = val;
+            isSortManuallyChanged = true;
+            renderGrid();
+        };
+
         // REALTIME SESSION SYNC
         const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
         onSnapshot(sessionRef, (docSnap) => {
@@ -650,7 +743,18 @@
             sessionData = docSnap.data();
             document.getElementById('session-name-badge').textContent = sessionData.title;
             document.getElementById('display-title').textContent = sessionData.title;
-            attendeesList = sessionData.attendees || [];
+            attendeesList = (sessionData.attendees || []).map((att, idx) => ({
+                ...att,
+                _originalIndex: att._originalIndex !== undefined ? att._originalIndex : idx
+            }));
+
+            // Tự động nhận diện thứ tự sắp xếp được cấu hình từ phiên
+            if (!isSortManuallyChanged && sessionData.defaultSort) {
+                currentSort = sessionData.defaultSort;
+                const sortSelect = document.getElementById('kiosk-sort');
+                if (sortSelect) sortSelect.value = currentSort;
+            }
+
             updateStatsAndRender();
         });
 
@@ -691,7 +795,7 @@
         function renderGrid() {
             const container = document.getElementById('kiosk-grid');
             
-            let list = attendeesList.filter(a => {
+            let filtered = attendeesList.filter(a => {
                 if (currentFilter === 'PRESENT' && !a.checkedIn) return false;
                 if (currentFilter === 'ABSENT' && a.checkedIn) return false;
                 if (searchQuery) {
@@ -702,6 +806,8 @@
                 }
                 return true;
             });
+
+            let list = sortAttendeeList(filtered, currentSort);
 
             if (list.length === 0) {
                 container.innerHTML = `
