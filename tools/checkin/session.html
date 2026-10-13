@@ -264,6 +264,36 @@
         .badge-present { background: rgba(16, 185, 129, 0.15); color: #059669; }
         .badge-late { background: rgba(245, 158, 11, 0.15); color: #d97706; }
         .badge-absent { background: rgba(148, 163, 184, 0.15); color: #64748b; }
+        .badge-private { background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .badge-public { background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.25); }
+
+        /* LOCK SCREEN OVERLAY */
+        .lock-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .lock-card {
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-soft, #e2e8f0);
+            border-radius: 22px;
+            max-width: 440px;
+            width: 100%;
+            padding: 34px 28px;
+            text-align: center;
+            box-shadow: 0 24px 50px rgba(0,0,0,0.35);
+            animation: lockPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes lockPop {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
 
         .btn-table-action {
             padding: 6px 10px;
@@ -406,11 +436,13 @@
                 <h2>
                     <span id="session-title">Đang tải phiên...</span>
                     <span id="session-badge-type" class="badge-status badge-present" style="font-size: 12px;">SỰ KIỆN</span>
+                    <span id="session-badge-privacy" class="badge-status badge-public" style="font-size: 12px; margin-left: 4px;"><i class="fa-solid fa-globe"></i> CÔNG KHAI</span>
                 </h2>
                 <div style="font-size: 13px; color: var(--text-muted); display: flex; gap: 14px; flex-wrap: wrap;">
                     <span><i class="fa-regular fa-calendar"></i> <span id="session-date">...</span></span>
                     <span><i class="fa-regular fa-clock"></i> Bắt đầu: <strong id="session-time">08:00</strong></span>
                     <span><i class="fa-solid fa-hourglass-half"></i> Tính trễ sau: <strong id="session-late">08:15</strong></span>
+                    <span id="session-owner-tag" style="display: none;"><i class="fa-solid fa-user-shield"></i> Tạo bởi: <strong id="session-owner-name">...</strong></span>
                 </div>
             </div>
 
@@ -427,11 +459,17 @@
                 <a id="btn-open-ticket" href="#" class="btn-action btn-outline" target="_blank">
                     <i class="fa-solid fa-ticket"></i> Tra Cứu Vé
                 </a>
+                <button class="btn-action btn-outline" onclick="openSessionSettingsModal()" title="Cài đặt quyền riêng tư, PIN và phân quyền quản lý">
+                    <i class="fa-solid fa-gear"></i> Phân Quyền
+                </button>
                 <button class="btn-action btn-outline" onclick="exportExcel()">
                     <i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Xuất Excel
                 </button>
                 <button class="btn-action btn-outline" onclick="printReport()">
                     <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> In PDF
+                </button>
+                <button class="btn-action btn-outline" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;" onclick="confirmDeleteCurrentSession()" title="Xóa vĩnh viễn phiên này">
+                    <i class="fa-solid fa-trash-can"></i> Xóa Phiên
                 </button>
             </div>
         </div>
@@ -560,9 +598,104 @@
         </div>
     </div>
 
+    <!-- MODAL CÀI ĐẶT & PHÂN QUYỀN PHIÊN -->
+    <div id="modal-session-settings" class="mhent-ui-overlay" style="display: none;">
+        <div class="mhent-ui-box" style="max-width: 520px; width: 92%; padding: 26px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: var(--ci-accent); display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 17px; font-weight: 900; color: var(--text-main);">Cài Đặt & Phân Quyền Phiên</h3>
+                        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">Quản lý bảo mật, mã PIN và người đồng quản lý</p>
+                    </div>
+                </div>
+                <button onclick="closeSessionSettingsModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveSettings(event)">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">Tên Phiên Điểm Danh *</label>
+                    <input type="text" id="setting-title" required class="form-input" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">Chế Độ Riêng Tư *</label>
+                        <select id="setting-privacy" class="form-select" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-weight: 700;">
+                            <option value="PUBLIC">🌐 Công Khai (Ai có link đều vào)</option>
+                            <option value="PRIVATE">🔒 Riêng Tư (Chỉ tôi, PIN & Co-hosts)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">Mã PIN Quản Lý (Mở khóa)</label>
+                        <input type="text" id="setting-pin" class="form-input" placeholder="Ví dụ: 2026" maxlength="6" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
+                        Email Người Cùng Quản Lý (Co-hosts)
+                    </label>
+                    <input type="text" id="setting-managers" class="form-input" placeholder="ban-to-chuc@gmail.com, yorutsuki@mhentuniverse.com" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    <span style="font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px;">
+                        <i class="fa-solid fa-circle-info"></i> Nhập các email cách nhau bởi dấu phẩy. Người dùng đăng nhập email này sẽ có toàn quyền như chủ phòng.
+                    </span>
+                </div>
+
+                <div style="background: rgba(16, 185, 129, 0.08); border-radius: 10px; padding: 12px; margin-bottom: 18px; font-size: 12px; color: var(--text-main);">
+                    <div style="font-weight: 800; margin-bottom: 4px;"><i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Chủ Sở Hữu Phiên:</div>
+                    <div id="setting-owner-display" style="color: var(--text-muted);">...</div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-soft); padding-top: 14px;">
+                    <button type="button" class="btn-action btn-outline" onclick="closeSessionSettingsModal()">Hủy Bỏ</button>
+                    <button type="submit" id="btn-save-settings" class="btn-action btn-scanner">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOCK SCREEN OVERLAY DÀNH CHO PHIÊN RIÊNG TƯ -->
+    <div id="lock-screen-overlay" class="lock-overlay">
+        <div class="lock-card">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 style="margin: 0 0 8px; font-size: 19px; font-weight: 900; color: var(--text-main);">Phiên Điểm Danh Riêng Tư</h3>
+            <p style="margin: 0 0 20px; font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                Phiên này được bảo vệ bởi ban tổ chức. Bạn cần đăng nhập với tài khoản có quyền hoặc nhập <strong>Mã PIN Quản Lý</strong> để mở khóa.
+            </p>
+
+            <form onsubmit="handleUnlockWithPin(event)" id="lock-form" style="margin-bottom: 18px;">
+                <div style="margin-bottom: 14px;">
+                    <input type="password" id="input-lock-pin" placeholder="Nhập mã PIN (4-6 số)" maxlength="6" autofocus
+                        style="width: 100%; box-sizing: border-box; padding: 12px 16px; border-radius: 12px; border: 2px solid var(--border-soft); font-size: 18px; text-align: center; letter-spacing: 6px; font-weight: 800; background: var(--bg-canvas); color: var(--text-main);">
+                </div>
+                <button type="submit" class="btn-action btn-scanner" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;">
+                    <i class="fa-solid fa-key"></i> Mở Khóa Truy Cập
+                </button>
+            </form>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
+                <a href="/login.html" style="color: var(--ci-accent); text-decoration: none; font-weight: 700;">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập tài khoản khác
+                </a>
+                <a href="/tools/checkin" style="color: var(--text-muted); text-decoration: none;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách phiên
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = window.firebaseConfig;
@@ -578,6 +711,37 @@
         let filteredAttendees = [];
         let currentUser = null;
 
+        // KIỂM TRA QUYỀN TRUY CẬP (OWNER / MANAGERS / PIN / ADMIN)
+        function checkAccessPermission(data, user) {
+            if (!data) return true;
+            if (data.privacy !== 'PRIVATE') return true;
+            if (sessionStorage.getItem('mhent_unlocked_' + sessionId) === '1') return true;
+
+            const userEmail = (user?.email || '').toLowerCase();
+            const userUid = user?.uid || '';
+
+            const isOwner = (data.createdByUid && data.createdByUid === userUid) ||
+                            (data.createdByEmail && data.createdByEmail.toLowerCase() === userEmail);
+            if (isOwner) return true;
+
+            const isManager = Array.isArray(data.managers) && data.managers.some(m => m.toLowerCase() === userEmail);
+            if (isManager) return true;
+
+            if (userEmail.includes('admin') || userEmail.includes('mhentuniverse.com')) return true;
+
+            return false;
+        }
+
+        function updateLockScreenState() {
+            const overlay = document.getElementById('lock-screen-overlay');
+            if (!overlay) return;
+            if (sessionData && !checkAccessPermission(sessionData, currentUser)) {
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+
         onAuthStateChanged(auth, (user) => {
             currentUser = user || (window.getMHEntUser && window.getMHEntUser());
             const userSection = document.getElementById('user-section');
@@ -589,6 +753,7 @@
                     </div>
                 `;
             }
+            updateLockScreenState();
         });
 
         if (!sessionId) {
@@ -613,13 +778,28 @@
             sessionData = docSnap.data();
             attendeesList = sessionData.attendees || [];
 
-            // Render Header Info
+            // Kiểm tra phân quyền truy cập
+            updateLockScreenState();
+
+            // Render Header Info & Privacy Badge
             document.getElementById('session-title').innerText = sessionData.title || 'Phiên Không Tên';
             document.getElementById('print-session-title').innerText = `BÁO CÁO ĐIỂM DANH: ${sessionData.title || ''}`;
             document.getElementById('session-date').innerText = sessionData.date || 'Hôm nay';
             document.getElementById('session-time').innerText = sessionData.startTime || '08:00';
             document.getElementById('session-late').innerText = sessionData.lateThreshold || '08:15';
             document.getElementById('print-meta-date').innerText = `Ngày xuất: ${new Date().toLocaleString('vi-VN')} | Đơn vị: ${sessionData.title}`;
+
+            const isPrivate = sessionData.privacy === 'PRIVATE';
+            const privBadge = document.getElementById('session-badge-privacy');
+            if (privBadge) {
+                privBadge.className = `badge-status ${isPrivate ? 'badge-private' : 'badge-public'}`;
+                privBadge.innerHTML = isPrivate ? `<i class="fa-solid fa-lock"></i> RIÊNG TƯ` : `<i class="fa-solid fa-globe"></i> CÔNG KHAI`;
+            }
+
+            if (sessionData.createdBy) {
+                document.getElementById('session-owner-tag').style.display = 'inline';
+                document.getElementById('session-owner-name').innerText = sessionData.createdBy;
+            }
 
             // Calculate Stats
             const total = attendeesList.length;
@@ -819,6 +999,95 @@
         window.printReport = function() {
             document.getElementById('print-footer-date').innerText = new Date().toLocaleString('vi-VN');
             window.print();
+        };
+
+        // UNLOCK PRIVATE SESSION WITH PIN
+        window.handleUnlockWithPin = function(e) {
+            e.preventDefault();
+            const pinVal = (document.getElementById('input-lock-pin').value || '').trim();
+            if (!sessionData?.accessPin) {
+                window.showToast("Không Có PIN", "Phiên này không thiết lập mã PIN dự phòng. Vui lòng liên hệ ban tổ chức để thêm email của bạn vào danh sách đồng quản lý!", "warning");
+                return;
+            }
+            if (pinVal === sessionData.accessPin) {
+                sessionStorage.setItem('mhent_unlocked_' + sessionId, '1');
+                document.getElementById('lock-screen-overlay').style.display = 'none';
+                window.showToast("Đã Mở Khóa!", "Xác thực mã PIN thành công. Chào mừng bạn vào phiên!", "success");
+            } else {
+                window.showToast("Sai Mã PIN", "Mã PIN không chính xác, vui lòng thử lại!", "error");
+                document.getElementById('input-lock-pin').value = '';
+                document.getElementById('input-lock-pin').focus();
+            }
+        };
+
+        // SESSION SETTINGS & PERMISSIONS MODAL
+        window.openSessionSettingsModal = function() {
+            if (!sessionData) return;
+            document.getElementById('setting-title').value = sessionData.title || '';
+            document.getElementById('setting-privacy').value = sessionData.privacy || 'PUBLIC';
+            document.getElementById('setting-pin').value = sessionData.accessPin || '';
+            document.getElementById('setting-managers').value = (sessionData.managers || []).join(', ');
+            document.getElementById('setting-owner-display').innerText = `${sessionData.createdBy || 'Chủ tịch MHEnt'} (${sessionData.createdByEmail || 'admin@mhentuniverse.com'})`;
+
+            const m = document.getElementById('modal-session-settings');
+            m.style.display = 'flex';
+            setTimeout(() => m.classList.add('show'), 10);
+        };
+
+        window.closeSessionSettingsModal = function() {
+            const m = document.getElementById('modal-session-settings');
+            m.classList.remove('show');
+            setTimeout(() => { m.style.display = 'none'; }, 200);
+        };
+
+        window.handleSaveSettings = async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('setting-title').value.trim();
+            const privacy = document.getElementById('setting-privacy').value;
+            const accessPin = document.getElementById('setting-pin').value.trim();
+            const managersRaw = document.getElementById('setting-managers').value.trim();
+            const managers = managersRaw ? managersRaw.split(',').map(m => m.trim().toLowerCase()).filter(Boolean) : [];
+
+            const btn = document.getElementById('btn-save-settings');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...`;
+
+            try {
+                await updateDoc(sessionRef, {
+                    title,
+                    privacy,
+                    accessPin,
+                    managers
+                });
+                closeSessionSettingsModal();
+                window.showToast("Đã Cập Nhật", "Đã lưu thông tin cài đặt và phân quyền phiên!", "success");
+            } catch (err) {
+                console.error("Save settings error:", err);
+                window.showToast("Lỗi Lưu", err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi`;
+            }
+        };
+
+        // DELETE CURRENT SESSION
+        window.confirmDeleteCurrentSession = async function() {
+            const title = sessionData?.title || 'phiên này';
+            if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách ${attendeesList.length} người tham dự và lịch sử điểm danh sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu!`)) {
+                return;
+            }
+
+            try {
+                window.showToast("Đang xóa...", "Đang tiến hành xóa phiên...", "info");
+                await deleteDoc(sessionRef);
+                window.showToast("Đã Xóa Thành Công!", `Đã xóa vĩnh viễn phiên [${title}]!`, "success");
+                setTimeout(() => {
+                    window.location.href = '/tools/checkin';
+                }, 700);
+            } catch (err) {
+                console.error("Delete session error:", err);
+                window.showToast("Lỗi Xóa", err.message, "error");
+            }
         };
     </script>
     <script src="/js/aisa-widget.js" defer></script>

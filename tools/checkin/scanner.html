@@ -38,8 +38,7 @@
     <link rel="stylesheet" href="/css/mhent-mobile.css">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <style>
         :root {
             --ci-accent: #10b981;
@@ -341,9 +340,13 @@
             <button class="btn-ctrl" onclick="toggleCameraFacing()">
                 <i class="fa-solid fa-camera-rotate"></i> Đổi Camera
             </button>
+            <button class="btn-ctrl" onclick="document.getElementById('qr-file-input').click()" title="Quét từ file ảnh có chứa mã QR">
+                <i class="fa-solid fa-image"></i> Quét Từ Ảnh
+            </button>
             <button class="btn-ctrl" onclick="toggleAudioBeep()" id="btn-sound">
                 <i class="fa-solid fa-volume-high"></i> Âm Thanh: BẬT
             </button>
+            <input type="file" id="qr-file-input" accept="image/*" style="display: none;" onchange="handleQrFileUpload(event)">
         </div>
 
         <!-- MANUAL INPUT FALLBACK -->
@@ -361,24 +364,54 @@
             <i class="fa-solid fa-check"></i>
         </div>
         <div class="result-info">
-            <h4 class="result-name" id="res-name">Phạm Lương Quốc Anh</h4>
-            <p class="result-meta" id="res-meta">Mã: 2511130080 • Check-in: 08:02</p>
+            <h4 class="result-name" id="res-name">Yorutsuki Yurika</h4>
+            <p class="result-meta" id="res-meta">Mã: MH-DEV-01 • Check-in: 08:02</p>
+        </div>
+    </div>
+
+    <!-- LOCK OVERLAY CHO SCANNER NẾU LÀ PHIÊN RIÊNG TƯ -->
+    <div id="scanner-lock-overlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; max-width: 400px; width: 100%; padding: 28px 24px; text-align: center; color: white;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 14px;">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 style="margin: 0 0 6px; font-size: 18px; font-weight: 800;">Phiên Soát Vé Riêng Tư</h3>
+            <p style="margin: 0 0 16px; font-size: 12.5px; color: #94a3b8; line-height: 1.4;">
+                Vui lòng nhập Mã PIN Quản Lý hoặc đăng nhập tài khoản có quyền để mở máy quét camera.
+            </p>
+            <form id="scanner-pin-form" onsubmit="handleScannerUnlock(event)">
+                <input type="password" id="scanner-pin-input" placeholder="Nhập PIN (4-6 số)" maxlength="6" autofocus
+                    style="width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.2); font-size: 18px; text-align: center; letter-spacing: 5px; font-weight: 800; background: rgba(0,0,0,0.3); color: white; margin-bottom: 12px; outline: none;">
+                <button type="submit" class="btn-ctrl" style="width: 100%; justify-content: center; padding: 10px; background: #10b981; color: white; font-weight: 800;">
+                    <i class="fa-solid fa-key"></i> Mở Khóa Máy Quét
+                </button>
+            </form>
+            <div style="margin-top: 14px;">
+                <a href="/tools/checkin" style="color: #94a3b8; font-size: 12px; text-decoration: none;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Hub Điểm Danh
+                </a>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = window.firebaseConfig;
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('id');
 
         let sessionData = null;
         let attendees = [];
+        let currentUser = null;
+        let isUnlocked = sessionStorage.getItem('mhent_unlocked_' + sessionId) === '1';
+        let cameraStarted = false;
         let html5QrCode = null;
         let currentFacingMode = "environment"; // Cam sau
         let soundEnabled = true;
@@ -433,6 +466,39 @@
             btn.innerHTML = `<i class="fa-solid fa-volume-${soundEnabled ? 'high' : 'xmark'}"></i> Âm Thanh: ${soundEnabled ? 'BẬT' : 'TẮT'}`;
         };
 
+        function checkAccessAndStart() {
+            if (!sessionData) return;
+            if (sessionData.privacy === 'PRIVATE') {
+                const userEmail = (currentUser?.email || '').toLowerCase();
+                const userUid = currentUser?.uid || '';
+                const isOwner = (sessionData.createdByUid && sessionData.createdByUid === userUid) || (sessionData.createdByEmail && sessionData.createdByEmail.toLowerCase() === userEmail);
+                const isManager = Array.isArray(sessionData.managers) && sessionData.managers.some(m => m.toLowerCase() === userEmail);
+                const isAdmin = userEmail.includes('admin') || userEmail.includes('mhentuniverse.com');
+                const unlocked = isUnlocked || isOwner || isManager || isAdmin;
+
+                const overlay = document.getElementById('scanner-lock-overlay');
+                if (!unlocked) {
+                    if (overlay) overlay.style.display = 'flex';
+                    return;
+                } else {
+                    if (overlay) overlay.style.display = 'none';
+                }
+            } else {
+                const overlay = document.getElementById('scanner-lock-overlay');
+                if (overlay) overlay.style.display = 'none';
+            }
+
+            if (!cameraStarted) {
+                cameraStarted = true;
+                startCamera();
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user || (window.getMHEntUser && window.getMHEntUser());
+            checkAccessAndStart();
+        });
+
         // LISTEN FIRESTORE SESSION
         const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
         onSnapshot(sessionRef, (docSnap) => {
@@ -443,18 +509,33 @@
             document.getElementById('session-name-tag').innerText = sessionData.title || '';
             const checkedInCount = attendees.filter(a => a.checkedIn).length;
             document.getElementById('counter-tag').innerText = `Đã quét: ${checkedInCount}/${attendees.length}`;
+
+            checkAccessAndStart();
         });
 
         // INIT SCANNER
         async function startCamera() {
-            html5QrCode = new Html5Qrcode("qr-reader");
-            const config = {
-                fps: 15,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            };
-
             try {
+                if (html5QrCode) {
+                    try { await html5QrCode.stop(); } catch(e){}
+                }
+                html5QrCode = new Html5Qrcode("qr-reader");
+
+                const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
+                    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                    const edgeSize = Math.max(Math.floor(minEdge * 0.75), 180);
+                    return { width: edgeSize, height: edgeSize };
+                };
+
+                const config = {
+                    fps: 20,
+                    qrbox: qrboxFunction,
+                    aspectRatio: 1.0,
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true
+                    }
+                };
+
                 await html5QrCode.start(
                     { facingMode: currentFacingMode },
                     config,
@@ -464,10 +545,13 @@
             } catch (err) {
                 console.error("Lỗi camera:", err);
                 document.getElementById('qr-reader').innerHTML = `
-                    <div style="padding: 30px; text-align: center; color: #f87171;">
+                    <div style="padding: 24px; text-align: center; color: #f87171;">
                         <i class="fa-solid fa-triangle-exclamation fa-2x"></i>
-                        <p style="margin: 10px 0 0; font-size: 14px;">Không thể mở camera: ${err}</p>
-                        <p style="font-size: 12px; color: #94a3b8;">Hãy cho phép quyền truy cập Camera trên trình duyệt nhé!</p>
+                        <p style="margin: 10px 0 6px; font-size: 14px; font-weight: 800;">Không thể mở camera: ${err.message || err}</p>
+                        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 14px;">Hãy kiểm tra quyền cấp camera hoặc sử dụng nút "Quét Từ Ảnh" / Ô nhập tay bên dưới!</p>
+                        <button class="btn-ctrl" onclick="document.getElementById('qr-file-input').click()" style="display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-image"></i> Chọn Ảnh QR Từ Máy
+                        </button>
                     </div>
                 `;
             }
@@ -481,6 +565,25 @@
                 startCamera();
             } catch (e) {
                 console.error(e);
+            }
+        };
+
+        // SCAN FROM IMAGE FILE
+        window.handleQrFileUpload = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                showResultBanner("Đang Quét...", "Đang phân tích mã QR từ ảnh tải lên...", "warning");
+                if (!html5QrCode) html5QrCode = new Html5Qrcode("qr-reader");
+                const decodedText = await html5QrCode.scanFile(file, true);
+                await onScanSuccess(decodedText);
+            } catch (err) {
+                console.error("Lỗi scan file:", err);
+                playWarningSound();
+                showResultBanner("Không Nhận Diện Được", "Ảnh không chứa mã QR rõ nét hoặc bị mờ!", "error");
+            } finally {
+                event.target.value = '';
             }
         };
 
@@ -502,24 +605,87 @@
             // Frame không có QR - bỏ qua
         }
 
+        // INTELLIGENT QR PAYLOAD PARSER
+        function parseQrPayload(raw) {
+            const text = String(raw).trim();
+
+            // 1. Format: mhent-ci:SESSION_ID:ATTENDEE_CODE
+            if (text.startsWith('mhent-ci:')) {
+                const parts = text.split(':');
+                return {
+                    targetSessionId: parts[1] || null,
+                    code: parts[2] || parts[1] || '',
+                    type: 'ticket'
+                };
+            }
+
+            // 2. Format: URL (quét từ màn chiếu hoặc link chia sẻ)
+            if (text.startsWith('http://') || text.startsWith('https://')) {
+                try {
+                    const url = new URL(text);
+                    const code = url.searchParams.get('code') || url.searchParams.get('c');
+                    const sid = url.searchParams.get('id');
+                    if (code) return { targetSessionId: sid, code: code, type: 'url_code' };
+                } catch (e) {}
+            }
+
+            // 3. Format: JSON string
+            if (text.startsWith('{') && text.endsWith('}')) {
+                try {
+                    const obj = JSON.parse(text);
+                    return {
+                        targetSessionId: obj.sessionId || obj.session || null,
+                        code: obj.code || obj.id || obj.qrToken || '',
+                        type: 'json'
+                    };
+                } catch (e) {}
+            }
+
+            // 4. Raw code / ID / Token
+            return {
+                targetSessionId: null,
+                code: text,
+                type: 'raw'
+            };
+        }
+
         // CORE CHECKIN LOGIC
-        async function processCheckinIdentifier(identifier) {
-            // Tìm trong attendees theo: qrToken, code (MSSV), id, hoặc email
+        async function processCheckinIdentifier(rawIdentifier) {
+            if (!rawIdentifier) return;
+
+            const parsed = parseQrPayload(rawIdentifier);
+
+            // Cảnh báo nếu quét nhầm mã của phiên khác
+            if (parsed.targetSessionId && parsed.targetSessionId !== sessionId) {
+                playWarningSound();
+                showResultBanner("Khác Phiên Điểm Danh!", `Mã QR này thuộc về phiên khác (ID: ${parsed.targetSessionId.slice(0, 6)}...)!`, "error");
+                return;
+            }
+
+            const cleanQuery = (parsed.code || '').trim().toLowerCase();
+            if (!cleanQuery) {
+                playWarningSound();
+                showResultBanner("Lỗi Mã QR", "Không tìm thấy mã định danh hợp lệ trong QR!", "error");
+                return;
+            }
+
+            // Tìm trong attendees theo: code (MSSV), qrToken, id, email, hoặc họ tên
             let att = attendees.find(a => 
-                (a.qrToken && a.qrToken.toLowerCase() === identifier.toLowerCase()) ||
-                (a.code && a.code.toLowerCase() === identifier.toLowerCase()) ||
-                (a.id && a.id.toLowerCase() === identifier.toLowerCase()) ||
-                (a.email && a.email.toLowerCase() === identifier.toLowerCase())
+                (a.code && a.code.trim().toLowerCase() === cleanQuery) ||
+                (a.qrToken && a.qrToken.trim().toLowerCase() === cleanQuery) ||
+                (a.id && a.id.trim().toLowerCase() === cleanQuery) ||
+                (a.email && a.email.trim().toLowerCase() === cleanQuery) ||
+                (a.name && a.name.trim().toLowerCase() === cleanQuery)
             );
 
             // Nếu là phiên OPEN và chưa có trong danh sách -> Tự động thêm mới!
             if (!att && sessionData?.type === 'OPEN') {
                 att = {
                     id: `att_${Date.now()}`,
-                    name: identifier.includes('@') ? identifier.split('@')[0] : identifier,
-                    code: identifier,
+                    name: parsed.code.includes('@') ? parsed.code.split('@')[0] : parsed.code,
+                    code: parsed.code,
                     org: 'Khách tự do',
-                    qrToken: identifier,
+                    qrToken: parsed.code,
                     checkedIn: false
                 };
                 attendees.push(att);
@@ -527,7 +693,7 @@
 
             if (!att) {
                 playWarningSound();
-                showResultBanner("Không Tìm Thấy!", `Mã [${identifier}] không có trong danh sách!`, "error");
+                showResultBanner("Không Tìm Thấy!", `Mã [${parsed.code}] không có trong danh sách phiên này!`, "error");
                 return;
             }
 
@@ -539,14 +705,14 @@
 
             // Ghi nhận check-in
             const now = new Date();
-            const timeStr = now.toTimeString().slice(0, 8);
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('vi-VN');
 
             let isLate = false;
-            if (sessionData.lateThreshold) {
+            if (sessionData && sessionData.lateThreshold) {
                 const [lateH, lateM] = sessionData.lateThreshold.split(':').map(Number);
-                if (now.getHours() > lateH || (now.getHours() === lateH && now.getMinutes() > lateM)) {
-                    isLate = true;
-                }
+                const lateMin = lateH * 60 + lateM;
+                const curMin = now.getHours() * 60 + now.getMinutes();
+                if (curMin > lateMin) isLate = true;
             }
 
             att.checkedIn = true;
@@ -609,7 +775,28 @@
             processCheckinIdentifier(val);
         };
 
-        startCamera();
+        // UNLOCK SCANNER WITH PIN
+        window.handleScannerUnlock = function(e) {
+            e.preventDefault();
+            const pin = (document.getElementById('scanner-pin-input').value || '').trim();
+            if (!sessionData?.accessPin) {
+                alert("Phiên này không thiết lập mã PIN dự phòng. Hãy đăng nhập tài khoản người tạo hoặc liên hệ ban tổ chức!");
+                return;
+            }
+            if (pin === sessionData.accessPin) {
+                isUnlocked = true;
+                sessionStorage.setItem('mhent_unlocked_' + sessionId, '1');
+                document.getElementById('scanner-lock-overlay').style.display = 'none';
+                if (!cameraStarted) {
+                    cameraStarted = true;
+                    startCamera();
+                }
+            } else {
+                alert("Mã PIN không đúng! Vui lòng thử lại.");
+                document.getElementById('scanner-pin-input').value = '';
+                document.getElementById('scanner-pin-input').focus();
+            }
+        };
     </script>
 </body>
 

@@ -385,6 +385,45 @@
         .form-input:focus, .form-select:focus, .form-textarea:focus {
             border-color: var(--ci-accent);
         }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1.5px solid var(--border-soft);
+            background: var(--card-bg);
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-tab.active {
+            background: var(--ci-accent);
+            color: white;
+            border-color: var(--ci-accent);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-del-session {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        .btn-del-session:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.12);
+        }
+
+        .type-private { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+        .type-public { background: rgba(16, 185, 129, 0.12); color: #10b981; }
     </style>
     <script src="/js/config.js"></script>
     <script src="/js/mhent-ui.js"></script>
@@ -477,9 +516,22 @@
                 <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">Quản lý phiên, mở máy quét hoặc xem bảng thống kê chi tiết</p>
             </div>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="session-search" placeholder="Tìm kiếm phiên..." oninput="filterSessions()"
-                    style="padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none;">
+                <input type="text" id="session-search" placeholder="🔍 Tìm kiếm phiên..." oninput="filterSessions()"
+                    style="padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; width: 200px;">
             </div>
+        </div>
+
+        <!-- TABS BAR -->
+        <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="filter-tab active" id="tab-all" onclick="setSessionTab('ALL')">
+                <i class="fa-solid fa-globe"></i> Tất Cả (<span id="count-tab-all">0</span>)
+            </button>
+            <button class="filter-tab" id="tab-mine" onclick="setSessionTab('MINE')">
+                <i class="fa-solid fa-user-lock"></i> Của Tôi (<span id="count-tab-mine">0</span>)
+            </button>
+            <button class="filter-tab" id="tab-shared" onclick="setSessionTab('SHARED')">
+                <i class="fa-solid fa-users"></i> Được Chia Sẻ (<span id="count-tab-shared">0</span>)
+            </button>
         </div>
 
         <div id="session-loading" style="text-align: center; padding: 60px 0;">
@@ -565,6 +617,35 @@
                     <span style="font-size: 11.5px; color: var(--text-muted);">Hệ thống sẽ tự động gán Mã QR duy nhất cho từng thành viên.</span>
                 </div>
 
+                <!-- PHÂN QUYỀN & BẢO MẬT -->
+                <div style="border-top: 1.5px dashed var(--border-soft); margin: 18px 0 14px; padding-top: 14px;">
+                    <div style="font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--ci-accent);"></i> Quyền Riêng Tư & Quản Lý Phiên
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Chế Độ Hiển Thị *</label>
+                            <select id="input-session-privacy" class="form-select">
+                                <option value="PUBLIC">🌐 Công Khai (Ai có link đều thấy)</option>
+                                <option value="PRIVATE">🔒 Riêng Tư (Chỉ tôi & Đồng quản lý)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Mã PIN Quản Lý (Tùy chọn)</label>
+                            <input type="text" id="input-session-pin" class="form-input" placeholder="Ví dụ: 1234 (4-6 số)" maxlength="6">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 8px;">
+                        <label class="form-label">Email Người Cùng Quản Lý (Co-hosts)</label>
+                        <input type="text" id="input-session-managers" class="form-input" placeholder="Ví dụ: ban-to-chuc@gmail.com, yorutsuki@mhentuniverse.com">
+                        <span style="font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px;">
+                            <i class="fa-solid fa-circle-info"></i> Nhập các email cách nhau bằng dấu phẩy. Họ sẽ có toàn quyền xem và quản lý phiên này.
+                        </span>
+                    </div>
+                </div>
+
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1px solid var(--border-soft); padding-top: 14px;">
                     <button type="button" class="btn-ci btn-ci-ghost" onclick="closeCreateSessionModal()">Hủy Bỏ</button>
                     <button type="submit" id="btn-submit-create" class="btn-ci btn-ci-primary">
@@ -587,6 +668,7 @@
 
         let sessionsList = [];
         let currentUser = null;
+        let currentTab = 'ALL';
 
         // AUTH
         onAuthStateChanged(auth, (user) => {
@@ -605,6 +687,7 @@
                     <button class="btn-login" style="background: var(--ci-accent); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold;" onclick="window.redirectToLogin()">Đăng nhập</button>
                 `;
             }
+            if (sessionsList.length > 0) filterSessions();
         });
 
         // INIT LOAD
@@ -638,21 +721,64 @@
                 document.getElementById('stat-total-attendees').innerText = totalAttendees;
                 document.getElementById('stat-checkedin-today').innerText = totalCheckedIn;
 
-                renderSessions(sessionsList);
                 document.getElementById('session-loading').style.display = 'none';
-
-                if (sessionsList.length === 0) {
-                    document.getElementById('session-empty').style.display = 'block';
-                    document.getElementById('session-grid').style.display = 'none';
-                } else {
-                    document.getElementById('session-empty').style.display = 'none';
-                    document.getElementById('session-grid').style.display = 'grid';
-                }
+                filterSessions();
             }, (err) => {
                 console.error("Lỗi tải phiên:", err);
                 document.getElementById('session-loading').innerHTML = `<p style="color: red; font-weight: bold;">Lỗi kết nối: ${err.message}</p>`;
             });
         }
+
+        // TAB SWITCH
+        window.setSessionTab = function(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.filter-tab').forEach(el => el.classList.remove('active'));
+            const btn = document.getElementById(`tab-${tab.toLowerCase()}`);
+            if (btn) btn.classList.add('active');
+            filterSessions();
+        };
+
+        // FILTER SESSIONS (PRIVACY & SEARCH & TABS)
+        window.filterSessions = function() {
+            const query = (document.getElementById('session-search').value || '').toLowerCase().trim();
+            const userEmail = (currentUser?.email || '').toLowerCase();
+            const userUid = currentUser?.uid || '';
+
+            // Lọc theo quyền truy cập
+            const accessible = sessionsList.filter(s => {
+                if (s.privacy !== 'PRIVATE') return true;
+                if (!currentUser) return false;
+                const isOwner = (s.createdByUid && s.createdByUid === userUid) || (s.createdByEmail && s.createdByEmail.toLowerCase() === userEmail);
+                const isManager = Array.isArray(s.managers) && s.managers.some(m => m.toLowerCase() === userEmail);
+                const isAdmin = userEmail.includes('admin') || userEmail.includes('mhentuniverse.com');
+                return isOwner || isManager || isAdmin;
+            });
+
+            const countMine = accessible.filter(s => (s.createdByUid && s.createdByUid === userUid) || (s.createdByEmail && s.createdByEmail.toLowerCase() === userEmail)).length;
+            const countShared = accessible.filter(s => Array.isArray(s.managers) && s.managers.some(m => m.toLowerCase() === userEmail) && s.createdByUid !== userUid).length;
+
+            document.getElementById('count-tab-all').innerText = accessible.length;
+            document.getElementById('count-tab-mine').innerText = countMine;
+            document.getElementById('count-tab-shared').innerText = countShared;
+
+            let tabList = accessible;
+            if (currentTab === 'MINE') {
+                tabList = accessible.filter(s => (s.createdByUid && s.createdByUid === userUid) || (s.createdByEmail && s.createdByEmail.toLowerCase() === userEmail));
+            } else if (currentTab === 'SHARED') {
+                tabList = accessible.filter(s => Array.isArray(s.managers) && s.managers.some(m => m.toLowerCase() === userEmail) && s.createdByUid !== userUid);
+            }
+
+            const finalList = tabList.filter(s => (s.title || '').toLowerCase().includes(query));
+            renderSessions(finalList);
+
+            if (finalList.length === 0) {
+                document.getElementById('session-empty').style.display = 'block';
+                document.getElementById('session-grid').style.display = 'none';
+            } else {
+                document.getElementById('session-empty').style.display = 'none';
+                document.getElementById('session-grid').style.display = 'grid';
+            }
+        };
 
         // RENDER SESSIONS
         function renderSessions(list) {
@@ -668,9 +794,22 @@
                 if (s.type === 'CLOCK') { typeLabel = "⏱️ Chấm Công"; typeClass = "type-clock"; }
                 if (s.type === 'OPEN') { typeLabel = "🌐 Tự Do"; typeClass = "type-open"; }
 
+                const isPrivate = s.privacy === 'PRIVATE';
+
                 return `
                     <div class="session-card">
-                        <div class="session-type-pill ${typeClass}">${typeLabel}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <div class="session-type-pill ${typeClass}">${typeLabel}</div>
+                                <div class="session-type-pill ${isPrivate ? 'type-private' : 'type-public'}">
+                                    ${isPrivate ? '<i class="fa-solid fa-lock"></i> Riêng tư' : '<i class="fa-solid fa-globe"></i> Công khai'}
+                                </div>
+                            </div>
+                            <button class="btn-del-session" onclick="confirmDeleteSession('${s.id}', '${encodeURIComponent(s.title || '')}')" title="Xóa vĩnh viễn phiên này">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+
                         <h3>${s.title}</h3>
                         <div class="session-meta">
                             <div class="session-meta-item">
@@ -709,11 +848,20 @@
             }).join('');
         }
 
-        // FILTER
-        window.filterSessions = function() {
-            const query = (document.getElementById('session-search').value || '').toLowerCase().trim();
-            const filtered = sessionsList.filter(s => (s.title || '').toLowerCase().includes(query));
-            renderSessions(filtered);
+        // CONFIRM DELETE SESSION
+        window.confirmDeleteSession = async function(id, encodedTitle) {
+            const title = decodeURIComponent(encodedTitle || 'phiên này');
+            if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách người tham dự và lịch sử quét mã sẽ bị xóa hoàn toàn khỏi hệ thống!`)) {
+                return;
+            }
+            try {
+                window.showToast("Đang xóa...", `Đang xóa phiên [${title}]...`, "info");
+                await deleteDoc(doc(db, "mhent_checkin_sessions", id));
+                window.showToast("Đã Xóa!", `Đã xóa vĩnh viễn phiên [${title}] thành công!`, "success");
+            } catch (err) {
+                console.error("Delete error:", err);
+                window.showToast("Lỗi xóa", err.message, "error");
+            }
         };
 
         // MODAL TOGGLES
@@ -729,31 +877,36 @@
             setTimeout(() => { modal.style.display = 'none'; }, 250);
         };
 
-        // CREATE SAMPLE MOCK SESSION (10 MOCK ATTENDEES)
+        // CREATE SAMPLE MOCK SESSION (10 MOCK FICTIONAL ATTENDEES)
         window.createSampleMockSession = async function() {
             const mockAttendees = [
-                { id: "SV01", name: "Phạm Lương Quốc Anh", code: "2511130080", email: "quocanh@mhentuniverse.com", org: "BCH Đoàn Khoa CNTT", checkedIn: false, qrToken: "MHENT_QR_SV01" },
-                { id: "SV02", name: "Nguyễn Hoàng Minh", code: "2511130081", email: "hoangminh@mhentuniverse.com", org: "BCH Đoàn Khoa CNTT", checkedIn: false, qrToken: "MHENT_QR_SV02" },
-                { id: "SV03", name: "Trần Mai Phương", code: "2511130082", email: "maiphuong@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 1", checkedIn: false, qrToken: "MHENT_QR_SV03" },
-                { id: "SV04", name: "Lê Văn Tuấn", code: "2511130083", email: "vantuan@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 1", checkedIn: false, qrToken: "MHENT_QR_SV04" },
-                { id: "SV05", name: "Đặng Thị Thảo", code: "2511130084", email: "thao@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 2", checkedIn: false, qrToken: "MHENT_QR_SV05" },
-                { id: "SV06", name: "Vũ Hải Đăng", code: "2511130085", email: "haidang@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 2", checkedIn: false, qrToken: "MHENT_QR_SV06" },
-                { id: "SV07", name: "Bùi Ngọc Ánh", code: "2511130086", email: "ngocanh@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 3", checkedIn: false, qrToken: "MHENT_QR_SV07" },
-                { id: "SV08", name: "Hoàng Gia Bảo", code: "2511130087", email: "giabao@mhentuniverse.com", org: "Đoàn Viên Chi Đoàn 3", checkedIn: false, qrToken: "MHENT_QR_SV08" },
-                { id: "SV09", name: "Đỗ Cẩm Ly", code: "2511130088", email: "camly@mhentuniverse.com", org: "Đội Văn Nghệ MHEnt", checkedIn: false, qrToken: "MHENT_QR_SV09" },
-                { id: "SV10", name: "Miyazaki Haruto", code: "ADMIN01", email: "mhent@mhentuniverse.com", org: "Ban Quản Trị MHEnt", checkedIn: false, qrToken: "MHENT_QR_ADMIN" }
+                { id: "SV01", name: "Yorutsuki Yurika", code: "MH-DEV-01", email: "yurika@mhentuniverse.com", org: "Ban Công Nghệ & AI", checkedIn: false, qrToken: "MHENT_QR_SV01" },
+                { id: "SV02", name: "Miyazaki Haruto", code: "MH-BOSS-01", email: "haruto@mhentuniverse.com", org: "Hội Đồng Quản Trị MHEnt", checkedIn: false, qrToken: "MHENT_QR_SV02" },
+                { id: "SV03", name: "Kurokawa Akane", code: "MH-STAR-02", email: "akane@mhentuniverse.com", org: "Ban Nghệ Thuật & Diễn Xuất", checkedIn: false, qrToken: "MHENT_QR_SV03" },
+                { id: "SV04", name: "Hoshino Aqua", code: "MH-ACTOR-03", email: "aqua@mhentuniverse.com", org: "Ban Sản Xuất Nội Dung", checkedIn: false, qrToken: "MHENT_QR_SV04" },
+                { id: "SV05", name: "Shirogane Miyuki", code: "MH-PRES-04", email: "miyuki@mhentuniverse.com", org: "Hội Đồng Sinh Viên", checkedIn: false, qrToken: "MHENT_QR_SV05" },
+                { id: "SV06", name: "Shinomiya Kaguya", code: "MH-VP-05", email: "kaguya@mhentuniverse.com", org: "Ban Tài Chính & Kế Hoạch", checkedIn: false, qrToken: "MHENT_QR_SV06" },
+                { id: "SV07", name: "Arima Kana", code: "MH-IDOL-06", email: "kana@mhentuniverse.com", org: "Đội Văn Nghệ Xung Kích", checkedIn: false, qrToken: "MHENT_QR_SV07" },
+                { id: "SV08", name: "Fujiwara Chika", code: "MH-SEC-07", email: "chika@mhentuniverse.com", org: "Ban Thư Ký & Hoạt Náo", checkedIn: false, qrToken: "MHENT_QR_SV08" },
+                { id: "SV09", name: "Ishigami Yu", code: "MH-DATA-08", email: "ishigami@mhentuniverse.com", org: "Tổ Kỹ Thuật & Dữ Liệu", checkedIn: false, qrToken: "MHENT_QR_SV09" },
+                { id: "SV10", name: "Iino Miko", code: "MH-AUDIT-09", email: "miko@mhentuniverse.com", org: "Ban Kỷ Luật & Soát Vé", checkedIn: false, qrToken: "MHENT_QR_SV10" }
             ];
 
             try {
                 window.showToast("Đang tạo...", "Đang khởi tạo phiên mẫu 10 người thử nghiệm...", "info");
                 const docRef = await addDoc(collection(db, "mhent_checkin_sessions"), {
-                    title: "Phiên Test Mẫu: Đại Hội Đoàn Viên Thanh Niên",
+                    title: "Phiên Test Mẫu: Đại Hội MHEnt Universe 2026",
                     type: "EVENT",
                     date: new Date().toISOString().slice(0, 10),
                     startTime: "08:00",
                     lateThreshold: "08:15",
                     attendees: mockAttendees,
+                    privacy: "PUBLIC",
+                    accessPin: "2026",
                     createdBy: currentUser?.displayName || 'Admin',
+                    createdByEmail: currentUser?.email || 'admin@mhentuniverse.com',
+                    createdByUid: currentUser?.uid || '',
+                    managers: [],
                     createdAt: serverTimestamp()
                 });
                 window.showToast("Thành công!", "Đã tạo phiên mẫu! Cậu có thể bấm mở Quản lý hoặc Quét QR ngay!", "success");
@@ -766,14 +919,14 @@
         window.setImportMode = function(mode) {
             if (mode === 'mock') {
                 const sampleText = [
-                    "Phạm Lương Quốc Anh | 2511130080 | quocanh@mhentuniverse.com | 0901234567",
-                    "Nguyễn Hoàng Minh | 2511130081 | hoangminh@mhentuniverse.com | 0901234568",
-                    "Trần Mai Phương | 2511130082 | maiphuong@mhentuniverse.com | 0901234569",
-                    "Lê Văn Tuấn | 2511130083 | vantuan@mhentuniverse.com | 0901234570",
-                    "Đặng Thị Thảo | 2511130084 | thao@mhentuniverse.com | 0901234571"
+                    "Yorutsuki Yurika | MH-DEV-01 | yurika@mhentuniverse.com | 0901234567",
+                    "Miyazaki Haruto | MH-BOSS-01 | haruto@mhentuniverse.com | 0901234568",
+                    "Kurokawa Akane | MH-STAR-02 | akane@mhentuniverse.com | 0901234569",
+                    "Hoshino Aqua | MH-ACTOR-03 | aqua@mhentuniverse.com | 0901234570",
+                    "Shirogane Miyuki | MH-PRES-04 | miyuki@mhentuniverse.com | 0901234571"
                 ].join('\n');
                 document.getElementById('input-attendees-text').value = sampleText;
-                window.showToast("Đã nạp mẫu", "Đã điền danh sách mẫu vào khung!", "success");
+                window.showToast("Đã nạp mẫu", "Đã điền danh sách mẫu nhân vật MHEnt vào khung!", "success");
             }
         };
 
@@ -792,7 +945,6 @@
 
                     if (rows.length === 0) return window.showToast("Lỗi file", "File không có dữ liệu!", "error");
 
-                    // Bỏ qua dòng tiêu đề nếu có
                     const textRows = [];
                     rows.forEach((r, idx) => {
                         if (idx === 0 && (String(r[0]).toLowerCase().includes('tên') || String(r[0]).toLowerCase().includes('stt'))) return;
@@ -818,6 +970,10 @@
             const date = document.getElementById('input-session-date').value;
             const startTime = document.getElementById('input-session-start').value;
             const lateThreshold = document.getElementById('input-session-late').value;
+            const privacy = document.getElementById('input-session-privacy')?.value || 'PUBLIC';
+            const accessPin = document.getElementById('input-session-pin')?.value.trim() || '';
+            const managersRaw = document.getElementById('input-session-managers')?.value.trim() || '';
+            const managers = managersRaw ? managersRaw.split(',').map(e => e.trim().toLowerCase()).filter(Boolean) : [];
             const rawText = document.getElementById('input-attendees-text').value.trim();
 
             const attendees = [];
@@ -855,7 +1011,12 @@
                     startTime,
                     lateThreshold,
                     attendees,
+                    privacy,
+                    accessPin,
                     createdBy: currentUser?.displayName || 'Admin',
+                    createdByEmail: currentUser?.email || '',
+                    createdByUid: currentUser?.uid || '',
+                    managers,
                     createdAt: serverTimestamp()
                 });
 
