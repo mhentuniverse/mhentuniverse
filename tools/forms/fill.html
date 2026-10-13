@@ -1645,7 +1645,38 @@
             `;
 
             try {
-                // 1. Thử gửi trực tiếp qua Firebase Cloud Function chính thức (noreply@mhentuniverse.com)
+                // 1. Ưu tiên cao nhất: Gửi qua Vercel API Endpoint (/api/send-email) - Chuẩn SMTP noreply@mhentuniverse.com
+                const endpoints = [
+                    "/api/send-email",
+                    "https://www.mhentuniverse.com/api/send-email"
+                ];
+                let sentSuccess = false;
+                for (const ep of endpoints) {
+                    try {
+                        const httpRes = await fetch(ep, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                email: targetEmail,
+                                subject: emailSubject,
+                                html: emailBody,
+                                senderName: "MHEnt. Universe (No-Reply)"
+                            })
+                        });
+                        if (httpRes.ok) {
+                            const data = await httpRes.json();
+                            if (data && data.status === 'success') {
+                                sentSuccess = true;
+                                break;
+                            }
+                        }
+                    } catch (httpErr) {
+                        console.warn(`Chưa kết nối được ${ep}:`, httpErr);
+                    }
+                }
+                if (sentSuccess) return;
+
+                // 2. Thử Firebase Cloud Function (nếu có deploy)
                 try {
                     const res = await sendTicketCallable({
                         email: targetEmail,
@@ -1655,24 +1686,7 @@
                     });
                     if (res && res.data) return;
                 } catch (fnErr) {
-                    console.warn("Chưa gọi được sendTicketEmail (onCall), thử tiếp endpoint /api/send-email:", fnErr);
-                }
-
-                // 2. Thử gửi qua endpoint HTTP (/api/send-email)
-                try {
-                    const httpRes = await fetch("/api/send-email", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            email: targetEmail,
-                            subject: emailSubject,
-                            html: emailBody,
-                            senderName: "MHEnt. Universe (No-Reply)"
-                        })
-                    });
-                    if (httpRes.ok) return;
-                } catch (httpErr) {
-                    console.warn("Chưa kết nối được /api/send-email:", httpErr);
+                    console.warn("Chưa gọi được sendTicketEmail (onCall):", fnErr);
                 }
 
                 // 3. Fallback: Google Apps Script Web App
