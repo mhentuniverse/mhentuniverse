@@ -1158,19 +1158,44 @@
                 btn.disabled = true;
 
                 try {
-                    const response = await fetch(MAILER_URL, {
-                        method: "POST",
-                        body: JSON.stringify({
-                            action: "send",
-                            subject: sub,
-                            body: body.replace(/\n/g, "<br>") + signatures[sigType],
-                            emails: finalEmails,
-                            senderName: senderName,
-                            scheduledTime: scheduledTime
-                        })
-                    });
+                    let result = null;
+                    if (!scheduledTime) {
+                        try {
+                            const httpRes = await fetch("/api/send-email", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    subject: sub,
+                                    html: body.replace(/\n/g, "<br>") + signatures[sigType],
+                                    emails: finalEmails,
+                                    senderName: senderName
+                                })
+                            });
+                            if (httpRes.ok) {
+                                const data = await httpRes.json();
+                                if (data && data.status === 'success') {
+                                    result = data;
+                                }
+                            }
+                        } catch (apiErr) {
+                            console.warn("Chưa gọi được /api/send-email:", apiErr);
+                        }
+                    }
 
-                    const result = await response.json();
+                    if (!result) {
+                        const response = await fetch(MAILER_URL, {
+                            method: "POST",
+                            body: JSON.stringify({
+                                action: "send",
+                                subject: sub,
+                                body: body.replace(/\n/g, "<br>") + signatures[sigType],
+                                emails: finalEmails,
+                                senderName: senderName,
+                                scheduledTime: scheduledTime
+                            })
+                        });
+                        result = await response.json();
+                    }
 
                     if (result.status === "success") {
                         await addDoc(collection(db, "mail_campaigns"), {

@@ -482,16 +482,36 @@
 
                         const emailSignature = `
                             <table cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; color: #333; margin-top: 30px; border-top: 2px solid #6366f1; padding-top: 20px; width: 100%;">
-                                <tr><td style="padding-right: 20px; vertical-align: top;"><img src="https://mhentuniverse.vercel.app/assets/icon-logo.png" width="100" style="display: block;"></td><td style="font-family: Arial, sans-serif; font-size: 14px; color: #333;"><strong style="color: #6366f1; font-size: 16px; text-transform: uppercase;">Miyazaki Haruto Entertainment Co., Ltd.</strong><br>📍 <span style="color: #64748b;">Operating in Vietnam and Online World</span><br><br>✉️ <strong>Email:</strong> <a href="mailto:miyazakiharuto.ent.co@gmail.com" style="color: #6366f1; text-decoration: none;">miyazakiharuto.ent.co@gmail.com</a><br>🌐 <strong>Website:</strong> <a href="https://mhentuniverse.vercel.app" style="color: #6366f1; text-decoration: none;">MHEnt. Universe</a><br>🔗 <strong>Contact with us:</strong> <a href="https://www.facebook.com/mharuto.entertainment" style="color: #6366f1; text-decoration: none;">MHEnt. Facebook</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #6366f1; text-decoration: none;">MHEnt. Universe Community</a><br><p style="font-style: italic; color: #94a3b8; font-size: 12px; margin-top: 10px;">— Khơi nguồn sáng tạo vô tận —</p></td></tr>
+                                <tr><td style="padding-right: 20px; vertical-align: top;"><img src="https://www.mhentuniverse.com/assets/icon-logo.png" width="100" style="display: block;"></td><td style="font-family: Arial, sans-serif; font-size: 14px; color: #333;"><strong style="color: #6366f1; font-size: 16px; text-transform: uppercase;">Miyazaki Haruto Entertainment Co., Ltd.</strong><br>📍 <span style="color: #64748b;">Operating in Vietnam and Online World</span><br><br>✉️ <strong>Email:</strong> <a href="mailto:contact@mhentuniverse.com" style="color: #6366f1; text-decoration: none;">contact@mhentuniverse.com</a><br>🌐 <strong>Website:</strong> <a href="https://www.mhentuniverse.com" style="color: #6366f1; text-decoration: none;">MHEnt. Universe</a><br>🔗 <strong>Contact with us:</strong> <a href="https://www.facebook.com/mharuto.entertainment" style="color: #6366f1; text-decoration: none;">MHEnt. Facebook</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #6366f1; text-decoration: none;">MHEnt. Universe Community</a><br><p style="font-style: italic; color: #94a3b8; font-size: 12px; margin-top: 10px;">— Khơi nguồn sáng tạo vô tận —</p></td></tr>
                             </table>`;
 
                         const MAILER_URL = "https://script.google.com/macros/s/AKfycbzCenLwN9fodAOHNwwCeYPGV4RlN_TJmHxt-sWdtWV8tLt0h_6typLEYrML0nE7LI2uYQ/exec";
                         const mailHtmlBody = `Thân gửi <b>${userInfo.fullName}</b>,<br><br>Lời đầu tiên, Miyazaki Haruto Entertainment xin gửi lời chúc mừng nồng nhiệt nhất đến cậu vì đã xuất sắc hoàn thành thử thách của MHEnt. Universe! Sự tham gia nhiệt tình của cậu chính là mảnh ghép tuyệt vời trong dịp kỷ niệm 1 năm thành lập hệ sinh thái của chúng tớ.<br><br>Như một lời tri ân, đây là <b>Vé Điện Tử Độc Quyền</b> tham gia vòng quay may mắn dành riêng cho cậu. Mã số bí mật của cậu là: <strong style="color: #ec4899; font-size: 20px;">${ticketCode}</strong><br><br><img src="${ticketUrl}" style="max-width: 100%; border-radius: 15px; margin-top: 10px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"><br><br><span style="color: #ef4444; font-weight: bold; font-size: 16px;">⚠️ LƯU Ý QUAN TRỌNG:</span><br>Cậu vui lòng <b>giữ lại email này</b> hoặc chụp màn hình chiếc vé để làm minh chứng nhận thưởng hợp lệ nhé. Đừng quên theo dõi fanpage MHEnt. để cập nhật lịch quay số trúng thưởng trong thời gian sắp tới!<br><br>Chúc cậu thật nhiều may mắn và luôn giữ mãi ngọn lửa đam mê cùng MHEnt. Universe!<br>${emailSignature}`;
 
-                        await fetch(MAILER_URL, {
-                            method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-                            body: JSON.stringify({ action: "send", subject: "🎉 Chúc mừng! Vé Give Away 1st Anniversary MHEnt dành cho bạn", body: mailHtmlBody, emails: [userInfo.email || "chua_co_email@mhent.com"], senderName: "Miyazaki Haruto Entertainment" })
-                        });
+                        let mailSent = false;
+                        try {
+                            const res = await fetch("/api/send-email", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    subject: "🎉 Chúc mừng! Vé Give Away 1st Anniversary MHEnt dành cho bạn",
+                                    html: mailHtmlBody,
+                                    emails: [userInfo.email || "contact@mhentuniverse.com"],
+                                    senderName: "MHEnt. Universe (No-Reply)"
+                                })
+                            });
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data && data.status === 'success') mailSent = true;
+                            }
+                        } catch (e) {}
+
+                        if (!mailSent) {
+                            await fetch(MAILER_URL, {
+                                method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+                                body: JSON.stringify({ action: "send", subject: "🎉 Chúc mừng! Vé Give Away 1st Anniversary MHEnt dành cho bạn", body: mailHtmlBody, emails: [userInfo.email || "chua_co_email@mhent.com"], senderName: "Miyazaki Haruto Entertainment" })
+                            });
+                        }
 
                         showToast(`🎉 Tuyệt vời! Đã gửi vé ${ticketCode} vào hòm thư!`);
                     } catch (error) { showToast("Lỗi hệ thống in vé, nhưng bài thi đã được lưu! Cậu vui lòng báo Admin nhé!"); }
