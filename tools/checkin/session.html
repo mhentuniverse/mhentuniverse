@@ -459,7 +459,7 @@
                 <a id="btn-open-ticket" href="#" class="btn-action btn-outline" target="_blank">
                     <i class="fa-solid fa-ticket"></i> Tra Cứu Vé
                 </a>
-                <button class="btn-action btn-outline" onclick="openSessionSettingsModal()" title="Cài đặt quyền riêng tư, PIN và phân quyền quản lý">
+                <button id="btn-settings-session" class="btn-action btn-outline" style="display: none;" onclick="openSessionSettingsModal()" title="Cài đặt quyền riêng tư, PIN và phân quyền quản lý (Chủ phiên / Admin)">
                     <i class="fa-solid fa-gear"></i> Phân Quyền
                 </button>
                 <button class="btn-action btn-outline" onclick="exportExcel()">
@@ -468,7 +468,7 @@
                 <button class="btn-action btn-outline" onclick="printReport()">
                     <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> In PDF
                 </button>
-                <button class="btn-action btn-outline" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;" onclick="confirmDeleteCurrentSession()" title="Xóa vĩnh viễn phiên này">
+                <button id="btn-delete-session" class="btn-action btn-outline" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444; display: none;" onclick="confirmDeleteCurrentSession()" title="Xóa vĩnh viễn phiên này (Chủ phiên / Admin)">
                     <i class="fa-solid fa-trash-can"></i> Xóa Phiên
                 </button>
             </div>
@@ -742,6 +742,27 @@
             }
         }
 
+        function canCurrentManageSession() {
+            if (!currentUser || !sessionData) return false;
+            const userEmail = (currentUser.email || '').toLowerCase();
+            const userUid = currentUser.uid || '';
+            const isAdmin = userEmail === 'mhent@mhentuniverse.com' ||
+                            userEmail === 'contact@mhentuniverse.com' ||
+                            userEmail.endsWith('@mhentuniverse.com') ||
+                            (currentUser.role && currentUser.role.toLowerCase().includes('admin'));
+            const isOwner = (sessionData.createdByUid && sessionData.createdByUid === userUid) ||
+                            (sessionData.createdByEmail && sessionData.createdByEmail.toLowerCase() === userEmail);
+            return isAdmin || isOwner;
+        }
+
+        function updateOwnerAdminControls() {
+            const isAuthorized = canCurrentManageSession();
+            const btnDel = document.getElementById('btn-delete-session');
+            const btnSettings = document.getElementById('btn-settings-session');
+            if (btnDel) btnDel.style.display = isAuthorized ? 'inline-flex' : 'none';
+            if (btnSettings) btnSettings.style.display = isAuthorized ? 'inline-flex' : 'none';
+        }
+
         onAuthStateChanged(auth, (user) => {
             currentUser = user || (window.getMHEntUser && window.getMHEntUser());
             const userSection = document.getElementById('user-section');
@@ -754,6 +775,7 @@
                 `;
             }
             updateLockScreenState();
+            updateOwnerAdminControls();
         });
 
         if (!sessionId) {
@@ -778,8 +800,9 @@
             sessionData = docSnap.data();
             attendeesList = sessionData.attendees || [];
 
-            // Kiểm tra phân quyền truy cập
+            // Kiểm tra phân quyền truy cập & điều khiển Admin/Owner
             updateLockScreenState();
+            updateOwnerAdminControls();
 
             // Render Header Info & Privacy Badge
             document.getElementById('session-title').innerText = sessionData.title || 'Phiên Không Tên';
@@ -1042,6 +1065,11 @@
 
         window.handleSaveSettings = async function(e) {
             e.preventDefault();
+            if (!canCurrentManageSession()) {
+                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền sửa đổi cài đặt phân quyền!", "error");
+                return;
+            }
+
             const title = document.getElementById('setting-title').value.trim();
             const privacy = document.getElementById('setting-privacy').value;
             const accessPin = document.getElementById('setting-pin').value.trim();
@@ -1070,8 +1098,13 @@
             }
         };
 
-        // DELETE CURRENT SESSION
+        // DELETE CURRENT SESSION (CREATOR & ADMIN ONLY)
         window.confirmDeleteCurrentSession = async function() {
+            if (!canCurrentManageSession()) {
+                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền xóa phiên!", "error");
+                return;
+            }
+
             const title = sessionData?.title || 'phiên này';
             if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách ${attendeesList.length} người tham dự và lịch sử điểm danh sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu!`)) {
                 return;

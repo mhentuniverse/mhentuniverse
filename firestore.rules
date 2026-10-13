@@ -10,6 +10,7 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email in ['mhent@mhentuniverse.com', 'contact@mhentuniverse.com'] ||
+        request.auth.token.email.matches('.*@mhentuniverse\\.com$') ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role.matches('.*admin.*'))
       );
@@ -60,7 +61,14 @@ service cloud.firestore {
 
     // 6. ĐIỂM DANH & CHECK-IN (mhent_checkin_sessions, mhent_checkin_logs)
     match /mhent_checkin_sessions/{sessionId} {
-      allow read, write: if true;
+      allow read, create: if true;
+      allow update: if true;
+      // Chỉ user tạo session và admin mới có quyền xóa session của người đó
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        (resource.data.createdByUid != null && request.auth.uid == resource.data.createdByUid) ||
+        (resource.data.createdByEmail != null && request.auth.token.email == resource.data.createdByEmail)
+      );
     }
     match /mhent_checkin_logs/{logId} {
       allow read, write: if true;

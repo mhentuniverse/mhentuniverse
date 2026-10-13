@@ -780,6 +780,20 @@
             }
         };
 
+        // CHECK DELETE PERMISSION (CREATOR & ADMIN ONLY)
+        function canUserDeleteSession(s, user) {
+            if (!user || !s) return false;
+            const userEmail = (user.email || '').toLowerCase();
+            const userUid = user.uid || '';
+            const isAdmin = userEmail === 'mhent@mhentuniverse.com' ||
+                            userEmail === 'contact@mhentuniverse.com' ||
+                            userEmail.endsWith('@mhentuniverse.com') ||
+                            (user.role && user.role.toLowerCase().includes('admin'));
+            const isOwner = (s.createdByUid && s.createdByUid === userUid) ||
+                            (s.createdByEmail && s.createdByEmail.toLowerCase() === userEmail);
+            return isAdmin || isOwner;
+        }
+
         // RENDER SESSIONS
         function renderSessions(list) {
             const grid = document.getElementById('session-grid');
@@ -795,6 +809,7 @@
                 if (s.type === 'OPEN') { typeLabel = "🌐 Tự Do"; typeClass = "type-open"; }
 
                 const isPrivate = s.privacy === 'PRIVATE';
+                const canDelete = canUserDeleteSession(s, currentUser);
 
                 return `
                     <div class="session-card">
@@ -805,9 +820,11 @@
                                     ${isPrivate ? '<i class="fa-solid fa-lock"></i> Riêng tư' : '<i class="fa-solid fa-globe"></i> Công khai'}
                                 </div>
                             </div>
-                            <button class="btn-del-session" onclick="confirmDeleteSession('${s.id}', '${encodeURIComponent(s.title || '')}')" title="Xóa vĩnh viễn phiên này">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                            ${canDelete ? `
+                                <button class="btn-del-session" onclick="confirmDeleteSession('${s.id}', '${encodeURIComponent(s.title || '')}')" title="Xóa vĩnh viễn phiên này (Chủ phiên / Admin)">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            ` : ''}
                         </div>
 
                         <h3>${s.title}</h3>
@@ -848,8 +865,14 @@
             }).join('');
         }
 
-        // CONFIRM DELETE SESSION
+        // CONFIRM DELETE SESSION (CREATOR & ADMIN ONLY)
         window.confirmDeleteSession = async function(id, encodedTitle) {
+            const targetSession = sessionsList.find(s => s.id === id);
+            if (!canUserDeleteSession(targetSession, currentUser)) {
+                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền xóa phiên!", "error");
+                return;
+            }
+
             const title = decodeURIComponent(encodedTitle || 'phiên này');
             if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách người tham dự và lịch sử quét mã sẽ bị xóa hoàn toàn khỏi hệ thống!`)) {
                 return;
