@@ -61,14 +61,7 @@ service cloud.firestore {
 
     // 6. ĐIỂM DANH & CHECK-IN (mhent_checkin_sessions, mhent_checkin_logs)
     match /mhent_checkin_sessions/{sessionId} {
-      allow read, create: if true;
-      allow update: if true;
-      // Chỉ user tạo session và admin mới có quyền xóa session của người đó
-      allow delete: if isAuthenticated() && (
-        isAdmin() ||
-        (resource.data.createdByUid != null && request.auth.uid == resource.data.createdByUid) ||
-        (resource.data.createdByEmail != null && request.auth.token.email == resource.data.createdByEmail)
-      );
+      allow read, write: if true;
     }
     match /mhent_checkin_logs/{logId} {
       allow read, write: if true;
