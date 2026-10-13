@@ -873,6 +873,12 @@
                 return;
             }
 
+            if (!auth.currentUser) {
+                window.showToast("Chưa xác thực", "Vui lòng đăng nhập tài khoản MHEnt ID để xác thực quyền xóa với máy chủ!", "warning");
+                setTimeout(() => window.redirectToLogin(window.location.href), 1200);
+                return;
+            }
+
             const title = decodeURIComponent(encodedTitle || 'phiên này');
             if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách người tham dự và lịch sử quét mã sẽ bị xóa hoàn toàn khỏi hệ thống!`)) {
                 return;
@@ -1036,9 +1042,9 @@
                     attendees,
                     privacy,
                     accessPin,
-                    createdBy: currentUser?.displayName || 'Admin',
-                    createdByEmail: currentUser?.email || '',
-                    createdByUid: currentUser?.uid || '',
+                    createdBy: auth.currentUser?.displayName || currentUser?.displayName || 'Admin',
+                    createdByEmail: (auth.currentUser?.email || currentUser?.email || '').toLowerCase(),
+                    createdByUid: auth.currentUser?.uid || currentUser?.uid || '',
                     managers,
                     createdAt: serverTimestamp()
                 });

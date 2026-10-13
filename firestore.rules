@@ -7,12 +7,28 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function getUserEmail() {
+      return request.auth.token.email != null ? request.auth.token.email : '';
+    }
+
     function isAdmin() {
       return isAuthenticated() && (
-        request.auth.token.email in ['mhent@mhentuniverse.com', 'contact@mhentuniverse.com'] ||
-        request.auth.token.email.matches('.*@mhentuniverse\\.com$') ||
+        getUserEmail() in ['mhent@mhentuniverse.com', 'contact@mhentuniverse.com', 'miyazakiharuto.ent.co@gmail.com'] ||
+        getUserEmail().matches('(?i).*@mhentuniverse\\.com$') ||
+        getUserEmail().matches('(?i).*admin.*') ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role.matches('.*admin.*'))
+         'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role is string &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role.matches('(?i).*(admin|root|boss|chủ tịch).*'))
+      );
+    }
+
+    function isSessionOwner(data) {
+      return isAuthenticated() && (
+        // Khớp UID người tạo
+        ('createdByUid' in data && data.createdByUid is string && data.createdByUid != '' && request.auth.uid == data.createdByUid) ||
+        // Khớp Email người tạo (không phân biệt hoa thường)
+        ('createdByEmail' in data && data.createdByEmail is string && data.createdByEmail != '' && getUserEmail() != '' && getUserEmail().matches('(?i)^' + data.createdByEmail + '$'))
       );
     }
 
@@ -61,7 +77,10 @@ service cloud.firestore {
 
     // 6. ĐIỂM DANH & CHECK-IN (mhent_checkin_sessions, mhent_checkin_logs)
     match /mhent_checkin_sessions/{sessionId} {
-      allow read, write: if true;
+      allow read, create: if true;
+      allow update: if true;
+      // Chỉ có admin hoặc người tạo ra session mới được xóa
+      allow delete: if isAdmin() || isSessionOwner(resource.data);
     }
     match /mhent_checkin_logs/{logId} {
       allow read, write: if true;

@@ -1612,6 +1612,12 @@
                 return;
             }
 
+            if (!auth.currentUser) {
+                window.showToast("Chưa xác thực", "Vui lòng đăng nhập lại tài khoản MHEnt ID để xác thực quyền xóa với máy chủ!", "warning");
+                setTimeout(() => window.redirectToLogin(window.location.href), 1200);
+                return;
+            }
+
             const title = sessionData?.title || 'phiên này';
             if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách ${attendeesList.length} người tham dự và lịch sử điểm danh sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu!`)) {
                 return;
