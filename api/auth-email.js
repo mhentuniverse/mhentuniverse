@@ -107,8 +107,29 @@ async function getGoogleAccessToken(sa) {
     return cachedToken;
 }
 
-// 4. CHUYỂN HƯỚNG LIÊN KẾT XÁC THỰC THẲNG VÀO TRANG MHEnt ID
-function buildDirectActionLink(rawLink, fallbackType) {
+// 4. TRA CỨU USERNAME / DISPLAYNAME TỪ FIREBASE AUTH NẾU CLIENT CHƯA TRUYỀN
+async function lookupUserInfo(accessToken, email) {
+    try {
+        const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: [email] })
+        });
+        const data = await res.json();
+        if (data && data.users && data.users.length > 0) {
+            return data.users[0];
+        }
+    } catch (e) {
+        console.error('Lỗi lookupUserInfo:', e);
+    }
+    return null;
+}
+
+// 5. CHUYỂN HƯỚNG LIÊN KẾT XÁC THỰC THẲNG VÀO TRANG MHEnt ID
+function buildDirectActionLink(rawLink, fallbackType, targetEmail = '', displayName = '') {
     try {
         const parsed = new URL(rawLink);
         const mode = parsed.searchParams.get('mode') || fallbackType;
@@ -122,6 +143,8 @@ function buildDirectActionLink(rawLink, fallbackType) {
             directUrl.searchParams.set('oobCode', oobCode);
             if (apiKey) directUrl.searchParams.set('apiKey', apiKey);
             if (lang) directUrl.searchParams.set('lang', lang);
+            if (targetEmail) directUrl.searchParams.set('email', targetEmail);
+            if (displayName) directUrl.searchParams.set('name', displayName);
             return directUrl.toString();
         }
     } catch (e) {
@@ -130,16 +153,8 @@ function buildDirectActionLink(rawLink, fallbackType) {
     return rawLink;
 }
 
-// 5. GỌI IDENTITY TOOLKIT REST API ĐỂ TẠO LIÊN KẾT (TƯƠNG THÍCH MỌI PHIÊN BẢN NODE)
-async function generateActionLink(requestType, targetEmail, newEmail = null) {
-    const sa = getServiceAccount();
-    if (!sa) {
-        const err = new Error('Chưa cấu hình FIREBASE_SERVICE_ACCOUNT trên biến môi trường Vercel!');
-        err.code = 'missing-service-account';
-        throw err;
-    }
-
-    const accessToken = await getGoogleAccessToken(sa);
+// 6. GỌI IDENTITY TOOLKIT REST API ĐỂ TẠO LIÊN KẾT (TƯƠNG THÍCH MỌI PHIÊN BẢN NODE)
+async function generateActionLink(accessToken, requestType, targetEmail, displayName = '', newEmail = null) {
     const bodyPayload = {
         requestType: requestType,
         email: targetEmail,
@@ -176,10 +191,10 @@ async function generateActionLink(requestType, targetEmail, newEmail = null) {
     if (requestType === 'VERIFY_EMAIL') fallbackType = 'verifyEmail';
     if (requestType === 'VERIFY_AND_CHANGE_EMAIL') fallbackType = 'verifyAndChangeEmail';
 
-    return buildDirectActionLink(data.oobLink, fallbackType);
+    return buildDirectActionLink(data.oobLink, fallbackType, targetEmail, displayName);
 }
 
-// 6. VERCEL SERVERLESS FUNCTION HANDLER
+// 7. VERCEL SERVERLESS FUNCTION HANDLER
 module.exports = async (req, res) => {
     // Thiết lập CORS đầy đủ cho toàn bộ hệ thống
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -216,11 +231,30 @@ module.exports = async (req, res) => {
             return res.status(400).json({ status: 'error', message: 'Thiếu tham số loại email (type).' });
         }
 
+        const sa = getServiceAccount();
+        if (!sa) {
+            const err = new Error('Chưa cấu hình FIREBASE_SERVICE_ACCOUNT trên biến môi trường Vercel!');
+            err.code = 'missing-service-account';
+            throw err;
+        }
+
+        const accessToken = await getGoogleAccessToken(sa);
+
+        // Lấy chính xác username / displayName thực tế của tài khoản
+        let safeName = (displayName || '').trim();
+        if (!safeName) {
+            const userInfo = await lookupUserInfo(accessToken, targetEmail);
+            if (userInfo && userInfo.displayName) {
+                safeName = userInfo.displayName;
+            } else {
+                safeName = targetEmail.split('@')[0] || 'cậu';
+            }
+        }
+
         let actionLink = '';
         let subject = '';
         let htmlContent = '';
         let recipient = targetEmail;
-        const safeName = displayName || targetEmail.split('@')[0] || 'cậu';
 
         // CHỮ KÝ DOANH NGHIỆP CHÍNH THỨC CỦA MHENT
         const companySignature = `
@@ -263,7 +297,7 @@ module.exports = async (req, res) => {
         // TRƯỜNG HỢP 1: QUÊN MẬT KHẨU (RESET PASSWORD)
         // ==========================================
         if (type === 'resetPassword') {
-            actionLink = await generateActionLink('PASSWORD_RESET', targetEmail);
+            actionLink = await generateActionLink(accessToken, 'PASSWORD_RESET', targetEmail, safeName);
 
             subject = '🗝️ Chìa khóa dự phòng cho tài khoản MHEnt của cậu đây!';
             htmlContent = `
@@ -298,7 +332,7 @@ module.exports = async (req, res) => {
         // TRƯỜNG HỢP 2: XÁC MINH EMAIL (VERIFY EMAIL)
         // ==========================================
         else if (type === 'verifyEmail') {
-            actionLink = await generateActionLink('VERIFY_EMAIL', targetEmail);
+            actionLink = await generateActionLink(accessToken, 'VERIFY_EMAIL', targetEmail, safeName);
 
             subject = '🌟 Kích hoạt thẻ căn cước đa vũ trụ MHEnt của cậu nè!';
             htmlContent = `
@@ -337,7 +371,7 @@ module.exports = async (req, res) => {
                 return res.status(400).json({ status: 'error', message: 'Chưa cung cấp địa chỉ email mới.' });
             }
 
-            actionLink = await generateActionLink('VERIFY_AND_CHANGE_EMAIL', targetEmail, newEmail);
+            actionLink = await generateActionLink(accessToken, 'VERIFY_AND_CHANGE_EMAIL', targetEmail, safeName, newEmail);
             recipient = newEmail;
 
             subject = '💌 Xác nhận chuyển sang hòm thư mới tại MHEnt. Universe!';
@@ -385,7 +419,8 @@ module.exports = async (req, res) => {
         return res.status(200).json({
             status: 'success',
             message: `Đã gửi thư [${type}] thành công từ noreply@mhentuniverse.com tới ${recipient}!`,
-            targetEmail: recipient
+            targetEmail: recipient,
+            displayName: safeName
         });
 
     } catch (error) {
