@@ -1303,7 +1303,8 @@
         }
 
         window.deleteMailCampaign = async function (id, gasId) {
-            if (!confirm("Cậu có chắc muốn xóa/hủy chiến dịch này không?")) return;
+            const okDel = await window.mhentConfirm("Hủy Chiến Dịch", "Cậu có chắc muốn xóa/hủy chiến dịch này không?");
+            if (!okDel) return;
 
             // Nếu thư đang ở trạm, gửi lệnh gọi nó về
             if (gasId) {

@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
 
     <style>
         :root {
@@ -523,8 +524,7 @@
 
         <div style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 14px; flex-wrap: wrap;">
             <span style="font-size: 12.5px; font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-arrow-down-short-wide"></i> Thứ tự hiển thị:</span>
-            <select id="kiosk-sort" onchange="handleKioskSortChange(this.value)"
-                style="padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 12.5px; font-weight: 800; outline: none; cursor: pointer;"
+            <select id="kiosk-sort" class="form-select tool-select" onchange="handleKioskSortChange(this.value)"
                 title="Sắp xếp danh sách người tham dự Kiosk">
                 <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
                 <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
@@ -654,7 +654,7 @@
         }
 
         if (!sessionId) {
-            alert("Thiếu mã phiên điểm danh!");
+            window.showToast("Thiếu Thông Tin", "Thiếu mã phiên điểm danh!", "error");
             window.location.href = '/tools/checkin';
         }
 
@@ -736,7 +736,7 @@
         const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
         onSnapshot(sessionRef, (docSnap) => {
             if (!docSnap.exists()) {
-                alert("Phiên không tồn tại!");
+                window.showToast("Không Tìm Thấy", "Phiên không tồn tại hoặc đã kết thúc!", "error");
                 window.location.href = '/tools/checkin';
                 return;
             }
@@ -889,7 +889,7 @@
                 showSuccessPopup(attendee, false);
             } catch (err) {
                 console.error("Check-in error:", err);
-                alert("Lỗi kết nối khi điểm danh!");
+                window.showToast("Lỗi Kết Nối", "Lỗi kết nối khi điểm danh!", "error");
             }
         };
 
@@ -930,7 +930,7 @@
 
             const existing = attendeesList.find(a => a.code === code);
             if (existing) {
-                alert("Mã này đã có trong danh sách! Đang mở thẻ cho bạn...");
+                window.showToast("Đã Tồn Tại", "Mã này đã có trong danh sách! Đang mở thẻ...", "info");
                 closeWalkinModal();
                 handleCardClick(code);
                 return;
@@ -959,7 +959,7 @@
                 showSuccessPopup(newAttendee, false);
             } catch (err) {
                 console.error("Error adding walk-in:", err);
-                alert("Lỗi khi thêm khách!");
+                window.showToast("Lỗi Thêm Khách", "Không thể thêm khách mời mới!", "error");
             }
         };
 
@@ -967,7 +967,7 @@
         window.toggleFullscreen = function() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    alert(`Không thể bật toàn màn hình: ${err.message}`);
+                    window.showToast("Toàn Màn Hình", `Không thể bật toàn màn hình: ${err.message}`, "warning");
                 });
                 document.getElementById('fs-icon').className = 'fa-solid fa-compress';
             } else {

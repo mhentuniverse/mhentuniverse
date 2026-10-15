@@ -1615,7 +1615,7 @@
             navigator.clipboard.writeText(publicUrl).then(() => {
                 window.showToast("Đã sao chép", "Đã copy liên kết điền biểu mẫu công khai!", "success");
             }).catch(() => {
-                prompt("Sao chép liên kết này gửi cho mọi người:", publicUrl);
+                if (typeof window.showInputPopup === "function") { window.showInputPopup("Liên Kết Biểu Mẫu", "Liên kết công khai", "Đóng", () => {}, publicUrl); } else { window.showToast("Liên kết biểu mẫu", publicUrl, "info"); }
             });
         };
 
@@ -1681,7 +1681,7 @@
             navigator.clipboard.writeText(formulaInput.value).then(() => {
                 window.showToast("Đã sao chép công thức!", "Mở Google Sheet và dán vào ô A1 nhé!", "success");
             }).catch(() => {
-                prompt("Sao chép công thức này dán vào ô A1:", formulaInput.value);
+                if (typeof window.showInputPopup === "function") { window.showInputPopup("Công Thức Google Sheet", "Công thức", "Đóng", () => {}, formulaInput.value); } else { window.showToast("Công thức", formulaInput.value, "info"); }
             });
         };
 

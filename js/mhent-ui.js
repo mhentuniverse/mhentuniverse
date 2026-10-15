@@ -1095,8 +1095,7 @@ window.openNavCustomizer = function() {
 window.saveCustomNav = function() {
     let checkedBoxes = document.querySelectorAll('input[name="custom_app_item"]:checked');
     if (checkedBoxes.length < 1 || checkedBoxes.length > 3) {
-        if (typeof showToast === 'function') showToast("Lỗi", "Cậu vui lòng chọn từ 1 đến 3 vũ trụ nhé!", "error");
-        else alert("Vui lòng chọn từ 1 đến 3 vũ trụ!");
+        window.showToast("Thông Báo", "Cậu vui lòng chọn từ 1 đến 3 vũ trụ nhé!", "error");
         return;
     }
 

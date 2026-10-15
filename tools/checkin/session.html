@@ -564,15 +564,13 @@
                     <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i>
                     <input type="text" id="filter-search" placeholder="Tìm theo tên, mã số, đơn vị..." oninput="filterAttendees()">
                 </div>
-                <select id="filter-status" onchange="filterAttendees()"
-                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; cursor: pointer;">
+                <select id="filter-status" class="form-select tool-select" onchange="filterAttendees()">
                     <option value="ALL">🔍 Tất cả trạng thái</option>
                     <option value="PRESENT">✅ Đã có mặt</option>
                     <option value="LATE">⚠️ Đi trễ</option>
                     <option value="ABSENT">⏳ Chưa đến</option>
                 </select>
-                <select id="filter-sort" onchange="handleSortSelectChange()"
-                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; cursor: pointer;"
+                <select id="filter-sort" class="form-select tool-select" onchange="handleSortSelectChange()"
                     title="Tùy chọn sắp xếp danh sách">
                     <option value="DEFAULT">⏱️ Thứ tự nhập (Ban đầu)</option>
                     <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
@@ -781,7 +779,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div>
                         <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">Chế Độ Riêng Tư *</label>
-                        <select id="setting-privacy" class="form-select" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-weight: 700;">
+                        <select id="setting-privacy" class="form-select tool-select" style="width: 100%; box-sizing: border-box;">
                             <option value="PUBLIC">🌐 Công Khai (Ai có link đều vào)</option>
                             <option value="PRIVATE">🔒 Riêng Tư (Chỉ tôi, PIN & Co-hosts)</option>
                         </select>
@@ -806,7 +804,7 @@
                     <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
                         <i class="fa-solid fa-arrow-down-short-wide" style="color: var(--ci-accent);"></i> Thứ Tự Sắp Xếp Mặc Định Cho Phiên (Kiosk, Tra Cứu, Bảng)
                     </label>
-                    <select id="setting-default-sort" class="form-select" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-weight: 700;">
+                    <select id="setting-default-sort" class="form-select tool-select" style="width: 100%; box-sizing: border-box;">
                         <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
                         <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
                         <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
@@ -984,7 +982,7 @@
         });
 
         if (!sessionId) {
-            alert("Không tìm thấy mã phiên điểm danh!");
+            window.showToast("Lỗi", "Không tìm thấy mã phiên điểm danh!", "error");
             window.location.href = '/tools/checkin';
         }
 
@@ -998,7 +996,7 @@
         const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
         onSnapshot(sessionRef, (docSnap) => {
             if (!docSnap.exists()) {
-                alert("Phiên điểm danh không tồn tại hoặc đã bị xóa!");
+                window.showToast("Không Tìm Thấy", "Phiên điểm danh không tồn tại hoặc đã bị xóa!", "error");
                 return window.location.href = '/tools/checkin';
             }
 
@@ -1434,7 +1432,7 @@
             const att = attendeesList.find(a => a.id === attId);
             if (!att) return;
             const currentEmail = att.email || '';
-            const newEmail = prompt(`Nhập địa chỉ email nhận vé cho "${att.name}" (Mã: ${att.code}):`, currentEmail);
+            const newEmail = await window.mhentPrompt(`Nhập email nhận vé cho "${att.name}" (${att.code}):`, "vidu@gmail.com", currentEmail);
             if (newEmail === null) return;
             const trimmed = newEmail.trim();
             if (trimmed && !trimmed.includes('@')) {
@@ -1646,7 +1644,7 @@
             if (!att) return;
 
             if (!att.email || !att.email.includes('@')) {
-                const inputMail = prompt(`Thành viên "${att.name}" (${att.code}) chưa có địa chỉ email nhận vé.\n\nVui lòng nhập email của người này:`);
+                const inputMail = await window.mhentPrompt(`Nhập email nhận vé cho "${att.name}" (${att.code}):`, "vidu@gmail.com");
                 if (!inputMail) return;
                 const cleanMail = inputMail.trim();
                 if (!cleanMail || !cleanMail.includes('@')) {
@@ -1739,7 +1737,8 @@
                 }
             }
 
-            if (!confirm(`Xác nhận bắt đầu gửi vé E-Ticket cho ${targetList.length} người qua email noreply@mhentuniverse.com?`)) {
+            const okBulk = await window.mhentConfirm("Gửi Vé E-Ticket Hàng Loạt", `Bắt đầu gửi vé E-Ticket cho ${targetList.length} người qua email noreply@mhentuniverse.com?`);
+            if (!okBulk) {
                 return;
             }
 
@@ -1939,7 +1938,8 @@
             }
 
             const title = sessionData?.title || 'phiên này';
-            if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách ${attendeesList.length} người tham dự và lịch sử điểm danh sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu!`)) {
+            const okDel = await window.mhentConfirm("Xác Nhận Xóa Vĩnh Viễn", `Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh "${title}" không? Toàn bộ danh sách ${attendeesList.length} người tham dự và lịch sử điểm danh sẽ bị xóa hoàn toàn!`);
+            if (!okDel) {
                 return;
             }
 

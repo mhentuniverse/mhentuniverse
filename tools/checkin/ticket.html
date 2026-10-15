@@ -41,6 +41,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
 
     <style>
         :root {
@@ -348,8 +349,7 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-arrow-down-short-wide"></i> Thứ tự:</span>
-                    <select id="ticket-sort" onchange="handleTicketSortChange(this.value)"
-                        style="padding: 5px 10px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-size: 12px; font-weight: 700; outline: none; cursor: pointer;"
+                    <select id="ticket-sort" class="form-select tool-select" onchange="handleTicketSortChange(this.value)"
                         title="Sắp xếp danh sách tra cứu vé">
                         <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
                         <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
@@ -376,8 +376,7 @@
                 <label for="lookup-select-attendee" style="font-size: 12px; font-weight: 800; color: var(--text-muted);">
                     <i class="fa-solid fa-list-check"></i> Chọn nhanh đại biểu (<span id="attendee-count-label">0</span> người):
                 </label>
-                <select id="lookup-select-attendee" onchange="handleSelectAttendee(this.value)"
-                    style="flex: 1; min-width: 220px; padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main); font-size: 13px; font-weight: 700; outline: none; cursor: pointer;">
+                <select id="lookup-select-attendee" class="form-select tool-select" onchange="handleSelectAttendee(this.value)" style="flex: 1; min-width: 220px;">
                 </select>
             </div>
         </div>
@@ -472,7 +471,7 @@
         let qrcodeInstance = null;
 
         if (!sessionId) {
-            alert("Thiếu mã phiên!");
+            window.showToast("Thiếu Thông Tin", "Thiếu mã phiên tra cứu vé!", "error");
             window.location.href = '/tools/checkin';
         }
 
@@ -568,7 +567,7 @@
         const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
         onSnapshot(sessionRef, (docSnap) => {
             if (!docSnap.exists()) {
-                alert("Phiên không tồn tại hoặc đã bị xóa!");
+                window.showToast("Không Tìm Thấy", "Phiên không tồn tại hoặc đã bị xóa!", "error");
                 window.location.href = '/tools/checkin';
                 return;
             }
@@ -584,7 +583,7 @@
             }));
 
             if (attendeesList.length === 0) {
-                alert("Phiên này chưa có danh sách người tham gia!");
+                window.showToast("Thông Báo", "Phiên này chưa có danh sách người tham gia!", "info");
                 return;
             }
 
@@ -647,7 +646,7 @@
             );
 
             if (foundIdx === -1) {
-                alert(`Không tìm thấy người tham gia nào khớp với "${kw}"!`);
+                window.showToast("Không Tìm Thấy", `Không tìm thấy người tham gia nào khớp với "${kw}"!`, "warning");
                 return;
             }
 
@@ -660,7 +659,7 @@
                 currentIndex--;
                 renderAttendeeTicket(currentIndex);
             } else {
-                alert("Đây đã là người đầu tiên trong danh sách!");
+                window.showToast("Thông Báo", "Đây đã là người đầu tiên trong danh sách!", "info");
             }
         };
 
@@ -669,7 +668,7 @@
                 currentIndex++;
                 renderAttendeeTicket(currentIndex);
             } else {
-                alert("Đây đã là người cuối cùng trong danh sách!");
+                window.showToast("Thông Báo", "Đây đã là người cuối cùng trong danh sách!", "info");
             }
         };
 
@@ -689,7 +688,7 @@
                 link.click();
             }).catch(err => {
                 console.error("Canvas error:", err);
-                alert("Lỗi khi tải ảnh vé: " + err.message);
+                window.showToast("Lỗi Tải Ảnh", "Lỗi khi tải ảnh vé: " + err.message, "error");
             });
         };
     </script>

@@ -518,8 +518,7 @@
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <input type="text" id="session-search" placeholder="🔍 Tìm kiếm phiên..." oninput="filterSessions()"
                     style="padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; width: 190px;">
-                <select id="session-sort" onchange="filterSessions()"
-                    style="padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-soft); background: var(--card-bg); color: var(--text-main); font-family: inherit; font-size: 13px; outline: none; cursor: pointer;"
+                <select id="session-sort" class="form-select tool-select" onchange="filterSessions()"
                     title="Sắp xếp danh sách phiên">
                     <option value="DATE_DESC">📅 Mới nhất (Ngày/Giờ)</option>
                     <option value="DATE_ASC">📅 Cũ nhất</option>
@@ -917,7 +916,8 @@
             }
 
             const title = decodeURIComponent(encodedTitle || 'phiên này');
-            if (!confirm(`Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh:\n"${title}" không?\n\nToàn bộ danh sách người tham dự và lịch sử quét mã sẽ bị xóa hoàn toàn khỏi hệ thống!`)) {
+            const okDel = await window.mhentConfirm("Xác Nhận Xóa Phiên", `Cậu có chắc chắn muốn XÓA VĨNH VIỄN phiên điểm danh "${title}" không? Toàn bộ danh sách người tham dự và lịch sử quét mã sẽ bị xóa hoàn toàn khỏi hệ thống!`);
+            if (!okDel) {
                 return;
             }
             try {

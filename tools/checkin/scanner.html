@@ -419,7 +419,7 @@
         let audioCtx = null;
 
         if (!sessionId) {
-            alert("Thiếu mã phiên!");
+            window.showToast("Thiếu Mã Phiên", "Không tìm thấy mã phiên quét!", "error");
             window.location.href = '/tools/checkin';
         }
 
@@ -780,7 +780,7 @@
             e.preventDefault();
             const pin = (document.getElementById('scanner-pin-input').value || '').trim();
             if (!sessionData?.accessPin) {
-                alert("Phiên này không thiết lập mã PIN dự phòng. Hãy đăng nhập tài khoản người tạo hoặc liên hệ ban tổ chức!");
+                window.showToast("Không Có Mã PIN", "Phiên này không thiết lập mã PIN dự phòng!", "warning");
                 return;
             }
             if (pin === sessionData.accessPin) {
@@ -792,7 +792,7 @@
                     startCamera();
                 }
             } else {
-                alert("Mã PIN không đúng! Vui lòng thử lại.");
+                window.showToast("Sai Mã PIN", "Mã PIN không đúng! Vui lòng thử lại.", "error");
                 document.getElementById('scanner-pin-input').value = '';
                 document.getElementById('scanner-pin-input').focus();
             }
