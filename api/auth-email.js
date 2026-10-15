@@ -1,12 +1,9 @@
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-// 1. IMPORT TĨNH CỦA FIREBASE ADMIN ĐỂ VERCEL BUNDLE ĐẦY ĐỦ THƯ VIỆN
-const { initializeApp, cert, getApps, getApp } = require('firebase-admin/app');
-const { getAuth } = require('firebase-admin/auth');
-
-// 2. CẤU HÌNH BƯU TÁ GMAIL / GOOGLE WORKSPACE SMTP
+// 1. CẤU HÌNH BƯU TÁ GMAIL / GOOGLE WORKSPACE SMTP CHÍNH CHỦ
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -15,10 +12,12 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-let cachedAuth = null;
+let cachedToken = null;
+let tokenExpiry = 0;
 
+// 2. LẤY THÔNG TIN SERVICE ACCOUNT
 function getServiceAccount() {
-    // 1. Biến môi trường Vercel (khuyến nghị trên Production)
+    // 2.1. Biến môi trường Vercel (khuyến nghị trên Production)
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         try {
             const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -32,7 +31,16 @@ function getServiceAccount() {
         }
     }
 
-    // 2. File Service Account cục bộ
+    // 2.2. Hỗ trợ biến môi trường riêng lẻ
+    if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+        return {
+            client_email: process.env.FIREBASE_CLIENT_EMAIL,
+            private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            project_id: process.env.FIREBASE_PROJECT_ID || 'mhentuniverse'
+        };
+    }
+
+    // 2.3. Tìm file Service Account cục bộ (cho môi trường local / preview)
     const possiblePaths = [
         path.join(process.cwd(), 'firebase-service-account.json'),
         path.join(process.cwd(), 'mhentuniverse-firebase-adminsdk-fbsvc-1cf272936c.json'),
@@ -59,27 +67,47 @@ function getServiceAccount() {
     return null;
 }
 
-function getFirebaseAuth() {
-    if (cachedAuth) return cachedAuth;
-
-    const apps = getApps();
-    if (apps.length > 0) {
-        cachedAuth = getAuth(apps[0]);
-        return cachedAuth;
+// 3. TẠO GOOGLE OAUTH 2.0 ACCESS TOKEN TỪ SERVICE ACCOUNT (THUẦN NODE CRYPTO, KHÔNG CẦN THƯ VIỆN NẶNG)
+async function getGoogleAccessToken(sa) {
+    const now = Math.floor(Date.now() / 1000);
+    if (cachedToken && tokenExpiry > now + 60) {
+        return cachedToken;
     }
 
-    const sa = getServiceAccount();
-    if (!sa) {
-        throw new Error('Chưa cấu hình FIREBASE_SERVICE_ACCOUNT trên biến môi trường Vercel!');
-    }
+    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
+    const claimSet = Buffer.from(JSON.stringify({
+        iss: sa.client_email,
+        scope: 'https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/firebase',
+        aud: 'https://oauth2.googleapis.com/token',
+        exp: now + 3600,
+        iat: now
+    })).toString('base64url');
 
-    const app = initializeApp({
-        credential: cert(sa)
+    const sign = crypto.createSign('RSA-SHA256');
+    sign.update(header + '.' + claimSet);
+    const signature = sign.sign(sa.private_key, 'base64url');
+    const jwt = header + '.' + claimSet + '.' + signature;
+
+    const res = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            assertion: jwt
+        })
     });
-    cachedAuth = getAuth(app);
-    return cachedAuth;
+
+    const data = await res.json();
+    if (!res.ok || !data.access_token) {
+        throw new Error('Không thể xác thực Service Account với Google: ' + (data.error_description || data.error || JSON.stringify(data)));
+    }
+
+    cachedToken = data.access_token;
+    tokenExpiry = now + (data.expires_in || 3600);
+    return cachedToken;
 }
 
+// 4. CHUYỂN HƯỚNG LIÊN KẾT XÁC THỰC THẲNG VÀO TRANG MHEnt ID
 function buildDirectActionLink(rawLink, fallbackType) {
     try {
         const parsed = new URL(rawLink);
@@ -89,7 +117,6 @@ function buildDirectActionLink(rawLink, fallbackType) {
         const lang = parsed.searchParams.get('lang') || 'vi';
 
         if (oobCode) {
-            // Ép link trỏ thẳng vào giao diện MHEnt ID thay vì trang mặc định thô sơ của Firebase
             const directUrl = new URL('https://accounts.mhentuniverse.com/auth-action.html');
             directUrl.searchParams.set('mode', mode);
             directUrl.searchParams.set('oobCode', oobCode);
@@ -103,9 +130,58 @@ function buildDirectActionLink(rawLink, fallbackType) {
     return rawLink;
 }
 
-// 3. VERCEL SERVERLESS HANDLER
+// 5. GỌI IDENTITY TOOLKIT REST API ĐỂ TẠO LIÊN KẾT (TƯƠNG THÍCH MỌI PHIÊN BẢN NODE)
+async function generateActionLink(requestType, targetEmail, newEmail = null) {
+    const sa = getServiceAccount();
+    if (!sa) {
+        const err = new Error('Chưa cấu hình FIREBASE_SERVICE_ACCOUNT trên biến môi trường Vercel!');
+        err.code = 'missing-service-account';
+        throw err;
+    }
+
+    const accessToken = await getGoogleAccessToken(sa);
+    const bodyPayload = {
+        requestType: requestType,
+        email: targetEmail,
+        returnOobLink: true
+    };
+    if (newEmail) {
+        bodyPayload.newEmail = newEmail;
+    }
+
+    const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bodyPayload)
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        const errMsg = data.error?.message || 'Lỗi khi tạo liên kết từ Identity Toolkit';
+        const err = new Error(errMsg);
+        err.code = data.error?.message;
+        throw err;
+    }
+
+    if (!data.oobLink) {
+        const err = new Error('Không tìm thấy tài khoản tương ứng với email này trong hệ thống MHEnt!');
+        err.code = 'auth/user-not-found';
+        throw err;
+    }
+
+    let fallbackType = 'resetPassword';
+    if (requestType === 'VERIFY_EMAIL') fallbackType = 'verifyEmail';
+    if (requestType === 'VERIFY_AND_CHANGE_EMAIL') fallbackType = 'verifyAndChangeEmail';
+
+    return buildDirectActionLink(data.oobLink, fallbackType);
+}
+
+// 6. VERCEL SERVERLESS FUNCTION HANDLER
 module.exports = async (req, res) => {
-    // Kích hoạt CORS cho toàn bộ các domain của hệ thống MHEnt
+    // Thiết lập CORS đầy đủ cho toàn bộ hệ thống
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -114,6 +190,7 @@ module.exports = async (req, res) => {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
     );
 
+    // Xử lý Preflight OPTIONS tức thì
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
@@ -138,8 +215,6 @@ module.exports = async (req, res) => {
         if (!type) {
             return res.status(400).json({ status: 'error', message: 'Thiếu tham số loại email (type).' });
         }
-
-        const auth = getFirebaseAuth();
 
         let actionLink = '';
         let subject = '';
@@ -184,20 +259,11 @@ module.exports = async (req, res) => {
             </div>
         `;
 
-        async function createActionLink(generatorFn, fallbackType, ...args) {
-            let settings = {
-                url: 'https://mhentuniverse.com/auth-action.html',
-                handleCodeInApp: false
-            };
-            const raw = await generatorFn(...args, settings);
-            return buildDirectActionLink(raw, fallbackType);
-        }
-
         // ==========================================
         // TRƯỜNG HỢP 1: QUÊN MẬT KHẨU (RESET PASSWORD)
         // ==========================================
         if (type === 'resetPassword') {
-            actionLink = await createActionLink((e, s) => auth.generatePasswordResetLink(e, s), 'resetPassword', targetEmail);
+            actionLink = await generateActionLink('PASSWORD_RESET', targetEmail);
 
             subject = '🗝️ Chìa khóa dự phòng cho tài khoản MHEnt của cậu đây!';
             htmlContent = `
@@ -232,7 +298,7 @@ module.exports = async (req, res) => {
         // TRƯỜNG HỢP 2: XÁC MINH EMAIL (VERIFY EMAIL)
         // ==========================================
         else if (type === 'verifyEmail') {
-            actionLink = await createActionLink((e, s) => auth.generateEmailVerificationLink(e, s), 'verifyEmail', targetEmail);
+            actionLink = await generateActionLink('VERIFY_EMAIL', targetEmail);
 
             subject = '🌟 Kích hoạt thẻ căn cước đa vũ trụ MHEnt của cậu nè!';
             htmlContent = `
@@ -271,7 +337,7 @@ module.exports = async (req, res) => {
                 return res.status(400).json({ status: 'error', message: 'Chưa cung cấp địa chỉ email mới.' });
             }
 
-            actionLink = await createActionLink((e, ne, s) => auth.generateVerifyAndChangeEmailLink(e, ne, s), 'verifyAndChangeEmail', targetEmail, newEmail);
+            actionLink = await generateActionLink('VERIFY_AND_CHANGE_EMAIL', targetEmail, newEmail);
             recipient = newEmail;
 
             subject = '💌 Xác nhận chuyển sang hòm thư mới tại MHEnt. Universe!';
@@ -326,10 +392,12 @@ module.exports = async (req, res) => {
         console.error('Lỗi gửi mail xác thực qua Vercel API:', error);
         
         let clientMsg = error.message;
-        if (error.code === 'auth/user-not-found') {
+        if (error.code === 'auth/user-not-found' || error.message?.includes('EMAIL_NOT_FOUND')) {
             clientMsg = 'Không tìm thấy tài khoản tương ứng với email này trong hệ thống MHEnt!';
-        } else if (error.code === 'auth/invalid-email') {
+        } else if (error.code === 'auth/invalid-email' || error.message?.includes('INVALID_EMAIL')) {
             clientMsg = 'Địa chỉ email không đúng định dạng.';
+        } else if (error.code === 'missing-service-account') {
+            clientMsg = 'Hệ thống máy chủ chưa cấu hình FIREBASE_SERVICE_ACCOUNT. Vui lòng cấu hình trên Vercel Environment Variables.';
         }
 
         return res.status(500).json({
