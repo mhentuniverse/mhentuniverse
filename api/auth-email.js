@@ -116,10 +116,65 @@ module.exports = async (req, res) => {
         const safeName = displayName || targetEmail.split('@')[0] || 'cậu';
 
         // ==========================================
+        // CHỮ KÝ DOANH NGHIỆP CHÍNH THỨC CỦA MHENT
+        // ==========================================
+        const companySignature = `
+            <div style="margin-top: 35px; border-top: 2px solid #4338ca; padding-top: 15px;">
+                <div style="height: 2px; width: 70px; background-color: #4338ca; margin-bottom: 18px;"></div>
+                <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    <tr>
+                        <td style="width: 90px; vertical-align: top; padding-right: 20px;">
+                            <img src="https://www.mhentuniverse.com/assets/icon-logo.png" width="90" height="90" alt="MHEnt Logo" style="display: block; width: 90px; height: auto;">
+                        </td>
+                        <td style="vertical-align: top; font-size: 13.5px; line-height: 1.6; color: #334155;">
+                            <div style="font-weight: 800; font-size: 15px; color: #4338ca; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">
+                                MIYAZAKI HARUTO ENTERTAINMENT CO., LTD.
+                            </div>
+                            <div style="color: #64748b; font-size: 13px; margin-bottom: 12px;">
+                                📍 Operating in Vietnam and Online World
+                            </div>
+                            <div style="margin-bottom: 3px;">
+                                ✉️ <strong>Contact Email:</strong> <a href="mailto:contact@mhentuniverse.com" style="color: #4338ca; text-decoration: underline;">contact@mhentuniverse.com</a>
+                            </div>
+                            <div style="margin-bottom: 3px;">
+                                ✉️ <strong>Support Email:</strong> <a href="mailto:support@mhentuniverse.com" style="color: #4338ca; text-decoration: underline;">support@mhentuniverse.com</a>
+                            </div>
+                            <div style="margin-bottom: 3px;">
+                                🌐 <strong>Website:</strong> <a href="https://www.mhentuniverse.com" style="color: #4338ca; text-decoration: underline;">MHEnt. Universe</a>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                🔗 <strong>Contact with us:</strong> <a href="https://www.facebook.com/mharuto.entertainment" style="color: #4338ca; text-decoration: underline;">MHEnt. Facebook</a> | <a href="https://www.facebook.com/mhentuniverse" style="color: #4338ca; text-decoration: underline;">MHEnt. Universe Community</a>
+                            </div>
+                            <div style="font-style: italic; color: #94a3b8; font-size: 12.5px; margin-top: 8px;">
+                                — Khơi nguồn sáng tạo vô tận —
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        `;
+
+        async function createActionLink(generatorFn, ...args) {
+            let settings = {
+                url: 'https://accounts.mhentuniverse.com/auth-action',
+                handleCodeInApp: false
+            };
+            try {
+                return await generatorFn(...args, settings);
+            } catch (err) {
+                if (err.code === 'auth/unauthorized-continue-uri') {
+                    settings.url = 'https://mhentuniverse.com/auth-action.html';
+                    return await generatorFn(...args, settings);
+                }
+                throw err;
+            }
+        }
+
+        // ==========================================
         // TRƯỜNG HỢP 1: QUÊN MẬT KHẨU (RESET PASSWORD)
         // ==========================================
         if (type === 'resetPassword') {
-            actionLink = await auth.generatePasswordResetLink(targetEmail, actionCodeSettings);
+            actionLink = await createActionLink((e, s) => auth.generatePasswordResetLink(e, s), targetEmail);
 
             subject = '🗝️ Chìa khóa dự phòng cho tài khoản MHEnt của cậu đây!';
             htmlContent = `
@@ -141,11 +196,12 @@ module.exports = async (req, res) => {
                         🔒 <strong>Lưu ý an toàn:</strong> Liên kết này chỉ có hiệu lực một lần duy nhất. Nếu cậu không yêu cầu đổi mật khẩu hoặc đã nhớ lại mật khẩu cũ, cậu chỉ cần phớt lờ email này nhé!
                     </p>
                     
-                    <p style="font-size: 15px; margin-top: 30px; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
+                    <p style="font-size: 15px; margin-top: 30px;">
                         Nhớ giữ chìa khóa cẩn thận nha cậu ơi! ✨<br>
                         Thân mến,<br>
                         <strong style="color: #f43f5e; font-size: 16px;">Ban Quản Trị MHEnt. Universe</strong>
                     </p>
+                    ${companySignature}
                 </div>
             `;
         }
@@ -153,7 +209,7 @@ module.exports = async (req, res) => {
         // TRƯỜNG HỢP 2: XÁC MINH EMAIL (VERIFY EMAIL)
         // ==========================================
         else if (type === 'verifyEmail') {
-            actionLink = await auth.generateEmailVerificationLink(targetEmail, actionCodeSettings);
+            actionLink = await createActionLink((e, s) => auth.generateEmailVerificationLink(e, s), targetEmail);
 
             subject = '🌟 Kích hoạt thẻ căn cước đa vũ trụ MHEnt của cậu nè!';
             htmlContent = `
@@ -175,11 +231,12 @@ module.exports = async (req, res) => {
                         Nếu cậu không đăng ký tài khoản này, cậu có thể bỏ qua thư này một cách an toàn.
                     </p>
                     
-                    <p style="font-size: 15px; margin-top: 30px; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
+                    <p style="font-size: 15px; margin-top: 30px;">
                         Hẹn gặp cậu tại Đại Sảnh MHEnt! 🚀<br>
                         Thân mến,<br>
                         <strong style="color: #0ea5e9; font-size: 16px;">Ban Quản Trị MHEnt. Universe</strong>
                     </p>
+                    ${companySignature}
                 </div>
             `;
         }
@@ -191,7 +248,7 @@ module.exports = async (req, res) => {
                 return res.status(400).json({ status: 'error', message: 'Chưa cung cấp địa chỉ email mới.' });
             }
 
-            actionLink = await auth.generateVerifyAndChangeEmailLink(targetEmail, newEmail, actionCodeSettings);
+            actionLink = await createActionLink((e, ne, s) => auth.generateVerifyAndChangeEmailLink(e, ne, s), targetEmail, newEmail);
             recipient = newEmail; // Gửi đến hòm thư mới để xác nhận
 
             subject = '💌 Xác nhận chuyển sang hòm thư mới tại MHEnt. Universe!';
@@ -214,11 +271,12 @@ module.exports = async (req, res) => {
                         ⚠️ Nếu cậu không hề thực hiện yêu cầu này, hãy lập tức bỏ qua email và kiểm tra lại bảo mật tài khoản nhé!
                     </p>
                     
-                    <p style="font-size: 15px; margin-top: 30px; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
+                    <p style="font-size: 15px; margin-top: 30px;">
                         Chúc cậu một ngày thật vui vẻ! 🌸<br>
                         Thân mến,<br>
                         <strong style="color: #8b5cf6; font-size: 16px;">Ban Quản Trị MHEnt. Universe</strong>
                     </p>
+                    ${companySignature}
                 </div>
             `;
         }
