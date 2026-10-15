@@ -2,7 +2,11 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
-// 1. CẤU HÌNH BƯU TÁ GMAIL / GOOGLE WORKSPACE SMTP
+// 1. IMPORT TĨNH CỦA FIREBASE ADMIN ĐỂ VERCEL BUNDLE ĐẦY ĐỦ THƯ VIỆN
+const { initializeApp, cert, getApps, getApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
+
+// 2. CẤU HÌNH BƯU TÁ GMAIL / GOOGLE WORKSPACE SMTP
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -11,20 +15,24 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// 2. KHỞI TẠO FIREBASE ADMIN (LAZY LOAD ĐỂ KHÔNG BAO GIỜ BỊ CRASH KHI PREFLIGHT OPTIONS)
 let cachedAuth = null;
 
 function getServiceAccount() {
     // 1. Biến môi trường Vercel (khuyến nghị trên Production)
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         try {
-            return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (parsed && parsed.private_key) {
+                parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+            }
+            return parsed;
         } catch (e) {
             console.error('Lỗi parse FIREBASE_SERVICE_ACCOUNT:', e);
         }
     }
 
-    // 2. File cục bộ
+    // 2. File Service Account cục bộ
     const possiblePaths = [
         path.join(process.cwd(), 'firebase-service-account.json'),
         path.join(process.cwd(), 'mhentuniverse-firebase-adminsdk-fbsvc-1cf272936c.json'),
@@ -37,7 +45,11 @@ function getServiceAccount() {
     for (const filePath of possiblePaths) {
         if (fs.existsSync(filePath)) {
             try {
-                return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                if (data && data.private_key) {
+                    data.private_key = data.private_key.replace(/\\n/g, '\n');
+                }
+                return data;
             } catch (err) {
                 console.error(`Lỗi đọc file ${filePath}:`, err);
             }
@@ -50,35 +62,21 @@ function getServiceAccount() {
 function getFirebaseAuth() {
     if (cachedAuth) return cachedAuth;
 
-    // Hỗ trợ cả import modular lẫn root
-    let adminApp;
-    let adminAuth;
-    try {
-        adminApp = require('firebase-admin/app');
-        adminAuth = require('firebase-admin/auth');
-    } catch (e) {
-        const admin = require('firebase-admin');
-        adminApp = admin;
-        adminAuth = { getAuth: (app) => admin.auth(app) };
-    }
-
-    if (adminApp.getApps && adminApp.getApps().length > 0) {
-        cachedAuth = adminAuth.getAuth(adminApp.getApp());
+    const apps = getApps();
+    if (apps.length > 0) {
+        cachedAuth = getAuth(apps[0]);
         return cachedAuth;
     }
 
     const sa = getServiceAccount();
-    if (sa) {
-        const certFn = adminApp.cert || require('firebase-admin').credential?.cert;
-        const app = adminApp.initializeApp({
-            credential: certFn ? certFn(sa) : undefined
-        });
-        cachedAuth = adminAuth.getAuth(app);
-        return cachedAuth;
+    if (!sa) {
+        throw new Error('Chưa cấu hình FIREBASE_SERVICE_ACCOUNT trên biến môi trường Vercel!');
     }
 
-    const app = adminApp.initializeApp();
-    cachedAuth = adminAuth.getAuth(app);
+    const app = initializeApp({
+        credential: cert(sa)
+    });
+    cachedAuth = getAuth(app);
     return cachedAuth;
 }
 
