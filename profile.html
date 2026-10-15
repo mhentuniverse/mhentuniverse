@@ -456,9 +456,22 @@
         window.resetPassword = function() {
             const user = auth.currentUser;
             if(!user) return;
-            sendPasswordResetEmail(auth, user.email).then(() => {
-                showToast('Kiểm tra Email', 'Tớ đã gửi link đổi mật khẩu vào email của cậu!', 'info');
-            }).catch((error) => { showToast('Lỗi', 'Có lỗi xảy ra khi gửi email.', 'error'); });
+            showToast('Đang xử lý', 'Đang tạo chìa khóa dự phòng cho cậu...', 'info');
+            fetch('/api/auth-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email, type: 'resetPassword' })
+            }).then(res => res.json()).then(data => {
+                if (data.status === 'success') {
+                    showToast('Kiểm tra Email', 'Tớ đã gửi chìa khóa dự phòng vào email của cậu!', 'success');
+                } else {
+                    throw new Error(data.message || 'Lỗi gửi email');
+                }
+            }).catch(e => {
+                sendPasswordResetEmail(auth, user.email).then(() => {
+                    showToast('Kiểm tra Email', 'Tớ đã gửi link đổi mật khẩu vào email của cậu!', 'info');
+                }).catch((error) => { showToast('Lỗi', 'Có lỗi xảy ra khi gửi email: ' + (e.message || error.message), 'error'); });
+            });
         };
 
         window.deleteMyAccount = function() {

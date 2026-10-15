@@ -998,17 +998,30 @@
             const emailValue = loginEmailInput ? loginEmailInput.value.trim() : '';
 
             const sendReset = (email) => {
-                showLoading("Đang gửi liên kết khôi phục...");
-                sendPasswordResetEmail(auth, email).then(() => {
+                showLoading("Đang đúc chìa khóa dự phòng...");
+                fetch('/api/auth-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, type: 'resetPassword' })
+                }).then(res => res.json()).then(data => {
                     hideLoading();
-                    showPopup(`Đã gửi thư đặt lại mật khẩu đến ${email}! Vui lòng kiểm tra hộp thư (cả mục Spam/Rác) nha.`, false);
+                    if (data.status === 'success') {
+                        showPopup(`Đã gửi chìa khóa dự phòng đến ${email}! Vui lòng kiểm tra hộp thư (cả mục Spam/Rác) nha.`, false);
+                    } else {
+                        throw new Error(data.message || "Không thể gửi thư khôi phục.");
+                    }
                 }).catch((err) => {
-                    hideLoading();
-                    console.error("Forgot password error:", err);
-                    let msg = "Không thể gửi thư khôi phục.";
-                    if (err.code === 'auth/user-not-found') msg = "Email này chưa được đăng ký trong hệ thống!";
-                    else if (err.code === 'auth/invalid-email') msg = "Địa chỉ email không hợp lệ!";
-                    showPopup(msg, true);
+                    sendPasswordResetEmail(auth, email).then(() => {
+                        hideLoading();
+                        showPopup(`Đã gửi thư đặt lại mật khẩu đến ${email}! Vui lòng kiểm tra hộp thư (cả mục Spam/Rác) nha.`, false);
+                    }).catch((fallbackErr) => {
+                        hideLoading();
+                        console.error("Forgot password error:", fallbackErr);
+                        let msg = "Không thể gửi thư khôi phục.";
+                        if (fallbackErr.code === 'auth/user-not-found') msg = "Email này chưa được đăng ký trong hệ thống!";
+                        else if (fallbackErr.code === 'auth/invalid-email') msg = "Địa chỉ email không hợp lệ!";
+                        showPopup(err.message || msg, true);
+                    });
                 });
             };
 
