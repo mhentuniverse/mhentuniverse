@@ -154,27 +154,43 @@ module.exports = async (req, res) => {
             </div>
         `;
 
-        async function createActionLink(generatorFn, ...args) {
+        function buildDirectActionLink(rawLink, fallbackType) {
+            try {
+                const parsed = new URL(rawLink);
+                const mode = parsed.searchParams.get('mode') || fallbackType;
+                const oobCode = parsed.searchParams.get('oobCode');
+                const apiKey = parsed.searchParams.get('apiKey');
+                const lang = parsed.searchParams.get('lang') || 'vi';
+
+                if (oobCode) {
+                    // Ép link trỏ thẳng vào giao diện tùy chỉnh của MHEnt ID thay vì trang mặc định thô sơ của Firebase
+                    const directUrl = new URL('https://accounts.mhentuniverse.com/auth-action.html');
+                    directUrl.searchParams.set('mode', mode);
+                    directUrl.searchParams.set('oobCode', oobCode);
+                    if (apiKey) directUrl.searchParams.set('apiKey', apiKey);
+                    if (lang) directUrl.searchParams.set('lang', lang);
+                    return directUrl.toString();
+                }
+            } catch (e) {
+                console.error('Lỗi phân tích buildDirectActionLink:', e);
+            }
+            return rawLink;
+        }
+
+        async function createActionLink(generatorFn, fallbackType, ...args) {
             let settings = {
-                url: 'https://accounts.mhentuniverse.com/auth-action',
+                url: 'https://mhentuniverse.com/auth-action.html',
                 handleCodeInApp: false
             };
-            try {
-                return await generatorFn(...args, settings);
-            } catch (err) {
-                if (err.code === 'auth/unauthorized-continue-uri') {
-                    settings.url = 'https://mhentuniverse.com/auth-action.html';
-                    return await generatorFn(...args, settings);
-                }
-                throw err;
-            }
+            const raw = await generatorFn(...args, settings);
+            return buildDirectActionLink(raw, fallbackType);
         }
 
         // ==========================================
         // TRƯỜNG HỢP 1: QUÊN MẬT KHẨU (RESET PASSWORD)
         // ==========================================
         if (type === 'resetPassword') {
-            actionLink = await createActionLink((e, s) => auth.generatePasswordResetLink(e, s), targetEmail);
+            actionLink = await createActionLink((e, s) => auth.generatePasswordResetLink(e, s), 'resetPassword', targetEmail);
 
             subject = '🗝️ Chìa khóa dự phòng cho tài khoản MHEnt của cậu đây!';
             htmlContent = `
@@ -209,7 +225,7 @@ module.exports = async (req, res) => {
         // TRƯỜNG HỢP 2: XÁC MINH EMAIL (VERIFY EMAIL)
         // ==========================================
         else if (type === 'verifyEmail') {
-            actionLink = await createActionLink((e, s) => auth.generateEmailVerificationLink(e, s), targetEmail);
+            actionLink = await createActionLink((e, s) => auth.generateEmailVerificationLink(e, s), 'verifyEmail', targetEmail);
 
             subject = '🌟 Kích hoạt thẻ căn cước đa vũ trụ MHEnt của cậu nè!';
             htmlContent = `
@@ -248,7 +264,7 @@ module.exports = async (req, res) => {
                 return res.status(400).json({ status: 'error', message: 'Chưa cung cấp địa chỉ email mới.' });
             }
 
-            actionLink = await createActionLink((e, ne, s) => auth.generateVerifyAndChangeEmailLink(e, ne, s), targetEmail, newEmail);
+            actionLink = await createActionLink((e, ne, s) => auth.generateVerifyAndChangeEmailLink(e, ne, s), 'verifyAndChangeEmail', targetEmail, newEmail);
             recipient = newEmail; // Gửi đến hòm thư mới để xác nhận
 
             subject = '💌 Xác nhận chuyển sang hòm thư mới tại MHEnt. Universe!';
