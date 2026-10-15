@@ -1,8 +1,6 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
-const { initializeApp, cert, getApps, getApp } = require('firebase-admin/app');
-const { getAuth } = require('firebase-admin/auth');
 
 // 1. CẤU HÌNH BƯU TÁ GMAIL / GOOGLE WORKSPACE SMTP
 const transporter = nodemailer.createTransport({
@@ -13,18 +11,20 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// 2. TẢI THÔNG TIN SERVICE ACCOUNT
+// 2. KHỞI TẠO FIREBASE ADMIN (LAZY LOAD ĐỂ KHÔNG BAO GIỜ BỊ CRASH KHI PREFLIGHT OPTIONS)
+let cachedAuth = null;
+
 function getServiceAccount() {
-    // Ưu tiên 1: Biến môi trường trên Vercel (Chuẩn an toàn production)
+    // 1. Biến môi trường Vercel (khuyến nghị trên Production)
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         try {
             return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
         } catch (e) {
-            console.error('Lỗi phân tích cú pháp FIREBASE_SERVICE_ACCOUNT:', e);
+            console.error('Lỗi parse FIREBASE_SERVICE_ACCOUNT:', e);
         }
     }
 
-    // Ưu tiên 2: File Service Account cục bộ
+    // 2. File cục bộ
     const possiblePaths = [
         path.join(process.cwd(), 'firebase-service-account.json'),
         path.join(process.cwd(), 'mhentuniverse-firebase-adminsdk-fbsvc-1cf272936c.json'),
@@ -48,26 +48,66 @@ function getServiceAccount() {
 }
 
 function getFirebaseAuth() {
-    if (getApps().length > 0) {
-        return getAuth(getApp());
+    if (cachedAuth) return cachedAuth;
+
+    // Hỗ trợ cả import modular lẫn root
+    let adminApp;
+    let adminAuth;
+    try {
+        adminApp = require('firebase-admin/app');
+        adminAuth = require('firebase-admin/auth');
+    } catch (e) {
+        const admin = require('firebase-admin');
+        adminApp = admin;
+        adminAuth = { getAuth: (app) => admin.auth(app) };
     }
 
-    const serviceAccount = getServiceAccount();
-    if (serviceAccount) {
-        const app = initializeApp({
-            credential: cert(serviceAccount)
+    if (adminApp.getApps && adminApp.getApps().length > 0) {
+        cachedAuth = adminAuth.getAuth(adminApp.getApp());
+        return cachedAuth;
+    }
+
+    const sa = getServiceAccount();
+    if (sa) {
+        const certFn = adminApp.cert || require('firebase-admin').credential?.cert;
+        const app = adminApp.initializeApp({
+            credential: certFn ? certFn(sa) : undefined
         });
-        return getAuth(app);
+        cachedAuth = adminAuth.getAuth(app);
+        return cachedAuth;
     }
 
-    // Fallback nếu có Google Cloud default credentials
-    const app = initializeApp();
-    return getAuth(app);
+    const app = adminApp.initializeApp();
+    cachedAuth = adminAuth.getAuth(app);
+    return cachedAuth;
+}
+
+function buildDirectActionLink(rawLink, fallbackType) {
+    try {
+        const parsed = new URL(rawLink);
+        const mode = parsed.searchParams.get('mode') || fallbackType;
+        const oobCode = parsed.searchParams.get('oobCode');
+        const apiKey = parsed.searchParams.get('apiKey');
+        const lang = parsed.searchParams.get('lang') || 'vi';
+
+        if (oobCode) {
+            // Ép link trỏ thẳng vào giao diện MHEnt ID thay vì trang mặc định thô sơ của Firebase
+            const directUrl = new URL('https://accounts.mhentuniverse.com/auth-action.html');
+            directUrl.searchParams.set('mode', mode);
+            directUrl.searchParams.set('oobCode', oobCode);
+            if (apiKey) directUrl.searchParams.set('apiKey', apiKey);
+            if (lang) directUrl.searchParams.set('lang', lang);
+            return directUrl.toString();
+        }
+    } catch (e) {
+        console.error('Lỗi buildDirectActionLink:', e);
+    }
+    return rawLink;
 }
 
 // 3. VERCEL SERVERLESS HANDLER
 module.exports = async (req, res) => {
-    // Bật CORS cho toàn bộ hệ sinh thái MHEnt Universe
+    // Kích hoạt CORS cho toàn bộ các domain của hệ thống MHEnt
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -77,8 +117,7 @@ module.exports = async (req, res) => {
     );
 
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        return res.status(200).end();
     }
 
     if (req.method !== 'POST') {
@@ -104,20 +143,13 @@ module.exports = async (req, res) => {
 
         const auth = getFirebaseAuth();
 
-        const actionCodeSettings = {
-            url: 'https://accounts.mhentuniverse.com/auth-action',
-            handleCodeInApp: false
-        };
-
         let actionLink = '';
         let subject = '';
         let htmlContent = '';
         let recipient = targetEmail;
         const safeName = displayName || targetEmail.split('@')[0] || 'cậu';
 
-        // ==========================================
         // CHỮ KÝ DOANH NGHIỆP CHÍNH THỨC CỦA MHENT
-        // ==========================================
         const companySignature = `
             <div style="margin-top: 35px; border-top: 2px solid #4338ca; padding-top: 15px;">
                 <div style="height: 2px; width: 70px; background-color: #4338ca; margin-bottom: 18px;"></div>
@@ -153,29 +185,6 @@ module.exports = async (req, res) => {
                 </table>
             </div>
         `;
-
-        function buildDirectActionLink(rawLink, fallbackType) {
-            try {
-                const parsed = new URL(rawLink);
-                const mode = parsed.searchParams.get('mode') || fallbackType;
-                const oobCode = parsed.searchParams.get('oobCode');
-                const apiKey = parsed.searchParams.get('apiKey');
-                const lang = parsed.searchParams.get('lang') || 'vi';
-
-                if (oobCode) {
-                    // Ép link trỏ thẳng vào giao diện tùy chỉnh của MHEnt ID thay vì trang mặc định thô sơ của Firebase
-                    const directUrl = new URL('https://accounts.mhentuniverse.com/auth-action.html');
-                    directUrl.searchParams.set('mode', mode);
-                    directUrl.searchParams.set('oobCode', oobCode);
-                    if (apiKey) directUrl.searchParams.set('apiKey', apiKey);
-                    if (lang) directUrl.searchParams.set('lang', lang);
-                    return directUrl.toString();
-                }
-            } catch (e) {
-                console.error('Lỗi phân tích buildDirectActionLink:', e);
-            }
-            return rawLink;
-        }
 
         async function createActionLink(generatorFn, fallbackType, ...args) {
             let settings = {
@@ -265,7 +274,7 @@ module.exports = async (req, res) => {
             }
 
             actionLink = await createActionLink((e, ne, s) => auth.generateVerifyAndChangeEmailLink(e, ne, s), 'verifyAndChangeEmail', targetEmail, newEmail);
-            recipient = newEmail; // Gửi đến hòm thư mới để xác nhận
+            recipient = newEmail;
 
             subject = '💌 Xác nhận chuyển sang hòm thư mới tại MHEnt. Universe!';
             htmlContent = `
