@@ -1002,6 +1002,9 @@
                 </a>
                 <h2>
                     <span id="session-title">Đang tải phiên...</span>
+                    <button type="button" class="btn-action btn-outline" id="btn-title-edit-session" style="padding: 4px 10px; font-size: 12px; border-radius: 8px; margin-left: 2px;" onclick="openSessionSettingsModal()" title="Chỉnh sửa thông tin phiên, thời gian, ngày diễn ra">
+                        <i class="fa-solid fa-pen-to-square" style="color: var(--ci-accent);"></i> Sửa
+                    </button>
                     <span id="session-badge-type" class="badge-status badge-present" style="font-size: 12px;">SỰ KIỆN</span>
                     <span id="session-badge-privacy" class="badge-status badge-public" style="font-size: 12px; margin-left: 4px;"><i class="fa-solid fa-globe"></i> CÔNG KHAI</span>
                 </h2>
@@ -1026,8 +1029,8 @@
                 <a id="btn-open-ticket" href="#" class="btn-action btn-outline" target="_blank">
                     <i class="fa-solid fa-ticket"></i> Tra Cứu Vé
                 </a>
-                <button id="btn-settings-session" class="btn-action btn-outline" style="display: none;" onclick="openSessionSettingsModal()" title="Cài đặt quyền riêng tư, PIN và phân quyền quản lý (Chủ phiên / Admin)">
-                    <i class="fa-solid fa-gear"></i> Phân Quyền
+                <button id="btn-settings-session" class="btn-action btn-outline" onclick="openSessionSettingsModal()" title="Chỉnh sửa thông tin phiên, thời gian, ngày diễn ra và phân quyền">
+                    <i class="fa-solid fa-pen-to-square" style="color: var(--ci-accent);"></i> Chỉnh Sửa Phiên
                 </button>
                 <button class="btn-action btn-outline" onclick="exportExcel()">
                     <i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Xuất Excel
@@ -1306,17 +1309,17 @@
         </div>
     </div>
 
-    <!-- MODAL CÀI ĐẶT & PHÂN QUYỀN PHIÊN -->
+    <!-- MODAL CHỈNH SỬA & CÀI ĐẶT PHIÊN -->
     <div id="modal-session-settings" class="mhent-ui-overlay" style="display: none;">
-        <div class="mhent-ui-box" style="max-width: 520px; width: 92%; padding: 26px; text-align: left;">
+        <div class="mhent-ui-box" style="max-width: 540px; width: 92%; padding: 24px; text-align: left; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: var(--ci-accent); display: flex; align-items: center; justify-content: center; font-size: 17px;">
-                        <i class="fa-solid fa-shield-halved"></i>
+                        <i class="fa-solid fa-pen-to-square"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 17px; font-weight: 900; color: var(--text-main);">Cài Đặt & Phân Quyền Phiên</h3>
-                        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">Quản lý bảo mật, mã PIN và người đồng quản lý</p>
+                        <h3 style="margin: 0; font-size: 17px; font-weight: 900; color: var(--text-main);">Chỉnh Sửa Thông Tin Phiên</h3>
+                        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">Thay đổi tiêu đề, ngày diễn ra, giờ bắt đầu và quyền quản lý</p>
                     </div>
                 </div>
                 <button onclick="closeSessionSettingsModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;">
@@ -1332,6 +1335,38 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">Loại Phiên *</label>
+                        <select id="setting-type" class="form-select tool-select" style="width: 100%; box-sizing: border-box;">
+                            <option value="EVENT">🎯 Sự kiện / Họp</option>
+                            <option value="CLOCK">⏱️ Chấm công (Vào & Ra)</option>
+                            <option value="OPEN">🌐 Tự do (Mở)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
+                            <i class="fa-regular fa-calendar" style="color: var(--ci-accent);"></i> Ngày Diễn Ra *
+                        </label>
+                        <input type="date" id="setting-date" required class="form-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
+                            <i class="fa-regular fa-clock" style="color: var(--ci-accent);"></i> Giờ Bắt Đầu
+                        </label>
+                        <input type="time" id="setting-start-time" class="form-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
+                            <i class="fa-solid fa-hourglass-half" style="color: #f59e0b;"></i> Tính Đi Trễ Sau
+                        </label>
+                        <input type="time" id="setting-late-threshold" class="form-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
                         <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">Chế Độ Riêng Tư *</label>
                         <select id="setting-privacy" class="form-select tool-select" style="width: 100%; box-sizing: border-box;">
                             <option value="PUBLIC">🌐 Công Khai (Ai có link đều vào)</option>
@@ -1340,11 +1375,11 @@
                     </div>
                     <div>
                         <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">Mã PIN Quản Lý (Mở khóa)</label>
-                        <input type="text" id="setting-pin" class="form-input" placeholder="Ví dụ: 2026" maxlength="6" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                        <input type="text" id="setting-pin" class="form-input" placeholder="Ví dụ: 2026" maxlength="6" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
                     </div>
                 </div>
 
-                <div style="margin-bottom: 16px;">
+                <div style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
                         Email Người Cùng Quản Lý (Co-hosts)
                     </label>
@@ -1356,7 +1391,7 @@
 
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 6px;">
-                        <i class="fa-solid fa-arrow-down-short-wide" style="color: var(--ci-accent);"></i> Thứ Tự Sắp Xếp Mặc Định Cho Phiên (Kiosk, Tra Cứu, Bảng)
+                        <i class="fa-solid fa-arrow-down-short-wide" style="color: var(--ci-accent);"></i> Thứ Tự Sắp Xếp Mặc Định Cho Phiên
                     </label>
                     <select id="setting-default-sort" class="form-select tool-select" style="width: 100%; box-sizing: border-box;">
                         <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
@@ -1371,9 +1406,6 @@
                         <option value="CHECKIN_DESC">⚡ Giờ check-in mới nhất</option>
                         <option value="CHECKIN_ASC">⏳ Giờ check-in sớm nhất</option>
                     </select>
-                    <span style="font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px;">
-                        <i class="fa-solid fa-circle-info"></i> Các màn hình Kiosk tự phục vụ và Tra cứu vé sẽ tự động sắp xếp danh sách theo tùy chọn này.
-                    </span>
                 </div>
 
                 <div style="background: rgba(16, 185, 129, 0.08); border-radius: 10px; padding: 12px; margin-bottom: 18px; font-size: 12px; color: var(--text-main);">
@@ -1524,8 +1556,11 @@
         }
 
         function canCurrentManageSession() {
+            if (!sessionData) return false;
+            if (!sessionData.createdByUid && !sessionData.createdByEmail) return true;
+            if (sessionStorage.getItem('mhent_unlocked_' + sessionId) === '1') return true;
             const activeUser = currentUser || (window.getMHEntUser && window.getMHEntUser()) || auth.currentUser;
-            if (!activeUser || !sessionData) return false;
+            if (!activeUser) return false;
             const userEmail = (activeUser.email || '').toLowerCase();
             const userUid = activeUser.uid || '';
             const isAdmin = userEmail === 'mhent@mhentuniverse.com' ||
@@ -1535,15 +1570,18 @@
                             (activeUser.role && String(activeUser.role).toLowerCase().includes('admin'));
             const isOwner = (sessionData.createdByUid && sessionData.createdByUid === userUid) ||
                             (sessionData.createdByEmail && sessionData.createdByEmail.toLowerCase() === userEmail);
-            return Boolean(isAdmin || isOwner);
+            const isManager = Array.isArray(sessionData.managers) && sessionData.managers.some(m => String(m).trim().toLowerCase() === userEmail);
+            return Boolean(isAdmin || isOwner || isManager);
         }
 
         function updateOwnerAdminControls() {
             const isAuthorized = canCurrentManageSession();
             const btnDel = document.getElementById('btn-delete-session');
             const btnSettings = document.getElementById('btn-settings-session');
+            const btnTitleEdit = document.getElementById('btn-title-edit-session');
             if (btnDel) btnDel.style.display = isAuthorized ? 'inline-flex' : 'none';
             if (btnSettings) btnSettings.style.display = isAuthorized ? 'inline-flex' : 'none';
+            if (btnTitleEdit) btnTitleEdit.style.display = isAuthorized ? 'inline-flex' : 'none';
         }
 
         onAuthStateChanged(auth, (user) => {
@@ -1597,6 +1635,16 @@
             document.getElementById('session-time').innerText = sessionData.startTime || '08:00';
             document.getElementById('session-late').innerText = sessionData.lateThreshold || '08:15';
             document.getElementById('print-meta-date').innerText = `Ngày xuất: ${new Date().toLocaleString('vi-VN')} | Đơn vị: ${sessionData.title}`;
+
+            const badgeType = document.getElementById('session-badge-type');
+            if (badgeType) {
+                const typeMap = {
+                    'EVENT': '🎯 SỰ KIỆN',
+                    'CLOCK': '⏱️ CHẤM CÔNG',
+                    'OPEN': '🌐 TỰ DO'
+                };
+                badgeType.innerText = typeMap[sessionData.type] || (sessionData.type || 'SỰ KIỆN');
+            }
 
             const isPrivate = sessionData.privacy === 'PRIVATE';
             const privBadge = document.getElementById('session-badge-privacy');
@@ -2519,6 +2567,7 @@
             if (pinVal === sessionData.accessPin) {
                 sessionStorage.setItem('mhent_unlocked_' + sessionId, '1');
                 document.getElementById('lock-screen-overlay').style.display = 'none';
+                updateOwnerAdminControls();
                 window.showToast("Đã Mở Khóa!", "Xác thực mã PIN thành công. Chào mừng bạn vào phiên!", "success");
             } else {
                 window.showToast("Sai Mã PIN", "Mã PIN không chính xác, vui lòng thử lại!", "error");
@@ -2528,9 +2577,32 @@
         };
 
         // SESSION SETTINGS & PERMISSIONS MODAL
-        window.openSessionSettingsModal = function() {
+        window.openSessionSettingsModal = async function() {
             if (!sessionData) return;
+
+            if (!canCurrentManageSession()) {
+                if (sessionData.accessPin) {
+                    const pin = await window.mhentPrompt("Mở Khóa Quản Lý Phiên", "Vui lòng nhập Mã PIN quản lý phiên để chỉnh sửa thông tin:");
+                    if (!pin) return;
+                    if (pin.trim() === sessionData.accessPin) {
+                        sessionStorage.setItem('mhent_unlocked_' + sessionId, '1');
+                        updateOwnerAdminControls();
+                        window.showToast("Đã Mở Khóa", "Mã PIN chính xác. Bạn có thể chỉnh sửa thông tin phiên!", "success");
+                    } else {
+                        window.showToast("Sai Mã PIN", "Mã PIN không đúng, bạn không có quyền sửa phiên này!", "error");
+                        return;
+                    }
+                } else {
+                    window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên, ban tổ chức hoặc Admin mới có quyền chỉnh sửa phiên!", "warning");
+                    return;
+                }
+            }
+
             document.getElementById('setting-title').value = sessionData.title || '';
+            document.getElementById('setting-type').value = sessionData.type || 'EVENT';
+            document.getElementById('setting-date').value = sessionData.date || '';
+            document.getElementById('setting-start-time').value = sessionData.startTime || '08:00';
+            document.getElementById('setting-late-threshold').value = sessionData.lateThreshold || '08:15';
             document.getElementById('setting-privacy').value = sessionData.privacy || 'PUBLIC';
             document.getElementById('setting-pin').value = sessionData.accessPin || '';
             document.getElementById('setting-managers').value = (sessionData.managers || []).join(', ');
@@ -2551,11 +2623,15 @@
         window.handleSaveSettings = async function(e) {
             e.preventDefault();
             if (!canCurrentManageSession()) {
-                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền sửa đổi cài đặt phân quyền!", "error");
+                window.showToast("Từ Chối Quyền Hạn", "Chỉ người tạo phiên này hoặc Quản trị viên (Admin) mới có quyền sửa đổi cài đặt!", "error");
                 return;
             }
 
             const title = document.getElementById('setting-title').value.trim();
+            const type = document.getElementById('setting-type').value || 'EVENT';
+            const date = document.getElementById('setting-date').value || '';
+            const startTime = document.getElementById('setting-start-time').value || '08:00';
+            const lateThreshold = document.getElementById('setting-late-threshold').value || '08:15';
             const privacy = document.getElementById('setting-privacy').value;
             const accessPin = document.getElementById('setting-pin').value.trim();
             const managersRaw = document.getElementById('setting-managers').value.trim();
@@ -2569,6 +2645,10 @@
             try {
                 await updateDoc(sessionRef, {
                     title,
+                    type,
+                    date,
+                    startTime,
+                    lateThreshold,
                     privacy,
                     accessPin,
                     managers,
@@ -2581,7 +2661,7 @@
                 filterAttendees();
 
                 closeSessionSettingsModal();
-                window.showToast("Đã Cập Nhật", "Đã lưu cài đặt phiên và áp dụng thứ tự sắp xếp mặc định!", "success");
+                window.showToast("Đã Cập Nhật", "Đã lưu thông tin phiên và thời gian thành công!", "success");
             } catch (err) {
                 console.error("Save settings error:", err);
                 window.showToast("Lỗi Lưu", err.message, "error");
