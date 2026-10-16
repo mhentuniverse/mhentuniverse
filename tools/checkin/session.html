@@ -1029,6 +1029,12 @@
                 <a id="btn-open-ticket" href="#" class="btn-action btn-outline" target="_blank">
                     <i class="fa-solid fa-ticket"></i> Tra Cứu Vé
                 </a>
+                <button type="button" class="btn-action btn-outline" onclick="copyRegistrationLink()" title="Sao chép link form đăng ký tham dự gửi cho khách mời">
+                    <i class="fa-solid fa-share-nodes" style="color: #8b5cf6;"></i> Link Đăng Ký
+                </button>
+                <button type="button" class="btn-action btn-outline" onclick="openQuickWalkinModal()" title="Đón khách mới / đại biểu đến cửa check-in tại chỗ">
+                    <i class="fa-solid fa-user-plus" style="color: #10b981;"></i> Đón Khách Mới
+                </button>
                 <button id="btn-settings-session" class="btn-action btn-outline" onclick="openSessionSettingsModal()" title="Chỉnh sửa thông tin phiên, thời gian, ngày diễn ra và phân quyền">
                     <i class="fa-solid fa-pen-to-square" style="color: var(--ci-accent);"></i> Chỉnh Sửa Phiên
                 </button>
@@ -1221,13 +1227,78 @@
                     <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Mã SV / Mã NV / Mã Định Danh *</label>
                     <input type="text" id="add-code" required class="form-input" placeholder="SV-001 hoặc MH-2026" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Đơn Vị / Chi Đoàn</label>
+                        <input type="text" id="add-org" class="form-input" placeholder="Lớp K24 / Cơ quan" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Vai Trò / Phân Loại *</label>
+                        <select id="add-role" class="form-select tool-select" style="width: 100%; box-sizing: border-box;">
+                            <option value="MEMBER">👥 Thành viên / Học viên</option>
+                            <option value="GUEST">🤝 Khách Mời / Đại Biểu</option>
+                            <option value="VIP">🌟 Khách Mời VIP (Gold Pass)</option>
+                            <option value="SPEAKER">🎙️ Diễn Giả / Speaker</option>
+                            <option value="ORGANIZER">🛡️ Ban Tổ Chức / Hậu Cần</option>
+                        </select>
+                    </div>
+                </div>
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Đơn Vị / Chi Đoàn</label>
-                    <input type="text" id="add-org" class="form-input" placeholder="Lớp K24 / Khách mời" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; font-weight: 700; color: #10b981;">
+                        <input type="checkbox" id="add-checkin-now" style="transform: scale(1.15); cursor: pointer;">
+                        <span>Đánh dấu ĐÃ CÓ MẶT NGAY (Khách đến tại bàn lễ tân)</span>
+                    </label>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn-action btn-outline" onclick="closeAddAttendeeModal()">Hủy</button>
                     <button type="submit" class="btn-action btn-scanner">Thêm Ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ĐÓN KHÁCH VÃNG LAI NHANH TẠI BÀN LỄ TÂN -->
+    <div id="modal-quick-walkin" class="mhent-ui-overlay" style="display: none;">
+        <div class="mhent-ui-box" style="max-width: 440px; width: 92%; padding: 24px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-soft); padding-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16.5px; font-weight: 900; color: var(--text-main);">Đón Khách Mới Tại Chỗ</h3>
+                        <p style="margin: 2px 0 0; font-size: 11.5px; color: var(--text-muted);">Cấp mã tự động và điểm danh có mặt trong 3 giây</p>
+                    </div>
+                </div>
+                <button onclick="closeQuickWalkinModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="handleQuickWalkinSubmit(event)">
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Họ và Tên Khách *</label>
+                    <input type="text" id="walkin-name" required class="form-input" placeholder="Ví dụ: Ông Trần Văn B hoặc Khách mời..." style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Đơn Vị / Chức Danh</label>
+                        <input type="text" id="walkin-org" class="form-input" placeholder="Khách vãng lai" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border-soft); background: var(--bg-canvas); color: var(--text-main);">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Tư Cách / Vai Trò</label>
+                        <select id="walkin-role" class="form-select tool-select" style="width: 100%; box-sizing: border-box;">
+                            <option value="GUEST">🤝 Khách Mời</option>
+                            <option value="VIP">🌟 Khách Mời VIP</option>
+                            <option value="SPEAKER">🎙️ Diễn Giả</option>
+                            <option value="MEMBER">👥 Tự Do</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn-action btn-outline" onclick="closeQuickWalkinModal()">Hủy</button>
+                    <button type="submit" class="btn-action btn-scanner" style="background: #10b981;">
+                        <i class="fa-solid fa-check"></i> Đón Khách & Có Mặt Ngay
+                    </button>
                 </div>
             </form>
         </div>
@@ -1723,6 +1794,17 @@
 
                     const isChecked = selectedAttendeeIds.has(a.id);
 
+                    let roleBadge = '';
+                    if (a.role === 'VIP') {
+                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-crown"></i> VIP</span>`;
+                    } else if (a.role === 'SPEAKER') {
+                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
+                    } else if (a.role === 'GUEST') {
+                        roleBadge = `<span class="badge-status" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-handshake"></i> KHÁCH MỜI</span>`;
+                    } else if (a.role === 'ORGANIZER') {
+                        roleBadge = `<span class="badge-status" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-shield-halved"></i> BTC</span>`;
+                    }
+
                     return `
                         <tr style="${isChecked ? 'background: rgba(99, 102, 241, 0.04);' : ''}">
                             <td style="text-align: center; width: 34px;">
@@ -1733,6 +1815,7 @@
                                 <div class="table-name-cell">
                                     <div class="table-name-top">
                                         <strong class="att-name-text">${a.name}</strong>
+                                        ${roleBadge}
                                         <span class="att-code-tag" title="Mã định danh/MSSV">${a.code}</span>
                                         ${a.org ? `<span class="att-org-tag" title="Lớp/Đơn vị">${a.org}</span>` : ''}
                                     </div>
@@ -1772,6 +1855,17 @@
             if (cardsList) {
                 cardsList.innerHTML = list.map((a, idx) => {
                     const isChecked = selectedAttendeeIds.has(a.id);
+                    let roleBadge = '';
+                    if (a.role === 'VIP') {
+                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-crown"></i> VIP</span>`;
+                    } else if (a.role === 'SPEAKER') {
+                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
+                    } else if (a.role === 'GUEST') {
+                        roleBadge = `<span class="badge-status" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-handshake"></i> KHÁCH MỜI</span>`;
+                    } else if (a.role === 'ORGANIZER') {
+                        roleBadge = `<span class="badge-status" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-shield-halved"></i> BTC</span>`;
+                    }
+
                     return `
                         <div class="attendee-card ${a.checkedIn ? 'is-checked-in' : ''} ${isChecked ? 'is-selected' : ''}" id="card-att-${a.id}">
                             <div class="card-left">
@@ -1781,6 +1875,7 @@
                             <div class="card-center">
                                 <div class="card-name-row">
                                     <strong class="card-name">${a.name}</strong>
+                                    ${roleBadge}
                                     <span class="card-code" title="Mã định danh / MSSV">${a.code}</span>
                                     ${a.org ? `<span class="card-org" title="Lớp / Đơn vị">${a.org}</span>` : ''}
                                 </div>
@@ -2095,6 +2190,19 @@
             const email = (document.getElementById('add-email').value || '').trim();
             const code = document.getElementById('add-code').value.trim();
             const org = document.getElementById('add-org').value.trim();
+            const role = document.getElementById('add-role').value || 'MEMBER';
+            const checkinNow = document.getElementById('add-checkin-now').checked;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('vi-VN');
+
+            let isLate = false;
+            if (sessionData && sessionData.lateThreshold && checkinNow) {
+                const [lateH, lateM] = sessionData.lateThreshold.split(':').map(Number);
+                if (now.getHours() > lateH || (now.getHours() === lateH && now.getMinutes() > lateM)) {
+                    isLate = true;
+                }
+            }
 
             const newAtt = {
                 id: `att_${Date.now()}`,
@@ -2102,8 +2210,11 @@
                 email,
                 code,
                 org,
+                role,
                 qrToken: `MHENT_QR_${Date.now()}`,
-                checkedIn: false,
+                checkedIn: checkinNow,
+                checkinTime: checkinNow ? timeStr : null,
+                isLate: checkinNow ? isLate : false,
                 ticketSent: false,
                 _originalIndex: attendeesList.length
             };
@@ -2111,11 +2222,83 @@
             attendeesList.push(newAtt);
             await updateDoc(sessionRef, { attendees: attendeesList });
             closeAddAttendeeModal();
-            window.showToast("Đã thêm", `Đã thêm ${name} vào danh sách!`, "success");
+            window.showToast("Đã Thêm", `Đã thêm ${name} [${code}] vào danh sách!`, "success");
             document.getElementById('add-name').value = '';
             document.getElementById('add-email').value = '';
             document.getElementById('add-code').value = '';
             document.getElementById('add-org').value = '';
+            document.getElementById('add-role').value = 'MEMBER';
+            document.getElementById('add-checkin-now').checked = false;
+        };
+
+        // QUICK WALKIN MODAL LOGIC
+        window.openQuickWalkinModal = () => {
+            const m = document.getElementById('modal-quick-walkin');
+            if (m) {
+                m.style.display = 'flex';
+                setTimeout(() => m.classList.add('show'), 10);
+                setTimeout(() => document.getElementById('walkin-name')?.focus(), 50);
+            }
+        };
+        window.closeQuickWalkinModal = () => {
+            const m = document.getElementById('modal-quick-walkin');
+            if (m) {
+                m.classList.remove('show');
+                setTimeout(() => { m.style.display = 'none'; }, 200);
+            }
+        };
+
+        window.handleQuickWalkinSubmit = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('walkin-name').value.trim();
+            const org = document.getElementById('walkin-org').value.trim() || 'Khách vãng lai';
+            const role = document.getElementById('walkin-role').value || 'GUEST';
+
+            if (!name) return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('vi-VN');
+            let isLate = false;
+            if (sessionData && sessionData.lateThreshold) {
+                const [lateH, lateM] = sessionData.lateThreshold.split(':').map(Number);
+                if (now.getHours() > lateH || (now.getHours() === lateH && now.getMinutes() > lateM)) {
+                    isLate = true;
+                }
+            }
+
+            const code = `KM-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            const newAtt = {
+                id: `walkin_${Date.now()}`,
+                name,
+                email: '',
+                code,
+                org,
+                role,
+                qrToken: `MHENT_QR_${Date.now()}`,
+                checkedIn: true,
+                checkinTime: timeStr,
+                isLate,
+                ticketSent: false,
+                isWalkin: true,
+                _originalIndex: attendeesList.length
+            };
+
+            attendeesList.push(newAtt);
+            await updateDoc(sessionRef, { attendees: attendeesList });
+            closeQuickWalkinModal();
+            window.showToast("Đã Đón Khách!", `Đã chào đón ${name} (${code}) và điểm danh có mặt!`, "success");
+            document.getElementById('walkin-name').value = '';
+            document.getElementById('walkin-org').value = '';
+        };
+
+        window.copyRegistrationLink = function() {
+            const regUrl = `${window.location.origin}/tools/checkin/register.html?id=${sessionId}`;
+            navigator.clipboard.writeText(regUrl).then(() => {
+                window.showToast("Đã Sao Chép Link!", "Đã sao chép link đăng ký khách mời! Bạn có thể gửi link này cho khách.", "success");
+            }).catch(() => {
+                window.mhentPrompt("Link Đăng Ký Khách Mời", "Sao chép đường link bên dưới để gửi cho khách mời:", regUrl);
+            });
         };
 
         // QUICK PROMPT ADD/EDIT EMAIL

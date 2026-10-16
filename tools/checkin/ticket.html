@@ -159,6 +159,36 @@
             overflow: hidden;
             border: 2px solid #e2e8f0;
             position: relative;
+            transition: all 0.3s;
+        }
+
+        .ticket-pass.vip-ticket {
+            border: 2px solid #f59e0b;
+            box-shadow: 0 20px 50px rgba(245, 158, 11, 0.25);
+        }
+        .ticket-pass.vip-ticket .ticket-corp-brand {
+            color: #d97706;
+        }
+        .ticket-pass.speaker-ticket {
+            border: 2px solid #8b5cf6;
+            box-shadow: 0 20px 50px rgba(139, 92, 246, 0.25);
+        }
+        .ticket-pass.speaker-ticket .ticket-corp-brand {
+            color: #7c3aed;
+        }
+        .ticket-pass.guest-ticket {
+            border: 2px solid #06b6d4;
+            box-shadow: 0 20px 50px rgba(6, 182, 212, 0.22);
+        }
+        .ticket-pass.guest-ticket .ticket-corp-brand {
+            color: #0891b2;
+        }
+        .ticket-pass.org-ticket {
+            border: 2px solid #10b981;
+            box-shadow: 0 20px 50px rgba(16, 185, 129, 0.22);
+        }
+        .ticket-pass.org-ticket .ticket-corp-brand {
+            color: #059669;
         }
 
         /* NOTCH CUTOUTS (BOARDING PASS EFFECT) */
@@ -443,10 +473,13 @@
                 <div class="ticket-main">
                     <div class="ticket-header">
                         <div>
-                            <div class="ticket-corp-brand">Miyazaki Haruto Entertainment • Universe Pass</div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                                <div class="ticket-corp-brand" id="ticket-corp-brand">Miyazaki Haruto Entertainment • Universe Pass</div>
+                                <span id="ticket-role-badge"></span>
+                            </div>
                             <h1 class="ticket-event-name" id="ticket-title">Hội Thảo / Điểm Danh</h1>
                         </div>
-                        <img src="/assets/avt-web.jpg" style="width: 44px; height: 44px; border-radius: 12px; border: 2px solid #6366f1;">
+                        <img id="ticket-brand-avatar" src="/assets/avt-web.jpg" style="width: 44px; height: 44px; border-radius: 12px; border: 2px solid #6366f1; flex-shrink: 0;">
                     </div>
 
                     <div class="ticket-info-grid">
@@ -633,9 +666,10 @@
             if (countLabel) countLabel.textContent = attendeesList.length;
             if (!sel) return;
 
-            sel.innerHTML = attendeesList.map((a, idx) => `
-                <option value="${idx}">${idx + 1}. ${a.name} (${a.code})${a.org ? ' - ' + a.org : ''}</option>
-            `).join('');
+            sel.innerHTML = attendeesList.map((a, idx) => {
+                const rolePrefix = a.role === 'VIP' ? '👑 [VIP] ' : (a.role === 'SPEAKER' ? '🎙️ [DIỄN GIẢ] ' : (a.role === 'GUEST' ? '🎫 [KHÁCH] ' : ''));
+                return `<option value="${idx}">${idx + 1}. ${rolePrefix}${a.name} (${a.code})${a.org ? ' - ' + a.org : ''}</option>`;
+            }).join('');
             if (currentIndex >= 0) sel.value = currentIndex;
         }
 
@@ -773,6 +807,43 @@
             document.getElementById('ticket-code').textContent = item.code;
             document.getElementById('stub-code').textContent = item.code;
             document.getElementById('ticket-org').textContent = item.org || 'Đại biểu / Thành viên';
+
+            const ticketPassNode = document.getElementById('ticket-pass-node');
+            const brandText = document.getElementById('ticket-corp-brand');
+            const roleBadge = document.getElementById('ticket-role-badge');
+            const avatarImg = document.getElementById('ticket-brand-avatar');
+
+            // Reset previous role classes
+            if (ticketPassNode) {
+                ticketPassNode.classList.remove('vip-ticket', 'speaker-ticket', 'guest-ticket', 'org-ticket');
+            }
+
+            const role = (item.role || 'MEMBER').toUpperCase();
+            if (role === 'VIP') {
+                if (ticketPassNode) ticketPassNode.classList.add('vip-ticket');
+                if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • VIP Golden Pass';
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 3px 10px rgba(245,158,11,0.3); display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-crown"></i> VIP PASS</span>`;
+                if (avatarImg) avatarImg.style.borderColor = '#f59e0b';
+            } else if (role === 'SPEAKER') {
+                if (ticketPassNode) ticketPassNode.classList.add('speaker-ticket');
+                if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Speaker Pass';
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 3px 10px rgba(139,92,246,0.3); display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
+                if (avatarImg) avatarImg.style.borderColor = '#8b5cf6';
+            } else if (role === 'GUEST') {
+                if (ticketPassNode) ticketPassNode.classList.add('guest-ticket');
+                if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Guest Pass';
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-id-badge"></i> KHÁCH MỜI</span>`;
+                if (avatarImg) avatarImg.style.borderColor = '#06b6d4';
+            } else if (role === 'ORGANIZER') {
+                if (ticketPassNode) ticketPassNode.classList.add('org-ticket');
+                if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Organizer Pass';
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-shield-halved"></i> BAN TỔ CHỨC</span>`;
+                if (avatarImg) avatarImg.style.borderColor = '#10b981';
+            } else {
+                if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Universe Pass';
+                if (roleBadge) roleBadge.innerHTML = '';
+                if (avatarImg) avatarImg.style.borderColor = '#6366f1';
+            }
 
             const statusBadge = document.getElementById('ticket-status-badge');
             if (item.checkedIn) {

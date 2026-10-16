@@ -239,6 +239,24 @@
             border-color: #ef4444;
         }
 
+        #scan-result-card.vip {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #1e293b, #2a1f07);
+            box-shadow: 0 10px 40px rgba(245, 158, 11, 0.4);
+        }
+
+        #scan-result-card.speaker {
+            border-color: #8b5cf6;
+            background: linear-gradient(135deg, #1e293b, #1e1b4b);
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
+        }
+
+        #scan-result-card.guest {
+            border-color: #06b6d4;
+            background: linear-gradient(135deg, #1e293b, #082f49);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.35);
+        }
+
         .result-avatar {
             width: 52px;
             height: 52px;
@@ -346,6 +364,9 @@
             <button class="btn-ctrl" onclick="toggleAudioBeep()" id="btn-sound">
                 <i class="fa-solid fa-volume-high"></i> Âm Thanh: BẬT
             </button>
+            <button class="btn-ctrl" onclick="openQuickWalkinModal()" style="border-color: #3b82f6; color: #60a5fa; background: rgba(59, 130, 246, 0.15);" title="Thêm & Đón khách vãng lai / VIP / Diễn giả tức thì tại cửa">
+                <i class="fa-solid fa-user-plus"></i> Đón Khách Mới
+            </button>
             <input type="file" id="qr-file-input" accept="image/*" style="display: none;" onchange="handleQrFileUpload(event)">
         </div>
 
@@ -391,6 +412,67 @@
                     <i class="fa-solid fa-arrow-left"></i> Quay lại Hub Điểm Danh
                 </a>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL ĐÓN KHÁCH TỨC THÌ (QUICK WALKIN) -->
+    <div id="modal-quick-walkin" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 16px;">
+        <div style="background: #1e293b; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 20px; max-width: 440px; width: 100%; padding: 24px; color: white; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 12px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800;">Đón Khách Tức Thì (Walk-in)</h3>
+                        <span style="font-size: 11.5px; color: #94a3b8;">Thêm khách vãng lai / VIP / Diễn giả vào danh sách</span>
+                    </div>
+                </div>
+                <button type="button" onclick="closeQuickWalkinModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; padding: 4px;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="form-quick-walkin" onsubmit="handleQuickWalkinSubmit(event)">
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: 800; color: #94a3b8; display: block; margin-bottom: 4px;">HỌ VÀ TÊN *</label>
+                    <input type="text" id="walkin-name" required placeholder="VD: TS. Nguyễn Văn A, Khách VIP..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: white; font-size: 14px; outline: none;">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 800; color: #94a3b8; display: block; margin-bottom: 4px;">VAI TRÒ</label>
+                        <select id="walkin-role" style="width: 100%; box-sizing: border-box; padding: 10px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: white; font-size: 13px; outline: none; font-weight: 700;">
+                            <option value="GUEST">🎫 Khách Mời</option>
+                            <option value="VIP">🌟 Khách VIP</option>
+                            <option value="SPEAKER">🎙️ Diễn Giả</option>
+                            <option value="ORGANIZER">🛡️ Ban Tổ Chức</option>
+                            <option value="MEMBER">👤 Thành Viên</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 800; color: #94a3b8; display: block; margin-bottom: 4px;">MÃ SỐ (Tùy chọn)</label>
+                        <input type="text" id="walkin-code" placeholder="Tự sinh KM-..." style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: white; font-size: 13px; outline: none;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 12px; font-weight: 800; color: #94a3b8; display: block; margin-bottom: 4px;">ĐƠN VỊ / TỔ CHỨC / GHI CHÚ</label>
+                    <input type="text" id="walkin-org" placeholder="VD: Báo Tuổi Trẻ, Đại biểu Sở GD..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: white; font-size: 14px; outline: none;">
+                </div>
+
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #34d399; margin-bottom: 18px; cursor: pointer;">
+                    <input type="checkbox" id="walkin-checkin-now" checked style="width: 17px; height: 17px; accent-color: #10b981;">
+                    <span>Ghi nhận Check-in ngay lập tức khi thêm</span>
+                </label>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" onclick="closeQuickWalkinModal()" class="btn-ctrl" style="padding: 10px 16px;">Hủy</button>
+                    <button type="submit" id="btn-submit-walkin" class="btn-ctrl" style="padding: 10px 20px; background: #3b82f6; border-color: #3b82f6; color: white;">
+                        <i class="fa-solid fa-check"></i> Xác Nhận Đón Khách
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -458,6 +540,21 @@
             playTone(400, 'square', 0.15);
             setTimeout(() => playTone(300, 'square', 0.2), 120);
             if (navigator.vibrate) navigator.vibrate([200]);
+        }
+
+        function playVipSound() {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                playTone(523, 'triangle', 0.12);
+                setTimeout(() => playTone(659, 'triangle', 0.12), 100);
+                setTimeout(() => playTone(784, 'triangle', 0.15), 200);
+                setTimeout(() => playTone(1046, 'sine', 0.35), 320);
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+            } catch (e) {
+                console.warn(e);
+            }
         }
 
         window.toggleAudioBeep = function() {
@@ -760,9 +857,23 @@
 
             try {
                 await updateDoc(sessionRef, { attendees: attendees });
-                playSuccessSound();
-                const lateNotice = isLate ? " (⚠️ Đi trễ)" : " (Đúng giờ)";
-                showResultBanner(att.name, `✅ Điểm danh thành công lúc ${timeStr}${lateNotice}`, "success");
+                const lateNotice = isLate ? " (⚠️ Đi trễ)" : "";
+                if (att.role === 'VIP') {
+                    playVipSound();
+                    showResultBanner(`👑 [VIP] ${att.name}`, `🌟 ĐÓN TIẾP NỒNG NHIỆT! ✅ Lúc ${timeStr}${lateNotice}`, "vip");
+                } else if (att.role === 'SPEAKER') {
+                    playSuccessSound();
+                    showResultBanner(`🎙️ [DIỄN GIẢ] ${att.name}`, `✅ Điểm danh Diễn giả lúc ${timeStr}${lateNotice}`, "speaker");
+                } else if (att.role === 'GUEST') {
+                    playSuccessSound();
+                    showResultBanner(`🎫 [KHÁCH MỜI] ${att.name}`, `✅ Điểm danh Khách mời lúc ${timeStr}${lateNotice}`, "guest");
+                } else if (att.role === 'ORGANIZER') {
+                    playSuccessSound();
+                    showResultBanner(`🛡️ [BTC] ${att.name}`, `✅ Điểm danh Ban tổ chức lúc ${timeStr}${lateNotice}`, "success");
+                } else {
+                    playSuccessSound();
+                    showResultBanner(att.name, `✅ Điểm danh thành công lúc ${timeStr}${lateNotice}`, "success");
+                }
             } catch (err) {
                 console.error(err);
                 showResultBanner("Lỗi", err.message, "error");
@@ -780,8 +891,20 @@
             resName.innerText = name;
             resMeta.innerText = meta;
 
-            card.className = status; // success, warning, error
-            if (status === 'success') {
+            card.className = status; // success, warning, error, vip, speaker, guest
+            if (status === 'vip') {
+                resIcon.style.background = 'rgba(245, 158, 11, 0.25)';
+                resIcon.style.color = '#fbbf24';
+                resIcon.innerHTML = `<i class="fa-solid fa-crown"></i>`;
+            } else if (status === 'speaker') {
+                resIcon.style.background = 'rgba(139, 92, 246, 0.25)';
+                resIcon.style.color = '#a78bfa';
+                resIcon.innerHTML = `<i class="fa-solid fa-microphone-lines"></i>`;
+            } else if (status === 'guest') {
+                resIcon.style.background = 'rgba(6, 182, 212, 0.25)';
+                resIcon.style.color = '#38bdf8';
+                resIcon.innerHTML = `<i class="fa-solid fa-id-badge"></i>`;
+            } else if (status === 'success') {
                 resIcon.style.background = 'rgba(16, 185, 129, 0.2)';
                 resIcon.style.color = '#34d399';
                 resIcon.innerHTML = `<i class="fa-solid fa-check"></i>`;
@@ -799,8 +922,82 @@
             if (bannerTimer) clearTimeout(bannerTimer);
             bannerTimer = setTimeout(() => {
                 card.classList.remove('show');
-            }, 3000);
+            }, status === 'vip' ? 4500 : 3000);
         }
+
+        // QUICK WALKIN MODAL LOGIC
+        window.openQuickWalkinModal = function() {
+            document.getElementById('modal-quick-walkin').style.display = 'flex';
+            setTimeout(() => {
+                const nameInput = document.getElementById('walkin-name');
+                if (nameInput) nameInput.focus();
+            }, 100);
+        };
+
+        window.closeQuickWalkinModal = function() {
+            document.getElementById('modal-quick-walkin').style.display = 'none';
+            document.getElementById('form-quick-walkin').reset();
+            document.getElementById('walkin-checkin-now').checked = true;
+        };
+
+        window.handleQuickWalkinSubmit = async function(e) {
+            e.preventDefault();
+            const name = (document.getElementById('walkin-name').value || '').trim();
+            if (!name) return;
+
+            const role = document.getElementById('walkin-role').value;
+            let code = (document.getElementById('walkin-code').value || '').trim();
+            if (!code) {
+                const rand = Math.floor(1000 + Math.random() * 9000);
+                code = (role === 'VIP' ? 'VIP-' : (role === 'SPEAKER' ? 'DG-' : 'KM-')) + rand;
+            }
+            const org = (document.getElementById('walkin-org').value || '').trim() || (role === 'VIP' ? 'Khách Quý VIP' : (role === 'SPEAKER' ? 'Diễn Giả Khách Mời' : 'Khách mời vãng lai'));
+            const checkinNow = document.getElementById('walkin-checkin-now').checked;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('vi-VN');
+
+            const newAttendee = {
+                id: 'att_' + Date.now(),
+                code: code,
+                name: name,
+                org: org,
+                role: role,
+                checkedIn: checkinNow,
+                checkinTime: checkinNow ? timeStr : null,
+                isLate: false,
+                qrToken: code,
+                walkin: true
+            };
+
+            attendees.push(newAttendee);
+
+            try {
+                await updateDoc(sessionRef, { attendees: attendees });
+                closeQuickWalkinModal();
+
+                if (checkinNow) {
+                    if (role === 'VIP') {
+                        playVipSound();
+                        showResultBanner(`👑 [VIP] ${name}`, `🌟 ĐÓN TIẾP NỒNG NHIỆT! ✅ Check-in lúc ${timeStr}`, "vip");
+                    } else if (role === 'SPEAKER') {
+                        playSuccessSound();
+                        showResultBanner(`🎙️ [DIỄN GIẢ] ${name}`, `✅ Điểm danh Diễn giả lúc ${timeStr}`, "speaker");
+                    } else if (role === 'GUEST') {
+                        playSuccessSound();
+                        showResultBanner(`🎫 [KHÁCH MỜI] ${name}`, `✅ Điểm danh Khách mời lúc ${timeStr}`, "guest");
+                    } else {
+                        playSuccessSound();
+                        showResultBanner(name, `✅ Điểm danh thành công lúc ${timeStr}`, "success");
+                    }
+                } else {
+                    showResultBanner(name, `Đã thêm vào danh sách (Mã: ${code})`, "success");
+                }
+            } catch (err) {
+                console.error(err);
+                showResultBanner("Lỗi", err.message, "error");
+            }
+        };
 
         // MANUAL SEARCH ENTER
         window.handleManualEnter = function(e) {
