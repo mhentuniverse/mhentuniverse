@@ -318,6 +318,30 @@
                 box-sizing: border-box;
             }
         }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .pulse-dot {
+            animation: pulseGlow 1.5s infinite ease-in-out;
+        }
+
+        .dyn-qr-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #059669;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -329,12 +353,28 @@
             </a>
             <span id="nav-session-title" style="font-size: 13px; font-weight: 700; color: var(--text-muted); border-left: 1px solid var(--border-soft); padding-left: 10px;">...</span>
         </div>
-        <a id="btn-back-session" href="#" class="btn-ticket-act btn-act-outline" style="padding: 6px 12px; font-size: 12.5px;">
-            <i class="fa-solid fa-arrow-left"></i> Quay lại
-        </a>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="btn-unlock-organizer" type="button" class="btn-ticket-act btn-act-outline" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" onclick="promptUnlockOrganizer()" title="Mở khóa quyền Ban Tổ Chức để duyệt và in tất cả vé">
+                <i class="fa-solid fa-shield-halved" style="color: var(--ci-accent);"></i> Quyền BTC
+            </button>
+            <a id="btn-back-session" href="#" class="btn-ticket-act btn-act-outline" style="padding: 6px 12px; font-size: 12.5px;">
+                <i class="fa-solid fa-arrow-left"></i> Phiên Điểm Danh
+            </a>
+        </div>
     </header>
 
     <main class="ticket-page-container">
+
+        <!-- ORGANIZER MODE BANNER (CHỈ HIỆN KHI LÀ BTC / ADMIN) -->
+        <div id="organizer-badge-box" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1.5px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-size: 13.5px; color: #10b981; font-weight: 800; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-shield-check" style="font-size: 16px;"></i>
+                <span>Chế Độ Ban Tổ Chức: Cho phép duyệt & in ấn toàn bộ danh sách vé</span>
+            </div>
+            <button type="button" onclick="exitOrganizerMode()" class="btn-action btn-outline" style="padding: 4px 10px; font-size: 12px; border-color: rgba(239, 68, 68, 0.4); color: #ef4444; background: transparent; cursor: pointer;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Thoát Chế Độ BTC
+            </button>
+        </div>
         
         <!-- LOOKUP BAR -->
         <div class="lookup-card">
@@ -343,11 +383,12 @@
                     <h2 style="font-size: 16px; font-weight: 900; margin: 0; color: var(--text-main);">
                         <i class="fa-solid fa-magnifying-glass" style="color: var(--ci-accent);"></i> Tra Cứu Vé Tham Dự
                     </h2>
-                    <p style="font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0;">
-                        Nhập Mã SV / Mã NV hoặc Tên của bạn để hiển thị thẻ vé có mã QR xác thực.
+                    <p style="font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0;" id="lookup-desc-text">
+                        Nhập chính xác Mã Định Danh / Mã SV / Mã NV của bạn để mở thẻ vé cá nhân.
                     </p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
+                <!-- BỘ LỌC SẮP XẾP CHỈ DÀNH CHO BAN TỔ CHỨC -->
+                <div id="sort-container" style="display: none; align-items: center; gap: 6px;">
                     <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-arrow-down-short-wide"></i> Thứ tự:</span>
                     <select id="ticket-sort" class="form-select tool-select" onchange="handleTicketSortChange(this.value)"
                         title="Sắp xếp danh sách tra cứu vé">
@@ -365,19 +406,33 @@
             </div>
 
             <div class="lookup-input-row">
-                <input type="text" id="lookup-keyword" class="lookup-input" placeholder="Ví dụ: MH-DEV-01 hoặc Yorutsuki Yurika..." onkeypress="if(event.key==='Enter') executeLookup()">
+                <input type="text" id="lookup-keyword" class="lookup-input" placeholder="Nhập Mã Định Danh / MSSV (VD: SV-001 hoặc 2100123...)" onkeypress="if(event.key==='Enter') executeLookup()">
                 <button class="btn-lookup" onclick="executeLookup()">
                     <i class="fa-solid fa-search"></i> Tra Cứu
                 </button>
             </div>
 
-            <!-- QUICK ATTENDEE SELECTOR -->
-            <div style="margin-top: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <!-- QUICK ATTENDEE SELECTOR CHỈ DÀNH CHO BAN TỔ CHỨC -->
+            <div id="quick-attendee-container" style="display: none; margin-top: 14px; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <label for="lookup-select-attendee" style="font-size: 12px; font-weight: 800; color: var(--text-muted);">
                     <i class="fa-solid fa-list-check"></i> Chọn nhanh đại biểu (<span id="attendee-count-label">0</span> người):
                 </label>
                 <select id="lookup-select-attendee" class="form-select tool-select" onchange="handleSelectAttendee(this.value)" style="flex: 1; min-width: 220px;">
                 </select>
+            </div>
+        </div>
+
+        <!-- PLACEHOLDER BẢO MẬT KHI CHƯA TRA CỨU MÃ CỦA MÌNH -->
+        <div id="ticket-empty-state" style="display: none; background: var(--card-bg); border: 2px dashed var(--border-soft); border-radius: 24px; padding: 48px 24px; text-align: center; margin-bottom: 24px;">
+            <div style="width: 68px; height: 68px; border-radius: 50%; background: rgba(99, 102, 241, 0.1); color: var(--ci-accent); display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 16px;">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 style="margin: 0 0 8px; font-size: 18px; font-weight: 900; color: var(--text-main);">Bảo Mật Vé Tham Dự Cá Nhân</h3>
+            <p style="margin: 0 auto 18px; max-width: 460px; font-size: 13.5px; color: var(--text-muted); line-height: 1.6;">
+                Để bảo vệ quyền riêng tư và chống việc điểm danh hộ, danh sách người tham gia không hiển thị công khai. Vui lòng nhập đúng <strong>Mã số định danh / MSSV</strong> của bạn ở ô trên để hiển thị vé.
+            </p>
+            <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: #10b981; background: rgba(16, 185, 129, 0.08); padding: 7px 16px; border-radius: 20px; font-weight: 800;">
+                <i class="fa-solid fa-bolt"></i> Mã QR động chống chụp ảnh màn hình điểm danh hộ
             </div>
         </div>
 
@@ -397,19 +452,19 @@
                     <div class="ticket-info-grid">
                         <div>
                             <div class="info-cell-label">NGƯỜI THAM DỰ</div>
-                            <div class="info-cell-value" id="ticket-name" style="font-size: 18px; color: #4f46e5;">Yorutsuki Yurika</div>
+                            <div class="info-cell-value" id="ticket-name" style="font-size: 18px; color: #4f46e5;">...</div>
                         </div>
                         <div>
                             <div class="info-cell-label">MÃ ĐỊNH DANH (CODE)</div>
-                            <div class="info-cell-value" id="ticket-code" style="font-family: monospace; letter-spacing: 1px;">MH-DEV-01</div>
+                            <div class="info-cell-value" id="ticket-code" style="font-family: monospace; letter-spacing: 1px;">...</div>
                         </div>
                         <div>
                             <div class="info-cell-label">ĐƠN VỊ / BAN NGÀNH</div>
-                            <div class="info-cell-value" id="ticket-org">Chi Đoàn Ban Công Nghệ</div>
+                            <div class="info-cell-value" id="ticket-org">...</div>
                         </div>
                         <div>
                             <div class="info-cell-label">THỜI GIAN DIỄN RA</div>
-                            <div class="info-cell-value" id="ticket-time">08:00 • 13/10/2026</div>
+                            <div class="info-cell-value" id="ticket-time">08:00 • Hôm nay</div>
                         </div>
                     </div>
 
@@ -421,11 +476,16 @@
 
                 <!-- STUB QR -->
                 <div class="ticket-stub">
+                    <div class="dyn-qr-badge" id="dyn-qr-badge">
+                        <span class="pulse-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        <span>QR ĐỘNG • <span id="dyn-countdown">30s</span></span>
+                    </div>
                     <div class="stub-qr-box">
                         <div id="ticket-qrcode"></div>
                     </div>
-                    <div style="font-size: 12px; font-weight: 900; color: #0f172a; margin-bottom: 2px;" id="stub-code">MH-01</div>
-                    <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">QUÉT TẠI CỔNG VÀO</div>
+                    <div style="font-size: 12px; font-weight: 900; color: #0f172a; margin-top: 6px; margin-bottom: 2px;" id="stub-code">...</div>
+                    <div id="dyn-live-clock" style="font-size: 10.5px; font-family: monospace; font-weight: 800; color: #6366f1; margin-bottom: 2px;">--:--:--</div>
+                    <div style="font-size: 9.5px; color: #64748b; text-transform: uppercase;">QUÉT TRỰC TIẾP TẠI CỔNG</div>
                 </div>
             </div>
         </div>
@@ -438,11 +498,11 @@
             <button class="btn-ticket-act btn-act-print" onclick="window.print()">
                 <i class="fa-solid fa-print"></i> In Thẻ Đeo
             </button>
-            <button class="btn-ticket-act btn-act-outline" onclick="viewPrevAttendee()" id="btn-prev" title="Người trước">
+            <button class="btn-ticket-act btn-act-outline" onclick="viewPrevAttendee()" id="btn-prev" title="Người trước" style="display: none;">
                 <i class="fa-solid fa-chevron-left"></i> Người trước
             </button>
-            <span id="ticket-index-counter" style="display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 800; color: var(--text-muted); padding: 0 8px; min-width: 60px;">1 / 1</span>
-            <button class="btn-ticket-act btn-act-outline" onclick="viewNextAttendee()" id="btn-next" title="Người tiếp theo">
+            <span id="ticket-index-counter" style="display: none; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 800; color: var(--text-muted); padding: 0 8px; min-width: 60px;">1 / 1</span>
+            <button class="btn-ticket-act btn-act-outline" onclick="viewNextAttendee()" id="btn-next" title="Người tiếp theo" style="display: none;">
                 Người sau <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
@@ -453,22 +513,28 @@
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = window.firebaseConfig;
         const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('id');
         const paramCode = urlParams.get('code');
 
+        let currentUser = null;
         let sessionData = null;
         let attendeesList = [];
-        let currentIndex = 0;
+        let currentIndex = -1; // -1: chưa chọn người nào đối với khách
         let currentSort = 'DEFAULT';
         let isSortManuallyChanged = false;
         let isInitialized = false;
         let qrcodeInstance = null;
+        let isOrganizerMode = false;
+        let dynTimerInterval = null;
+        let dynCountdownSec = 30;
 
         if (!sessionId) {
             window.showToast("Thiếu Thông Tin", "Thiếu mã phiên tra cứu vé!", "error");
@@ -476,6 +542,42 @@
         }
 
         document.getElementById('btn-back-session').href = `/tools/checkin/session.html?id=${sessionId}`;
+
+        // HÀM TẠO CHỮ KÝ DYNAMIC QR BẢO MẬT
+        function genDynamicQrSig(sid, code, ts) {
+            const str = `${sid}_${code}_${ts}_mhent_secret_universe`;
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash).toString(36);
+        }
+
+        // KIỂM TRA QUYỀN BAN TỔ CHỨC / ADMIN
+        function isCurrentUserOrganizer() {
+            if (!sessionData) return false;
+            if (sessionStorage.getItem('mhent_unlocked_' + sessionId) === '1') return true;
+            const activeUser = currentUser || (window.getMHEntUser && window.getMHEntUser()) || auth.currentUser;
+            if (!activeUser) return false;
+            const userEmail = (activeUser.email || '').toLowerCase();
+            const userUid = activeUser.uid || '';
+            const isAdmin = userEmail === 'mhent@mhentuniverse.com' ||
+                            userEmail === 'contact@mhentuniverse.com' ||
+                            userEmail === 'miyazakiharuto.ent.co@gmail.com' ||
+                            userEmail.endsWith('@mhentuniverse.com') ||
+                            (activeUser.role && String(activeUser.role).toLowerCase().includes('admin'));
+            const isOwner = (sessionData.createdByUid && sessionData.createdByUid === userUid) ||
+                            (sessionData.createdByEmail && sessionData.createdByEmail.toLowerCase() === userEmail);
+            const isManager = Array.isArray(sessionData.managers) && sessionData.managers.some(m => String(m).trim().toLowerCase() === userEmail);
+            return Boolean(isAdmin || isOwner || isManager);
+        }
+
+        // THEO DÕI ĐĂNG NHẬP
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user || (window.getMHEntUser && window.getMHEntUser());
+            updateOrganizerUIState();
+        });
 
         // HỖ TRỢ SẮP XẾP TÊN CHUẨN TIẾNG VIỆT
         function getVietnameseSortKeys(fullName) {
@@ -534,7 +636,70 @@
             sel.innerHTML = attendeesList.map((a, idx) => `
                 <option value="${idx}">${idx + 1}. ${a.name} (${a.code})${a.org ? ' - ' + a.org : ''}</option>
             `).join('');
-            sel.value = currentIndex;
+            if (currentIndex >= 0) sel.value = currentIndex;
+        }
+
+        function showTicketDisplay(visible) {
+            const ticketWrapper = document.querySelector('.ticket-wrapper');
+            const ticketActions = document.querySelector('.ticket-actions-bar');
+            const emptyState = document.getElementById('ticket-empty-state');
+            if (visible) {
+                if (ticketWrapper) ticketWrapper.style.display = 'block';
+                if (ticketActions) ticketActions.style.display = 'flex';
+                if (emptyState) emptyState.style.display = 'none';
+            } else {
+                if (ticketWrapper) ticketWrapper.style.display = 'none';
+                if (ticketActions) ticketActions.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'block';
+                stopDynamicTimer();
+            }
+        }
+
+        function updateOrganizerUIState() {
+            isOrganizerMode = isCurrentUserOrganizer();
+            const orgBadge = document.getElementById('organizer-badge-box');
+            const sortBox = document.getElementById('sort-container');
+            const quickBox = document.getElementById('quick-attendee-container');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            const counter = document.getElementById('ticket-index-counter');
+            const btnUnlock = document.getElementById('btn-unlock-organizer');
+            const descText = document.getElementById('lookup-desc-text');
+
+            if (isOrganizerMode) {
+                if (orgBadge) orgBadge.style.display = 'flex';
+                if (sortBox) sortBox.style.display = 'flex';
+                if (quickBox) quickBox.style.display = 'flex';
+                if (btnPrev) btnPrev.style.display = 'inline-flex';
+                if (btnNext) btnNext.style.display = 'inline-flex';
+                if (counter) counter.style.display = 'inline-flex';
+                if (btnUnlock) btnUnlock.style.display = 'none';
+                if (descText) descText.textContent = 'Duyệt danh sách, tìm kiếm hoặc chọn đại biểu để xuất thẻ vé E-Ticket.';
+
+                if (currentIndex === -1 && attendeesList.length > 0) {
+                    currentIndex = 0;
+                }
+                if (currentIndex >= 0 && attendeesList[currentIndex]) {
+                    showTicketDisplay(true);
+                    renderAttendeeTicket(currentIndex);
+                }
+            } else {
+                if (orgBadge) orgBadge.style.display = 'none';
+                if (sortBox) sortBox.style.display = 'none';
+                if (quickBox) quickBox.style.display = 'none';
+                if (btnPrev) btnPrev.style.display = 'none';
+                if (btnNext) btnNext.style.display = 'none';
+                if (counter) counter.style.display = 'none';
+                if (btnUnlock) btnUnlock.style.display = 'inline-flex';
+                if (descText) descText.textContent = 'Nhập chính xác Mã Định Danh / Mã SV / Mã NV của bạn để mở thẻ vé cá nhân.';
+
+                if (currentIndex >= 0 && attendeesList[currentIndex]) {
+                    showTicketDisplay(true);
+                    renderAttendeeTicket(currentIndex);
+                } else {
+                    showTicketDisplay(false);
+                }
+            }
         }
 
         function applySortAndRefresh(preferredCode) {
@@ -542,13 +707,13 @@
             populateAttendeeDropdown();
 
             if (preferredCode) {
-                const foundIdx = attendeesList.findIndex(a => (a.code || '').toLowerCase() === preferredCode.toLowerCase());
+                const foundIdx = attendeesList.findIndex(a => (a.code || '').trim().toLowerCase() === preferredCode.trim().toLowerCase());
                 if (foundIdx !== -1) currentIndex = foundIdx;
-            } else if (currentIndex >= attendeesList.length) {
+            } else if (isOrganizerMode && (currentIndex < 0 || currentIndex >= attendeesList.length)) {
                 currentIndex = 0;
             }
 
-            renderAttendeeTicket(currentIndex);
+            updateOrganizerUIState();
         }
 
         window.handleTicketSortChange = function(val) {
@@ -560,6 +725,7 @@
 
         window.handleSelectAttendee = function(idx) {
             currentIndex = parseInt(idx, 10) || 0;
+            showTicketDisplay(true);
             renderAttendeeTicket(currentIndex);
         };
 
@@ -573,8 +739,8 @@
             }
 
             sessionData = docSnap.data();
-            document.getElementById('nav-session-title').textContent = sessionData.title;
-            document.getElementById('ticket-title').textContent = sessionData.title;
+            document.getElementById('nav-session-title').textContent = sessionData.title || 'Phiên Không Tên';
+            document.getElementById('ticket-title').textContent = sessionData.title || 'Hội Thảo / Điểm Danh';
             document.getElementById('ticket-time').textContent = `${sessionData.startTime || '08:00'} • ${sessionData.date || 'Hôm nay'}`;
 
             attendeesList = (sessionData.attendees || []).map((att, idx) => ({
@@ -598,7 +764,8 @@
             applySortAndRefresh(activeCode);
         });
 
-        function renderAttendeeTicket(idx) {
+        // RENDER TICKET
+        function renderAttendeeTicket(idx, isStaticOnly = false) {
             if (!attendeesList[idx]) return;
             const item = attendeesList[idx];
 
@@ -620,11 +787,26 @@
             const counter = document.getElementById('ticket-index-counter');
             if (counter) counter.textContent = `${idx + 1} / ${attendeesList.length}`;
 
-            // Render QR Code formatted as: mhent-ci:SESSION_ID:ATTENDEE_CODE
+            // Render Dynamic or Static QR
+            generateQrForCurrent(item, isStaticOnly);
+            if (!isStaticOnly) {
+                restartDynamicTimer();
+            }
+        }
+
+        function generateQrForCurrent(item, isStaticOnly = false) {
             const qrHolder = document.getElementById('ticket-qrcode');
+            if (!qrHolder) return;
             qrHolder.innerHTML = '';
-            
-            const qrPayload = `mhent-ci:${sessionId}:${item.code}`;
+
+            let qrPayload = '';
+            if (isStaticOnly) {
+                qrPayload = `mhent-ci:${sessionId}:${item.code}`;
+            } else {
+                const ts = Math.floor(Date.now() / 1000);
+                const sig = genDynamicQrSig(sessionId, item.code, ts);
+                qrPayload = `mhent-ci:${sessionId}:${item.code}:dyn:${ts}:${sig}`;
+            }
 
             qrcodeInstance = new QRCode(qrHolder, {
                 text: qrPayload,
@@ -634,27 +816,79 @@
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.M
             });
+
+            const clockEl = document.getElementById('dyn-live-clock');
+            if (clockEl) {
+                clockEl.textContent = new Date().toLocaleTimeString('vi-VN');
+            }
         }
 
-        window.executeLookup = function() {
-            const kw = document.getElementById('lookup-keyword').value.trim().toLowerCase();
-            if (!kw) return;
+        function restartDynamicTimer() {
+            stopDynamicTimer();
+            dynCountdownSec = 30;
+            updateCountdownUI();
 
-            const foundIdx = attendeesList.findIndex(a => 
-                (a.code || '').toLowerCase().includes(kw) ||
-                (a.name || '').toLowerCase().includes(kw)
-            );
+            dynTimerInterval = setInterval(() => {
+                dynCountdownSec--;
+                if (dynCountdownSec <= 0) {
+                    dynCountdownSec = 30;
+                    if (currentIndex >= 0 && attendeesList[currentIndex]) {
+                        generateQrForCurrent(attendeesList[currentIndex], false);
+                    }
+                }
+                updateCountdownUI();
+            }, 1000);
+        }
+
+        function updateCountdownUI() {
+            const cdEl = document.getElementById('dyn-countdown');
+            if (cdEl) cdEl.textContent = `${dynCountdownSec}s`;
+            const clockEl = document.getElementById('dyn-live-clock');
+            if (clockEl) clockEl.textContent = new Date().toLocaleTimeString('vi-VN');
+        }
+
+        function stopDynamicTimer() {
+            if (dynTimerInterval) {
+                clearInterval(dynTimerInterval);
+                dynTimerInterval = null;
+            }
+        }
+
+        // LOOKUP FUNCTION
+        window.executeLookup = function() {
+            const kw = (document.getElementById('lookup-keyword').value || '').trim();
+            if (!kw) {
+                window.showToast("Chưa Nhập Mã", "Vui lòng nhập Mã Định Danh / MSSV / Mã NV của bạn!", "warning");
+                return;
+            }
+
+            const cleanKw = kw.toLowerCase();
+            // 1. Tìm chính xác theo code (Mã SV / NV)
+            let foundIdx = attendeesList.findIndex(a => (a.code || '').trim().toLowerCase() === cleanKw);
+            
+            // 2. Nếu không ra, tìm theo email
+            if (foundIdx === -1) {
+                foundIdx = attendeesList.findIndex(a => (a.email || '').trim().toLowerCase() === cleanKw);
+            }
+
+            // 3. Nếu là Ban tổ chức, cho phép tìm theo tên
+            if (foundIdx === -1 && isOrganizerMode) {
+                foundIdx = attendeesList.findIndex(a => (a.name || '').trim().toLowerCase().includes(cleanKw));
+            }
 
             if (foundIdx === -1) {
-                window.showToast("Không Tìm Thấy", `Không tìm thấy người tham gia nào khớp với "${kw}"!`, "warning");
+                window.showToast("Không Tìm Thấy", `Không tìm thấy mã số "${kw}" trong danh sách tham gia của phiên!`, "warning");
                 return;
             }
 
             currentIndex = foundIdx;
+            showTicketDisplay(true);
             renderAttendeeTicket(currentIndex);
+            window.showToast("Tìm Thấy Thẻ Vé!", `Chào ${attendeesList[currentIndex].name}, vé của bạn đã hiển thị!`, "success");
         };
 
         window.viewPrevAttendee = function() {
+            if (!isOrganizerMode) return;
             if (currentIndex > 0) {
                 currentIndex--;
                 renderAttendeeTicket(currentIndex);
@@ -664,6 +898,7 @@
         };
 
         window.viewNextAttendee = function() {
+            if (!isOrganizerMode) return;
             if (currentIndex < attendeesList.length - 1) {
                 currentIndex++;
                 renderAttendeeTicket(currentIndex);
@@ -672,10 +907,45 @@
             }
         };
 
-        // DOWNLOAD AS IMAGE (.PNG)
+        // MỞ KHÓA & THOÁT QUYỀN BAN TỔ CHỨC
+        window.promptUnlockOrganizer = async function() {
+            if (isCurrentUserOrganizer()) {
+                window.showToast("Thông Báo", "Bạn đã đang ở Chế độ Ban Tổ Chức rồi!", "info");
+                return;
+            }
+            if (!sessionData?.accessPin) {
+                window.showToast("Chưa Thiết Lập PIN", "Phiên này không thiết lập mã PIN mở khóa. Vui lòng đăng nhập tài khoản Quản trị / Người tạo phiên!", "warning");
+                return;
+            }
+            const pin = await window.mhentPrompt("Mở Khóa Quyền Ban Tổ Chức", "Nhập mã PIN phiên để xem toàn bộ danh sách vé và in thẻ đeo:");
+            if (!pin) return;
+            if (pin.trim() === sessionData.accessPin) {
+                sessionStorage.setItem('mhent_unlocked_' + sessionId, '1');
+                updateOrganizerUIState();
+                window.showToast("Mở Khóa Thành Công", "Đã bật Chế độ Ban Tổ Chức (Duyệt toàn bộ vé)", "success");
+            } else {
+                window.showToast("Sai Mã PIN", "Mã PIN không đúng, bạn không có quyền xem toàn bộ vé!", "error");
+            }
+        };
+
+        window.exitOrganizerMode = function() {
+            sessionStorage.removeItem('mhent_unlocked_' + sessionId);
+            updateOrganizerUIState();
+            window.showToast("Đã Thoát", "Đã chuyển về chế độ bảo mật người tham dự cá nhân.", "info");
+        };
+
+        // DOWNLOAD AS IMAGE (.PNG HD)
         window.downloadTicketImage = function() {
+            if (currentIndex < 0 || !attendeesList[currentIndex]) return;
             const ticketNode = document.getElementById('ticket-pass-node');
-            const attendee = attendeesList[currentIndex] || { code: 'TICKET' };
+            const attendee = attendeesList[currentIndex];
+            const badgeEl = document.getElementById('dyn-qr-badge');
+            const clockEl = document.getElementById('dyn-live-clock');
+
+            // Render mã QR tĩnh để ảnh tải về in được
+            generateQrForCurrent(attendee, true);
+            if (badgeEl) badgeEl.style.display = 'none';
+            if (clockEl) clockEl.style.display = 'none';
 
             html2canvas(ticketNode, {
                 scale: 2, // Retinal HD 2x
@@ -683,14 +953,33 @@
                 backgroundColor: null
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `MHEnt_Ticket_${attendee.code}_${attendee.name}.png`;
+                link.download = `MHEnt_Ticket_${attendee.code}_${attendee.name.replace(/\s+/g, '_')}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
+                window.showToast("Đã Tải Vé", `Đã lưu ảnh vé điện tử cho ${attendee.name}`, "success");
             }).catch(err => {
                 console.error("Canvas error:", err);
                 window.showToast("Lỗi Tải Ảnh", "Lỗi khi tải ảnh vé: " + err.message, "error");
+            }).finally(() => {
+                // Khôi phục dynamic QR trên màn hình
+                generateQrForCurrent(attendee, false);
+                if (badgeEl) badgeEl.style.display = 'inline-flex';
+                if (clockEl) clockEl.style.display = 'block';
+                restartDynamicTimer();
             });
         };
+
+        window.addEventListener('beforeprint', () => {
+            if (currentIndex >= 0 && attendeesList[currentIndex]) {
+                generateQrForCurrent(attendeesList[currentIndex], true);
+            }
+        });
+        window.addEventListener('afterprint', () => {
+            if (currentIndex >= 0 && attendeesList[currentIndex]) {
+                generateQrForCurrent(attendeesList[currentIndex], false);
+                restartDynamicTimer();
+            }
+        });
     </script>
 </body>
 </html>

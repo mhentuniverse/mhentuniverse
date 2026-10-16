@@ -605,17 +605,36 @@
             // Frame không có QR - bỏ qua
         }
 
+        // HÀM TẠO CHỮ KÝ DYNAMIC QR BẢO MẬT (ĐỒNG BỘ VỚI TICKET.HTML)
+        function genDynamicQrSig(sid, code, ts) {
+            const str = `${sid}_${code}_${ts}_mhent_secret_universe`;
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash).toString(36);
+        }
+
         // INTELLIGENT QR PAYLOAD PARSER
         function parseQrPayload(raw) {
             const text = String(raw).trim();
 
-            // 1. Format: mhent-ci:SESSION_ID:ATTENDEE_CODE
+            // 1. Format: mhent-ci:SESSION_ID:ATTENDEE_CODE or mhent-ci:SESSION_ID:ATTENDEE_CODE:dyn:TS:SIG
             if (text.startsWith('mhent-ci:')) {
                 const parts = text.split(':');
+                const targetSessionId = parts[1] || null;
+                const code = parts[2] || parts[1] || '';
+                const isDyn = parts[3] === 'dyn';
+                const ts = isDyn ? Number(parts[4]) : null;
+                const sig = isDyn ? parts[5] : null;
                 return {
-                    targetSessionId: parts[1] || null,
-                    code: parts[2] || parts[1] || '',
-                    type: 'ticket'
+                    targetSessionId,
+                    code,
+                    isDyn,
+                    ts,
+                    sig,
+                    type: isDyn ? 'dyn_ticket' : 'ticket'
                 };
             }
 
@@ -660,6 +679,26 @@
                 playWarningSound();
                 showResultBanner("Khác Phiên Điểm Danh!", `Mã QR này thuộc về phiên khác (ID: ${parsed.targetSessionId.slice(0, 6)}...)!`, "error");
                 return;
+            }
+
+            // Kiểm tra Dynamic QR (chống gian lận chụp ảnh gửi điểm danh hộ)
+            if (parsed.isDyn) {
+                const nowSec = Math.floor(Date.now() / 1000);
+                const age = Math.abs(nowSec - parsed.ts);
+                const expectedSig = genDynamicQrSig(parsed.targetSessionId || sessionId, parsed.code, parsed.ts);
+                
+                if (parsed.sig !== expectedSig) {
+                    playWarningSound();
+                    showResultBanner("Mã QR Giả Mạo!", "Mã QR có chữ ký bảo mật không hợp lệ hoặc đã bị can thiệp!", "error");
+                    return;
+                }
+                
+                // Giới hạn thời gian hiệu lực 90 giây (cho phép lệch đồng hồ máy chủ/thiết bị)
+                if (age > 90) {
+                    playWarningSound();
+                    showResultBanner("Mã QR Đã Hết Hạn!", "Ảnh chụp màn hình đã quá 90 giây! Vui lòng yêu cầu đại biểu mở vé trực tiếp trên điện thoại để quét mã mới.", "error");
+                    return;
+                }
             }
 
             const cleanQuery = (parsed.code || '').trim().toLowerCase();
