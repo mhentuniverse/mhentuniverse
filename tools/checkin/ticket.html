@@ -184,10 +184,17 @@
             color: #0891b2;
         }
         .ticket-pass.org-ticket {
+            border: 2px solid #ef4444;
+            box-shadow: 0 20px 50px rgba(239, 68, 68, 0.22);
+        }
+        .ticket-pass.org-ticket .ticket-corp-brand {
+            color: #dc2626;
+        }
+        .ticket-pass.member-ticket {
             border: 2px solid #10b981;
             box-shadow: 0 20px 50px rgba(16, 185, 129, 0.22);
         }
-        .ticket-pass.org-ticket .ticket-corp-brand {
+        .ticket-pass.member-ticket .ticket-corp-brand {
             color: #059669;
         }
 
@@ -423,6 +430,8 @@
                     <select id="ticket-sort" class="form-select tool-select" onchange="handleTicketSortChange(this.value)"
                         title="Sắp xếp danh sách tra cứu vé">
                         <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
+                        <option value="ROLE_MEMBER_FIRST">👥 Gom nhóm: Thành viên trước ➔ Khách mời sau</option>
+                        <option value="ROLE_GUEST_FIRST">🎫 Gom nhóm: Khách mời trước ➔ Thành viên sau</option>
                         <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
                         <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
                         <option value="FULLNAME_ASC">📝 Họ và Tên A → Z</option>
@@ -496,8 +505,16 @@
                             <div class="info-cell-value" id="ticket-org">...</div>
                         </div>
                         <div>
+                            <div class="info-cell-label">TƯ CÁCH THAM DỰ</div>
+                            <div class="info-cell-value" id="ticket-role-name" style="font-weight: 800; color: #059669;">ĐẠI BIỂU CHÍNH THỨC</div>
+                        </div>
+                        <div>
                             <div class="info-cell-label">THỜI GIAN DIỄN RA</div>
                             <div class="info-cell-value" id="ticket-time">08:00 • Hôm nay</div>
+                        </div>
+                        <div>
+                            <div class="info-cell-label">TRẠNG THÁI VÉ</div>
+                            <div class="info-cell-value" id="ticket-validity-status" style="font-weight: 800; color: #10b981;">● HỢP LỆ</div>
                         </div>
                     </div>
 
@@ -654,6 +671,20 @@
                     return copy.sort((a, b) => (a.org || '').localeCompare(b.org || '', 'vi'));
                 case 'ORG_DESC':
                     return copy.sort((a, b) => (b.org || '').localeCompare(a.org || '', 'vi'));
+                case 'ROLE_MEMBER_FIRST':
+                    return copy.sort((a, b) => {
+                        const isGuestA = (a.role && a.role !== 'MEMBER') ? 1 : 0;
+                        const isGuestB = (b.role && b.role !== 'MEMBER') ? 1 : 0;
+                        if (isGuestA !== isGuestB) return isGuestA - isGuestB;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'ROLE_GUEST_FIRST':
+                    return copy.sort((a, b) => {
+                        const isGuestA = (a.role && a.role !== 'MEMBER') ? 1 : 0;
+                        const isGuestB = (b.role && b.role !== 'MEMBER') ? 1 : 0;
+                        if (isGuestA !== isGuestB) return isGuestB - isGuestA;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
                 case 'DEFAULT':
                 default:
                     return copy.sort((a, b) => (a._originalIndex ?? 0) - (b._originalIndex ?? 0));
@@ -666,10 +697,41 @@
             if (countLabel) countLabel.textContent = attendeesList.length;
             if (!sel) return;
 
-            sel.innerHTML = attendeesList.map((a, idx) => {
-                const rolePrefix = a.role === 'VIP' ? '👑 [VIP] ' : (a.role === 'SPEAKER' ? '🎙️ [DIỄN GIẢ] ' : (a.role === 'GUEST' ? '🎫 [KHÁCH] ' : ''));
-                return `<option value="${idx}">${idx + 1}. ${rolePrefix}${a.name} (${a.code})${a.org ? ' - ' + a.org : ''}</option>`;
-            }).join('');
+            const members = [];
+            const guests = [];
+            attendeesList.forEach((a, idx) => {
+                if (!a.role || a.role === 'MEMBER') {
+                    members.push({ a, idx });
+                } else {
+                    guests.push({ a, idx });
+                }
+            });
+
+            const getRoleTag = (r) => {
+                if (r === 'VIP') return '👑 [VIP] ';
+                if (r === 'SPEAKER') return '🎙️ [DIỄN GIẢ] ';
+                if (r === 'GUEST') return '🎫 [KHÁCH] ';
+                if (r === 'ORGANIZER') return '🛡️ [BTC] ';
+                return '';
+            };
+
+            let html = '';
+            if (members.length > 0) {
+                html += `<optgroup label="👥 ĐẠI BIỂU TRIỆU TẬP (${members.length})">`;
+                html += members.map(({ a, idx }, mIdx) => 
+                    `<option value="${idx}">#${mIdx + 1}. ${a.name} (${a.code})${a.org ? ' - ' + a.org : ''}</option>`
+                ).join('');
+                html += `</optgroup>`;
+            }
+            if (guests.length > 0) {
+                html += `<optgroup label="🎫 ĐẠI BIỂU KHÁCH MỜI & CHỈ ĐẠO (${guests.length})">`;
+                html += guests.map(({ a, idx }, gIdx) => 
+                    `<option value="${idx}">#${gIdx + 1}. ${getRoleTag(a.role)}${a.name} (${a.code})${a.org ? ' - ' + a.org : ''}</option>`
+                ).join('');
+                html += `</optgroup>`;
+            }
+
+            sel.innerHTML = html;
             if (currentIndex >= 0) sel.value = currentIndex;
         }
 
@@ -815,41 +877,66 @@
 
             // Reset previous role classes
             if (ticketPassNode) {
-                ticketPassNode.classList.remove('vip-ticket', 'speaker-ticket', 'guest-ticket', 'org-ticket');
+                ticketPassNode.classList.remove('vip-ticket', 'speaker-ticket', 'guest-ticket', 'org-ticket', 'member-ticket');
             }
 
             const role = (item.role || 'MEMBER').toUpperCase();
+            let roleTextDisplay = 'ĐẠI BIỂU CHÍNH THỨC';
+            let roleColor = '#059669';
+
             if (role === 'VIP') {
                 if (ticketPassNode) ticketPassNode.classList.add('vip-ticket');
                 if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • VIP Golden Pass';
-                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 3px 10px rgba(245,158,11,0.3); display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-crown"></i> VIP PASS</span>`;
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 3px 10px rgba(245,158,11,0.3); display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-crown"></i> VIP PASS</span>`;
                 if (avatarImg) avatarImg.style.borderColor = '#f59e0b';
+                roleTextDisplay = 'ĐẠI BIỂU KHÁCH MỜI VIP';
+                roleColor = '#d97706';
             } else if (role === 'SPEAKER') {
                 if (ticketPassNode) ticketPassNode.classList.add('speaker-ticket');
                 if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Speaker Pass';
-                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 3px 10px rgba(139,92,246,0.3); display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; box-shadow: 0 3px 10px rgba(139,92,246,0.3); display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ / SPEAKER</span>`;
                 if (avatarImg) avatarImg.style.borderColor = '#8b5cf6';
+                roleTextDisplay = 'DIỄN GIẢ DANH DỰ';
+                roleColor = '#7c3aed';
             } else if (role === 'GUEST') {
                 if (ticketPassNode) ticketPassNode.classList.add('guest-ticket');
                 if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Guest Pass';
-                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-id-badge"></i> KHÁCH MỜI</span>`;
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-handshake"></i> ĐẠI BIỂU KHÁCH MỜI</span>`;
                 if (avatarImg) avatarImg.style.borderColor = '#06b6d4';
+                roleTextDisplay = 'ĐẠI BIỂU KHÁCH MỜI';
+                roleColor = '#0891b2';
             } else if (role === 'ORGANIZER') {
                 if (ticketPassNode) ticketPassNode.classList.add('org-ticket');
                 if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Organizer Pass';
-                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-shield-halved"></i> BAN TỔ CHỨC</span>`;
-                if (avatarImg) avatarImg.style.borderColor = '#10b981';
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-shield-halved"></i> BAN TỔ CHỨC</span>`;
+                if (avatarImg) avatarImg.style.borderColor = '#ef4444';
+                roleTextDisplay = 'BAN TỔ CHỨC (BTC)';
+                roleColor = '#dc2626';
             } else {
-                if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Universe Pass';
-                if (roleBadge) roleBadge.innerHTML = '';
-                if (avatarImg) avatarImg.style.borderColor = '#6366f1';
+                if (ticketPassNode) ticketPassNode.classList.add('member-ticket');
+                if (brandText) brandText.textContent = 'Miyazaki Haruto Entertainment • Official Delegate Pass';
+                if (roleBadge) roleBadge.innerHTML = `<span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-users"></i> ĐẠI BIỂU CHÍNH THỨC</span>`;
+                if (avatarImg) avatarImg.style.borderColor = '#10b981';
+                roleTextDisplay = 'ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN)';
+                roleColor = '#059669';
+            }
+
+            const roleEl = document.getElementById('ticket-role-name');
+            if (roleEl) {
+                roleEl.textContent = roleTextDisplay;
+                roleEl.style.color = roleColor;
             }
 
             const statusBadge = document.getElementById('ticket-status-badge');
+            const validityStatus = document.getElementById('ticket-validity-status');
             if (item.checkedIn) {
-                statusBadge.innerHTML = `<span style="color: #059669;">● ĐÃ ĐIỂM DANH (${item.checkinTime ? item.checkinTime.split(' ')[0] : 'Đã check-in'})</span>`;
+                const checkedHtml = `<span style="color: #059669;">● ĐÃ ĐIỂM DANH (${item.checkinTime ? item.checkinTime.split(' ')[0] : 'Đã check-in'})</span>`;
+                if (statusBadge) statusBadge.innerHTML = checkedHtml;
+                if (validityStatus) validityStatus.innerHTML = checkedHtml;
             } else {
-                statusBadge.innerHTML = `<span style="color: #6366f1;">● CHƯA ĐIỂM DANH (SẴN SÀNG)</span>`;
+                const readyHtml = `<span style="color: #6366f1;">● HỢP LỆ (SẴN SÀNG)</span>`;
+                if (statusBadge) statusBadge.innerHTML = readyHtml;
+                if (validityStatus) validityStatus.innerHTML = readyHtml;
             }
 
             // Sync Dropdown and Counter

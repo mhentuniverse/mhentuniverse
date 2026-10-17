@@ -249,6 +249,113 @@
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
+        /* ROLE FILTER BAR */
+        .kiosk-role-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .kiosk-role-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1.5px solid var(--border-soft);
+            background: var(--card-bg);
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .kiosk-role-pill:hover {
+            border-color: var(--ci-accent);
+            color: var(--text-main);
+        }
+
+        .kiosk-role-pill.active {
+            background: var(--ci-accent);
+            color: white;
+            border-color: var(--ci-accent);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .kiosk-role-pill.role-member.active {
+            background: #10b981;
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .kiosk-role-pill.role-guest.active {
+            background: #ec4899;
+            border-color: #ec4899;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+        }
+
+        /* ROLE BADGE ON CARD */
+        .attendee-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            width: fit-content;
+        }
+
+        .attendee-kiosk-card.is-member {
+            border-left: 4px solid #10b981;
+        }
+
+        .attendee-kiosk-card.is-guest {
+            border-left: 4px solid #ec4899;
+        }
+
+        .attendee-kiosk-card.is-vip {
+            border-left: 4px solid #8b5cf6;
+        }
+
+        /* KIOSK SECTION HEADER */
+        .kiosk-cohort-header {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            margin: 10px 0 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .kiosk-cohort-title {
+            font-size: 14px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .kiosk-cohort-count {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
         /* ATTENDEES GRID */
         .kiosk-grid-container {
             max-width: 1200px;
@@ -510,6 +617,19 @@
             <button id="kiosk-clear" class="kiosk-clear-btn" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
+        <!-- ROLE FILTER BAR -->
+        <div class="kiosk-role-bar">
+            <button type="button" class="kiosk-role-pill active" id="kiosk-role-all" onclick="setKioskRole('ALL')">
+                <i class="fa-solid fa-users-viewfinder"></i> Toàn bộ (<span id="count-role-all">0</span>)
+            </button>
+            <button type="button" class="kiosk-role-pill role-member" id="kiosk-role-member" onclick="setKioskRole('MEMBER')">
+                <i class="fa-solid fa-users"></i> ĐB Triệu tập (<span id="count-role-member">0</span>)
+            </button>
+            <button type="button" class="kiosk-role-pill role-guest" id="kiosk-role-guest" onclick="setKioskRole('GUEST')">
+                <i class="fa-solid fa-ticket"></i> Khách mời & Chỉ đạo (<span id="count-role-guest">0</span>)
+            </button>
+        </div>
+
         <div class="kiosk-filters-bar">
             <div class="filter-pill active" onclick="setFilter('ALL', this)">
                 Tất cả (<span id="count-all">0</span>)
@@ -527,6 +647,8 @@
             <select id="kiosk-sort" class="form-select tool-select" onchange="handleKioskSortChange(this.value)"
                 title="Sắp xếp danh sách người tham dự Kiosk">
                 <option value="DEFAULT">⏱️ Thứ tự nhập ban đầu</option>
+                <option value="ROLE_MEMBER_FIRST">👥 Đại biểu triệu tập trước</option>
+                <option value="ROLE_GUEST_FIRST">🎫 Khách mời & Chỉ đạo trước</option>
                 <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
                 <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
                 <option value="FULLNAME_ASC">📝 Họ và Tên A → Z</option>
@@ -557,9 +679,10 @@
             <div class="kiosk-success-icon">
                 <i class="fa-solid fa-check"></i>
             </div>
+            <div id="success-role-badge" style="display: flex; justify-content: center; margin-bottom: 8px;"></div>
             <h2 class="kiosk-success-name" id="success-name">Yorutsuki Yurika</h2>
             <p class="kiosk-success-desc" id="success-meta">Mã: MH-DEV-01 • Điểm danh lúc 08:05</p>
-            <div style="background: var(--ci-bg-soft); border-radius: 12px; padding: 12px; font-weight: 800; color: var(--ci-accent); font-size: 14px;">
+            <div id="success-greeting" style="background: var(--ci-bg-soft); border-radius: 12px; padding: 12px; font-weight: 800; color: var(--ci-accent); font-size: 14px;">
                 🎉 Chúc bạn một buổi làm việc & sự kiện tuyệt vời!
             </div>
             <div class="kiosk-auto-reset-bar">
@@ -579,6 +702,16 @@
                 <button onclick="closeWalkinModal()" style="background: none; border: none; font-size: 18px; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="handleWalkinSubmit(event)">
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Tư cách tham dự / Loại đại biểu</label>
+                    <select id="walkin-role" class="form-select tool-select" style="width: 100%; font-size: 14px; padding: 10px 14px; border-radius: 10px;">
+                        <option value="GUEST" selected>🎫 Đại biểu Khách mời</option>
+                        <option value="VIP">👑 Khách VIP / Lãnh đạo chỉ đạo</option>
+                        <option value="SPEAKER">🎙️ Diễn giả / Báo cáo viên</option>
+                        <option value="ORGANIZER">🛡️ Ban Tổ Chức</option>
+                        <option value="MEMBER">👤 Đại biểu triệu tập (Thành viên)</option>
+                    </select>
+                </div>
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 12.5px; font-weight: 800; margin-bottom: 4px;">Họ và Tên *</label>
                     <input type="text" id="walkin-name" required class="kiosk-search-input" style="font-size: 15px; padding: 10px 14px; border-radius: 10px;">
@@ -613,11 +746,30 @@
 
         let sessionData = null;
         let attendeesList = [];
+        let currentRoleFilter = 'ALL';
         let currentFilter = 'ALL';
         let currentSort = 'DEFAULT';
         let isSortManuallyChanged = false;
         let searchQuery = '';
         let resetTimer = null;
+
+        // BẢNG THÔNG TIN VAI TRÒ ĐẠI BIỂU & KHÁCH MỜI
+        function getRoleBadgeInfo(role) {
+            const r = (role || 'MEMBER').toUpperCase();
+            switch (r) {
+                case 'VIP':
+                    return { label: 'VIP / Chỉ đạo', icon: 'fa-crown', color: '#b45309', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.3)' };
+                case 'SPEAKER':
+                    return { label: 'Diễn giả', icon: 'fa-microphone', color: '#6d28d9', bg: 'rgba(139, 92, 246, 0.12)', border: 'rgba(139, 92, 246, 0.3)' };
+                case 'ORGANIZER':
+                    return { label: 'Ban tổ chức', icon: 'fa-shield-halved', color: '#b91c1c', bg: 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.3)' };
+                case 'GUEST':
+                    return { label: 'Khách mời', icon: 'fa-ticket', color: '#0e7490', bg: 'rgba(6, 182, 212, 0.12)', border: 'rgba(6, 182, 212, 0.3)' };
+                case 'MEMBER':
+                default:
+                    return { label: 'Đại biểu triệu tập', icon: 'fa-users', color: '#047857', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.3)' };
+            }
+        }
 
         // WEB AUDIO CHIME GENERATOR (OFFLINE & INSTANT)
         function playChime() {
@@ -674,6 +826,20 @@
         function sortAttendeeList(list, sortType) {
             const copy = [...list];
             switch (sortType) {
+                case 'ROLE_MEMBER_FIRST':
+                    return copy.sort((a, b) => {
+                        const isGuestA = (a.role && a.role !== 'MEMBER') ? 1 : 0;
+                        const isGuestB = (b.role && b.role !== 'MEMBER') ? 1 : 0;
+                        if (isGuestA !== isGuestB) return isGuestA - isGuestB;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'ROLE_GUEST_FIRST':
+                    return copy.sort((a, b) => {
+                        const isGuestA = (a.role && a.role !== 'MEMBER') ? 1 : 0;
+                        const isGuestB = (b.role && b.role !== 'MEMBER') ? 1 : 0;
+                        if (isGuestA !== isGuestB) return isGuestB - isGuestA;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
                 case 'NAME_ASC':
                     return copy.sort((a, b) => {
                         const kA = getVietnameseSortKeys(a.name);
@@ -732,6 +898,15 @@
             renderGrid();
         };
 
+        window.setKioskRole = function(role) {
+            currentRoleFilter = role;
+            document.querySelectorAll('.kiosk-role-pill').forEach(btn => btn.classList.remove('active'));
+            if (role === 'ALL') document.getElementById('kiosk-role-all')?.classList.add('active');
+            if (role === 'MEMBER') document.getElementById('kiosk-role-member')?.classList.add('active');
+            if (role === 'GUEST') document.getElementById('kiosk-role-guest')?.classList.add('active');
+            updateStatsAndRender();
+        };
+
         // REALTIME SESSION SYNC
         const sessionRef = doc(db, "mhent_checkin_sessions", sessionId);
         onSnapshot(sessionRef, (docSnap) => {
@@ -760,10 +935,22 @@
 
         function updateStatsAndRender() {
             const total = attendeesList.length;
-            const present = attendeesList.filter(a => a.checkedIn).length;
-            const absent = total - present;
+            const members = attendeesList.filter(a => !a.role || a.role === 'MEMBER');
+            const guests = attendeesList.filter(a => a.role && a.role !== 'MEMBER');
 
-            document.getElementById('count-all').textContent = total;
+            const countRoleAll = document.getElementById('count-role-all');
+            const countRoleMember = document.getElementById('count-role-member');
+            const countRoleGuest = document.getElementById('count-role-guest');
+            if (countRoleAll) countRoleAll.textContent = total;
+            if (countRoleMember) countRoleMember.textContent = members.length;
+            if (countRoleGuest) countRoleGuest.textContent = guests.length;
+
+            const scopedList = currentRoleFilter === 'ALL' ? attendeesList :
+                               currentRoleFilter === 'MEMBER' ? members : guests;
+            const present = scopedList.filter(a => a.checkedIn).length;
+            const absent = scopedList.length - present;
+
+            document.getElementById('count-all').textContent = scopedList.length;
             document.getElementById('count-present').textContent = present;
             document.getElementById('count-absent').textContent = absent;
 
@@ -792,12 +979,57 @@
             renderGrid();
         };
 
+        function renderCardHtml(item) {
+            const initial = (item.name || 'U').trim().charAt(0).toUpperCase();
+            const isChecked = !!item.checkedIn;
+            const isGuest = !!(item.role && item.role !== 'MEMBER');
+            const roleInfo = getRoleBadgeInfo(item.role);
+            const cardClass = isGuest ? (item.role === 'VIP' ? 'is-vip' : 'is-guest') : 'is-member';
+
+            return `
+                <div class="attendee-kiosk-card ${cardClass} ${isChecked ? 'is-checked-in' : ''}" onclick="handleCardClick('${item.code}')">
+                    <div class="attendee-top-row">
+                        <div class="attendee-avatar ${isChecked ? 'avatar-checked' : ''}">
+                            ${isChecked ? '<i class="fa-solid fa-check"></i>' : initial}
+                        </div>
+                        <div class="attendee-meta" style="flex: 1; min-width: 0;">
+                            <div class="attendee-role-badge" style="background: ${roleInfo.bg}; color: ${roleInfo.color}; border: 1px solid ${roleInfo.border};">
+                                <i class="fa-solid ${roleInfo.icon}"></i> ${roleInfo.label}
+                            </div>
+                            <h3 class="attendee-name" title="${item.name}">${item.name}</h3>
+                            <p class="attendee-sub">
+                                <span><strong>${item.code}</strong></span>
+                                ${item.org ? `<span>• ${item.org}</span>` : ''}
+                            </p>
+                        </div>
+                    </div>
+
+                    ${isChecked ? `
+                        <button class="attendee-action-btn btn-checked-done">
+                            <i class="fa-solid fa-circle-check"></i> Đã có mặt (${item.checkinTime ? item.checkinTime.split(' ')[0] : 'Đã xác nhận'})
+                        </button>
+                    ` : `
+                        <button class="attendee-action-btn btn-checkin-act">
+                            <i class="fa-solid fa-hand-pointer"></i> Chạm Để Điểm Danh
+                        </button>
+                    `}
+                </div>
+            `;
+        }
+
         function renderGrid() {
             const container = document.getElementById('kiosk-grid');
             
             let filtered = attendeesList.filter(a => {
+                // Lọc theo vai trò (Đại biểu triệu tập vs Khách mời & Chỉ đạo)
+                if (currentRoleFilter === 'MEMBER' && (a.role && a.role !== 'MEMBER')) return false;
+                if (currentRoleFilter === 'GUEST' && (!a.role || a.role === 'MEMBER')) return false;
+
+                // Lọc theo trạng thái điểm danh
                 if (currentFilter === 'PRESENT' && !a.checkedIn) return false;
                 if (currentFilter === 'ABSENT' && a.checkedIn) return false;
+
+                // Lọc theo tìm kiếm
                 if (searchQuery) {
                     const matchName = (a.name || '').toLowerCase().includes(searchQuery);
                     const matchCode = (a.code || '').toLowerCase().includes(searchQuery);
@@ -807,9 +1039,7 @@
                 return true;
             });
 
-            let list = sortAttendeeList(filtered, currentSort);
-
-            if (list.length === 0) {
+            if (filtered.length === 0) {
                 container.innerHTML = `
                     <div class="kiosk-empty">
                         <i class="fa-solid fa-user-slash" style="font-size: 38px; color: var(--text-muted); margin-bottom: 12px;"></i>
@@ -820,36 +1050,48 @@
                 return;
             }
 
-            container.innerHTML = list.map(item => {
-                const initial = (item.name || 'U').trim().charAt(0).toUpperCase();
-                const isChecked = !!item.checkedIn;
-                return `
-                    <div class="attendee-kiosk-card ${isChecked ? 'is-checked-in' : ''}" onclick="handleCardClick('${item.code}')">
-                        <div class="attendee-top-row">
-                            <div class="attendee-avatar ${isChecked ? 'avatar-checked' : ''}">
-                                ${isChecked ? '<i class="fa-solid fa-check"></i>' : initial}
-                            </div>
-                            <div class="attendee-meta">
-                                <h3 class="attendee-name" title="${item.name}">${item.name}</h3>
-                                <p class="attendee-sub">
-                                    <span><strong>${item.code}</strong></span>
-                                    ${item.org ? `<span>• ${item.org}</span>` : ''}
-                                </p>
-                            </div>
-                        </div>
+            // Phân nhóm hiển thị trực quan khi xem Tất cả và có cả 2 nhóm (và không đang gõ tìm kiếm)
+            const members = filtered.filter(a => !a.role || a.role === 'MEMBER');
+            const guests = filtered.filter(a => a.role && a.role !== 'MEMBER');
+            const shouldSplitSections = currentRoleFilter === 'ALL' && !searchQuery && 
+                (currentSort === 'DEFAULT' || currentSort === 'ROLE_MEMBER_FIRST' || currentSort === 'ROLE_GUEST_FIRST') && 
+                members.length > 0 && guests.length > 0;
 
-                        ${isChecked ? `
-                            <button class="attendee-action-btn btn-checked-done">
-                                <i class="fa-solid fa-circle-check"></i> Đã có mặt (${item.checkinTime ? item.checkinTime.split(' ')[0] : 'Đã xác nhận'})
-                            </button>
-                        ` : `
-                            <button class="attendee-action-btn btn-checkin-act">
-                                <i class="fa-solid fa-hand-pointer"></i> Chạm Để Điểm Danh
-                            </button>
-                        `}
+            if (shouldSplitSections) {
+                const isGuestFirst = currentSort === 'ROLE_GUEST_FIRST';
+                const firstCohort = isGuestFirst ? guests : members;
+                const secondCohort = isGuestFirst ? members : guests;
+
+                const firstTitle = isGuestFirst ? 
+                    `<i class="fa-solid fa-ticket" style="color: #ec4899;"></i> I. ĐẠI BIỂU KHÁCH MỜI & CHỈ ĐẠO` : 
+                    `<i class="fa-solid fa-users" style="color: #10b981;"></i> I. ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN)`;
+                const firstCount = isGuestFirst ? 
+                    `<span class="kiosk-cohort-count" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;">${guests.filter(g=>g.checkedIn).length}/${guests.length} có mặt</span>` :
+                    `<span class="kiosk-cohort-count" style="background: rgba(16, 185, 129, 0.12); color: #059669;">${members.filter(m=>m.checkedIn).length}/${members.length} có mặt</span>`;
+
+                const secondTitle = isGuestFirst ? 
+                    `<i class="fa-solid fa-users" style="color: #10b981;"></i> II. ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN)` : 
+                    `<i class="fa-solid fa-ticket" style="color: #ec4899;"></i> II. ĐẠI BIỂU KHÁCH MỜI & CHỈ ĐẠO`;
+                const secondCount = isGuestFirst ? 
+                    `<span class="kiosk-cohort-count" style="background: rgba(16, 185, 129, 0.12); color: #059669;">${members.filter(m=>m.checkedIn).length}/${members.length} có mặt</span>` :
+                    `<span class="kiosk-cohort-count" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;">${guests.filter(g=>g.checkedIn).length}/${guests.length} có mặt</span>`;
+
+                container.innerHTML = `
+                    <div class="kiosk-cohort-header">
+                        <h4 class="kiosk-cohort-title">${firstTitle}</h4>
+                        ${firstCount}
                     </div>
+                    ${sortAttendeeList(firstCohort, currentSort).map(renderCardHtml).join('')}
+                    <div class="kiosk-cohort-header" style="margin-top: 24px;">
+                        <h4 class="kiosk-cohort-title">${secondTitle}</h4>
+                        ${secondCount}
+                    </div>
+                    ${sortAttendeeList(secondCohort, currentSort).map(renderCardHtml).join('')}
                 `;
-            }).join('');
+            } else {
+                let sortedList = sortAttendeeList(filtered, currentSort);
+                container.innerHTML = sortedList.map(renderCardHtml).join('');
+            }
         }
 
         window.handleCardClick = async function(code) {
@@ -902,6 +1144,32 @@
             nameEl.textContent = attendee.name;
             metaEl.textContent = `Mã: ${attendee.code} • ${already ? 'Đã điểm danh trước đó lúc' : 'Điểm danh thành công lúc'} ${attendee.checkinTime || 'vừa xong'}`;
 
+            const roleInfo = getRoleBadgeInfo(attendee.role);
+            const roleBadgeEl = document.getElementById('success-role-badge');
+            if (roleBadgeEl) {
+                roleBadgeEl.innerHTML = `
+                    <span class="attendee-role-badge" style="background: ${roleInfo.bg}; color: ${roleInfo.color}; border: 1px solid ${roleInfo.border}; font-size: 13px; padding: 4px 14px; border-radius: 999px;">
+                        <i class="fa-solid ${roleInfo.icon}"></i> ${roleInfo.label}
+                    </span>
+                `;
+            }
+
+            const greetingEl = document.getElementById('success-greeting');
+            if (greetingEl) {
+                const r = (attendee.role || 'MEMBER').toUpperCase();
+                if (r === 'VIP') {
+                    greetingEl.innerHTML = '👑 Kính chào Quý Lãnh đạo / Đại biểu danh dự!';
+                } else if (r === 'SPEAKER') {
+                    greetingEl.innerHTML = '🎙️ Chúc Diễn giả có một buổi chia sẻ thành công rực rỡ!';
+                } else if (r === 'ORGANIZER') {
+                    greetingEl.innerHTML = '🛡️ Chúc Ban Tổ Chức một phiên làm việc suôn sẻ & thành công!';
+                } else if (r === 'GUEST') {
+                    greetingEl.innerHTML = '🎫 Nhiệt liệt chào mừng Quý Khách quý tham dự sự kiện!';
+                } else {
+                    greetingEl.innerHTML = '🎉 Chúc bạn một buổi làm việc & sự kiện tuyệt vời!';
+                }
+            }
+
             // Restart animation
             bar.style.animation = 'none';
             void bar.offsetWidth; // trigger reflow
@@ -925,6 +1193,8 @@
             const name = document.getElementById('walkin-name').value.trim();
             const code = document.getElementById('walkin-code').value.trim();
             const org = document.getElementById('walkin-org').value.trim();
+            const roleSelect = document.getElementById('walkin-role');
+            const role = roleSelect ? roleSelect.value : 'GUEST';
 
             if (!name || !code) return;
 
@@ -942,6 +1212,7 @@
                 name,
                 code,
                 org: org || 'Khách vãng lai',
+                role: role,
                 checkedIn: true,
                 checkinTime: `${timeStr} ${now.toLocaleDateString('vi-VN')}`,
                 isLate: false
