@@ -1038,7 +1038,7 @@
                 <button id="btn-settings-session" class="btn-action btn-outline" onclick="openSessionSettingsModal()" title="Chỉnh sửa thông tin phiên, thời gian, ngày diễn ra và phân quyền">
                     <i class="fa-solid fa-pen-to-square" style="color: var(--ci-accent);"></i> Chỉnh Sửa Phiên
                 </button>
-                <button class="btn-action btn-outline" onclick="exportExcel()">
+                <button class="btn-action btn-outline" onclick="openExportExcelModal()" title="Xuất báo cáo Excel phân nhóm thành viên & khách mời (hoặc tải riêng từng file)">
                     <i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Xuất Excel
                 </button>
                 <button class="btn-action btn-outline" onclick="printReport()">
@@ -1105,9 +1105,17 @@
                     <option value="LATE">⚠️ Đi trễ</option>
                     <option value="ABSENT">⏳ Chưa đến</option>
                 </select>
+                <select id="filter-role" class="form-select tool-select" onchange="filterAttendees()" title="Lọc theo đối tượng">
+                    <option value="ALL">👥 Tất cả đối tượng</option>
+                    <option value="MEMBER">👤 Thành viên Chi đoàn</option>
+                    <option value="GUESTS">🎫 Khách mời & Đại biểu</option>
+                    <option value="VIP">🌟 Khách VIP</option>
+                </select>
                 <select id="filter-sort" class="form-select tool-select" onchange="handleSortSelectChange()"
                     title="Tùy chọn sắp xếp danh sách">
                     <option value="DEFAULT">⏱️ Thứ tự nhập (Ban đầu)</option>
+                    <option value="ROLE_MEMBER_FIRST">👥 Gom nhóm: Thành viên trước ➔ Khách mời sau</option>
+                    <option value="ROLE_GUEST_FIRST">🎫 Gom nhóm: Khách mời trước ➔ Thành viên sau</option>
                     <option value="NAME_ASC">🔤 Tên A → Z (Chuẩn Tiếng Việt)</option>
                     <option value="NAME_DESC">🔤 Tên Z → A (Chuẩn Tiếng Việt)</option>
                     <option value="FULLNAME_ASC">📝 Họ và Tên A → Z</option>
@@ -1491,6 +1499,99 @@
                     </button>
                 </div>
             </form>
+    </div>
+
+    <!-- MODAL TÙY CHỌN XUẤT EXCEL -->
+    <div id="modal-export-excel" class="mhent-ui-overlay" style="display: none;">
+        <div class="mhent-ui-box" style="max-width: 520px; width: 92%; padding: 24px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-soft); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 17px; font-weight: 900; color: var(--text-main);">Tùy Chọn Xuất Báo Cáo Excel</h3>
+                        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">Phân chia thành viên & khách mời chuyên nghiệp</p>
+                    </div>
+                </div>
+                <button onclick="closeExportExcelModal()" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- TỔNG HỢP NHANH SỐ LƯỢNG -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;">
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 10px 14px;">
+                    <div style="font-size: 11px; font-weight: 800; color: #059669; text-transform: uppercase;">👥 Thành Viên / Đoàn Viên</div>
+                    <div style="font-size: 18px; font-weight: 900; color: var(--text-main); margin-top: 2px;"><span id="export-count-members">0</span> <small style="font-size: 12px; font-weight: 700; color: var(--text-muted);">người</small></div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Có mặt: <strong id="export-present-members" style="color: #10b981;">0</strong></div>
+                </div>
+                <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 10px 14px;">
+                    <div style="font-size: 11px; font-weight: 800; color: #6366f1; text-transform: uppercase;">🎫 Đại Biểu & Khách Mời</div>
+                    <div style="font-size: 18px; font-weight: 900; color: var(--text-main); margin-top: 2px;"><span id="export-count-guests">0</span> <small style="font-size: 12px; font-weight: 700; color: var(--text-muted);">đại biểu</small></div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Đã đến: <strong id="export-present-guests" style="color: #6366f1;">0</strong></div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- OPTION 1: 2 BẢNG TRONG 1 FILE (KHUYÊN DÙNG) -->
+                <button type="button" onclick="performExport('TWO_SECTIONS')" class="btn-action" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; text-align: left; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+                    <div>
+                        <div style="font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-layer-group"></i> Bản Phân Nhóm 2 Bảng (Khuyên dùng)
+                        </div>
+                        <div style="font-size: 11.5px; opacity: 0.9; margin-top: 3px;">
+                            Bảng trên: Thành viên ➔ Bảng dưới: Khách mời + kèm 2 Sheet riêng
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-download" style="font-size: 16px;"></i>
+                </button>
+
+                <!-- OPTION 2: CHỈ XUẤT THÀNH VIÊN -->
+                <button type="button" onclick="performExport('MEMBERS_ONLY')" class="btn-action btn-outline" style="padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; text-align: left;">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-users" style="color: #10b981;"></i> Chỉ Xuất File Thành Viên Chi Đoàn (.xlsx)
+                        </div>
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                            Phù hợp sao chép số liệu vào Mẫu 10 Biên bản Đại hội Chi đoàn
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-down-to-bracket" style="color: var(--text-muted);"></i>
+                </button>
+
+                <!-- OPTION 3: CHỈ XUẤT KHÁCH MỜI -->
+                <button type="button" onclick="performExport('GUESTS_ONLY')" class="btn-action btn-outline" style="padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; text-align: left;">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-id-badge" style="color: #6366f1;"></i> Chỉ Xuất File Đại Biểu & Khách Mời (.xlsx)
+                        </div>
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                            Danh sách riêng phục vụ báo cáo lễ tân, hậu cần đón tiếp
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-down-to-bracket" style="color: var(--text-muted);"></i>
+                </button>
+
+                <!-- OPTION 4: TẢI ĐỒNG THỜI CẢ 2 BẢN EXCEL ĐỘC LẬP -->
+                <button type="button" onclick="performExport('SEPARATE_TWO_FILES')" class="btn-action btn-outline" style="padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; text-align: left;">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-copy" style="color: #f59e0b;"></i> Tải Tách Riêng 2 File Excel Độc Lập
+                        </div>
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                            Tự động tải 2 file riêng: 1_Thanh_Vien.xlsx và 2_Khach_Moi.xlsx
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-download" style="color: var(--text-muted);"></i>
+                </button>
+            </div>
+
+            <div style="margin-top: 18px; text-align: right;">
+                <button type="button" onclick="closeExportExcelModal()" class="btn-action btn-outline" style="padding: 8px 16px;">
+                    Đóng
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1980,6 +2081,20 @@
                         if (a.checkedIn !== b.checkedIn) return a.checkedIn ? 1 : -1;
                         return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
                     });
+                case 'ROLE_MEMBER_FIRST':
+                    return copy.sort((a, b) => {
+                        const isGuestA = (a.role && a.role !== 'MEMBER') ? 1 : 0;
+                        const isGuestB = (b.role && b.role !== 'MEMBER') ? 1 : 0;
+                        if (isGuestA !== isGuestB) return isGuestA - isGuestB;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
+                case 'ROLE_GUEST_FIRST':
+                    return copy.sort((a, b) => {
+                        const isGuestA = (a.role && a.role !== 'MEMBER') ? 1 : 0;
+                        const isGuestB = (b.role && b.role !== 'MEMBER') ? 1 : 0;
+                        if (isGuestA !== isGuestB) return isGuestB - isGuestA;
+                        return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+                    });
                 case 'DEFAULT':
                 default:
                     return copy.sort((a, b) => (a._originalIndex ?? 0) - (b._originalIndex ?? 0));
@@ -2107,6 +2222,7 @@
         window.filterAttendees = function() {
             const query = (document.getElementById('filter-search').value || '').toLowerCase().trim();
             const statusFilter = document.getElementById('filter-status').value;
+            const roleFilter = document.getElementById('filter-role')?.value || 'ALL';
 
             const matched = attendeesList.filter(a => {
                 const matchQuery = (a.name || '').toLowerCase().includes(query) ||
@@ -2119,7 +2235,13 @@
                 if (statusFilter === 'LATE') matchStatus = a.checkedIn && a.isLate;
                 if (statusFilter === 'ABSENT') matchStatus = !a.checkedIn;
 
-                return matchQuery && matchStatus;
+                let matchRole = true;
+                const r = (a.role || 'MEMBER').toUpperCase();
+                if (roleFilter === 'MEMBER') matchRole = (r === 'MEMBER');
+                else if (roleFilter === 'GUESTS') matchRole = (r !== 'MEMBER');
+                else if (roleFilter === 'VIP') matchRole = (r === 'VIP');
+
+                return matchQuery && matchStatus && matchRole;
             });
 
             filteredAttendees = sortAttendeeList(matched, currentSort);
@@ -2696,41 +2818,220 @@
             window.showToast("Gửi Vé Hoàn Tất", `Đã gửi thành công ${successCount}/${targetList.length} vé tham dự!`, "success");
         };
 
-        // EXPORT EXCEL
+        // EXPORT EXCEL MODAL & PROCESSING
+        window.openExportExcelModal = function() {
+            const listToExport = (filteredAttendees && filteredAttendees.length > 0) ? filteredAttendees : attendeesList;
+            let mCount = 0, mPres = 0;
+            let gCount = 0, gPres = 0;
+
+            listToExport.forEach(a => {
+                const r = (a.role || 'MEMBER').toUpperCase();
+                if (r === 'MEMBER') {
+                    mCount++;
+                    if (a.checkedIn) mPres++;
+                } else {
+                    gCount++;
+                    if (a.checkedIn) gPres++;
+                }
+            });
+
+            const elMCount = document.getElementById('export-count-members');
+            if (elMCount) elMCount.textContent = mCount;
+            const elMPres = document.getElementById('export-present-members');
+            if (elMPres) elMPres.textContent = mPres;
+
+            const elGCount = document.getElementById('export-count-guests');
+            if (elGCount) elGCount.textContent = gCount;
+            const elGPres = document.getElementById('export-present-guests');
+            if (elGPres) elGPres.textContent = gPres;
+
+            const m = document.getElementById('modal-export-excel');
+            if (m) {
+                m.style.display = 'flex';
+                setTimeout(() => m.classList.add('show'), 10);
+            }
+        };
+
+        window.closeExportExcelModal = function() {
+            const m = document.getElementById('modal-export-excel');
+            if (m) {
+                m.classList.remove('show');
+                setTimeout(() => { m.style.display = 'none'; }, 200);
+            }
+        };
+
         window.exportExcel = function() {
+            openExportExcelModal();
+        };
+
+        window.performExport = function(mode) {
             const listToExport = (filteredAttendees && filteredAttendees.length > 0) ? filteredAttendees : attendeesList;
             if (listToExport.length === 0) return window.showToast("Trống", "Không có dữ liệu để xuất!", "warning");
 
-            const headers = ["STT", "Họ và Tên", "Mã SV / Mã NV", "Đơn Vị", "Trạng Thái", "Giờ Check-in"];
-            const dataRows = listToExport.map((a, idx) => {
-                let sttStr = "Chưa đến";
-                if (a.checkedIn) sttStr = a.isLate ? "Đi trễ" : "Có mặt (Đúng giờ)";
-                return [idx + 1, a.name, a.code, a.org || '', sttStr, a.checkinTime || ''];
+            const sessionTitle = sessionData?.title || 'Đại Hội Chi Đoàn';
+            const safeTitle = sessionTitle.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            const sessionDate = sessionData?.date || '';
+            const sessionTime = sessionData?.startTime || '';
+
+            // Phân loại thành viên và khách mời
+            const members = [];
+            const guests = [];
+            listToExport.forEach(a => {
+                const r = (a.role || 'MEMBER').toUpperCase();
+                if (r === 'MEMBER') members.push(a);
+                else guests.push(a);
             });
 
-            const aoa = [
-                ["🏢 MIYAZAKI HARUTO ENTERTAINMENT CO., LTD. - MHENT CHECK-IN HUB"],
-                [`📋 BÁO CÁO ĐIỂM DANH: ${sessionData?.title || 'Sự Kiện'}`],
-                [`Mã Phiên: ${sessionId}`, `Ngày Diễn Ra: ${sessionData?.date || ''}`, `Giờ Bắt Đầu: ${sessionData?.startTime || ''}`, `Tổng Số Xuất: ${listToExport.length}/${attendeesList.length} người`],
-                ["© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved."],
-                [],
-                headers,
-                ...dataRows
-            ];
+            const getStatusStr = (a) => {
+                if (!a.checkedIn) return "Chưa đến";
+                return a.isLate ? "Đi trễ" : "Có mặt (Đúng giờ)";
+            };
 
-            const ws = XLSX.utils.aoa_to_sheet(aoa);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Điểm Danh");
+            const getRoleStr = (a) => {
+                const r = (a.role || 'MEMBER').toUpperCase();
+                if (r === 'VIP') return "Khách Quý VIP";
+                if (r === 'SPEAKER') return "Diễn Giả";
+                if (r === 'GUEST') return "Khách Mời";
+                if (r === 'ORGANIZER') return "Ban Tổ Chức";
+                return "Thành Viên";
+            };
 
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
-                { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } }
-            ];
+            // Headers & rows cho thành viên
+            const memberHeaders = ["STT", "Họ và Tên", "Mã SV / Mã NV", "Đơn Vị / Chi Đoàn", "Trạng Thái Điểm Danh", "Thời Gian Check-in"];
+            const memberRows = members.map((a, idx) => [
+                idx + 1,
+                a.name,
+                a.code,
+                a.org || 'Chi đoàn DH25DTB',
+                getStatusStr(a),
+                a.checkinTime || ''
+            ]);
 
-            const fileName = `DiemDanh_${(sessionData?.title || 'MHEnt').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            window.showToast("Xuất Excel Thành Công", `Đã tải về tệp ${fileName}`, "success");
+            // Headers & rows cho khách mời
+            const guestHeaders = ["STT", "Họ và Tên", "Mã Định Danh", "Đơn Vị / Chức Vụ", "Vai Trò", "Trạng Thái Điểm Danh", "Thời Gian Check-in"];
+            const guestRows = guests.map((a, idx) => [
+                idx + 1,
+                a.name,
+                a.code,
+                a.org || 'Khách mời đại biểu',
+                getRoleStr(a),
+                getStatusStr(a),
+                a.checkinTime || ''
+            ]);
+
+            const memberPresent = members.filter(m => m.checkedIn).length;
+            const memberRate = members.length > 0 ? Math.round((memberPresent / members.length) * 100) : 0;
+            const memberAbsent = members.length - memberPresent;
+
+            const guestPresent = guests.filter(g => g.checkedIn).length;
+            const guestRate = guests.length > 0 ? Math.round((guestPresent / guests.length) * 100) : 0;
+
+            if (mode === 'TWO_SECTIONS') {
+                // 1 FILE VỚI 2 BẢNG TRÊN DƯỚI + 2 SHEETS TÁCH BIỆT
+                const wb = XLSX.utils.book_new();
+
+                // Sheet 1: Tổng hợp 2 bảng trên dưới
+                const aoaMain = [
+                    ["🏢 MIYAZAKI HARUTO ENTERTAINMENT CO., LTD. - MHENT CHECK-IN HUB"],
+                    [`📋 BÁO CÁO ĐIỂM DANH: ${sessionTitle.toUpperCase()}`],
+                    [`Mã Phiên: ${sessionId}`, `Ngày Diễn Ra: ${sessionDate}`, `Giờ Bắt Đầu: ${sessionTime}`, `Tổng Cộng: ${listToExport.length} người`],
+                    ["© 2026 Miyazaki Haruto Entertainment Co., Ltd. - All Rights Reserved."],
+                    [],
+                    ["👥 PHẦN I: DANH SÁCH THÀNH VIÊN CHI ĐOÀN (ĐẠI BIỂU TRIỆU TẬP)"],
+                    [`Tổng số triệu tập: ${members.length} đồng chí | Có mặt: ${memberPresent} (${memberRate}%) | Vắng: ${memberAbsent} đồng chí`],
+                    memberHeaders,
+                    ...memberRows,
+                    [],
+                    ["🎫 PHẦN II: DANH SÁCH ĐẠI BIỂU & KHÁCH MỜI"],
+                    [`Tổng số khách mời: ${guests.length} đại biểu | Đã đến: ${guestPresent} (${guestRate}%)`],
+                    guestHeaders,
+                    ...guestRows
+                ];
+
+                const wsMain = XLSX.utils.aoa_to_sheet(aoaMain);
+                wsMain['!cols'] = [
+                    { wch: 8 },  // STT
+                    { wch: 28 }, // Họ tên
+                    { wch: 18 }, // MSSV
+                    { wch: 32 }, // Đơn vị/Chức vụ
+                    { wch: 18 }, // Vai trò
+                    { wch: 22 }, // Trạng thái
+                    { wch: 18 }  // Checkin time
+                ];
+                XLSX.utils.book_append_sheet(wb, wsMain, "Tổng Hợp (2 Bảng)");
+
+                // Sheet 2: Chỉ Thành Viên
+                const aoaMembers = [
+                    [`📋 DANH SÁCH THÀNH VIÊN CHI ĐOÀN - ${sessionTitle.toUpperCase()}`],
+                    [`Tổng triệu tập: ${members.length} đồng chí | Có mặt: ${memberPresent} (${memberRate}%) | Vắng mặt: ${memberAbsent} đồng chí`],
+                    [],
+                    memberHeaders,
+                    ...memberRows
+                ];
+                const wsMembers = XLSX.utils.aoa_to_sheet(aoaMembers);
+                wsMembers['!cols'] = [ { wch: 8 }, { wch: 28 }, { wch: 18 }, { wch: 30 }, { wch: 22 }, { wch: 18 } ];
+                XLSX.utils.book_append_sheet(wb, wsMembers, "Thành Viên Chi Đoàn");
+
+                // Sheet 3: Chỉ Khách Mời
+                const aoaGuests = [
+                    [`📋 DANH SÁCH ĐẠI BIỂU & KHÁCH MỜI - ${sessionTitle.toUpperCase()}`],
+                    [`Tổng số khách mời: ${guests.length} đại biểu | Đã đến: ${guestPresent} (${guestRate}%)`],
+                    [],
+                    guestHeaders,
+                    ...guestRows
+                ];
+                const wsGuests = XLSX.utils.aoa_to_sheet(aoaGuests);
+                wsGuests['!cols'] = [ { wch: 8 }, { wch: 28 }, { wch: 18 }, { wch: 32 }, { wch: 18 }, { wch: 22 }, { wch: 18 } ];
+                XLSX.utils.book_append_sheet(wb, wsGuests, "Khách Mời & Đại Biểu");
+
+                const fileName = `DiemDanh_${safeTitle}_PhanNhom_${dateStr}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                closeExportExcelModal();
+                window.showToast("Xuất Excel Thành Công", `Đã tải về tệp phân nhóm 2 bảng: ${fileName}`, "success");
+            } else if (mode === 'MEMBERS_ONLY') {
+                const wb = XLSX.utils.book_new();
+                const aoaMembers = [
+                    ["🏢 MIYAZAKI HARUTO ENTERTAINMENT - MHENT CHECK-IN HUB"],
+                    [`📋 DANH SÁCH ĐIỂM DANH THÀNH VIÊN CHI ĐOÀN (ĐẠI BIỂU TRIỆU TẬP)`],
+                    [`Sự Kiện: ${sessionTitle}`, `Ngày: ${sessionDate}`, `Giờ: ${sessionTime}`],
+                    [`Tổng triệu tập: ${members.length} đồng chí | Có mặt: ${memberPresent} (${memberRate}%) | Vắng mặt: ${memberAbsent} đồng chí`],
+                    [],
+                    memberHeaders,
+                    ...memberRows
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(aoaMembers);
+                ws['!cols'] = [ { wch: 8 }, { wch: 28 }, { wch: 18 }, { wch: 30 }, { wch: 22 }, { wch: 18 } ];
+                XLSX.utils.book_append_sheet(wb, ws, "Thành Viên Chi Đoàn");
+                const fileName = `1_ThanhVien_${safeTitle}_${dateStr}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                closeExportExcelModal();
+                window.showToast("Xuất Excel Thành Công", `Đã tải về tệp thành viên: ${fileName}`, "success");
+            } else if (mode === 'GUESTS_ONLY') {
+                const wb = XLSX.utils.book_new();
+                const aoaGuests = [
+                    ["🏢 MIYAZAKI HARUTO ENTERTAINMENT - MHENT CHECK-IN HUB"],
+                    [`📋 DANH SÁCH ĐẠI BIỂU & KHÁCH MỜI`],
+                    [`Sự Kiện: ${sessionTitle}`, `Ngày: ${sessionDate}`, `Giờ: ${sessionTime}`],
+                    [`Tổng số khách mời: ${guests.length} đại biểu | Đã đến: ${guestPresent} (${guestRate}%)`],
+                    [],
+                    guestHeaders,
+                    ...guestRows
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(aoaGuests);
+                ws['!cols'] = [ { wch: 8 }, { wch: 28 }, { wch: 18 }, { wch: 32 }, { wch: 18 }, { wch: 22 }, { wch: 18 } ];
+                XLSX.utils.book_append_sheet(wb, ws, "Khách Mời & Đại Biểu");
+                const fileName = `2_KhachMoi_${safeTitle}_${dateStr}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                closeExportExcelModal();
+                window.showToast("Xuất Excel Thành Công", `Đã tải về tệp khách mời: ${fileName}`, "success");
+            } else if (mode === 'SEPARATE_TWO_FILES') {
+                // Tải cả 2 file độc lập
+                performExport('MEMBERS_ONLY');
+                setTimeout(() => {
+                    performExport('GUESTS_ONLY');
+                }, 500);
+            }
         };
 
         // PRINT REPORT
