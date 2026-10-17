@@ -956,47 +956,51 @@
             display: none;
         }
 
-        /* ROLE-BASED SPLIT STATS BAR */
-        .role-stats-bar {
+        /* 3-CARD BALANCED DASHBOARD STATS HUB */
+        .session-stats-hub {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-top: 14px;
         }
-        @media (max-width: 768px) {
-            .role-stats-bar {
+        @media (max-width: 1024px) {
+            .session-stats-hub {
                 grid-template-columns: 1fr;
-                gap: 8px;
+                gap: 10px;
                 margin-top: 10px;
             }
         }
-        .role-stat-group {
+        .stat-hub-card {
             background: var(--bg-canvas, #f8fafc);
             border: 1.5px solid var(--border-soft, #e2e8f0);
             border-radius: 14px;
-            padding: 12px 16px;
+            padding: 13px 16px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 9px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
-        .dark-mode .role-stat-group {
+        .dark-mode .stat-hub-card {
             background: rgba(255, 255, 255, 0.02);
             border-color: rgba(255, 255, 255, 0.08);
         }
-        .role-stat-group.group-members {
-            border-left: 4px solid #10b981;
+        .stat-hub-card.hub-overall {
+            border-left: 4.5px solid #0284c7;
         }
-        .role-stat-group.group-guests {
-            border-left: 4px solid #6366f1;
+        .stat-hub-card.hub-members {
+            border-left: 4.5px solid #10b981;
         }
-        .role-stat-header {
+        .stat-hub-card.hub-guests {
+            border-left: 4.5px solid #8b5cf6;
+        }
+
+        .hub-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .role-stat-tag {
+        .hub-card-title {
             font-size: 11px;
             font-weight: 800;
             letter-spacing: 0.5px;
@@ -1005,59 +1009,70 @@
             gap: 6px;
             text-transform: uppercase;
         }
-        .role-stat-tag.member { color: #059669; }
-        .role-stat-tag.guest { color: #6366f1; }
-        .role-stat-rate {
-            font-size: 16px;
-            font-weight: 900;
-        }
-        .role-stat-rate.member { color: #10b981; }
-        .role-stat-rate.guest { color: #6366f1; }
-        .role-stat-body {
-            display: flex;
-            gap: 18px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .role-stat-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .role-num {
+        .hub-card-title.overall { color: #0284c7; }
+        .hub-card-title.members { color: #059669; }
+        .hub-card-title.guests { color: #7c3aed; }
+
+        .hub-card-rate {
             font-size: 17px;
             font-weight: 900;
-            color: var(--text-main);
-            line-height: 1.2;
+            line-height: 1;
         }
-        .role-num.present { color: #10b981; }
-        .role-num.late { color: #f59e0b; }
-        .role-num.absent { color: #94a3b8; }
-        .role-num.guest-present { color: #6366f1; }
-        .role-lbl {
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-        .role-progress-track {
+        .hub-card-rate.overall { color: #0284c7; }
+        .hub-card-rate.members { color: #10b981; }
+        .hub-card-rate.guests { color: #8b5cf6; }
+
+        .hub-progress-track {
             height: 5px;
             background: rgba(0, 0, 0, 0.06);
             border-radius: 99px;
             overflow: hidden;
         }
-        .dark-mode .role-progress-track {
+        .dark-mode .hub-progress-track {
             background: rgba(255, 255, 255, 0.08);
         }
-        .role-progress-fill {
+        .hub-progress-fill {
             height: 100%;
             border-radius: 99px;
             transition: width 0.4s ease;
         }
-        .role-progress-fill.member {
-            background: linear-gradient(90deg, #10b981, #059669);
+        .hub-progress-fill.overall {
+            background: linear-gradient(90deg, #38bdf8, #0284c7);
         }
-        .role-progress-fill.guest {
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+        .hub-progress-fill.members {
+            background: linear-gradient(90deg, #34d399, #059669);
+        }
+        .hub-progress-fill.guests {
+            background: linear-gradient(90deg, #a78bfa, #7c3aed);
+        }
+
+        .hub-card-metrics {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .hub-metric-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .hub-metric-val {
+            font-size: 17px;
+            font-weight: 900;
+            color: var(--text-main, #0f172a);
+            line-height: 1.2;
+        }
+        .hub-metric-val.present { color: #10b981; }
+        .hub-metric-val.late { color: #f59e0b; }
+        .hub-metric-val.absent { color: #94a3b8; }
+        .hub-metric-val.guest-present { color: #8b5cf6; }
+        .hub-metric-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted, #64748b);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 2px;
         }
 
         /* SECTION DIVIDERS IN SPREADSHEET TABLE */
@@ -1216,100 +1231,94 @@
             </div>
         </div>
 
-        <!-- STATS BAR -->
-        <div class="stats-grid">
-            <div class="stat-mini-card">
-                <div class="stat-mini-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
-                    <i class="fa-solid fa-user-check"></i>
+        <!-- UNIFIED 3-CARD BALANCED DASHBOARD STATS HUB -->
+        <div class="session-stats-hub" id="session-stats-hub">
+            <!-- 1. TỔNG QUAN PHIÊN -->
+            <div class="stat-hub-card hub-overall">
+                <div class="hub-card-header">
+                    <span class="hub-card-title overall">
+                        <i class="fa-solid fa-chart-pie"></i> TỔNG QUAN PHIÊN HỌP
+                    </span>
+                    <span class="hub-card-rate overall" id="stat-rate">0%</span>
                 </div>
-                <div>
-                    <h4 class="stat-mini-val" id="stat-present" style="color: #10b981;">0</h4>
-                    <p class="stat-mini-label">ĐÃ CÓ MẶT</p>
+                <div class="hub-progress-track">
+                    <div class="hub-progress-fill overall" id="progress-overall" style="width: 0%;"></div>
                 </div>
-            </div>
-            <div class="stat-mini-card">
-                <div class="stat-mini-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
-                    <i class="fa-solid fa-person-running"></i>
-                </div>
-                <div>
-                    <h4 class="stat-mini-val" id="stat-late" style="color: #f59e0b;">0</h4>
-                    <p class="stat-mini-label">ĐI TRỄ</p>
-                </div>
-            </div>
-            <div class="stat-mini-card">
-                <div class="stat-mini-icon" style="background: rgba(148, 163, 184, 0.15); color: #64748b;">
-                    <i class="fa-solid fa-user-xmark"></i>
-                </div>
-                <div>
-                    <h4 class="stat-mini-val" id="stat-absent" style="color: #64748b;">0</h4>
-                    <p class="stat-mini-label">CHƯA ĐẾN</p>
-                </div>
-            </div>
-            <div class="stat-mini-card">
-                <div class="stat-mini-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
-                    <i class="fa-solid fa-chart-pie"></i>
-                </div>
-                <div>
-                    <h4 class="stat-mini-val" id="stat-rate" style="color: #6366f1;">0%</h4>
-                    <p class="stat-mini-label">TỈ LỆ CÓ MẶT</p>
-                </div>
-        </div>
-
-        <!-- ROLE-BASED SPLIT STATS BAR -->
-        <div class="role-stats-bar" id="role-stats-container">
-            <!-- GROUP 1: THÀNH VIÊN -->
-            <div class="role-stat-group group-members">
-                <div class="role-stat-header">
-                    <span class="role-stat-tag member"><i class="fa-solid fa-users"></i> ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN)</span>
-                    <span class="role-stat-rate member" id="stat-member-rate">0%</span>
-                </div>
-                <div class="role-stat-body">
-                    <div class="role-stat-item">
-                        <span class="role-num" id="stat-member-total">0</span>
-                        <span class="role-lbl">Triệu tập</span>
+                <div class="hub-card-metrics">
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val" id="stat-total-all">0</span>
+                        <span class="hub-metric-lbl">Tổng số</span>
                     </div>
-                    <div class="role-stat-item">
-                        <span class="role-num present" id="stat-member-present">0</span>
-                        <span class="role-lbl">Có mặt</span>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val present" id="stat-present">0</span>
+                        <span class="hub-metric-lbl">Có mặt</span>
                     </div>
-                    <div class="role-stat-item">
-                        <span class="role-num late" id="stat-member-late">0</span>
-                        <span class="role-lbl">Đi trễ</span>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val late" id="stat-late">0</span>
+                        <span class="hub-metric-lbl">Đi trễ</span>
                     </div>
-                    <div class="role-stat-item">
-                        <span class="role-num absent" id="stat-member-absent">0</span>
-                        <span class="role-lbl">Vắng</span>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val absent" id="stat-absent">0</span>
+                        <span class="hub-metric-lbl">Chưa đến</span>
                     </div>
-                </div>
-                <!-- Progress bar -->
-                <div class="role-progress-track">
-                    <div class="role-progress-fill member" id="progress-member" style="width: 0%;"></div>
                 </div>
             </div>
 
-            <!-- GROUP 2: KHÁCH MỜI -->
-            <div class="role-stat-group group-guests">
-                <div class="role-stat-header">
-                    <span class="role-stat-tag guest"><i class="fa-solid fa-id-badge"></i> ĐẠI BIỂU & KHÁCH MỜI DỰ</span>
-                    <span class="role-stat-rate guest" id="stat-guest-rate">0%</span>
+            <!-- 2. ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN) -->
+            <div class="stat-hub-card hub-members">
+                <div class="hub-card-header">
+                    <span class="hub-card-title members">
+                        <i class="fa-solid fa-users"></i> ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN)
+                    </span>
+                    <span class="hub-card-rate members" id="stat-member-rate">0%</span>
                 </div>
-                <div class="role-stat-body">
-                    <div class="role-stat-item">
-                        <span class="role-num" id="stat-guest-total">0</span>
-                        <span class="role-lbl">Tổng mời</span>
+                <div class="hub-progress-track">
+                    <div class="hub-progress-fill members" id="progress-member" style="width: 0%;"></div>
+                </div>
+                <div class="hub-card-metrics">
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val" id="stat-member-total">0</span>
+                        <span class="hub-metric-lbl">Triệu tập</span>
                     </div>
-                    <div class="role-stat-item">
-                        <span class="role-num guest-present" id="stat-guest-present">0</span>
-                        <span class="role-lbl">Đã đến</span>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val present" id="stat-member-present">0</span>
+                        <span class="hub-metric-lbl">Có mặt</span>
                     </div>
-                    <div class="role-stat-item">
-                        <span class="role-num absent" id="stat-guest-absent">0</span>
-                        <span class="role-lbl">Chưa đến</span>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val late" id="stat-member-late">0</span>
+                        <span class="hub-metric-lbl">Đi trễ</span>
+                    </div>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val absent" id="stat-member-absent">0</span>
+                        <span class="hub-metric-lbl">Vắng</span>
                     </div>
                 </div>
-                <!-- Progress bar -->
-                <div class="role-progress-track">
-                    <div class="role-progress-fill guest" id="progress-guest" style="width: 0%;"></div>
+            </div>
+
+            <!-- 3. ĐẠI BIỂU KHÁCH MỜI & CHỈ ĐẠO -->
+            <div class="stat-hub-card hub-guests">
+                <div class="hub-card-header">
+                    <span class="hub-card-title guests">
+                        <i class="fa-solid fa-id-badge"></i> ĐẠI BIỂU & KHÁCH MỜI DỰ
+                    </span>
+                    <span class="hub-card-rate guests" id="stat-guest-rate">0%</span>
+                </div>
+                <div class="hub-progress-track">
+                    <div class="hub-progress-fill guests" id="progress-guest" style="width: 0%;"></div>
+                </div>
+                <div class="hub-card-metrics">
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val" id="stat-guest-total">0</span>
+                        <span class="hub-metric-lbl">Tổng mời</span>
+                    </div>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val guest-present" id="stat-guest-present">0</span>
+                        <span class="hub-metric-lbl">Đã đến</span>
+                    </div>
+                    <div class="hub-metric-item">
+                        <span class="hub-metric-val absent" id="stat-guest-absent">0</span>
+                        <span class="hub-metric-lbl">Chưa đến</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2065,6 +2074,10 @@
             document.getElementById('stat-late').innerText = lateList.length;
             document.getElementById('stat-absent').innerText = absentCount;
             document.getElementById('stat-rate').innerText = `${rate}%`;
+            const elTotalAll = document.getElementById('stat-total-all');
+            if (elTotalAll) elTotalAll.innerText = total;
+            const progAll = document.getElementById('progress-overall');
+            if (progAll) progAll.style.width = `${rate}%`;
 
             // Calculate Role-based Stats (Thành viên vs Khách mời)
             const allMembers = attendeesList.filter(a => !a.role || a.role === 'MEMBER');
