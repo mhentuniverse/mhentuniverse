@@ -955,6 +955,172 @@
         .print-header, .print-watermark, .print-footer {
             display: none;
         }
+
+        /* ROLE-BASED SPLIT STATS BAR */
+        .role-stats-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        @media (max-width: 768px) {
+            .role-stats-bar {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-top: 10px;
+            }
+        }
+        .role-stat-group {
+            background: var(--bg-canvas, #f8fafc);
+            border: 1.5px solid var(--border-soft, #e2e8f0);
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+        }
+        .dark-mode .role-stat-group {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .role-stat-group.group-members {
+            border-left: 4px solid #10b981;
+        }
+        .role-stat-group.group-guests {
+            border-left: 4px solid #6366f1;
+        }
+        .role-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .role-stat-tag {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+        .role-stat-tag.member { color: #059669; }
+        .role-stat-tag.guest { color: #6366f1; }
+        .role-stat-rate {
+            font-size: 16px;
+            font-weight: 900;
+        }
+        .role-stat-rate.member { color: #10b981; }
+        .role-stat-rate.guest { color: #6366f1; }
+        .role-stat-body {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .role-stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .role-num {
+            font-size: 17px;
+            font-weight: 900;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+        .role-num.present { color: #10b981; }
+        .role-num.late { color: #f59e0b; }
+        .role-num.absent { color: #94a3b8; }
+        .role-num.guest-present { color: #6366f1; }
+        .role-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .role-progress-track {
+            height: 5px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .dark-mode .role-progress-track {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .role-progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+        .role-progress-fill.member {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+        .role-progress-fill.guest {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+        }
+
+        /* SECTION DIVIDERS IN SPREADSHEET TABLE */
+        .section-divider-tr td {
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+        }
+        .section-divider-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            margin: 14px 0 6px;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .section-divider-bar.member-bar {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.03));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-left: 4px solid #10b981;
+        }
+        .section-divider-bar.guest-bar {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.03));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-left: 4px solid #6366f1;
+        }
+        .sec-title {
+            font-size: 13px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+        .sec-meta-badge {
+            font-size: 11.5px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* MOBILE SECTION CARDS DIVIDER */
+        .mobile-sec-divider {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 12px;
+            border-radius: 10px;
+            margin: 10px 0 4px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .mobile-sec-divider.member-divider {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3.5px solid #10b981;
+        }
+        .mobile-sec-divider.guest-divider {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 3.5px solid #6366f1;
+        }
     </style>
     <script src="/js/config.js"></script>
     <script src="/js/mhent-ui.js"></script>
@@ -1086,6 +1252,64 @@
                 <div>
                     <h4 class="stat-mini-val" id="stat-rate" style="color: #6366f1;">0%</h4>
                     <p class="stat-mini-label">TỈ LỆ CÓ MẶT</p>
+                </div>
+        </div>
+
+        <!-- ROLE-BASED SPLIT STATS BAR -->
+        <div class="role-stats-bar" id="role-stats-container">
+            <!-- GROUP 1: THÀNH VIÊN -->
+            <div class="role-stat-group group-members">
+                <div class="role-stat-header">
+                    <span class="role-stat-tag member"><i class="fa-solid fa-users"></i> ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN)</span>
+                    <span class="role-stat-rate member" id="stat-member-rate">0%</span>
+                </div>
+                <div class="role-stat-body">
+                    <div class="role-stat-item">
+                        <span class="role-num" id="stat-member-total">0</span>
+                        <span class="role-lbl">Triệu tập</span>
+                    </div>
+                    <div class="role-stat-item">
+                        <span class="role-num present" id="stat-member-present">0</span>
+                        <span class="role-lbl">Có mặt</span>
+                    </div>
+                    <div class="role-stat-item">
+                        <span class="role-num late" id="stat-member-late">0</span>
+                        <span class="role-lbl">Đi trễ</span>
+                    </div>
+                    <div class="role-stat-item">
+                        <span class="role-num absent" id="stat-member-absent">0</span>
+                        <span class="role-lbl">Vắng</span>
+                    </div>
+                </div>
+                <!-- Progress bar -->
+                <div class="role-progress-track">
+                    <div class="role-progress-fill member" id="progress-member" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- GROUP 2: KHÁCH MỜI -->
+            <div class="role-stat-group group-guests">
+                <div class="role-stat-header">
+                    <span class="role-stat-tag guest"><i class="fa-solid fa-id-badge"></i> ĐẠI BIỂU & KHÁCH MỜI DỰ</span>
+                    <span class="role-stat-rate guest" id="stat-guest-rate">0%</span>
+                </div>
+                <div class="role-stat-body">
+                    <div class="role-stat-item">
+                        <span class="role-num" id="stat-guest-total">0</span>
+                        <span class="role-lbl">Tổng mời</span>
+                    </div>
+                    <div class="role-stat-item">
+                        <span class="role-num guest-present" id="stat-guest-present">0</span>
+                        <span class="role-lbl">Đã đến</span>
+                    </div>
+                    <div class="role-stat-item">
+                        <span class="role-num absent" id="stat-guest-absent">0</span>
+                        <span class="role-lbl">Chưa đến</span>
+                    </div>
+                </div>
+                <!-- Progress bar -->
+                <div class="role-progress-track">
+                    <div class="role-progress-fill guest" id="progress-guest" style="width: 0%;"></div>
                 </div>
             </div>
         </div>
@@ -1830,7 +2054,7 @@
                 document.getElementById('session-owner-name').innerText = sessionData.createdBy;
             }
 
-            // Calculate Stats
+            // Calculate Stats - Overall
             const total = attendeesList.length;
             const presentList = attendeesList.filter(a => a.checkedIn);
             const lateList = attendeesList.filter(a => a.checkedIn && a.isLate);
@@ -1841,6 +2065,42 @@
             document.getElementById('stat-late').innerText = lateList.length;
             document.getElementById('stat-absent').innerText = absentCount;
             document.getElementById('stat-rate').innerText = `${rate}%`;
+
+            // Calculate Role-based Stats (Thành viên vs Khách mời)
+            const allMembers = attendeesList.filter(a => !a.role || a.role === 'MEMBER');
+            const allGuests = attendeesList.filter(a => a.role && a.role !== 'MEMBER');
+
+            const mTotal = allMembers.length;
+            const mPres = allMembers.filter(a => a.checkedIn).length;
+            const mLate = allMembers.filter(a => a.checkedIn && a.isLate).length;
+            const mAbs = mTotal - mPres;
+            const mRate = mTotal > 0 ? Math.round((mPres / mTotal) * 100) : 0;
+
+            const gTotal = allGuests.length;
+            const gPres = allGuests.filter(a => a.checkedIn).length;
+            const gLate = allGuests.filter(a => a.checkedIn && a.isLate).length;
+            const gAbs = gTotal - gPres;
+            const gRate = gTotal > 0 ? Math.round((gPres / gTotal) * 100) : 0;
+
+            const setElText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = val;
+            };
+
+            setElText('stat-member-total', mTotal);
+            setElText('stat-member-present', mPres);
+            setElText('stat-member-late', mLate);
+            setElText('stat-member-absent', mAbs);
+            setElText('stat-member-rate', `${mRate}%`);
+            const progM = document.getElementById('progress-member');
+            if (progM) progM.style.width = `${mRate}%`;
+
+            setElText('stat-guest-total', gTotal);
+            setElText('stat-guest-present', gPres);
+            setElText('stat-guest-absent', gAbs);
+            setElText('stat-guest-rate', `${gRate}%`);
+            const progG = document.getElementById('progress-guest');
+            if (progG) progG.style.width = `${gRate}%`;
 
             if (!isSortInitialized) {
                 if (sessionData.defaultSort) {
@@ -1855,20 +2115,148 @@
             filterAttendees();
         });
 
-        // RENDER TABLE & CARDS
+        // HELPER RENDER CỦA TỪNG DÒNG (TABLE SPREADSHEET ROW)
+        function renderRowHtml(a, displayIndex) {
+            let statusBadge = `<span class="badge-status badge-absent"><i class="fa-regular fa-clock"></i> Chưa đến</span>`;
+            if (a.checkedIn) {
+                if (a.isLate) {
+                    statusBadge = `<span class="badge-status badge-late"><i class="fa-solid fa-triangle-exclamation"></i> Đi trễ (${a.checkinTime || ''})</span>`;
+                } else {
+                    statusBadge = `<span class="badge-status badge-present"><i class="fa-solid fa-check"></i> Có mặt (${a.checkinTime || ''})</span>`;
+                }
+            }
+
+            let ticketBadge = '';
+            if (a.ticketSent) {
+                ticketBadge = `<div style="margin-top: 3px;"><span class="badge-status" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 10px; padding: 2px 6px;" title="Vé đã gửi: ${a.ticketSentAt || ''}"><i class="fa-solid fa-paper-plane"></i> Đã gửi vé</span></div>`;
+            }
+
+            const isChecked = selectedAttendeeIds.has(a.id);
+
+            let roleBadge = '';
+            if (a.role === 'VIP') {
+                roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-crown"></i> VIP</span>`;
+            } else if (a.role === 'SPEAKER') {
+                roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
+            } else if (a.role === 'GUEST') {
+                roleBadge = `<span class="badge-status" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-handshake"></i> KHÁCH MỜI</span>`;
+            } else if (a.role === 'ORGANIZER') {
+                roleBadge = `<span class="badge-status" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-shield-halved"></i> BTC</span>`;
+            }
+
+            return `
+                <tr style="${isChecked ? 'background: rgba(99, 102, 241, 0.04);' : ''}">
+                    <td style="text-align: center; width: 34px;">
+                        <input type="checkbox" class="att-select-check" value="${a.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectAttendee('${a.id}', this.checked)" style="cursor: pointer; transform: scale(1.1);">
+                    </td>
+                    <td style="text-align: center; font-weight: 800; color: var(--text-muted); font-size: 12px; width: 38px;">${displayIndex}</td>
+                    <td class="col-name">
+                        <div class="table-name-cell">
+                            <div class="table-name-top">
+                                <strong class="att-name-text">${a.name}</strong>
+                                ${roleBadge}
+                                <span class="att-code-tag" title="Mã định danh/MSSV">${a.code}</span>
+                                ${a.org ? `<span class="att-org-tag" title="Lớp/Đơn vị">${a.org}</span>` : ''}
+                            </div>
+                            <div class="table-name-bottom">
+                                ${a.email 
+                                    ? `<span class="att-email-text"><i class="fa-regular fa-envelope"></i> ${a.email}</span>
+                                       <button type="button" onclick="promptAddEmail('${a.id}')" title="Sửa email" class="btn-mini-pen"><i class="fa-solid fa-pen"></i></button>`
+                                    : `<span class="att-no-email" onclick="promptAddEmail('${a.id}')" title="Nhấn để thêm email nhận vé"><i class="fa-solid fa-circle-exclamation"></i> <u>Thêm email</u></span>`
+                                }
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="table-code-badge">${a.code}</span></td>
+                    <td><span class="table-org-text">${a.org || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân lớp</span>'}</span></td>
+                    <td><span style="font-size: 12px; font-weight: 700;">${a.checkinTime || '<span style="color: var(--text-muted); font-weight: normal;">-</span>'}</span></td>
+                    <td>
+                        ${statusBadge}
+                        ${ticketBadge}
+                    </td>
+                    <td style="text-align: center;">
+                        <div style="display: flex; gap: 5px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                            ${a.checkedIn 
+                                ? `<button class="btn-table-action btn-undo" onclick="toggleCheckin('${a.id}', false)" title="Hủy trạng thái có mặt"><i class="fa-solid fa-rotate-left"></i> Hủy</button>`
+                                : `<button class="btn-table-action btn-checkin-now" onclick="toggleCheckin('${a.id}', true)" title="Điểm danh ngay"><i class="fa-solid fa-check"></i> Có Mặt</button>`
+                            }
+                            <button class="btn-table-action ${a.ticketSent ? 'btn-ticket-sent' : 'btn-ticket-mail'}" id="btn-send-${a.id}" onclick="sendSingleTicketEmail('${a.id}')" title="${a.ticketSent ? 'Vé đã gửi lúc: ' + (a.ticketSentAt || '') + '. Nhấn để gửi lại' : 'Gửi vé điện tử E-Ticket kèm mã QR qua email'}">
+                                <i class="fa-solid ${a.ticketSent ? 'fa-arrow-rotate-right' : 'fa-paper-plane'}"></i> ${a.ticketSent ? 'Gửi lại' : 'Gửi vé'}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // HELPER RENDER CỦA TỪNG THẺ DI ĐỘNG (MOBILE QUICK CARD)
+        function renderCardHtml(a, displayIndex) {
+            const isChecked = selectedAttendeeIds.has(a.id);
+            let roleBadge = '';
+            if (a.role === 'VIP') {
+                roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-crown"></i> VIP</span>`;
+            } else if (a.role === 'SPEAKER') {
+                roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
+            } else if (a.role === 'GUEST') {
+                roleBadge = `<span class="badge-status" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-handshake"></i> KHÁCH MỜI</span>`;
+            } else if (a.role === 'ORGANIZER') {
+                roleBadge = `<span class="badge-status" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-shield-halved"></i> BTC</span>`;
+            }
+
+            return `
+                <div class="attendee-card ${a.checkedIn ? 'is-checked-in' : ''} ${isChecked ? 'is-selected' : ''}" id="card-att-${a.id}">
+                    <div class="card-left">
+                        <input type="checkbox" class="att-select-check" value="${a.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectAttendee('${a.id}', this.checked)" style="cursor: pointer; transform: scale(1.15);">
+                        <span class="card-stt">#${displayIndex}</span>
+                    </div>
+                    <div class="card-center">
+                        <div class="card-name-row">
+                            <strong class="card-name">${a.name}</strong>
+                            ${roleBadge}
+                            <span class="card-code" title="Mã định danh / MSSV">${a.code}</span>
+                            ${a.org ? `<span class="card-org" title="Lớp / Đơn vị">${a.org}</span>` : ''}
+                        </div>
+                        <div class="card-sub-row">
+                            ${a.email 
+                                ? `<span class="card-email" title="${a.email}"><i class="fa-regular fa-envelope"></i> ${a.email}</span>
+                                   <button type="button" onclick="promptAddEmail('${a.id}')" title="Sửa email" class="btn-card-pen"><i class="fa-solid fa-pen"></i></button>`
+                                : `<span class="card-no-email" onclick="promptAddEmail('${a.id}')" title="Nhấn để thêm email"><i class="fa-solid fa-circle-exclamation"></i> Thêm email</span>`
+                            }
+                            ${a.checkedIn && a.checkinTime ? `<span class="card-time"><i class="fa-regular fa-clock"></i> ${a.checkinTime}</span>` : ''}
+                            ${a.ticketSent ? `<span class="card-ticket" title="Vé gửi lúc ${a.ticketSentAt || ''}"><i class="fa-solid fa-paper-plane"></i> Vé</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="card-right">
+                        ${a.checkedIn 
+                            ? `<button type="button" class="btn-card-checkin btn-card-undo" onclick="toggleCheckin('${a.id}', false)" title="Đã có mặt lúc ${a.checkinTime || ''}. Bấm để hủy trạng thái">
+                                 <i class="fa-solid fa-check"></i> Có mặt
+                               </button>`
+                            : `<button type="button" class="btn-card-checkin btn-card-attend" onclick="toggleCheckin('${a.id}', true)" title="Bấm để điểm danh ngay">
+                                 <i class="fa-solid fa-user-check"></i> Có mặt
+                               </button>`
+                        }
+                        <button type="button" class="btn-card-mail ${a.ticketSent ? 'sent' : ''}" id="btn-card-send-${a.id}" onclick="sendSingleTicketEmail('${a.id}')" title="${a.ticketSent ? 'Vé đã gửi lúc ' + (a.ticketSentAt || '') + '. Nhấn để gửi lại' : 'Gửi vé E-Ticket qua email'}">
+                            <i class="fa-solid ${a.ticketSent ? 'fa-arrow-rotate-right' : 'fa-paper-plane'}"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // RENDER TABLE & CARDS - PHÂN TÁCH RÕ RÀNG 2 DANH SÁCH: THÀNH VIÊN VÀ KHÁCH MỜI
         function renderTable(list) {
             const tbody = document.getElementById('attendees-tbody');
             const cardsList = document.getElementById('attendees-cards-list');
 
-            if (list.length === 0) {
+            if (!list || list.length === 0) {
                 if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted); font-weight: 700;">Không tìm thấy thành viên nào phù hợp!</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted); font-weight: 700;">Không tìm thấy người tham dự nào phù hợp!</td></tr>`;
                 }
                 if (cardsList) {
                     cardsList.innerHTML = `
                         <div style="text-align: center; padding: 40px 16px; color: var(--text-muted); font-weight: 700;">
                             <i class="fa-solid fa-user-slash" style="font-size: 30px; margin-bottom: 8px; opacity: 0.4;"></i>
-                            <div>Không tìm thấy thành viên nào phù hợp!</div>
+                            <div>Không tìm thấy người tham dự nào phù hợp!</div>
                         </div>
                     `;
                 }
@@ -1876,136 +2264,129 @@
                 return;
             }
 
-            // 1. COMPACT SPREADSHEET TABLE
+            // Chia danh sách thành 2 nhóm: Thành viên (Đại biểu triệu tập) & Khách mời
+            const members = list.filter(a => !a.role || a.role === 'MEMBER');
+            const guests = list.filter(a => a.role && a.role !== 'MEMBER');
+
+            // Tính toán số liệu thống kê riêng cho từng nhóm trong danh sách hiển thị
+            const mTotal = members.length;
+            const mPres = members.filter(a => a.checkedIn).length;
+            const mLate = members.filter(a => a.checkedIn && a.isLate).length;
+            const mAbs = mTotal - mPres;
+            const mRate = mTotal > 0 ? Math.round((mPres / mTotal) * 100) : 0;
+
+            const gTotal = guests.length;
+            const gPres = guests.filter(a => a.checkedIn).length;
+            const gLate = guests.filter(a => a.checkedIn && a.isLate).length;
+            const gAbs = gTotal - gPres;
+            const gRate = gTotal > 0 ? Math.round((gPres / gTotal) * 100) : 0;
+
+            const showGuestFirst = (currentSort === 'ROLE_GUEST_FIRST');
+
+            // 1. Dựng Section cho Bảng tính Spreadsheet Desktop
+            const buildMemberTableSection = () => {
+                if (mTotal === 0) return '';
+                const headerHtml = `
+                    <tr class="section-divider-tr">
+                        <td colspan="8">
+                            <div class="section-divider-bar member-bar">
+                                <div class="sec-title">
+                                    <i class="fa-solid fa-users" style="color: #10b981; font-size: 15px;"></i>
+                                    <span>I. ĐẠI BIỂU TRIỆU TẬP (THÀNH VIÊN CHI ĐOÀN)</span>
+                                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 99px; background: rgba(16, 185, 129, 0.15); color: #059669; font-weight: 800;">${mTotal} người</span>
+                                </div>
+                                <div class="sec-meta-badge">
+                                    <span style="color: #10b981;"><i class="fa-solid fa-check"></i> Có mặt: <strong>${mPres}/${mTotal}</strong></span>
+                                    ${mLate > 0 ? `<span style="color: #f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> Đi trễ: <strong>${mLate}</strong></span>` : ''}
+                                    <span style="color: #94a3b8;"><i class="fa-regular fa-clock"></i> Vắng: <strong>${mAbs}</strong></span>
+                                    <span style="background: #10b981; color: #fff; padding: 3px 10px; border-radius: 99px; font-weight: 900; letter-spacing: 0.3px;">
+                                        Tỉ lệ: ${mRate}%
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                const rowsHtml = members.map((a, idx) => renderRowHtml(a, idx + 1)).join('');
+                return headerHtml + rowsHtml;
+            };
+
+            const buildGuestTableSection = () => {
+                if (gTotal === 0) return '';
+                const headerHtml = `
+                    <tr class="section-divider-tr">
+                        <td colspan="8">
+                            <div class="section-divider-bar guest-bar">
+                                <div class="sec-title">
+                                    <i class="fa-solid fa-id-badge" style="color: #6366f1; font-size: 15px;"></i>
+                                    <span>II. ĐẠI BIỂU KHÁCH MỜI & CHỈ ĐẠO</span>
+                                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 99px; background: rgba(99, 102, 241, 0.15); color: #4f46e5; font-weight: 800;">${gTotal} đại biểu</span>
+                                </div>
+                                <div class="sec-meta-badge">
+                                    <span style="color: #6366f1;"><i class="fa-solid fa-check-double"></i> Đã đến: <strong>${gPres}/${gTotal}</strong></span>
+                                    ${gLate > 0 ? `<span style="color: #f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> Đi trễ: <strong>${gLate}</strong></span>` : ''}
+                                    <span style="color: #94a3b8;"><i class="fa-regular fa-clock"></i> Chưa đến: <strong>${gAbs}</strong></span>
+                                    <span style="background: #6366f1; color: #fff; padding: 3px 10px; border-radius: 99px; font-weight: 900; letter-spacing: 0.3px;">
+                                        Tỉ lệ: ${gRate}%
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                const rowsHtml = guests.map((a, idx) => renderRowHtml(a, idx + 1)).join('');
+                return headerHtml + rowsHtml;
+            };
+
+            // 2. Dựng Section cho Thẻ di động Mobile Quick Cards
+            const buildMemberCardsSection = () => {
+                if (mTotal === 0) return '';
+                const headerHtml = `
+                    <div class="mobile-sec-divider member-divider">
+                        <div class="sec-title" style="color: #059669;">
+                            <i class="fa-solid fa-users"></i>
+                            <span>I. ĐẠI BIỂU TRIỆU TẬP (${mTotal})</span>
+                        </div>
+                        <div class="sec-meta-badge">
+                            <span style="color: #10b981; font-weight: 900;"><i class="fa-solid fa-check"></i> ${mPres}/${mTotal}</span>
+                            <span style="background: rgba(16, 185, 129, 0.15); color: #047857; padding: 2px 8px; border-radius: 6px; font-weight: 900;">${mRate}%</span>
+                        </div>
+                    </div>
+                `;
+                const cardsHtml = members.map((a, idx) => renderCardHtml(a, idx + 1)).join('');
+                return headerHtml + cardsHtml;
+            };
+
+            const buildGuestCardsSection = () => {
+                if (gTotal === 0) return '';
+                const headerHtml = `
+                    <div class="mobile-sec-divider guest-divider">
+                        <div class="sec-title" style="color: #6366f1;">
+                            <i class="fa-solid fa-id-badge"></i>
+                            <span>II. ĐẠI BIỂU & KHÁCH MỜI (${gTotal})</span>
+                        </div>
+                        <div class="sec-meta-badge">
+                            <span style="color: #6366f1; font-weight: 900;"><i class="fa-solid fa-check-double"></i> ${gPres}/${gTotal}</span>
+                            <span style="background: rgba(99, 102, 241, 0.15); color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 900;">${gRate}%</span>
+                        </div>
+                    </div>
+                `;
+                const cardsHtml = guests.map((a, idx) => renderCardHtml(a, idx + 1)).join('');
+                return headerHtml + cardsHtml;
+            };
+
+            // Render ra bảng tính Table Desktop
             if (tbody) {
-                tbody.innerHTML = list.map((a, idx) => {
-                    let statusBadge = `<span class="badge-status badge-absent"><i class="fa-regular fa-clock"></i> Chưa đến</span>`;
-                    if (a.checkedIn) {
-                        if (a.isLate) {
-                            statusBadge = `<span class="badge-status badge-late"><i class="fa-solid fa-triangle-exclamation"></i> Đi trễ (${a.checkinTime || ''})</span>`;
-                        } else {
-                            statusBadge = `<span class="badge-status badge-present"><i class="fa-solid fa-check"></i> Có mặt (${a.checkinTime || ''})</span>`;
-                        }
-                    }
-
-                    let ticketBadge = '';
-                    if (a.ticketSent) {
-                        ticketBadge = `<div style="margin-top: 3px;"><span class="badge-status" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; font-size: 10px; padding: 2px 6px;" title="Vé đã gửi: ${a.ticketSentAt || ''}"><i class="fa-solid fa-paper-plane"></i> Đã gửi vé</span></div>`;
-                    }
-
-                    const isChecked = selectedAttendeeIds.has(a.id);
-
-                    let roleBadge = '';
-                    if (a.role === 'VIP') {
-                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-crown"></i> VIP</span>`;
-                    } else if (a.role === 'SPEAKER') {
-                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
-                    } else if (a.role === 'GUEST') {
-                        roleBadge = `<span class="badge-status" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-handshake"></i> KHÁCH MỜI</span>`;
-                    } else if (a.role === 'ORGANIZER') {
-                        roleBadge = `<span class="badge-status" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-shield-halved"></i> BTC</span>`;
-                    }
-
-                    return `
-                        <tr style="${isChecked ? 'background: rgba(99, 102, 241, 0.04);' : ''}">
-                            <td style="text-align: center; width: 34px;">
-                                <input type="checkbox" class="att-select-check" value="${a.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectAttendee('${a.id}', this.checked)" style="cursor: pointer; transform: scale(1.1);">
-                            </td>
-                            <td style="text-align: center; font-weight: 800; color: var(--text-muted); font-size: 12px; width: 38px;">${idx + 1}</td>
-                            <td class="col-name">
-                                <div class="table-name-cell">
-                                    <div class="table-name-top">
-                                        <strong class="att-name-text">${a.name}</strong>
-                                        ${roleBadge}
-                                        <span class="att-code-tag" title="Mã định danh/MSSV">${a.code}</span>
-                                        ${a.org ? `<span class="att-org-tag" title="Lớp/Đơn vị">${a.org}</span>` : ''}
-                                    </div>
-                                    <div class="table-name-bottom">
-                                        ${a.email 
-                                            ? `<span class="att-email-text"><i class="fa-regular fa-envelope"></i> ${a.email}</span>
-                                               <button type="button" onclick="promptAddEmail('${a.id}')" title="Sửa email" class="btn-mini-pen"><i class="fa-solid fa-pen"></i></button>`
-                                            : `<span class="att-no-email" onclick="promptAddEmail('${a.id}')" title="Nhấn để thêm email nhận vé"><i class="fa-solid fa-circle-exclamation"></i> <u>Thêm email</u></span>`
-                                        }
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="table-code-badge">${a.code}</span></td>
-                            <td><span class="table-org-text">${a.org || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân lớp</span>'}</span></td>
-                            <td><span style="font-size: 12px; font-weight: 700;">${a.checkinTime || '<span style="color: var(--text-muted); font-weight: normal;">-</span>'}</span></td>
-                            <td>
-                                ${statusBadge}
-                                ${ticketBadge}
-                            </td>
-                            <td style="text-align: center;">
-                                <div style="display: flex; gap: 5px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                                    ${a.checkedIn 
-                                        ? `<button class="btn-table-action btn-undo" onclick="toggleCheckin('${a.id}', false)" title="Hủy trạng thái có mặt"><i class="fa-solid fa-rotate-left"></i> Hủy</button>`
-                                        : `<button class="btn-table-action btn-checkin-now" onclick="toggleCheckin('${a.id}', true)" title="Điểm danh ngay"><i class="fa-solid fa-check"></i> Có Mặt</button>`
-                                    }
-                                    <button class="btn-table-action ${a.ticketSent ? 'btn-ticket-sent' : 'btn-ticket-mail'}" id="btn-send-${a.id}" onclick="sendSingleTicketEmail('${a.id}')" title="${a.ticketSent ? 'Vé đã gửi lúc: ' + (a.ticketSentAt || '') + '. Nhấn để gửi lại' : 'Gửi vé điện tử E-Ticket kèm mã QR qua email'}">
-                                        <i class="fa-solid ${a.ticketSent ? 'fa-arrow-rotate-right' : 'fa-paper-plane'}"></i> ${a.ticketSent ? 'Gửi lại' : 'Gửi vé'}
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
+                tbody.innerHTML = showGuestFirst 
+                    ? (buildGuestTableSection() + buildMemberTableSection())
+                    : (buildMemberTableSection() + buildGuestTableSection());
             }
 
-            // 2. MOBILE HIGH-DENSITY QUICK CARDS LIST
+            // Render ra danh sách Thẻ Mobile
             if (cardsList) {
-                cardsList.innerHTML = list.map((a, idx) => {
-                    const isChecked = selectedAttendeeIds.has(a.id);
-                    let roleBadge = '';
-                    if (a.role === 'VIP') {
-                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-crown"></i> VIP</span>`;
-                    } else if (a.role === 'SPEAKER') {
-                        roleBadge = `<span class="badge-status" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: 10px; padding: 2px 7px; font-weight: 900; border-radius: 6px;"><i class="fa-solid fa-microphone"></i> DIỄN GIẢ</span>`;
-                    } else if (a.role === 'GUEST') {
-                        roleBadge = `<span class="badge-status" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-handshake"></i> KHÁCH MỜI</span>`;
-                    } else if (a.role === 'ORGANIZER') {
-                        roleBadge = `<span class="badge-status" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-size: 10px; padding: 2px 7px; font-weight: 800; border-radius: 6px;"><i class="fa-solid fa-shield-halved"></i> BTC</span>`;
-                    }
-
-                    return `
-                        <div class="attendee-card ${a.checkedIn ? 'is-checked-in' : ''} ${isChecked ? 'is-selected' : ''}" id="card-att-${a.id}">
-                            <div class="card-left">
-                                <input type="checkbox" class="att-select-check" value="${a.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectAttendee('${a.id}', this.checked)" style="cursor: pointer; transform: scale(1.15);">
-                                <span class="card-stt">#${idx + 1}</span>
-                            </div>
-                            <div class="card-center">
-                                <div class="card-name-row">
-                                    <strong class="card-name">${a.name}</strong>
-                                    ${roleBadge}
-                                    <span class="card-code" title="Mã định danh / MSSV">${a.code}</span>
-                                    ${a.org ? `<span class="card-org" title="Lớp / Đơn vị">${a.org}</span>` : ''}
-                                </div>
-                                <div class="card-sub-row">
-                                    ${a.email 
-                                        ? `<span class="card-email" title="${a.email}"><i class="fa-regular fa-envelope"></i> ${a.email}</span>
-                                           <button type="button" onclick="promptAddEmail('${a.id}')" title="Sửa email" class="btn-card-pen"><i class="fa-solid fa-pen"></i></button>`
-                                        : `<span class="card-no-email" onclick="promptAddEmail('${a.id}')" title="Nhấn để thêm email"><i class="fa-solid fa-circle-exclamation"></i> Thêm email</span>`
-                                    }
-                                    ${a.checkedIn && a.checkinTime ? `<span class="card-time"><i class="fa-regular fa-clock"></i> ${a.checkinTime}</span>` : ''}
-                                    ${a.ticketSent ? `<span class="card-ticket" title="Vé gửi lúc ${a.ticketSentAt || ''}"><i class="fa-solid fa-paper-plane"></i> Vé</span>` : ''}
-                                </div>
-                            </div>
-                            <div class="card-right">
-                                ${a.checkedIn 
-                                    ? `<button type="button" class="btn-card-checkin btn-card-undo" onclick="toggleCheckin('${a.id}', false)" title="Đã có mặt lúc ${a.checkinTime || ''}. Bấm để hủy trạng thái">
-                                         <i class="fa-solid fa-check"></i> Có mặt
-                                       </button>`
-                                    : `<button type="button" class="btn-card-checkin btn-card-attend" onclick="toggleCheckin('${a.id}', true)" title="Bấm để điểm danh ngay">
-                                         <i class="fa-solid fa-user-check"></i> Có mặt
-                                       </button>`
-                                }
-                                <button type="button" class="btn-card-mail ${a.ticketSent ? 'sent' : ''}" id="btn-card-send-${a.id}" onclick="sendSingleTicketEmail('${a.id}')" title="${a.ticketSent ? 'Vé đã gửi lúc ' + (a.ticketSentAt || '') + '. Nhấn để gửi lại' : 'Gửi vé E-Ticket qua email'}">
-                                    <i class="fa-solid ${a.ticketSent ? 'fa-arrow-rotate-right' : 'fa-paper-plane'}"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                cardsList.innerHTML = showGuestFirst
+                    ? (buildGuestCardsSection() + buildMemberCardsSection())
+                    : (buildMemberCardsSection() + buildGuestCardsSection());
             }
 
             updateSelectedCountBadge();
