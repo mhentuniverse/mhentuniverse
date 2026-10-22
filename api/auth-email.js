@@ -411,7 +411,7 @@ module.exports = async (req, res) => {
         await transporter.sendMail({
             from: '"Miyazaki Haruto Entertainment" <noreply@mhentuniverse.com>',
             to: recipient,
-            replyTo: 'contact@mhentuniverse.com',
+            replyTo: 'support@mhentuniverse.com',
             subject: subject,
             html: htmlContent
         });

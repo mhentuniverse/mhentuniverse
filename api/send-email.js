@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
             try { payload = JSON.parse(payload); } catch (e) {}
         }
 
-        const { emails, email, to, targetEmail, subject, body, html, htmlBody, senderName } = payload || {};
+        const { emails, email, to, targetEmail, subject, body, html, htmlBody, senderName, replyTo } = payload || {};
         const recipients = emails || (email || to || targetEmail ? [email || to || targetEmail] : []);
 
         if (!recipients || recipients.length === 0) {
@@ -43,12 +43,13 @@ module.exports = async (req, res) => {
         const mailSubject = subject || '🎟️ Thông Báo Từ MHEnt. Universe';
         const content = html || htmlBody || body || '';
         const fromName = senderName || 'MHEnt. Universe (No-Reply)';
+        const replyToEmail = (replyTo || 'support@mhentuniverse.com').trim();
 
         for (const r of recipients) {
             await transporter.sendMail({
                 from: `"${fromName}" <noreply@mhentuniverse.com>`,
                 to: r,
-                replyTo: 'contact@mhentuniverse.com',
+                replyTo: replyToEmail,
                 subject: mailSubject,
                 html: content
             });
