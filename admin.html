@@ -1200,7 +1200,7 @@
                     }
 
                     if (result.status === "success") {
-                        await addDoc(collection(db, "mail_campaigns"), {
+                        try { await addDoc(collection(db, "mail_campaigns"), {
                             subject: sub,
                             sender: senderName,
                             status: mailStatus,
@@ -1208,7 +1208,7 @@
                             scheduledTime: scheduledTime || Date.now(),
                             timestamp: Date.now(),
                             gasId: result.gasId || null
-                        });
+                        }); } catch (e) { console.warn("Lưu mail_campaigns thất bại:", e); }
 
                         showToast("Thành công", result.message, "success");
                         // Reset form
@@ -1257,8 +1257,13 @@
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Đang lấy nhật ký...</td></tr>';
 
             try {
-                const q = query(collection(db, "mail_campaigns"), orderBy("timestamp", "desc"), limit(10));
-                const snap = await getDocs(q);
+                let snap;
+                try {
+                    snap = await getDocs(query(collection(db, "mail_campaigns"), orderBy("timestamp", "desc"), limit(20)));
+                } catch (qErr) {
+                    snap = await getDocs(collection(db, "mail_campaigns"));
+                }
+
 
                 let html = '';
                 const now = Date.now();
