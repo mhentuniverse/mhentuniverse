@@ -226,26 +226,23 @@ window.syncMHEntSessionCookie = function() {
         return cookieUser;
     }
 
-    const isDomain = window.location.hostname.endsWith('mhentuniverse.com');
-    if (isDomain) {
-        localStorage.removeItem('mhent_user_profile');
-        localStorage.removeItem('mhent_app_token');
-        localStorage.removeItem('mhent_app_uid');
-        localStorage.setItem('mhent_user_role', 'guest');
-        window.currentUserProfile = null;
-        window.currentUserRole = 'guest';
-        window.currentUserEmail = '';
-        return null;
-    }
-
     try {
         const local = localStorage.getItem('mhent_user_profile');
         if (local) {
             const parsed = JSON.parse(local);
             if (parsed && (parsed.uid || parsed.email)) {
                 window.currentUserProfile = parsed;
-                window.currentUserRole = (parsed.role || 'user').toLowerCase();
+                window.currentUserRole = (parsed.role || localStorage.getItem('mhent_user_role') || 'user').toLowerCase();
                 window.currentUserEmail = parsed.email || '';
+
+                // Tự động khôi phục cookie liên miền nếu bị mất hoặc bị chặn tạm thời
+                try {
+                    const cookieVal = encodeURIComponent(JSON.stringify(parsed));
+                    const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+                    document.cookie = `mhent_auth_session=${cookieVal}; domain=.mhentuniverse.com; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
+                    document.cookie = `mhent_auth_session=${cookieVal}; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
+                } catch(cookieErr) {}
+
                 return parsed;
             }
         }
