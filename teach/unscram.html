@@ -98,6 +98,68 @@
             letter-spacing: 0.5px;
             vertical-align: middle;
         }
+
+        /* 💡 GỢI Ý / CÂU HỎI SUY LUẬN CHO TỪ VÀ CÂU */
+        .question-banner {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 82%;
+            min-width: 320px;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(14, 165, 233, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(14, 165, 233, 0.25);
+            padding: 12px 28px;
+            text-align: center;
+            z-index: 25;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+            animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translate(-50%, -15px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .question-badge {
+            font-size: 13px;
+            font-weight: 900;
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(56, 189, 248, 0.15);
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+        .question-text {
+            font-size: clamp(18px, 2.2vw, 26px);
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.4;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            word-break: break-word;
+        }
+        .btn-hint {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-hint.hint-off {
+            background: #475569;
+            box-shadow: none;
+            opacity: 0.85;
+        }
     </style>
     <script src="/js/config.js"></script>
 </head>
@@ -124,12 +186,17 @@
                     <input type="range" id="speed-slider" min="1" max="10" value="2">
                 </div>
 
+                <button id="btn-toggle-hint" class="btn-game btn-hint" onclick="toggleHint()" style="display: none;" title="Bật/Tắt câu hỏi gợi ý (Phím H)"><i class="fa-solid fa-lightbulb"></i> ẨN GỢI Ý</button>
                 <button class="btn-game btn-shuffle" onclick="startShuffle()"><i class="fa-solid fa-shuffle"></i> LỐC XOÁY</button>
                 <button class="btn-game btn-reveal" onclick="revealAnswer()"><i class="fa-solid fa-check-double"></i> XẾP LẠI</button>
             </div>
         </div>
 
         <div class="arena" id="arena">
+            <div id="question-banner" class="question-banner" style="display: none;">
+                <div class="question-badge"><i class="fa-solid fa-lightbulb"></i> GỢI Ý / CÂU HỎI SUY LUẬN</div>
+                <div id="question-text" class="question-text"></div>
+            </div>
             <div class="sentence-counter" id="counter">Câu 0 / 0</div>
         </div>
     </div>
@@ -144,9 +211,101 @@
         let blocks = [];
         let animationId;
         let isMoving = false;
+        let currentQuestion = '';
+        let isQuestionVisible = true;
 
         // 🔥 DANH SÁCH 6 LỚP MÀU TƯƠNG ỨNG VỚI 6 TRỤ CỘT
         const colorClasses = ['block-turquoise', 'block-pink', 'block-yellow', 'block-purple', 'block-silver', 'block-lightblue'];
+
+        function normalizeGameItems(data, fallbackKey) {
+            if (!data) return [];
+            if (typeof data === 'object' && !Array.isArray(data)) {
+                if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                    return data.items.map(it => {
+                        if (typeof it === 'string') {
+                            const parts = it.split('|');
+                            return { text: parts[0].trim(), question: parts.length > 1 ? parts.slice(1).join('|').trim() : '' };
+                        }
+                        return {
+                            text: (it.text || it.word || it.sentence || '').trim(),
+                            question: (it.question || it.hint || it.clue || '').trim()
+                        };
+                    }).filter(it => it.text);
+                }
+                const list = data[fallbackKey] || data.words || data.sentences || [];
+                return normalizeGameItems(list, fallbackKey);
+            }
+            if (Array.isArray(data)) {
+                return data.map(it => {
+                    if (typeof it === 'object' && it !== null) {
+                        return {
+                            text: (it.text || it.word || it.sentence || '').trim(),
+                            question: (it.question || it.hint || it.clue || '').trim()
+                        };
+                    }
+                    const str = String(it).trim();
+                    const parts = str.split('|');
+                    return {
+                        text: parts[0].trim(),
+                        question: parts.length > 1 ? parts.slice(1).join('|').trim() : ''
+                    };
+                }).filter(it => it.text);
+            }
+            return [];
+        }
+
+        function updateQuestionDisplay(questionText) {
+            currentQuestion = (questionText || '').trim();
+            const banner = document.getElementById('question-banner');
+            const qTextEl = document.getElementById('question-text');
+            const hintBtn = document.getElementById('btn-toggle-hint');
+
+            if (!banner || !qTextEl) return;
+
+            if (currentQuestion) {
+                qTextEl.textContent = currentQuestion;
+                isQuestionVisible = true;
+                banner.style.display = 'flex';
+                banner.classList.remove('hidden-hint');
+                if (hintBtn) {
+                    hintBtn.style.display = 'inline-flex';
+                    hintBtn.innerHTML = '<i class="fa-solid fa-lightbulb"></i> ẨN GỢI Ý';
+                    hintBtn.classList.remove('hint-off');
+                }
+            } else {
+                banner.style.display = 'none';
+                if (hintBtn) {
+                    hintBtn.style.display = 'none';
+                }
+            }
+        }
+
+        function toggleHint() {
+            if (!currentQuestion) return;
+            const banner = document.getElementById('question-banner');
+            const hintBtn = document.getElementById('btn-toggle-hint');
+            isQuestionVisible = !isQuestionVisible;
+
+            if (banner) {
+                if (isQuestionVisible) {
+                    banner.style.display = 'flex';
+                    banner.classList.remove('hidden-hint');
+                } else {
+                    banner.style.display = 'none';
+                    banner.classList.add('hidden-hint');
+                }
+            }
+
+            if (hintBtn) {
+                if (isQuestionVisible) {
+                    hintBtn.innerHTML = '<i class="fa-solid fa-lightbulb"></i> ẨN GỢI Ý';
+                    hintBtn.classList.remove('hint-off');
+                } else {
+                    hintBtn.innerHTML = '<i class="fa-regular fa-lightbulb"></i> HIỆN GỢI Ý';
+                    hintBtn.classList.add('hint-off');
+                }
+            }
+        }
 
         window.addEventListener('storage', e => {
             if(e.key !== 'mhent_unscram_cmd') return;
@@ -187,24 +346,24 @@
             if (payload.mode === 'columns') {
                 initColumnsGame(payload);
             } else if (payload.mode === 'word') {
-                initWordGame(payload.words || payload.sentences || []);
+                initWordGame(payload);
             } else {
-                initSentenceGame(payload.sentences || []);
+                initSentenceGame(payload);
             }
         }
 
-        function initSentenceGame(sentences) {
+        function initSentenceGame(payloadOrList) {
             currentMode = 'sentence';
             updateModeBadge('sentence');
-            sentenceList = sentences || [];
+            sentenceList = normalizeGameItems(payloadOrList, 'sentences');
             currentIndex = 0;
             loadSentence(currentIndex);
         }
 
-        function initWordGame(words) {
+        function initWordGame(payloadOrList) {
             currentMode = 'word';
             updateModeBadge('word');
-            wordList = words || [];
+            wordList = normalizeGameItems(payloadOrList, 'words');
             currentIndex = 0;
             loadWord(currentIndex);
         }
@@ -212,6 +371,7 @@
         function initColumnsGame(payload) {
             currentMode = 'columns';
             updateModeBadge('columns');
+            updateQuestionDisplay('');
             pairList = (payload.pairs || []).filter(pair => pair.left && pair.right);
             columnColors = payload.columnColors || columnColors;
             loadColumns();
@@ -255,7 +415,7 @@
         function clearArena() {
             const arena = document.getElementById('arena');
             Array.from(arena.children).forEach(child => {
-                if(!child.classList.contains('sentence-counter')) child.remove();
+                if(!child.classList.contains('sentence-counter') && !child.classList.contains('question-banner')) child.remove();
             });
             blocks = [];
             cancelAnimationFrame(animationId);
@@ -269,7 +429,13 @@
             currentIndex = index;
             document.getElementById('counter').innerText = `Câu ${index + 1} / ${sentenceList.length}`;
 
-            const words = sentenceList[index].split(' ').filter(w => w.trim() !== '');
+            const item = sentenceList[index];
+            const sentenceText = typeof item === 'string' ? item : (item.text || '');
+            const questionText = item && item.question ? item.question : '';
+
+            updateQuestionDisplay(questionText);
+
+            const words = sentenceText.split(' ').filter(w => w.trim() !== '');
             words.forEach((word, i) => {
                 const el = document.createElement('div');
                 const randomColorClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
@@ -296,7 +462,12 @@
             currentIndex = index;
             document.getElementById('counter').innerText = `Từ ${index + 1} / ${wordList.length}`;
 
-            const rawText = (wordList[index] || "").trim();
+            const item = wordList[index];
+            const rawText = (typeof item === 'string' ? item : (item.text || "")).trim();
+            const questionText = item && item.question ? item.question : '';
+
+            updateQuestionDisplay(questionText);
+
             if (!rawText) return;
 
             const subWords = rawText.split(/\s+/).filter(w => w !== "");
@@ -436,7 +607,11 @@
 
             const blockHeight = blocks[0].height;
             const totalHeight = (lines.length * blockHeight) + ((lines.length - 1) * gapY);
-            let startY = (arenaRect.height - totalHeight) / 2;
+            
+            const banner = document.getElementById('question-banner');
+            const hasBanner = banner && banner.style.display !== 'none' && !banner.classList.contains('hidden-hint');
+            const minTopPadding = hasBanner ? (banner.offsetTop + banner.offsetHeight + 25) : 40;
+            let startY = Math.max(minTopPadding, (arenaRect.height - totalHeight) / 2);
 
             lines.forEach(line => {
                 let currentX = (arenaRect.width - line.width) / 2;
@@ -503,6 +678,7 @@
             else if (e.key === 'ArrowLeft') { prevSentence(); }
             else if (e.key === ' ') { e.preventDefault(); startShuffle(); }
             else if (e.key === 'Enter') { e.preventDefault(); revealAnswer(); }
+            else if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleHint(); }
         });
 
     </script>

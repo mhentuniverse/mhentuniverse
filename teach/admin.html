@@ -592,14 +592,19 @@
                                 <label id="unscram-text-label" style="color: #475569; font-weight: 800; margin: 0; display: block; font-size: 15px;">
                                     Nhập danh sách câu (Mỗi câu nằm trên 1 dòng - xáo trộn các từ):
                                 </label>
-                                <div style="display: inline-flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; color: #475569;">
-                                    <span style="color: #64748b;"><i class="fa-solid fa-sliders"></i> Toggle kiểu:</span>
-                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0; color: #0284c7;">
-                                        <input type="radio" name="unscram_sub_type" id="unscram-radio-sentence" value="sentence" checked onchange="switchUnscramMode('sentence')" style="accent-color: #0ea5e9; cursor: pointer;"> Câu (Sentence)
-                                    </label>
-                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0; color: #0ea5e9;">
-                                        <input type="radio" name="unscram_sub_type" id="unscram-radio-word" value="word" onchange="switchUnscramMode('word')" style="accent-color: #0ea5e9; cursor: pointer;"> Từ (Word)
-                                    </label>
+                                <div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <button type="button" class="btn-admin" style="background: #0284c7; padding: 6px 12px; font-size: 12px; border-radius: 20px;" onclick="loadUnscramSample()">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> Nạp mẫu có câu hỏi
+                                    </button>
+                                    <div style="display: inline-flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; color: #475569;">
+                                        <span style="color: #64748b;"><i class="fa-solid fa-sliders"></i> Toggle kiểu:</span>
+                                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0; color: #0284c7;">
+                                            <input type="radio" name="unscram_sub_type" id="unscram-radio-sentence" value="sentence" checked onchange="switchUnscramMode('sentence')" style="accent-color: #0ea5e9; cursor: pointer;"> Câu (Sentence)
+                                        </label>
+                                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; margin: 0; color: #0ea5e9;">
+                                            <input type="radio" name="unscram_sub_type" id="unscram-radio-word" value="word" onchange="switchUnscramMode('word')" style="accent-color: #0ea5e9; cursor: pointer;"> Từ (Word)
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                             <textarea id="unscram-sentences" class="admin-textarea" style="height: 250px; font-size: 16px; line-height: 1.5;" placeholder="Ví dụ:&#10;I wanna buy a .com domain so much!&#10;The quick brown fox jumps over the lazy dog."></textarea>
@@ -831,8 +836,8 @@
                 if (columnBtn) { columnBtn.style.background = '#64748b'; columnBtn.style.color = '#fff'; }
                 if (radioWord) radioWord.checked = true;
                 if (label) label.innerText = 'Nhập danh sách từ (Mỗi từ nằm trên 1 dòng - xáo trộn các chữ cái):';
-                if (textarea) textarea.placeholder = 'Ví dụ:\nELEPHANT\nBEAUTIFUL\nUNIVERSE\nWELCOME';
-                if (helpNote) helpNote.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i> Chế độ Từ (Word): Hệ thống sẽ xáo trộn các <b>CHỮ CÁI</b> của từng từ. Khi bấm xếp lại sẽ ghép thành từ hoàn chỉnh.';
+                if (textarea) textarea.placeholder = 'Ví dụ (Từ đơn thuần hoặc Từ | Câu hỏi suy luận):\nELEPHANT | Loài động vật to lớn có chiếc vòi dài\nSUNFLOWER | Loài hoa luôn hướng về phía mặt trời mọc\nASTRONAUT | Người du hành khám phá ngoài không gian vũ trụ\nVOLCANO | Ngọn núi có thể phun trào nham thạch nóng chảy\nCHOCOLATE | Món ngọt làm từ hạt cacao';
+                if (helpNote) helpNote.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i> <b>Chế độ Từ (Word):</b> Hệ thống sẽ xáo trộn các <b>CHỮ CÁI</b>. <br><span style="color: #0284c7; font-weight: 800;"><i class="fa-solid fa-lightbulb"></i> Tính năng Câu hỏi / Gợi ý:</span> Cậu có thể nhập <code>Từ | Câu hỏi gợi ý</code> để học sinh đọc câu hỏi suy luận ra từ rồi sắp xếp các chữ cái!';
             } else {
                 sentencePanel.style.display = 'block';
                 columnPanel.style.display = 'none';
@@ -841,8 +846,26 @@
                 if (columnBtn) { columnBtn.style.background = '#64748b'; columnBtn.style.color = '#fff'; }
                 if (radioSentence) radioSentence.checked = true;
                 if (label) label.innerText = 'Nhập danh sách câu (Mỗi câu nằm trên 1 dòng - xáo trộn các từ):';
-                if (textarea) textarea.placeholder = 'Ví dụ:\nI wanna buy a .com domain so much!\nThe quick brown fox jumps over the lazy dog.';
-                if (helpNote) helpNote.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i> Chế độ Câu (Sentence): Hệ thống sẽ xáo trộn các <b>TỪ</b> trong câu. Khi bấm xếp lại sẽ ghép thành câu hoàn chỉnh.';
+                if (textarea) textarea.placeholder = 'Ví dụ (Câu đơn thuần hoặc Câu | Câu hỏi / Gợi ý):\nThe sun rises in the east and sets in the west. | Quy luật mọc và lặn của mặt trời\nPractice makes perfect. | Thành ngữ có công mài sắt có ngày nên kim\nHonesty is the best policy. | Thật thà là phẩm chất thượng sách';
+                if (helpNote) helpNote.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i> <b>Chế độ Câu (Sentence):</b> Hệ thống sẽ xáo trộn các <b>TỪ</b> trong câu. <br><span style="color: #0284c7; font-weight: 800;"><i class="fa-solid fa-lightbulb"></i> Tùy chọn gợi ý:</span> Cậu có thể thêm <code>Câu | Câu hỏi hoặc nghĩa của câu</code> để hiển thị trên màn chiếu.';
+            }
+        };
+
+        window.loadUnscramSample = function() {
+            const textarea = document.getElementById('unscram-sentences');
+            if (window.unscramMode === 'word') {
+                textarea.value = `ELEPHANT | Loài động vật to lớn có chiếc vòi dài và đôi ngà trắng
+SUNFLOWER | Loài hoa luôn hướng về phía mặt trời mọc
+ASTRONAUT | Người du hành khám phá ngoài không gian vũ trụ
+VOLCANO | Ngọn núi có thể phun trào nham thạch nóng chảy
+CHOCOLATE | Món ngọt làm từ hạt cacao được nhiều người yêu thích`;
+                showToast("Đã nạp mẫu!", "Đã nạp 5 từ vựng kèm câu hỏi suy luận mẫu!", "success");
+            } else {
+                textarea.value = `The sun rises in the east and sets in the west. | Quy luật mọc và lặn của mặt trời
+Practice makes perfect. | Thành ngữ: Có công mài sắt, có ngày nên kim
+Actions speak louder than words. | Hành động luôn quan trọng hơn lời nói
+Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
+                showToast("Đã nạp mẫu!", "Đã nạp danh sách câu mẫu kèm câu hỏi/gợi ý!", "success");
             }
         };
 
@@ -1006,9 +1029,13 @@
             if (payload.mode === 'columns') {
                 showToast("Tuyệt vời!", `Đã gửi ${payload.pairs.length} cặp cột màu sang Máy chiếu!`, "success");
             } else if (payload.mode === 'word') {
-                showToast("Tuyệt vời!", `Đã gửi ${(payload.words || payload.sentences).length} từ xáo trộn chữ cái sang Máy chiếu!`, "success");
+                const countWithQuestions = (payload.items || []).filter(it => it.question).length;
+                const qNote = countWithQuestions > 0 ? ` (Kèm ${countWithQuestions} câu hỏi gợi ý)` : '';
+                showToast("Tuyệt vời!", `Đã gửi ${(payload.words || payload.sentences).length} từ xáo trộn chữ cái${qNote} sang Máy chiếu!`, "success");
             } else {
-                showToast("Tuyệt vời!", `Đã gửi ${payload.sentences.length} câu bão táp sang Máy chiếu!`, "success");
+                const countWithQuestions = (payload.items || []).filter(it => it.question).length;
+                const qNote = countWithQuestions > 0 ? ` (Kèm ${countWithQuestions} câu hỏi gợi ý)` : '';
+                showToast("Tuyệt vời!", `Đã gửi ${payload.sentences.length} câu bão táp${qNote} sang Máy chiếu!`, "success");
             }
         };
 
@@ -1231,15 +1258,32 @@
                     return { mode: 'columns', pairs: pairs, columnColors: { left: leftColor, right: rightColor } };
                 }
                 const text = document.getElementById('unscram-sentences').value;
-                const items = text.split('\n').map(s => s.trim()).filter(s => s !== "");
-                if (items.length === 0) { 
+                const rawLines = text.split('\n').map(s => s.trim()).filter(s => s !== "");
+                if (rawLines.length === 0) { 
                     showToast("Lỗi", mode === 'word' ? "Nhập ít nhất 1 từ chứ cậu!" : "Nhập ít nhất 1 câu chứ cậu!", "error"); 
                     return null; 
                 }
-                if (mode === 'word') {
-                    return { mode: 'word', words: items, sentences: items };
+                const parsedItems = [];
+                const words = [];
+                const sentences = [];
+                rawLines.forEach(line => {
+                    const parts = line.split('|');
+                    const textPart = parts[0].trim();
+                    const questionPart = parts.length > 1 ? parts.slice(1).join('|').trim() : '';
+                    if (textPart) {
+                        parsedItems.push({ text: textPart, question: questionPart });
+                        words.push(textPart);
+                        sentences.push(textPart);
+                    }
+                });
+                if (parsedItems.length === 0) {
+                    showToast("Lỗi", "Dữ liệu nhập chưa hợp lệ!", "error");
+                    return null;
                 }
-                return { mode: 'sentence', sentences: items };
+                if (mode === 'word') {
+                    return { mode: 'word', items: parsedItems, words: words, sentences: sentences };
+                }
+                return { mode: 'sentence', items: parsedItems, sentences: sentences };
             }
             if(gameType === 'racing') {
                 let questions = [];
@@ -1334,9 +1378,23 @@
                     document.getElementById('unscram-color-left').value = (data.columnColors && data.columnColors.left) || '#ef4444';
                     document.getElementById('unscram-color-right').value = (data.columnColors && data.columnColors.right) || '#38bdf8';
                 } else if (mode === 'word') {
-                    document.getElementById('unscram-sentences').value = (data.words || data.sentences || []).join('\n');
+                    if (data.items && Array.isArray(data.items)) {
+                        document.getElementById('unscram-sentences').value = data.items.map(it => {
+                            if (typeof it === 'string') return it;
+                            return it.question ? `${it.text} | ${it.question}` : it.text;
+                        }).join('\n');
+                    } else {
+                        document.getElementById('unscram-sentences').value = (data.words || data.sentences || []).join('\n');
+                    }
                 } else {
-                    document.getElementById('unscram-sentences').value = (data.sentences || []).join('\n');
+                    if (data.items && Array.isArray(data.items)) {
+                        document.getElementById('unscram-sentences').value = data.items.map(it => {
+                            if (typeof it === 'string') return it;
+                            return it.question ? `${it.text} | ${it.question}` : it.text;
+                        }).join('\n');
+                    } else {
+                        document.getElementById('unscram-sentences').value = (data.sentences || []).join('\n');
+                    }
                 }
             }
             if(gameType === 'racing') {
