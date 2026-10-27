@@ -455,20 +455,41 @@ if (btnLogin) {
         const itemsPerPage = 5;
         let globalReadHistory = {}; // Biến RAM lưu trí nhớ đám mây tạm thời
 
+        function getActiveUser(firebaseUser) {
+            if (firebaseUser) return firebaseUser;
+            if (window.getMHEntUser && typeof window.getMHEntUser === 'function') {
+                const u = window.getMHEntUser();
+                if (u && (u.uid || u.email)) return u;
+            }
+            try {
+                const local = localStorage.getItem('mhent_user_profile');
+                if (local) {
+                    const parsed = JSON.parse(local);
+                    if (parsed && (parsed.uid || parsed.email)) return parsed;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        const initialUser = getActiveUser(auth.currentUser);
+        let hasCheckedAuth = Boolean(initialUser);
+
         onAuthStateChanged(auth, async (user) => {
-            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
-            const btnTheme = document.getElementById('btn-theme-toggle'); 
-            
-            if (!activeUser) {
-                document.getElementById('btn-login').style.display = 'flex';
-                if(btnTheme) btnTheme.style.display = 'flex'; 
-                document.getElementById('user-profile').style.display = 'none';
-                document.getElementById('bell-container').style.display = 'none';
-                
-                document.getElementById('full-notif-list').innerHTML = '<p style="padding: 40px; text-align: center;">Cậu chưa đăng nhập kìa!</p>';
-                document.querySelector('.pagination').style.display = 'none';
+            const activeUser = getActiveUser(user);
+            if (!activeUser && !hasCheckedAuth) {
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
                 return;
             }
+            hasCheckedAuth = true;
+
+            if (!activeUser) {
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
+                return;
+            }
+
+            const btnTheme = document.getElementById('btn-theme-toggle');
 
             document.getElementById('btn-login').style.display = 'none';
             if(btnTheme) btnTheme.style.display = 'none'; 

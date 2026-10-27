@@ -1046,8 +1046,34 @@
         };
         if (localStorage.getItem('mhent_dark_mode') === 'on') { document.body.classList.add('dark-mode'); }
 
+        function getActiveUser(firebaseUser) {
+            if (firebaseUser) return firebaseUser;
+            if (window.getMHEntUser && typeof window.getMHEntUser === 'function') {
+                const u = window.getMHEntUser();
+                if (u && (u.uid || u.email)) return u;
+            }
+            try {
+                const local = localStorage.getItem('mhent_user_profile');
+                if (local) {
+                    const parsed = JSON.parse(local);
+                    if (parsed && (parsed.uid || parsed.email)) return parsed;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        const initialUser = getActiveUser(auth.currentUser);
+        let hasCheckedAuth = Boolean(initialUser);
+
         onAuthStateChanged(auth, (user) => {
-            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            const activeUser = getActiveUser(user);
+            if (!activeUser && !hasCheckedAuth) {
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
+                return;
+            }
+            hasCheckedAuth = true;
+
             const btnTheme = document.getElementById('btn-theme-toggle'); 
             if (activeUser) {
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none'; if(btnTheme) btnTheme.style.display = 'none'; 
@@ -1091,8 +1117,8 @@
                 }
                 if (typeof loadNotifications === "function") loadNotifications();
             } else {
-                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex'; if(btnTheme) btnTheme.style.display = 'flex'; 
-                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none'; if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'none';
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
             }
             if (user && user.uid) {
                 getDoc(doc(db, "users", user.uid)).then((uSnap) => {

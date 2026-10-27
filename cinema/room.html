@@ -453,8 +453,40 @@ if (btnLogin) {
             window.userLastWatched = {}; 
             window.latestWatchedId = null; 
         
+            function getActiveUser(firebaseUser) {
+                if (firebaseUser) return firebaseUser;
+                if (window.getMHEntUser && typeof window.getMHEntUser === 'function') {
+                    const u = window.getMHEntUser();
+                    if (u && (u.uid || u.email)) return u;
+                }
+                try {
+                    const local = localStorage.getItem('mhent_user_profile');
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        if (parsed && (parsed.uid || parsed.email)) return parsed;
+                    }
+                } catch(e) {}
+                return null;
+            }
+
+            const initialUser = getActiveUser(auth.currentUser);
+            let hasCheckedAuth = Boolean(initialUser);
+
             onAuthStateChanged(auth, async (user) => {
-                const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+                const activeUser = getActiveUser(user);
+                if (!activeUser && !hasCheckedAuth) {
+                    const currentPath = window.location.pathname + window.location.search;
+                    window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
+                    return;
+                }
+                hasCheckedAuth = true;
+
+                if (!activeUser) {
+                    const currentPath = window.location.pathname + window.location.search;
+                    window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
+                    return;
+                }
+
                 const btnTheme = document.getElementById('btn-theme-toggle'); 
 
                 if (activeUser) {
@@ -484,13 +516,8 @@ if (btnLogin) {
                     } catch(e) { console.error("Lỗi tải lịch sử:", e); }
 
                 } else {
-                    if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
-                    if(btnTheme) btnTheme.style.display = 'flex'; 
-                    if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
-                    if(document.getElementById('bell-container')) document.getElementById('bell-container').style.display = 'none';
-                    
-                    window.userLastWatched = {};
-                    if(typeof window.renderContinueWatching === "function") window.renderContinueWatching();
+                    const currentPath = window.location.pathname + window.location.search;
+                    window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
                 }
 
                 const userRef = doc(db, "users", activeUser?.uid || 'guest');

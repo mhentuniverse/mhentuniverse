@@ -39,10 +39,54 @@
     <link rel="stylesheet" href="/cinema/cinema-theme.css">
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        (function() {
+            try {
+                const local = localStorage.getItem('mhent_user_profile');
+                if (local) {
+                    const p = JSON.parse(local);
+                    if (p && (p.uid || p.email)) {
+                        document.documentElement.classList.add('cinema-pre-auth');
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
     <script src="/js/data.js"></script>
     <script src="/js/config.js"></script>
 </head>
 <body class="theme-cinema gradient-bg">
+    <!-- 🎬 CINEMA GATEKEEPER - CỔNG SOÁT VÉ ĐIỆN ẢNH BẢO MẬT -->
+    <div id="cinema-gatekeeper" class="cinema-gatekeeper">
+        <div class="cinema-gate-backdrop"></div>
+        <div class="cinema-gate-console" id="cinema-auth-box">
+            <div class="cinema-gate-badge">
+                <i class="fa-solid fa-crown"></i> ĐẶC QUYỀN HỘI VIÊN MHENT
+            </div>
+            <div class="cinema-gate-icon" id="cinema-status-icon">
+                <i class="fa-solid fa-film"></i>
+            </div>
+            <h2 class="cinema-gate-title" id="cinema-status-title">CỔNG SOÁT VÉ ĐIỆN ẢNH</h2>
+            <p class="cinema-gate-desc" id="cinema-status-desc">
+                Chào mừng cậu đến với <b>MHEnt. Cinema</b>.<br>
+                Khu phức hợp rạp chiếu phim kỹ thuật số dành riêng cho cư dân MHEnt Universe. Vui lòng xuất trình Thẻ Hội Viên MHEnt ID để vào rạp thưởng thức những thước phim đỉnh cao!
+            </p>
+            
+            <div class="cinema-gate-actions" id="cinema-gate-actions">
+                <button class="btn-cinema-auth" id="btn-cinema-login" onclick="goToCinemaLogin()">
+                    <i class="fa-solid fa-ticket"></i> Xuất Trình Thẻ Hội Viên / Đăng Nhập
+                </button>
+                <button class="btn-cinema-back" onclick="window.location.href='/'">
+                    <i class="fa-solid fa-arrow-left"></i> Về Đại Sảnh MHEnt
+                </button>
+            </div>
+            
+            <div id="cinema-loading-msg" class="cinema-loading-msg" style="display: none;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Đang mở cổng rạp chiếu phim...
+            </div>
+        </div>
+    </div>
     <nav class="navbar">
         <div class="nav-left">
             <a onclick="window.location.href='/cinema'" style="cursor: pointer;">
@@ -422,13 +466,107 @@
             document.body.classList.add('dark-mode');
         }
 
+        // ----------------------------------------------------
+        // 🎬 CỔNG SOÁT VÉ CINEMA GATEKEEPER (BẮT BUỘC ĐĂNG NHẬP)
+        // ----------------------------------------------------
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTarget = urlParams.get('redirect');
+        let cinemaUnlocked = false;
+
+        function getActiveUser(firebaseUser) {
+            if (firebaseUser) return firebaseUser;
+            if (window.getMHEntUser && typeof window.getMHEntUser === 'function') {
+                const u = window.getMHEntUser();
+                if (u && (u.uid || u.email)) return u;
+            }
+            try {
+                const local = localStorage.getItem('mhent_user_profile');
+                if (local) {
+                    const parsed = JSON.parse(local);
+                    if (parsed && (parsed.uid || parsed.email)) return parsed;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        function unlockCinema(user, isInstant = false) {
+            if (cinemaUnlocked) return;
+            cinemaUnlocked = true;
+
+            const gate = document.getElementById('cinema-gatekeeper');
+            const statusIcon = document.getElementById('cinema-status-icon');
+            const statusTitle = document.getElementById('cinema-status-title');
+            const statusDesc = document.getElementById('cinema-status-desc');
+            const gateActions = document.getElementById('cinema-gate-actions');
+            const loadingMsg = document.getElementById('cinema-loading-msg');
+
+            // Xử lý chuyển tiếp nếu có tham số redirect (ví dụ từ watch hoặc room)
+            if (redirectTarget) {
+                const targetUrl = decodeURIComponent(redirectTarget);
+                if (targetUrl && targetUrl !== window.location.href && targetUrl !== '/cinema') {
+                    if (gateActions) gateActions.style.display = 'none';
+                    if (loadingMsg) {
+                        loadingMsg.style.display = 'flex';
+                        loadingMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang mở phòng phim...';
+                    }
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 500);
+                    return;
+                }
+            }
+
+            if (isInstant) {
+                if (gate) gate.classList.add('unlocked');
+                return;
+            }
+
+            if (gateActions) gateActions.style.display = 'none';
+            if (loadingMsg) loadingMsg.style.display = 'flex';
+
+            if (statusIcon) {
+                statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                statusIcon.style.color = '#10b981';
+                statusIcon.style.filter = 'drop-shadow(0 0 20px rgba(16, 185, 129, 0.6))';
+            }
+            if (statusTitle) {
+                statusTitle.innerText = "VÉ HỢP LỆ - MỞ CỬA RẠP";
+                statusTitle.style.color = "#10b981";
+            }
+            const displayName = user.displayName || user.name || (user.email ? user.email.split('@')[0] : 'Thành viên');
+            if (statusDesc) {
+                statusDesc.innerHTML = `Đã xác thực Thẻ Hội Viên: <b style="color: #ff85a2;">${displayName}</b>.<br>Chúc cậu có những phút giây xem phim tuyệt vời!`;
+            }
+
+            setTimeout(() => {
+                if (gate) gate.classList.add('unlocked');
+            }, 600);
+        }
+
+        window.goToCinemaLogin = function() {
+            let returnPath = '/cinema';
+            if (redirectTarget) {
+                returnPath = redirectTarget;
+            }
+            window.redirectToLogin(returnPath);
+        };
+
+        // Quét ngay session ban đầu
+        const immediateUser = getActiveUser(auth.currentUser);
+        if (immediateUser) {
+            unlockCinema(immediateUser, true);
+        } else {
+            document.documentElement.classList.remove('cinema-pre-auth');
+        }
+
         window.userLastWatched = {}; 
         window.latestWatchedId = null; 
     
         onAuthStateChanged(auth, async (user) => {
-            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            const activeUser = getActiveUser(user);
             const btnTheme = document.getElementById('btn-theme-toggle');
             if (activeUser) {
+                unlockCinema(activeUser, false);
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if(btnTheme) btnTheme.style.display = 'none';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
@@ -446,14 +584,21 @@
                 if (typeof loadNotifications === 'function') loadNotifications();
 
                 try {
-                    const userSnap = await getDoc(doc(db, 'users', activeUser.uid));
-                    if (userSnap.exists()) {
-                        window.userLastWatched = userSnap.data().lastWatched || {};
-                        window.latestWatchedId = userSnap.data().latestWatchedId || null;
+                    if (activeUser.uid) {
+                        const userSnap = await getDoc(doc(db, 'users', activeUser.uid));
+                        if (userSnap.exists()) {
+                            window.userLastWatched = userSnap.data().lastWatched || {};
+                            window.latestWatchedId = userSnap.data().latestWatchedId || null;
+                        }
                     }
                     if(typeof window.renderContinueWatching === 'function') window.renderContinueWatching();
                 } catch(e) { console.error('Lỗi tải lịch sử:', e); }
             } else {
+                cinemaUnlocked = false;
+                document.documentElement.classList.remove('cinema-pre-auth');
+                const gate = document.getElementById('cinema-gatekeeper');
+                if (gate) gate.classList.remove('unlocked');
+
                 if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if(btnTheme) btnTheme.style.display = 'flex';
                 if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';

@@ -548,8 +548,40 @@ if (btnLogin) {
         // ==========================================
         // 🔥 THEO DÕI TRẠNG THÁI VÀ LÔI PHIM TỪ THƯ VIỆN 
         // ==========================================
+        function getActiveUser(firebaseUser) {
+            if (firebaseUser) return firebaseUser;
+            if (window.getMHEntUser && typeof window.getMHEntUser === 'function') {
+                const u = window.getMHEntUser();
+                if (u && (u.uid || u.email)) return u;
+            }
+            try {
+                const local = localStorage.getItem('mhent_user_profile');
+                if (local) {
+                    const parsed = JSON.parse(local);
+                    if (parsed && (parsed.uid || parsed.email)) return parsed;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        const initialUser = getActiveUser(auth.currentUser);
+        let hasCheckedAuth = Boolean(initialUser);
+
         onAuthStateChanged(auth, async (user) => {
-            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            const activeUser = getActiveUser(user);
+            if (!activeUser && !hasCheckedAuth) {
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
+                return;
+            }
+            hasCheckedAuth = true;
+
+            if (!activeUser) {
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = '/cinema?redirect=' + encodeURIComponent(currentPath);
+                return;
+            }
+
             const btnTheme = document.getElementById('btn-theme-toggle'); 
             const container = document.getElementById('library-list-container');
             const adminBtn = document.getElementById('admin-panel-btn');

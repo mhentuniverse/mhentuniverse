@@ -713,3 +713,179 @@ body.dark-mode .notif-item.unread {
     word-wrap: break-word !important;
     word-break: break-word !important;
 }
+
+/* ==============================================================
+   CINEMA GATEKEEPER - CỔNG SOÁT VÉ ĐIỆN ẢNH (BẮT BUỘC ĐĂNG NHẬP)
+   ============================================================== */
+html.cinema-pre-auth #cinema-gatekeeper {
+    display: none !important;
+}
+
+.cinema-gatekeeper {
+    position: fixed;
+    inset: 0;
+    z-index: 9999999;
+    background: radial-gradient(circle at center, rgba(28, 16, 33, 0.97) 0%, rgba(9, 7, 12, 0.99) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s ease;
+    opacity: 1;
+    visibility: visible;
+}
+
+.cinema-gatekeeper.unlocked {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.cinema-gate-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 133, 162, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.cinema-gate-console {
+    background: rgba(24, 16, 28, 0.88);
+    border: 1px solid rgba(255, 133, 162, 0.35);
+    box-shadow: 0 0 50px rgba(255, 133, 162, 0.18), 0 25px 50px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(255, 133, 162, 0.06);
+    padding: 44px 36px;
+    border-radius: 26px;
+    text-align: center;
+    max-width: 480px;
+    width: 95%;
+    position: relative;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: all 0.35s ease;
+    animation: cinemaGateAppear 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-sizing: border-box;
+}
+
+@keyframes cinemaGateAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.cinema-gate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: rgba(255, 133, 162, 0.14);
+    color: #ff85a2;
+    border: 1px solid rgba(255, 133, 162, 0.32);
+    margin-bottom: 22px;
+    font-family: 'Nunito', sans-serif;
+}
+
+.cinema-gate-icon {
+    font-size: 56px;
+    color: #ff85a2;
+    margin-bottom: 18px;
+    filter: drop-shadow(0 0 24px rgba(255, 133, 162, 0.5));
+    transition: all 0.35s ease;
+}
+
+.cinema-gate-title {
+    font-size: 23px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 0 0 14px 0;
+    font-family: 'Nunito', sans-serif;
+    text-shadow: 0 0 16px rgba(255, 133, 162, 0.35);
+}
+
+.cinema-gate-desc {
+    color: #cbd5e1;
+    font-size: 14.5px;
+    line-height: 1.65;
+    margin: 0 0 28px 0;
+    font-family: 'Nunito', sans-serif;
+}
+
+.cinema-gate-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-cinema-auth {
+    background: linear-gradient(135deg, #ff85a2 0%, #ff5c8a 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 25px rgba(255, 92, 138, 0.35);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.btn-cinema-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(255, 92, 138, 0.55);
+    background: linear-gradient(135deg, #ff94af 0%, #ff6b95 100%);
+}
+
+.btn-cinema-back {
+    background: transparent;
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 13.5px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-cinema-back:hover {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.cinema-loading-msg {
+    color: #10b981;
+    font-weight: 800;
+    font-size: 15px;
+    margin-top: 15px;
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
