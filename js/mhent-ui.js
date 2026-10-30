@@ -130,7 +130,8 @@ window.closeConfirmPopup = function() {
 };
 
 function removeExistingOverlays() {
-    const existing = document.querySelectorAll('.mhent-ui-overlay');
+    // Chỉ dọn dẹp popup/confirm tự sinh, KHÔNG xóa các modal tĩnh trên trang (id bắt đầu bằng modal-)
+    const existing = document.querySelectorAll('#mhent-active-popup, #mhent-active-confirm, .mhent-ui-overlay:not([id^="modal-"])');
     existing.forEach(el => el.remove());
 }
 
