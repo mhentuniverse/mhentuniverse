@@ -417,56 +417,139 @@
                                 mainBtn.href = '/cinema/watch?id=' + movieId;
                             }
 
-                            // 2. TẠO DANH SÁCH TẬP HOẶC DANH SÁCH BẢN DỊCH
+                            // 2. TẠO DANH SÁCH TẬP HOẶC DANH SÁCH BẢN DỊCH (HỖ TRỢ TÁCH TẬP COLAB / CROSSOVER)
                             if (movieInfo.episodes && movieInfo.episodes.length > 0) {
-                                // Nếu là Series thì ghi "Tất cả Tập phim", Eiga thì ghi "Các bản dịch hiện có"
-                                let listTitle = movieInfo.type === 'series' ? "Tất cả Tập phim" : "Các bản dịch hiện có";
-                                
-                                let episodeListHTML = `
-                                    <div class="ep-list-wrapper">
-                                        <div class="ep-list-title">${listTitle}</div>
-                                        <div class="ep-list-container">
-                                `;
-                                
                                 let allTranslators = new Set(); // Kho gom tên nhóm dịch
+                                const regularList = [];
+                                const colabList = [];
 
-                                movieInfo.episodes.forEach((ep, index) => {
-                                    let currentTeam = "MHEnt. Subtitle"; 
-                                    let cleanTitle = ep.title; 
+                                // Phân tách dữ liệu tập (tiêu đề, nhóm dịch, cờ colab)
+                                function parseEpisodeData(ep) {
+                                    if (!ep) return { cleanTitle: '', displayTitle: '', shortTitle: '', teamName: 'MHEnt. Subtitle', isColab: false };
+                                    let rawTitle = (typeof ep === 'string' ? ep : ep.title) || '';
+                                    let cleanTitle = rawTitle.trim();
+                                    let teamName = ep.teamName || "MHEnt. Subtitle";
 
-                                    // Quét lùng cái đuôi ngoặc vuông
-                                    const match = ep.title.match(/(.+) \[(.+)\]$/);
+                                    // 1. Quét tên nhóm dịch trong ngoặc vuông cuối: [Tên Nhóm Dịch]
+                                    const match = cleanTitle.match(/(.+) \[(.+)\]$/);
                                     if (match) {
-                                        cleanTitle = match[1].trim(); 
-                                        currentTeam = match[2].trim();   
-                                    } else if (ep.title.includes('[')) { 
-                                        const parts = ep.title.split('[');
+                                        cleanTitle = match[1].trim();
+                                        teamName = match[2].trim();
+                                    } else if (cleanTitle.includes('[')) {
+                                        const parts = cleanTitle.split('[');
                                         cleanTitle = parts[0].trim();
-                                        currentTeam = parts[1].replace(']', '').trim();
+                                        const extracted = parts[1].replace(']', '').trim();
+                                        if (!/^(colab|crossover|sp colab|giao lưu|giao luu)$/i.test(extracted)) {
+                                            teamName = extracted;
+                                        }
                                     }
 
-                                    allTranslators.add(currentTeam); // Bỏ tên nhóm vào rổ
+                                    // 2. Nhận diện tập Colab / Crossover / Giao lưu
+                                    const colabRegex = /^\[?(tập colab|tập giao lưu|colab|crossover|giao lưu|giao luu|sp colab|sp crossover)\]?[:\s\-]*/i;
+                                    const isColab = Boolean(
+                                        ep.isColab === true ||
+                                        ep.type === 'colab' ||
+                                        ep.type === 'crossover' ||
+                                        colabRegex.test(cleanTitle) ||
+                                        colabRegex.test(rawTitle) ||
+                                        /\b(tập colab|tập giao lưu)\b/i.test(cleanTitle)
+                                    );
 
-                                    // In ra từng ô VỚI VECTOR MỚI
-                                    episodeListHTML += `
-                                        <a onclick="window.location.href='/cinema/watch?id=${movieId}&ep=${index}'" style="cursor: pointer;" class="ep-list-item">
-                                            <div class="ep-item-left">
-                                                <span class="ep-name">${cleanTitle}</span>
-                                                <span class="ep-subtext">
-                                                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
-                                                    ${currentTeam}
-                                                </span>
-                                            </div>
-                                            <div class="ep-item-right">
-                                                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; vertical-align: -2px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 
-                                                Xem ngay
-                                            </div>
-                                        </a>
-                                    `;
+                                    // 3. Chuẩn hóa tiêu đề hiển thị (bỏ tiền tố [Colab] nếu có)
+                                    let displayTitle = cleanTitle.replace(colabRegex, '').trim();
+                                    if (displayTitle.startsWith(':') || displayTitle.startsWith('-')) {
+                                        displayTitle = displayTitle.substring(1).trim();
+                                    }
+                                    if (!displayTitle) displayTitle = cleanTitle;
+
+                                    return { cleanTitle, displayTitle, teamName, isColab };
+                                }
+
+                                movieInfo.episodes.forEach((ep, index) => {
+                                    const info = parseEpisodeData(ep);
+                                    info.index = index;
+                                    allTranslators.add(info.teamName);
+                                    if (info.isColab) {
+                                        colabList.push(info);
+                                    } else {
+                                        regularList.push(info);
+                                    }
                                 });
-                                episodeListHTML += `</div></div>`;
-                                
-                                actionButtonsBox.insertAdjacentHTML('afterend', episodeListHTML);
+
+                                let combinedHTML = '';
+
+                                // 2.1. DANH SÁCH TẬP PHIM CHÍNH
+                                if (regularList.length > 0) {
+                                    let listTitle = movieInfo.type === 'series' 
+                                        ? (colabList.length > 0 ? `Tập Phim Chính (${regularList.length} tập)` : "Tất cả Tập phim") 
+                                        : "Các bản dịch hiện có";
+
+                                    let regularHTML = `
+                                        <div class="ep-list-wrapper">
+                                            <div class="ep-list-title">${listTitle}</div>
+                                            <div class="ep-list-container">
+                                    `;
+
+                                    regularList.forEach((item) => {
+                                        regularHTML += `
+                                            <a onclick="window.location.href='/cinema/watch?id=${movieId}&ep=${item.index}'" style="cursor: pointer;" class="ep-list-item">
+                                                <div class="ep-item-left">
+                                                    <span class="ep-name">${item.cleanTitle}</span>
+                                                    <span class="ep-subtext">
+                                                        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                                                        ${item.teamName}
+                                                    </span>
+                                                </div>
+                                                <div class="ep-item-right">
+                                                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; vertical-align: -2px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 
+                                                    Xem ngay
+                                                </div>
+                                            </a>
+                                        `;
+                                    });
+                                    regularHTML += `</div></div>`;
+                                    combinedHTML += regularHTML;
+                                }
+
+                                // 2.2. DANH SÁCH TẬP GIAO LƯU & COLAB (TÁCH KHỐI NỔI BẬT)
+                                if (colabList.length > 0) {
+                                    let colabHTML = `
+                                        <div class="ep-list-wrapper colab-section-wrapper">
+                                            <div class="colab-header-title">
+                                                <span style="display: flex; align-items: center; gap: 8px;">
+                                                    <span class="colab-pill-tag">🤝 COLAB</span>
+                                                    <span>Tập Giao Lưu & Crossover Đặc Biệt</span>
+                                                </span>
+                                                <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">${colabList.length} tập</span>
+                                            </div>
+                                            <div class="ep-list-container" style="max-height: none;">
+                                    `;
+
+                                    colabList.forEach((item) => {
+                                        colabHTML += `
+                                            <a onclick="window.location.href='/cinema/watch?id=${movieId}&ep=${item.index}'" style="cursor: pointer;" class="ep-colab-card-item">
+                                                <div class="ep-item-left">
+                                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                                        <span style="background: rgba(255, 133, 162, 0.16); color: #ff5c8a; font-size: 10.5px; font-weight: 900; padding: 2px 7px; border-radius: 5px;">CROSSOVER</span>
+                                                        <span class="ep-name" style="font-size: 14.5px; font-weight: 800;">${item.displayTitle}</span>
+                                                    </div>
+                                                    <span class="ep-subtext">
+                                                        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                                                        Thực hiện bởi: <strong style="color: #ff5c8a; margin-left: 3px;">${item.teamName}</strong>
+                                                    </span>
+                                                </div>
+                                                <div class="ep-item-right" style="opacity: 1; color: #ff5c8a; font-weight: 800; font-size: 13px; display: flex; align-items: center; gap: 4px;">
+                                                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; vertical-align: -2px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> 
+                                                    Xem Tập Này
+                                                </div>
+                                            </a>
+                                        `;
+                                    });
+                                    colabHTML += `</div></div>`;
+                                    combinedHTML += colabHTML;
+                                }
+
+                                actionButtonsBox.insertAdjacentHTML('afterend', combinedHTML);
 
                                 // 3. IN TÊN NHÓM DỊCH LÊN HEADER (Bản dịch: Nhóm A, Nhóm B...)
                                 let translatorsArray = Array.from(allTranslators); 
