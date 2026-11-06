@@ -147,8 +147,13 @@
                         <select id="ep-movie-id" class="admin-select"><option value="">⏳ Đang tải kho phim...</option></select>
                     </div>
                     <div class="input-group full">
-                        <label>Tên Tập Phim (VD: Tập 1, Tập 2... hoặc nếu là tập Colab thì ghi tiền tố [Colab] ở đầu) <span style="color:red;">*</span></label>
-                        <input type="text" id="ep-title" class="admin-input" placeholder="VD: Tập 1: Bắt đầu nào! (hoặc [Colab] Tên Phim B: Tên tập...)">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="margin: 0;">Tên Tập Phim <span style="color:red;">*</span></label>
+                            <button type="button" id="btn-colab-toggle-create" class="btn-colab-toggle" onclick="toggleColabEpisode('ep-title', 'btn-colab-toggle-create')">
+                                <i class="fa-solid fa-handshake"></i> <span>Tập Colab / Crossover</span>
+                            </button>
+                        </div>
+                        <input type="text" id="ep-title" class="admin-input" placeholder="VD: Tập 1: Bắt đầu nào!" oninput="syncColabBtnState('ep-title', 'btn-colab-toggle-create')">
                     </div>
                     <div class="input-group full">
                         <label style="color: var(--hub-color);">Nguồn Siêu Tốc (SUPER - Link HLS .m3u8)</label>
@@ -244,7 +249,15 @@
                 <div class="admin-card" id="edit-episode-section" style="display: none; border-top: 4px solid var(--hub-color);">
                     <h3 style="color: var(--hub-color); margin-top: 0; margin-bottom: 20px;"><i class="fa-solid fa-play"></i> 2. CHỌN TẬP ĐỂ SỬA</h3>
                     <div class="input-group full"><select id="edit-ep-index" class="admin-select" onchange="fillEpisodeDataToEdit()"><option value="">-- Chọn tập --</option></select></div>
-                    <div class="input-group full"><label>Tên Tập Phim (Nếu là tập Colab, hãy thêm tiền tố [Colab] ở đầu):</label><input type="text" id="edit-ep-title" class="admin-input"></div>
+                    <div class="input-group full">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="margin: 0;">Tên Tập Phim <span style="color:red;">*</span></label>
+                            <button type="button" id="btn-colab-toggle-edit" class="btn-colab-toggle" onclick="toggleColabEpisode('edit-ep-title', 'btn-colab-toggle-edit')">
+                                <i class="fa-solid fa-handshake"></i> <span>Tập Colab / Crossover</span>
+                            </button>
+                        </div>
+                        <input type="text" id="edit-ep-title" class="admin-input" oninput="syncColabBtnState('edit-ep-title', 'btn-colab-toggle-edit')">
+                    </div>
                     <div class="input-group full"><label style="color:var(--hub-color);">Nguồn Siêu Tốc (SUPER):</label><input type="text" id="edit-ep-super" class="admin-input" style="border-color:var(--hub-color);"></div>
                     <div class="input-group full"><label>Nguồn Chính (VIP):</label><input type="text" id="edit-ep-vip" class="admin-input"></div>
                     <div class="input-group full"><label>Nguồn DP1:</label><input type="text" id="edit-ep-dp1" class="admin-input"></div>
@@ -385,6 +398,51 @@
         });
 
         // ==============================================
+        // HELPER: BẬT / TẮT CHẾ ĐỘ TẬP COLAB / CROSSOVER
+        // ==============================================
+        window.toggleColabEpisode = function(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (!input || !btn) return;
+
+            const colabPrefixRegex = /^\[?(tập colab|tập giao lưu|colab|crossover|giao lưu|giao luu|sp colab|sp crossover)\]?[:\s\-]*/i;
+            let val = input.value.trim();
+
+            if (btn.classList.contains('active') || colabPrefixRegex.test(val)) {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa-solid fa-handshake"></i> <span>Tập Colab / Crossover</span>';
+                val = val.replace(colabPrefixRegex, '').trim();
+                if (val.startsWith(':') || val.startsWith('-')) val = val.substring(1).trim();
+                input.value = val;
+                input.placeholder = "VD: Tập 1: Bắt đầu nào!";
+            } else {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-handshake"></i> <span>✓ Đang bật: Tập Colab</span>';
+                if (!colabPrefixRegex.test(val)) {
+                    input.value = val ? `[Colab] ${val}` : '[Colab] ';
+                }
+                input.placeholder = "VD: [Colab] Tên Phim B: Tên tập";
+                input.focus();
+                const len = input.value.length;
+                input.setSelectionRange(len, len);
+            }
+        };
+
+        window.syncColabBtnState = function(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (!input || !btn) return;
+            const colabPrefixRegex = /^\[?(tập colab|tập giao lưu|colab|crossover|giao lưu|giao luu|sp colab|sp crossover)\]?[:\s\-]*/i;
+            if (colabPrefixRegex.test(input.value.trim())) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-handshake"></i> <span>✓ Đang bật: Tập Colab</span>';
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa-solid fa-handshake"></i> <span>Tập Colab / Crossover</span>';
+            }
+        };
+
+        // ==============================================
         // 1. ĐĂNG TẬP SIÊU TỐC
         // ==========================================
         document.getElementById('btn-add-episode').addEventListener('click', async () => {
@@ -413,6 +471,7 @@
                 logAdminAction(`[${window.myTeamName}] đã đăng: ${finalTitle}`, "Cinema Studio");
                 
                 document.getElementById('ep-title').value = ''; document.getElementById('ep-super').value = ''; document.getElementById('ep-vip').value = ''; document.getElementById('ep-dp1').value = ''; document.getElementById('ep-dp2').value = '';
+                syncColabBtnState('ep-title', 'btn-colab-toggle-create');
             } catch (error) { showPopup("Lỗi: " + error.message, true); } 
         });
 
@@ -496,6 +555,7 @@
             const index = document.getElementById('edit-ep-index').value;
             if(index === "") {
                 document.getElementById('edit-ep-title').value = ''; document.getElementById('edit-ep-super').value = ''; document.getElementById('edit-ep-vip').value = ''; document.getElementById('edit-ep-dp1').value = ''; document.getElementById('edit-ep-dp2').value = '';
+                syncColabBtnState('edit-ep-title', 'btn-colab-toggle-edit');
                 return;
             }
             const epData = window.currentEditMovieData.episodes[index];
@@ -506,6 +566,7 @@
             document.getElementById('edit-ep-vip').value = epData.linkVIP || '';
             document.getElementById('edit-ep-dp1').value = epData.linkDuPhong || '';
             document.getElementById('edit-ep-dp2').value = epData.linkDuPhong2 || '';
+            syncColabBtnState('edit-ep-title', 'btn-colab-toggle-edit');
         };
 
         document.getElementById('btn-update-episode').addEventListener('click', async () => {
