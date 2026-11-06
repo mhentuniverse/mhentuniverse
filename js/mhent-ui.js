@@ -211,6 +211,18 @@ function getMHEntAuthTokenCookie() {
     return null;
 }
 
+window.isMHEntRootAdmin = function(targetUser = null) {
+    const u = targetUser || (window.getMHEntUser ? window.getMHEntUser() : null) || {};
+    const email = (u.email || window.currentUserEmail || localStorage.getItem('mhent_user_email') || '').toLowerCase();
+    const role = (u.role || window.currentUserRole || localStorage.getItem('mhent_user_role') || '').toLowerCase();
+    return email === 'tokugawasakura58@gmail.com' || 
+           email === 'miyazakiharuto.ent.co@gmail.com' || 
+           email === 'mhent@mhentuniverse.com' || 
+           email === 'contact@mhentuniverse.com' || 
+           email.endsWith('@mhentuniverse.com') || 
+           ['admin', 'root', 'boss', 'chủ tịch'].some(r => role.includes(r));
+};
+
 window.syncMHEntSessionCookie = function() {
     const cookieUser = getMHEntSessionCookie();
     const token = getMHEntAuthTokenCookie();

@@ -411,18 +411,23 @@
                 try {
                     const userSnap = await getDoc(doc(db, "users", activeUser.uid));
                     let userRole = userSnap.exists() ? (userSnap.data().role || 'user') : (activeUser.role || 'user');
+                    const email = (activeUser.email || '').toLowerCase();
+                    const isRoot = email === 'tokugawasakura58@gmail.com' || email === 'miyazakiharuto.ent.co@gmail.com' || email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || email.endsWith('@mhentuniverse.com') || ['admin', 'root', 'boss', 'chủ tịch'].some(r => userRole.toLowerCase().includes(r));
 
-                    if (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('arena')) {
+                    if (isRoot || userRole.toLowerCase().includes('arena')) {
                         document.getElementById('studio-panel-btn').style.display = 'block';
                         document.getElementById('admin-divider').style.display = 'block';
-                        if(userRole.toLowerCase().includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
+                        if (isRoot || userRole.toLowerCase().includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
                     }
                 } catch(e) {
                     let userRole = activeUser.role || 'user';
-                    if (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('arena')) {
+                    const email = (activeUser.email || '').toLowerCase();
+                    const isRoot = email === 'tokugawasakura58@gmail.com' || email === 'miyazakiharuto.ent.co@gmail.com' || email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || email.endsWith('@mhentuniverse.com') || ['admin', 'root', 'boss', 'chủ tịch'].some(r => userRole.toLowerCase().includes(r));
+
+                    if (isRoot || userRole.toLowerCase().includes('arena')) {
                         document.getElementById('studio-panel-btn').style.display = 'block';
                         document.getElementById('admin-divider').style.display = 'block';
-                        if(userRole.toLowerCase().includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
+                        if (isRoot || userRole.toLowerCase().includes('admin')) document.getElementById('admin-panel-btn').style.display = 'block';
                     }
                 }
             } else {

@@ -1168,25 +1168,56 @@
                 const avtElement = document.getElementById('user-avatar'); if (avtElement) { avtElement.src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg"; avtElement.style.display = 'block'; }
 
                 const userRef = doc(db, "users", activeUser.uid || 'guest');
+                const adminBtn = document.getElementById('admin-panel-btn'); 
+                const studioBtn = document.getElementById('studio-panel-btn');
+                const emailInit = (activeUser.email || '').toLowerCase();
+                const cachedRoleInit = (activeUser.role || localStorage.getItem('mhent_user_role') || '').toLowerCase();
+                const isCachedRoot = emailInit === 'tokugawasakura58@gmail.com' || 
+                                     emailInit === 'miyazakiharuto.ent.co@gmail.com' || 
+                                     emailInit === 'mhent@mhentuniverse.com' || 
+                                     emailInit === 'contact@mhentuniverse.com' || 
+                                     emailInit.endsWith('@mhentuniverse.com') || 
+                                     cachedRoleInit.includes('admin') || 
+                                     cachedRoleInit.includes('boss') || 
+                                     cachedRoleInit.includes('root') || 
+                                     cachedRoleInit.includes('chủ tịch');
+
+                if (isCachedRoot) {
+                    if (adminBtn) adminBtn.style.display = 'flex';
+                    if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
+                    if (studioBtn) studioBtn.style.display = 'flex';
+                    if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
+                }
+
                 getDoc(userRef).then((docSnap) => {
-                    const adminBtn = document.getElementById('admin-panel-btn'); const studioBtn = document.getElementById('studio-panel-btn');
-                    if (adminBtn) adminBtn.style.display = 'none';
-                    document.getElementById('admin-divider').style.display = 'none';
-                    if (studioBtn) studioBtn.style.display = 'none';
-                    document.getElementById('studio-divider').style.display = 'none';
-                    const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (activeUser.role || '');
-                    if (userRole) {
-                        const roleLower = userRole.toLowerCase();
-                        if (roleLower.includes('admin')) { 
-                            if (adminBtn) adminBtn.style.display = 'flex'; 
-                            document.getElementById('admin-divider').style.display = 'block';
-                            if (studioBtn) studioBtn.style.display = 'flex'; 
-                            document.getElementById('studio-divider').style.display = 'block';
-                        } 
-                        else if (roleLower.includes('cinema')) { 
-                            if (studioBtn) studioBtn.style.display = 'flex'; 
-                            document.getElementById('studio-divider').style.display = 'block';
-                        }
+                    const email = (activeUser.email || (docSnap.exists() ? docSnap.data().email : '') || '').toLowerCase();
+                    const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (activeUser.role || localStorage.getItem('mhent_user_role') || '');
+                    const roleLower = (userRole || '').toLowerCase();
+                    const isRoot = email === 'tokugawasakura58@gmail.com' || 
+                                   email === 'miyazakiharuto.ent.co@gmail.com' || 
+                                   email === 'mhent@mhentuniverse.com' || 
+                                   email === 'contact@mhentuniverse.com' || 
+                                   email.endsWith('@mhentuniverse.com') || 
+                                   roleLower.includes('admin') || 
+                                   roleLower.includes('boss') || 
+                                   roleLower.includes('root') || 
+                                   roleLower.includes('chủ tịch');
+
+                    if (isRoot) { 
+                        if (adminBtn) adminBtn.style.display = 'flex'; 
+                        if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
+                        if (studioBtn) studioBtn.style.display = 'flex'; 
+                        if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
+                    } else if (roleLower.includes('cinema') || roleLower.includes('uploader')) { 
+                        if (adminBtn) adminBtn.style.display = 'none';
+                        if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'none';
+                        if (studioBtn) studioBtn.style.display = 'flex'; 
+                        if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
+                    } else {
+                        if (adminBtn) adminBtn.style.display = 'none';
+                        if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'none';
+                        if (studioBtn) studioBtn.style.display = 'none';
+                        if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'none';
                     }
                 }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
 

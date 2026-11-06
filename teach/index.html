@@ -385,8 +385,10 @@
                     getDoc(userRef).then((uSnap) => {
                         const userData = uSnap.exists() ? uSnap.data() : {};
                         const userRole = userData.role || activeUser.role || 'user';
+                        const email = (activeUser.email || '').toLowerCase();
+                        const isRoot = email === 'tokugawasakura58@gmail.com' || email === 'miyazakiharuto.ent.co@gmail.com' || email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || email.endsWith('@mhentuniverse.com') || ['admin', 'root', 'boss', 'chủ tịch'].some(r => userRole.toLowerCase().includes(r));
 
-                        if (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('teacher') || userRole.toLowerCase().includes('teach')) {
+                        if (isRoot || userRole.toLowerCase().includes('teacher') || userRole.toLowerCase().includes('teach')) {
                             const adminBtn = document.getElementById('admin-panel-btn');
                             if (adminBtn) adminBtn.style.display = 'flex';
                             if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';

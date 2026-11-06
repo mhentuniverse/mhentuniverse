@@ -948,30 +948,56 @@ if (btnLogin) {
                 // 🚨 LOGIC PHÂN QUYỀN ĐA VŨ TRỤ V2.0 🚨
                     const userRef = doc(db, "users", user?.uid || 'guest');
                     if(user) {
+                        const adminBtn = document.getElementById('admin-panel-btn');
+                        const studioBtn = document.getElementById('studio-panel-btn');
+                        const emailInit = (user.email || '').toLowerCase();
+                        const cachedRoleInit = (user.role || localStorage.getItem('mhent_user_role') || '').toLowerCase();
+                        const isCachedRoot = emailInit === 'tokugawasakura58@gmail.com' || 
+                                             emailInit === 'miyazakiharuto.ent.co@gmail.com' || 
+                                             emailInit === 'mhent@mhentuniverse.com' || 
+                                             emailInit === 'contact@mhentuniverse.com' || 
+                                             emailInit.endsWith('@mhentuniverse.com') || 
+                                             cachedRoleInit.includes('admin') || 
+                                             cachedRoleInit.includes('boss') || 
+                                             cachedRoleInit.includes('root') || 
+                                             cachedRoleInit.includes('chủ tịch');
+
+                        if (isCachedRoot) {
+                            if (adminBtn) adminBtn.style.display = 'flex';
+                            if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
+                            if (studioBtn) studioBtn.style.display = 'flex';
+                            if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
+                        }
+
                         getDoc(userRef).then((docSnap) => {
-                            const adminBtn = document.getElementById('admin-panel-btn');
-                            const studioBtn = document.getElementById('studio-panel-btn');
-                            
-                            // Mặc định giấu cả 2 nút đi khi chưa biết là ai
-                            if (adminBtn) adminBtn.style.display = 'none';
-                            document.getElementById('admin-divider').style.display = 'none'; // Giấu luôn cái gạch chia nếu không phải admin
-                            if (studioBtn) studioBtn.style.display = 'none';
-                            document.getElementById('studio-divider').style.display = 'none'; // Giấu luôn cái gạch chia nếu không phải studio
+                            const email = (user.email || (docSnap.exists() ? docSnap.data().email : '') || '').toLowerCase();
+                            const userRole = (docSnap.exists() && docSnap.data().role) ? docSnap.data().role : (user.role || localStorage.getItem('mhent_user_role') || '');
+                            const roleLower = (userRole || '').toLowerCase();
+                            const isRoot = email === 'tokugawasakura58@gmail.com' || 
+                                           email === 'miyazakiharuto.ent.co@gmail.com' || 
+                                           email === 'mhent@mhentuniverse.com' || 
+                                           email === 'contact@mhentuniverse.com' || 
+                                           email.endsWith('@mhentuniverse.com') || 
+                                           roleLower.includes('admin') || 
+                                           roleLower.includes('boss') || 
+                                           roleLower.includes('root') || 
+                                           roleLower.includes('chủ tịch');
 
-                            if (docSnap.exists() && docSnap.data().role) {
-                                const userRole = docSnap.data().role; // Rút thẻ căn cước từ mây về
-
-                                if (userRole.includes('admin')) {
-                                    // Nếu là Chủ tịch -> Mở cửa Căn cứ Admin
-                                    if (adminBtn) adminBtn.style.display = 'flex';
-                                    document.getElementById('admin-divider').style.display = 'block'; // Hiển thị gạch chia nếu là admin
-                                    if (studioBtn) studioBtn.style.display = 'flex'; // Chủ tịch cũng có quyền vào Studio
-                                    document.getElementById('studio-divider').style.display = 'block'; // Hiển thị gạch chia nếu là studio
-                                } else if (userRole.includes('cinema')) {
-                                    // Nếu là Đối tác Nhóm dịch -> Mở cửa Phòng Studio
-                                    if (studioBtn) studioBtn.style.display = 'flex';
-                                    document.getElementById('studio-divider').style.display = 'block'; // Hiển thị gạch chia nếu là studio
-                                }
+                            if (isRoot) {
+                                if (adminBtn) adminBtn.style.display = 'flex';
+                                if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'block';
+                                if (studioBtn) studioBtn.style.display = 'flex';
+                                if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
+                            } else if (roleLower.includes('cinema') || roleLower.includes('uploader')) {
+                                if (adminBtn) adminBtn.style.display = 'none';
+                                if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'none';
+                                if (studioBtn) studioBtn.style.display = 'flex';
+                                if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'block';
+                            } else {
+                                if (adminBtn) adminBtn.style.display = 'none';
+                                if (document.getElementById('admin-divider')) document.getElementById('admin-divider').style.display = 'none';
+                                if (studioBtn) studioBtn.style.display = 'none';
+                                if (document.getElementById('studio-divider')) document.getElementById('studio-divider').style.display = 'none';
                             }
                         }).catch(e => console.log("Lỗi quét thẻ căn cước:", e));
                     }

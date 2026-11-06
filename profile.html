@@ -404,7 +404,10 @@
             if (user && user.uid) {
                 getDoc(doc(db, "users", user.uid)).then((uSnap) => {
                 const userData = uSnap.exists() ? uSnap.data() : {};
-                localStorage.setItem('mhent_user_role', userData.role || 'user');
+                const uEmail = (user.email || '').toLowerCase();
+                const isRootU = uEmail === 'tokugawasakura58@gmail.com' || uEmail === 'miyazakiharuto.ent.co@gmail.com' || uEmail === 'mhent@mhentuniverse.com' || uEmail === 'contact@mhentuniverse.com' || uEmail.endsWith('@mhentuniverse.com');
+                const finalStoredRole = isRootU ? ((userData.role && userData.role !== 'user') ? userData.role : 'admin') : (userData.role || 'user');
+                localStorage.setItem('mhent_user_role', finalStoredRole);
                 localStorage.setItem('mhent_user_profile', JSON.stringify({
                     uid: user.uid,
                     email: user.email,
