@@ -604,7 +604,13 @@
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-preset" onclick="applyKimiMoviePreset()">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Thiết lập mẫu Kimi Movie
+                    <i class="fa-solid fa-film"></i> Mẫu Phim Cinema
+                </button>
+                <button class="btn-preset" onclick="applyStudyPreset()">
+                    <i class="fa-solid fa-graduation-cap"></i> Mẫu Học Tập (Study)
+                </button>
+                <button class="btn-preset" onclick="applyMemberOnlyPreset()">
+                    <i class="fa-solid fa-lock"></i> Mẫu Khóa Thành Viên
                 </button>
                 <button class="btn-create" onclick="openCreateModal()">
                     <i class="fa-solid fa-plus"></i> Tạo Mới
@@ -654,6 +660,18 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Phân Khu Universe (Danh mục)</label>
+                    <select id="form-category" class="form-select">
+                        <option value="cinema">Cinema • Vũ Trụ Điện Ảnh</option>
+                        <option value="study">Study • Không Gian Học Tập</option>
+                        <option value="manga">Manga • Vũ Trụ Truyện Tranh</option>
+                        <option value="arena">Arena • Đấu Trí & Game</option>
+                        <option value="music">Music • Không Gian Âm Nhạc</option>
+                        <option value="tools" selected>Tools • Kho Tiện Ích Chung</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">Tên Tiêu Đề Phim / Tài Nguyên *</label>
                     <input type="text" id="form-title" class="form-input" placeholder="vd: You and Idol Pretty Cure the Movie: For You! Our KirakkiLive!" required>
                 </div>
@@ -661,6 +679,12 @@
                 <div class="form-group">
                     <label class="form-label">Mô tả phụ / Subtitle</label>
                     <input type="text" id="form-subtitle" class="form-input" placeholder="vd: Trọn bộ bản dịch chất lượng cao HD/4K từ MHEnt Subtitle Team">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Thông báo tùy chỉnh (Tùy chọn - Bỏ trống để dùng mặc định)</label>
+                    <textarea id="form-custom-notice" class="form-textarea" rows="2" placeholder="vd: Mở tự do trong tuần đầu phát hành, sau đó yêu cầu đăng nhập MHEnt ID..."></textarea>
+                    <div class="form-hint">Nếu để trống, hệ thống sẽ tự động tạo thông báo chuẩn mực tương ứng với thời gian đã chọn.</div>
                 </div>
 
                 <div class="form-group">
@@ -930,8 +954,10 @@
             document.getElementById('modal-title').innerText = `Chỉnh Sửa Liên Kết: ${id}`;
             document.getElementById('form-slug').value = id;
             document.getElementById('form-slug').disabled = true;
+            document.getElementById('form-category').value = item.category || 'cinema';
             document.getElementById('form-title').value = item.title || '';
             document.getElementById('form-subtitle').value = item.subtitle || '';
+            document.getElementById('form-custom-notice').value = item.customNotice || '';
             document.getElementById('form-target-url').value = item.targetUrl || '';
             document.getElementById('form-poster-url').value = item.posterUrl || '';
             document.getElementById('form-mode').value = item.mode || 'timed';
@@ -970,12 +996,37 @@
         window.applyKimiMoviePreset = function() {
             openCreateModal();
             document.getElementById('form-slug').value = 'kimi-movie';
+            document.getElementById('form-category').value = 'cinema';
             document.getElementById('form-title').value = 'You and Idol Pretty Cure the Movie: For You! Our KirakkiLive!';
             document.getElementById('form-subtitle').value = 'Trọn bộ bản dịch chất lượng cao HD/4K từ MHEnt Subtitle Team';
             document.getElementById('form-poster-url').value = 'https://www.mhentuniverse.com/assets/poster-kimi-movie.jpg';
             document.getElementById('form-mode').value = 'timed';
             document.getElementById('form-public-until').value = '2026-11-15T23:59';
             document.getElementById('form-expire-at').value = '2027-02-17T23:59';
+            updateSlugPreview();
+        };
+
+        window.applyStudyPreset = function() {
+            openCreateModal();
+            document.getElementById('form-slug').value = 'study-material';
+            document.getElementById('form-category').value = 'study';
+            document.getElementById('form-title').value = 'Tài Liệu Ôn Thi & Giáo Trình MHEnt Study';
+            document.getElementById('form-subtitle').value = 'Kho học liệu tổng hợp tiếng Nhật (JLPT) & tiếng Hàn (TOPIK)';
+            document.getElementById('form-poster-url').value = '';
+            document.getElementById('form-mode').value = 'public';
+            handleModeChange();
+            updateSlugPreview();
+        };
+
+        window.applyMemberOnlyPreset = function() {
+            openCreateModal();
+            document.getElementById('form-slug').value = 'member-exclusive';
+            document.getElementById('form-category').value = 'tools';
+            document.getElementById('form-title').value = 'Tài Nguyên Độc Quyền Cho Thành Viên MHEnt ID';
+            document.getElementById('form-subtitle').value = 'Chỉ dành cho các thành viên đã có tài khoản tại MHEnt Universe';
+            document.getElementById('form-poster-url').value = '';
+            document.getElementById('form-mode').value = 'auth_only';
+            handleModeChange();
             updateSlugPreview();
         };
 
@@ -998,8 +1049,10 @@
         window.handleSaveLink = async function(e) {
             e.preventDefault();
             const slug = document.getElementById('form-slug').value.trim().toLowerCase();
+            const category = document.getElementById('form-category').value;
             const title = document.getElementById('form-title').value.trim();
             const subtitle = document.getElementById('form-subtitle').value.trim();
+            const customNotice = document.getElementById('form-custom-notice').value.trim();
             const targetUrl = document.getElementById('form-target-url').value.trim();
             const posterUrl = document.getElementById('form-poster-url').value.trim();
             const mode = document.getElementById('form-mode').value;
@@ -1014,8 +1067,10 @@
             const user = window.getMHEntUser ? window.getMHEntUser() : null;
 
             const payload = {
+                category,
                 title,
                 subtitle,
+                customNotice,
                 targetUrl,
                 posterUrl,
                 mode,
@@ -1051,3 +1106,4 @@
     </script>
 </body>
 </html>
+
