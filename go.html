@@ -559,14 +559,15 @@
                 <!-- Nút Bấm Chính (Glowing CTA Button) -->
                 <div id="cta-container"></div>
 
-                <!-- Đích đến Preview & Tự động chuyển tiếp -->
-                <div class="dest-target-strip">
-                    <span id="dest-domain-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i> Đích đến: <strong id="dest-domain-text">google.com</strong></span>
+                <!-- Dòng đếm ngược tự động chuyển hướng ngay dưới nút -->
+                <div id="redirect-strip" class="redirect-counter-strip" style="display: none;">
+                    <span><i class="fa-solid fa-hourglass-half" style="color: var(--gw-pink);"></i> Hoặc chờ trong <strong id="cd-timer-val">6</strong> giây để tự động chuyển hướng...</span>
+                    <button class="pause-pill-btn" onclick="pauseAutoRedirect()"><i class="fa-solid fa-pause"></i> Tạm dừng</button>
                 </div>
 
-                <div id="redirect-strip" class="redirect-counter-strip" style="display: none;">
-                    <span><i class="fa-solid fa-spinner fa-spin"></i> Tự động chuyển hướng sau <strong id="cd-timer-val">5</strong>s...</span>
-                    <button class="pause-pill-btn" onclick="pauseAutoRedirect()">Tạm dừng</button>
+                <!-- Đích đến Preview -->
+                <div class="dest-target-strip">
+                    <span id="dest-domain-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i> Đích đến: <strong id="dest-domain-text">google.com</strong></span>
                 </div>
 
                 <!-- Thẻ Meta Dưới Cùng -->
@@ -732,14 +733,17 @@
             }
         }
 
-        function getPlatformInfo(url) {
+        function getPlatformInfo(url, customText) {
+            if (customText && customText.trim()) {
+                return { name: parseDomain(url), icon: 'fa-solid fa-arrow-up-right-from-square', action: customText.trim() };
+            }
             const lower = (url || '').toLowerCase();
-            if (lower.includes('drive.google.com')) return { name: 'Google Drive', icon: 'fa-brands fa-google-drive', action: 'Tải Trên Google Drive' };
-            if (lower.includes('mega.nz')) return { name: 'MEGA', icon: 'fa-solid fa-cloud-arrow-down', action: 'Tải Trên MEGA' };
-            if (lower.includes('mediafire.com')) return { name: 'MediaFire', icon: 'fa-solid fa-fire', action: 'Tải Trên MediaFire' };
-            if (lower.includes('youtube.com') || lower.includes('youtu.be')) return { name: 'YouTube', icon: 'fa-brands fa-youtube', action: 'Xem Trên YouTube' };
-            if (lower.includes('fshare.vn')) return { name: 'Fshare', icon: 'fa-solid fa-folder-arrow-down', action: 'Tải Trên Fshare' };
-            return { name: parseDomain(url), icon: 'fa-solid fa-arrow-up-right-from-square', action: 'Truy Cập Liên Kết' };
+            if (lower.includes('drive.google.com')) return { name: 'Google Drive', icon: 'fa-brands fa-google-drive', action: 'Nhấn để chuyển hướng đến Google Drive' };
+            if (lower.includes('mega.nz')) return { name: 'MEGA', icon: 'fa-solid fa-cloud-arrow-down', action: 'Nhấn để chuyển hướng đến MEGA' };
+            if (lower.includes('mediafire.com')) return { name: 'MediaFire', icon: 'fa-solid fa-fire', action: 'Nhấn để chuyển hướng đến MediaFire' };
+            if (lower.includes('youtube.com') || lower.includes('youtu.be')) return { name: 'YouTube', icon: 'fa-brands fa-youtube', action: 'Nhấn để chuyển hướng đến YouTube' };
+            if (lower.includes('fshare.vn')) return { name: 'Fshare', icon: 'fa-solid fa-folder-arrow-down', action: 'Nhấn để chuyển hướng đến Fshare' };
+            return { name: parseDomain(url), icon: 'fa-solid fa-arrow-up-right-from-square', action: 'Nhấn để chuyển hướng ngay' };
         }
 
         function getUniverseInfo(cat) {
@@ -812,7 +816,7 @@
             document.getElementById('state-loading').style.display = 'none';
             document.getElementById('state-content').style.display = 'block';
 
-            const platform = getPlatformInfo(data.targetUrl);
+            const platform = getPlatformInfo(data.targetUrl, data.buttonText || data.customAction);
             const universe = getUniverseInfo(data.category);
             const domain = parseDomain(data.targetUrl);
 
@@ -902,12 +906,8 @@
                 </button>
             `;
 
-            // Display paused status text so user can click comfortably
-            const redirectStrip = document.getElementById('redirect-strip');
-            if (redirectStrip) {
-                redirectStrip.style.display = 'flex';
-                redirectStrip.innerHTML = `<span style="color: #10b981; font-weight: 700; font-size: 13.5px;"><i class="fa-solid fa-circle-check"></i> Đã dừng tự động chuyển hướng. Bạn có thể nhấn nút phía trên khi đã sẵn sàng!</span>`;
-            }
+            // Tự động đếm ngược chuyển hướng (mặc định 6 giây)
+            startAutoRedirect(data.targetUrl, 6);
         }
 
         function renderAuth(data, platform, user, publicUntil, expireAt) {
@@ -939,6 +939,8 @@
                         <i class="${platform.icon}" style="font-size: 20px;"></i> ${platform.action}
                     </button>
                 `;
+
+                startAutoRedirect(data.targetUrl, 5);
             } else {
                 if (statusPill) {
                     statusPill.className = 'status-pill pill-lock';
@@ -1020,17 +1022,24 @@
             countdownInterval = setInterval(tick, 1000);
         }
 
-        function startAutoRedirect(targetUrl) {
+        function startAutoRedirect(targetUrl, seconds = 6) {
             const strip = document.getElementById('redirect-strip');
-            const span = document.getElementById('cd-timer-val');
+            if (!strip) return;
             strip.style.display = 'flex';
-            redirectCount = 5;
-            span.innerText = redirectCount;
+            redirectCount = seconds;
+            isPaused = false;
 
+            strip.innerHTML = `
+                <span><i class="fa-solid fa-hourglass-half" style="color: var(--gw-pink);"></i> Hoặc chờ trong <strong id="cd-timer-val" style="color: var(--gw-indigo); font-size: 15px;">${redirectCount}</strong> giây để tự động chuyển hướng...</span>
+                <button class="pause-pill-btn" onclick="pauseAutoRedirect()" title="Tạm dừng"><i class="fa-solid fa-pause"></i> Tạm dừng</button>
+            `;
+
+            if (redirectTimer) clearInterval(redirectTimer);
             redirectTimer = setInterval(() => {
                 if (isPaused) return;
                 redirectCount--;
-                span.innerText = redirectCount;
+                const span = document.getElementById('cd-timer-val');
+                if (span) span.innerText = redirectCount;
                 if (redirectCount <= 0) {
                     clearInterval(redirectTimer);
                     window.navigateTarget(targetUrl);
@@ -1041,7 +1050,23 @@
         window.pauseAutoRedirect = function() {
             isPaused = true;
             if (redirectTimer) clearInterval(redirectTimer);
-            document.getElementById('redirect-strip').innerHTML = `<span style="color: #10b981; font-weight: 700;"><i class="fa-solid fa-check"></i> Đã dừng tự động chuyển hướng. Bạn có thể nhấn nút phía trên khi sẵn sàng!</span>`;
+            const strip = document.getElementById('redirect-strip');
+            if (strip) {
+                strip.innerHTML = `
+                    <span style="color: #10b981; font-weight: 700; font-size: 13px;">
+                        <i class="fa-solid fa-circle-check"></i> Đã tạm dừng tự động chuyển hướng. Bạn có thể nhấn nút phía trên khi đã sẵn sàng!
+                    </span>
+                    <button class="pause-pill-btn" onclick="resumeAutoRedirect()" title="Tiếp tục đếm ngược" style="margin-left: 8px;">
+                        <i class="fa-solid fa-play"></i> Tiếp tục
+                    </button>
+                `;
+            }
+        };
+
+        window.resumeAutoRedirect = function() {
+            if (activeLinkData && activeLinkData.targetUrl) {
+                startAutoRedirect(activeLinkData.targetUrl, redirectCount > 0 ? redirectCount : 5);
+            }
         };
 
         window.copyCurrentLink = function() {

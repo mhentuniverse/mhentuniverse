@@ -524,7 +524,7 @@
             </div>
 
             <!-- Optional Sub Fields -->
-            <div class="optional-fields-grid">
+            <div class="optional-fields-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                 <div>
                     <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Định danh slug (tùy chọn):</label>
                     <div style="display: flex; align-items: center; border: 1.5px solid var(--border-color, #cbd5e1); border-radius: 16px; padding: 0 14px;">
@@ -536,6 +536,11 @@
                 <div>
                     <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Tên tiêu đề (tùy chọn):</label>
                     <input type="text" id="quick-title" class="sub-input" placeholder="Tên tệp, phim, tài liệu...">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Chữ trên nút (tùy chọn):</label>
+                    <input type="text" id="quick-btn-text" class="sub-input" placeholder="Mặc định: Nhấn để chuyển hướng...">
                 </div>
             </div>
 
@@ -787,6 +792,7 @@
             if (!slug) slug = generateRandomSlug();
 
             const title = document.getElementById('quick-title').value.trim() || targetUrl;
+            const buttonText = (document.getElementById('quick-btn-text') ? document.getElementById('quick-btn-text').value.trim() : '');
             const mode = currentSelectedMode;
 
             const rawPublic = document.getElementById('quick-public-until').value;
@@ -800,6 +806,7 @@
             const payload = {
                 slug,
                 title,
+                buttonText,
                 targetUrl,
                 mode,
                 publicUntil,
