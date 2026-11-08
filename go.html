@@ -151,6 +151,7 @@
         .tag-study { background: rgba(14, 165, 233, 0.15); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.3); }
         .tag-arena { background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.3); }
         .tag-manga { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .tag-music { background: rgba(236, 72, 153, 0.15); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.3); }
         .tag-general { background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); }
 
         /* Poster Preview */
@@ -752,6 +753,7 @@
                 case 'study': return { text: 'Study • Không Gian Học Tập', cls: 'tag-study', icon: 'fa-solid fa-graduation-cap', url: 'https://study.mhentuniverse.com' };
                 case 'arena': return { text: 'Arena • Đấu Trí & Game', cls: 'tag-arena', icon: 'fa-solid fa-gamepad', url: '/arena' };
                 case 'manga': return { text: 'Manga • Truyện Tranh', cls: 'tag-manga', icon: 'fa-solid fa-book-open', url: '/manga' };
+                case 'music': return { text: 'Music • Âm Nhạc & OST', cls: 'tag-music', icon: 'fa-solid fa-music', url: '#' };
                 default: return { text: 'MHEnt Universe Resource', cls: 'tag-general', icon: 'fa-solid fa-sparkles', url: '/' };
             }
         }
@@ -906,8 +908,20 @@
                 </button>
             `;
 
-            // Tự động đếm ngược chuyển hướng (mặc định 6 giây)
-            startAutoRedirect(data.targetUrl, 6);
+            // Tự động đếm ngược chuyển hướng (nếu không tắt)
+            let redirectSecs = 6;
+            if (data.autoRedirectSeconds !== undefined && data.autoRedirectSeconds !== null) {
+                redirectSecs = parseInt(data.autoRedirectSeconds, 10);
+            }
+            if (redirectSecs > 0) {
+                startAutoRedirect(data.targetUrl, redirectSecs);
+            } else {
+                const redirectStrip = document.getElementById('redirect-strip');
+                if (redirectStrip) {
+                    redirectStrip.style.display = 'flex';
+                    redirectStrip.innerHTML = `<span style="color: #64748b; font-weight: 700; font-size: 13.5px;"><i class="fa-solid fa-hand-pointer"></i> Bạn có thể nhấn nút phía trên khi đã sẵn sàng!</span>`;
+                }
+            }
         }
 
         function renderAuth(data, platform, user, publicUntil, expireAt) {
@@ -940,7 +954,13 @@
                     </button>
                 `;
 
-                startAutoRedirect(data.targetUrl, 5);
+                let redirectSecs = 5;
+                if (data.autoRedirectSeconds !== undefined && data.autoRedirectSeconds !== null) {
+                    redirectSecs = parseInt(data.autoRedirectSeconds, 10);
+                }
+                if (redirectSecs > 0) {
+                    startAutoRedirect(data.targetUrl, redirectSecs);
+                }
             } else {
                 if (statusPill) {
                     statusPill.className = 'status-pill pill-lock';

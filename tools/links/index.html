@@ -198,6 +198,101 @@
             box-shadow: 0 4px 15px var(--hub-bg);
         }
 
+        /* Creator Tabs: Quick vs Advanced */
+        .creator-tabs-bar {
+            display: flex;
+            gap: 8px;
+            background: var(--hub-bg, rgba(99, 102, 241, 0.08));
+            padding: 5px;
+            border-radius: 999px;
+            margin-bottom: 24px;
+            max-width: 440px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .creator-tab-btn {
+            flex: 1;
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #64748b;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+        }
+        .creator-tab-btn:hover {
+            color: var(--hub-color);
+        }
+        .creator-tab-btn.active {
+            background: #ffffff;
+            color: var(--hub-color);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.18);
+        }
+        .dark-mode .creator-tab-btn.active {
+            background: #1e293b;
+            color: #818cf8;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Category Chips for Advanced Mode */
+        .category-chips-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .cat-chip {
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1.5px solid var(--border-color, #e2e8f0);
+            background: var(--bg-glass, #ffffff);
+            color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .cat-chip:hover {
+            border-color: var(--hub-color);
+            color: var(--hub-color);
+        }
+        .cat-chip.active {
+            border-color: var(--hub-color);
+            background: var(--hub-bg);
+            color: var(--hub-color);
+            box-shadow: 0 2px 8px var(--hub-bg);
+        }
+        .dark-mode .cat-chip {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+        }
+        .dark-mode .cat-chip.active {
+            background: rgba(99, 102, 241, 0.25);
+            color: #818cf8;
+            border-color: #818cf8;
+        }
+
+        .poster-preview-box {
+            width: 80px;
+            height: 105px;
+            border-radius: 14px;
+            object-fit: cover;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border: 2px solid var(--border-color, #cbd5e1);
+            display: none;
+            flex-shrink: 0;
+        }
+
         .optional-fields-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -502,15 +597,26 @@
         </div>
     </div>
 
-    <!-- THẺ TẠO LINK TRỰC TIẾP TRÊN TRANG -->
+    <!-- THẺ TẠO LINK TRỰC TIẾP TRÊN TRANG (TÍCH HỢP RÚT GỌN NHANH & TÙY CHỈNH NÂNG CAO) -->
     <div class="shortener-container">
+        <!-- Chuyển Đổi Tab: Rút Gọn Nhanh vs Tùy Chỉnh Nâng Cao -->
+        <div class="creator-tabs-bar">
+            <button type="button" class="creator-tab-btn active" id="tab-quick-btn" onclick="setCreatorTab('quick')">
+                <i class="fa-solid fa-bolt"></i> Rút Gọn Nhanh
+            </button>
+            <button type="button" class="creator-tab-btn" id="tab-advanced-btn" onclick="setCreatorTab('advanced')">
+                <i class="fa-solid fa-sliders"></i> Tùy Chỉnh Nâng Cao (Full Gateway)
+            </button>
+        </div>
+
         <form id="quick-shorten-form" onsubmit="handleQuickCreate(event)">
+            <!-- Shared URL Input -->
             <div class="url-input-wrap">
                 <i class="fa-solid fa-link"></i>
                 <input type="url" id="quick-target-url" class="url-main-input" placeholder="Dán liên kết bất kỳ vào đây... (https://...)" required>
             </div>
 
-            <!-- Mode Selector -->
+            <!-- Mode Selector (Shared) -->
             <div class="mode-selector">
                 <div class="mode-option active" data-mode="direct" onclick="setMode('direct')">
                     <i class="fa-solid fa-bolt" style="color: #6366f1;"></i> <span>Chuyển Hướng Nhanh</span>
@@ -523,43 +629,136 @@
                 </div>
             </div>
 
-            <!-- Optional Sub Fields -->
-            <div class="optional-fields-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-                <div>
-                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Định danh slug (tùy chọn):</label>
-                    <div style="display: flex; align-items: center; border: 1.5px solid var(--border-color, #cbd5e1); border-radius: 16px; padding: 0 14px;">
-                        <span style="font-size: 13.5px; color: #64748b; font-weight: 700;">/go?id=</span>
-                        <input type="text" id="quick-slug" class="sub-input" style="border: none; padding-left: 4px;" placeholder="tu-khoa-ngan" pattern="[a-zA-Z0-9\-_]+">
+            <!-- 1. GIAO DIỆN TẠO NHANH (GỌN GÀNG, TỐI GIẢN) -->
+            <div id="section-quick-mode">
+                <div class="optional-fields-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Định danh slug (tùy chọn):</label>
+                        <div style="display: flex; align-items: center; border: 1.5px solid var(--border-color, #cbd5e1); border-radius: 16px; padding: 0 14px;">
+                            <span style="font-size: 13.5px; color: #64748b; font-weight: 700;">/go?id=</span>
+                            <input type="text" id="quick-slug" class="sub-input" style="border: none; padding-left: 4px;" placeholder="tu-khoa-ngan" pattern="[a-zA-Z0-9\-_]+">
+                        </div>
                     </div>
-                </div>
 
-                <div>
-                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Tên tiêu đề (tùy chọn):</label>
-                    <input type="text" id="quick-title" class="sub-input" placeholder="Tên tệp, phim, tài liệu...">
-                </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Tên tiêu đề (tùy chọn):</label>
+                        <input type="text" id="quick-title" class="sub-input" placeholder="Tên tệp, bài viết, tài liệu...">
+                    </div>
 
-                <div>
-                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Chữ trên nút (tùy chọn):</label>
-                    <input type="text" id="quick-btn-text" class="sub-input" placeholder="Mặc định: Nhấn để chuyển hướng...">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Chữ trên nút (tùy chọn):</label>
+                        <input type="text" id="quick-btn-text" class="sub-input" placeholder="Mặc định: Tự nhận diện link...">
+                    </div>
                 </div>
             </div>
 
-            <!-- Timed Date Range -->
+            <!-- 2. GIAO DIỆN NÂNG CAO (GLOBAL DÀNH CHO BẤT KỲ AI TẠO TRANG GATEWAY ĐỈNH CAO) -->
+            <div id="section-advanced-mode" style="display: none;">
+                <!-- Phân khu Vũ Trụ (Universal Category) -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 8px;">
+                        <i class="fa-solid fa-layer-group" style="color: var(--hub-color);"></i> Phân khu Vũ Trụ MHEnt:
+                    </label>
+                    <div class="category-chips-grid">
+                        <div class="cat-chip active" data-cat="cinema" onclick="selectCategory('cinema')">
+                            <i class="fa-solid fa-film" style="color: #ff527b;"></i> Cinema (Phim ảnh / Anime)
+                        </div>
+                        <div class="cat-chip" data-cat="study" onclick="selectCategory('study')">
+                            <i class="fa-solid fa-graduation-cap" style="color: #0284c7;"></i> Study (Tài liệu / Học tập)
+                        </div>
+                        <div class="cat-chip" data-cat="arena" onclick="selectCategory('arena')">
+                            <i class="fa-solid fa-gamepad" style="color: #9333ea;"></i> Arena (Game / Đấu trí)
+                        </div>
+                        <div class="cat-chip" data-cat="manga" onclick="selectCategory('manga')">
+                            <i class="fa-solid fa-book-open" style="color: #d97706;"></i> Manga (Truyện / Novel)
+                        </div>
+                        <div class="cat-chip" data-cat="music" onclick="selectCategory('music')">
+                            <i class="fa-solid fa-music" style="color: #ec4899;"></i> Music (Âm nhạc / OST)
+                        </div>
+                        <div class="cat-chip" data-cat="general" onclick="selectCategory('general')">
+                            <i class="fa-solid fa-sparkles" style="color: #6366f1;"></i> Tài nguyên chung (General)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tiêu đề lớn & Phụ đề -->
+                <div class="optional-fields-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 18px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Tiêu đề chính (Title):</label>
+                        <input type="text" id="adv-title" class="sub-input" placeholder="Ví dụ: [MHEnt. Cinema] Tên phim / Bộ tài liệu ôn thi...">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Phụ đề / Giới thiệu ngắn (Subtitle):</label>
+                        <input type="text" id="adv-subtitle" class="sub-input" placeholder="Ví dụ: Bản dịch chất lượng cao 4K / Tệp tải độc quyền...">
+                    </div>
+                </div>
+
+                <!-- Ảnh Poster / Thumbnail có xem trước trực tiếp -->
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">
+                        <i class="fa-solid fa-image" style="color: var(--hub-color);"></i> Link Ảnh Poster / Bìa tài liệu (Tùy chọn):
+                    </label>
+                    <div style="display: flex; gap: 14px; align-items: center;">
+                        <input type="url" id="adv-poster-url" class="sub-input" placeholder="https://.../poster.jpg" oninput="previewPosterUrl(this.value)">
+                        <img id="adv-poster-preview" src="" alt="Poster" class="poster-preview-box">
+                    </div>
+                </div>
+
+                <!-- Thông báo sự kiện / Lời nhắn nổi bật (Event Banner Notice) -->
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">
+                        <i class="fa-solid fa-bullhorn" style="color: #10b981;"></i> Thông báo sự kiện / Lời nhắn nổi bật (Tùy chọn):
+                    </label>
+                    <textarea id="adv-notice" class="sub-input" style="height: 75px; resize: vertical;" placeholder="Nhập nội dung hiển thị trong khung sự kiện xanh ngọc (Ví dụ: Mở tự do đến hết tuần này, tranh thủ tải về sớm nhé cả nhà!)..."></textarea>
+                </div>
+
+                <!-- Tùy chỉnh Nút & Tự động chuyển hướng & Slug -->
+                <div class="optional-fields-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 18px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Định danh slug:</label>
+                        <div style="display: flex; align-items: center; border: 1.5px solid var(--border-color, #cbd5e1); border-radius: 16px; padding: 0 14px;">
+                            <span style="font-size: 13.5px; color: #64748b; font-weight: 700;">/go?id=</span>
+                            <input type="text" id="adv-slug" class="sub-input" style="border: none; padding-left: 4px;" placeholder="tu-khoa-ngan">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Chữ trên nút (CTA Text):</label>
+                        <input type="text" id="adv-btn-text" class="sub-input" placeholder="Để trống để tự nhận diện">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px;">Tự động chuyển hướng sau:</label>
+                        <select id="adv-redirect-secs" class="sub-input" style="cursor: pointer;">
+                            <option value="6" selected>6 giây (Khuyên dùng)</option>
+                            <option value="8">8 giây</option>
+                            <option value="10">10 giây</option>
+                            <option value="0">Tắt tự động (Người xem tự bấm)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timed Date Range (Hiển thị khi chọn Hẹn Giờ Thông Minh) -->
             <div id="timed-settings-box" style="display: none; background: var(--hub-bg); border-radius: 18px; padding: 18px; margin-bottom: 22px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                     <div>
-                        <label style="font-size: 13px; font-weight: 800; color: var(--hub-color); display: block; margin-bottom: 5px;">Mở tự do đến hết:</label>
+                        <label style="font-size: 13px; font-weight: 800; color: var(--hub-color); display: block; margin-bottom: 5px;">
+                            <i class="fa-solid fa-lock-open"></i> Mở tự do đến hết:
+                        </label>
                         <input type="datetime-local" id="quick-public-until" class="sub-input" style="background: var(--bg-glass, #fff);">
                     </div>
                     <div>
-                        <label style="font-size: 13px; font-weight: 800; color: var(--hub-color); display: block; margin-bottom: 5px;">Hết hạn sự kiện:</label>
+                        <label style="font-size: 13px; font-weight: 800; color: var(--hub-color); display: block; margin-bottom: 5px;">
+                            <i class="fa-solid fa-shield-halved"></i> Khóa MHEnt ID đến hết:
+                        </label>
                         <input type="datetime-local" id="quick-expire-at" class="sub-input" style="background: var(--bg-glass, #fff);">
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="btn-create-submit">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Liên Kết Rút Gọn Ngay
+            <button type="submit" id="btn-submit-form" class="btn-create-submit">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="btn-submit-text">Tạo Liên Kết Rút Gọn Ngay</span>
             </button>
         </form>
 
@@ -671,8 +870,64 @@
         const auth = getAuth(app);
 
         let currentSelectedMode = 'direct';
+        let currentCreatorTab = 'quick';
+        let selectedCategory = 'general';
         let linksList = [];
         let lastCreatedUrl = '';
+
+        // Mode Toggler: Quick vs Advanced Tab
+        window.setCreatorTab = function(tab) {
+            currentCreatorTab = tab;
+            const btnQuick = document.getElementById('tab-quick-btn');
+            const btnAdv = document.getElementById('tab-advanced-btn');
+            const secQuick = document.getElementById('section-quick-mode');
+            const secAdv = document.getElementById('section-advanced-mode');
+            const submitText = document.getElementById('btn-submit-text');
+
+            if (tab === 'quick') {
+                btnQuick.classList.add('active');
+                btnAdv.classList.remove('active');
+                secQuick.style.display = 'block';
+                secAdv.style.display = 'none';
+                if (submitText) submitText.innerText = 'Tạo Liên Kết Rút Gọn Ngay';
+
+                // Sync values from adv to quick
+                if (document.getElementById('adv-slug').value) document.getElementById('quick-slug').value = document.getElementById('adv-slug').value;
+                if (document.getElementById('adv-title').value) document.getElementById('quick-title').value = document.getElementById('adv-title').value;
+                if (document.getElementById('adv-btn-text').value) document.getElementById('quick-btn-text').value = document.getElementById('adv-btn-text').value;
+            } else {
+                btnAdv.classList.add('active');
+                btnQuick.classList.remove('active');
+                secQuick.style.display = 'none';
+                secAdv.style.display = 'block';
+                if (submitText) submitText.innerText = 'Xuất Bản Trang Gateway Đầy Đủ Ngay';
+
+                // Sync values from quick to adv
+                if (document.getElementById('quick-slug').value) document.getElementById('adv-slug').value = document.getElementById('quick-slug').value;
+                if (document.getElementById('quick-title').value) document.getElementById('adv-title').value = document.getElementById('quick-title').value;
+                if (document.getElementById('quick-btn-text').value) document.getElementById('adv-btn-text').value = document.getElementById('quick-btn-text').value;
+            }
+        };
+
+        window.selectCategory = function(cat) {
+            selectedCategory = cat;
+            document.querySelectorAll('.cat-chip').forEach(el => {
+                if (el.dataset.cat === cat) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+        };
+
+        window.previewPosterUrl = function(url) {
+            const img = document.getElementById('adv-poster-preview');
+            if (!img) return;
+            if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/'))) {
+                img.src = url;
+                img.style.display = 'block';
+                img.onerror = () => { img.style.display = 'none'; };
+            } else {
+                img.style.display = 'none';
+            }
+        };
 
         // Navbar & Auth
         const btnLogin = document.getElementById('btn-login');
@@ -755,21 +1010,32 @@
         // Quick Presets
         window.applyPreset = function(type) {
             if (type === 'direct') {
+                setCreatorTab('quick');
                 setMode('direct');
                 document.getElementById('quick-target-url').focus();
             } else if (type === 'kimi') {
+                setCreatorTab('advanced');
                 setMode('timed');
-                document.getElementById('quick-slug').value = 'kimi-movie';
-                document.getElementById('quick-title').value = 'You and Idol Pretty Cure the Movie: For You! Our KirakkiLive!';
+                selectCategory('cinema');
+                document.getElementById('adv-slug').value = 'kimi-movie';
+                document.getElementById('adv-title').value = '[MHEnt. Cinema] Eiga Kimi to Idol Pretty Cure! [BDrip - Blu-ray]';
+                document.getElementById('adv-subtitle').value = 'Trọn bộ bản dịch chất lượng cao HD/4K từ MHEnt Subtitle Team';
+                document.getElementById('adv-poster-url').value = 'https://www.mhentuniverse.com/assets/poster-kimi-movie.jpg';
+                previewPosterUrl('https://www.mhentuniverse.com/assets/poster-kimi-movie.jpg');
+                document.getElementById('adv-notice').value = 'Liên kết mở tự do đến hết ngày 15/11/2026, sau đó chuyển sang chế độ thành viên MHEnt ID đến Tết Âm Lịch 2027!';
                 document.getElementById('quick-public-until').value = '2026-11-15T23:59';
                 document.getElementById('quick-expire-at').value = '2027-02-17T23:59';
                 document.getElementById('quick-target-url').focus();
             } else if (type === 'study') {
+                setCreatorTab('advanced');
                 setMode('direct');
-                document.getElementById('quick-slug').value = 'study-material';
-                document.getElementById('quick-title').value = 'Tài Liệu Ôn Thi Tiếng Nhật & Tiếng Hàn';
+                selectCategory('study');
+                document.getElementById('adv-slug').value = 'study-material';
+                document.getElementById('adv-title').value = '[MHEnt Study] Tổng Hợp Bộ Đề Thi & Từ Vựng JLPT';
+                document.getElementById('adv-subtitle').value = 'Tài liệu độc quyền phát hành bởi Không gian học tập MHEnt Study';
                 document.getElementById('quick-target-url').focus();
             } else if (type === 'auth') {
+                setCreatorTab('quick');
                 setMode('auth_only');
                 document.getElementById('quick-target-url').focus();
             }
@@ -782,19 +1048,39 @@
             return res;
         }
 
-        // Handle Quick Create
+        // Handle Quick & Advanced Create
         window.handleQuickCreate = async function(e) {
             e.preventDefault();
             const targetUrl = document.getElementById('quick-target-url').value.trim();
             if (!targetUrl) return;
 
-            let slug = document.getElementById('quick-slug').value.trim().toLowerCase();
+            let slug = '';
+            let title = '';
+            let buttonText = '';
+            let subtitle = '';
+            let posterUrl = '';
+            let customNotice = '';
+            let category = selectedCategory || 'general';
+            let autoRedirectSeconds = 6;
+
+            if (currentCreatorTab === 'advanced') {
+                slug = document.getElementById('adv-slug').value.trim().toLowerCase();
+                title = document.getElementById('adv-title').value.trim();
+                subtitle = document.getElementById('adv-subtitle').value.trim();
+                posterUrl = document.getElementById('adv-poster-url').value.trim();
+                customNotice = document.getElementById('adv-notice').value.trim();
+                buttonText = document.getElementById('adv-btn-text').value.trim();
+                autoRedirectSeconds = parseInt(document.getElementById('adv-redirect-secs').value, 10);
+            } else {
+                slug = document.getElementById('quick-slug').value.trim().toLowerCase();
+                title = document.getElementById('quick-title').value.trim();
+                buttonText = document.getElementById('quick-btn-text').value.trim();
+            }
+
             if (!slug) slug = generateRandomSlug();
+            if (!title) title = targetUrl;
 
-            const title = document.getElementById('quick-title').value.trim() || targetUrl;
-            const buttonText = (document.getElementById('quick-btn-text') ? document.getElementById('quick-btn-text').value.trim() : '');
             const mode = currentSelectedMode;
-
             const rawPublic = document.getElementById('quick-public-until').value;
             const rawExpire = document.getElementById('quick-expire-at').value;
 
@@ -806,7 +1092,12 @@
             const payload = {
                 slug,
                 title,
+                subtitle,
+                category,
+                posterUrl,
+                customNotice,
                 buttonText,
+                autoRedirectSeconds,
                 targetUrl,
                 mode,
                 publicUntil,
@@ -826,7 +1117,7 @@
                 document.getElementById('created-result').style.display = 'block';
 
                 if (typeof showToast === 'function') {
-                    showToast('Thành công', 'Đã tạo liên kết rút gọn thành công!', 'success');
+                    showToast('Thành công', 'Đã tạo liên kết Gateway thành công!', 'success');
                 }
             } catch (err) {
                 alert('Lỗi tạo liên kết: ' + err.message);
@@ -908,22 +1199,36 @@
 
                 let modeBadge = '';
                 if (item.mode === 'direct') {
-                    modeBadge = `<span style="background: rgba(99, 102, 241, 0.12); color: #6366f1; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 800;"><i class="fa-solid fa-bolt"></i> Chuyển hướng nhanh</span>`;
+                    modeBadge = `<span style="background: rgba(99, 102, 241, 0.12); color: #6366f1; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 800;"><i class="fa-solid fa-bolt"></i> Chuyển hướng nhanh</span>`;
                 } else if (item.mode === 'auth_only') {
-                    modeBadge = `<span style="background: rgba(245, 158, 11, 0.12); color: #d97706; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 800;"><i class="fa-solid fa-lock"></i> Khóa MHEnt ID</span>`;
+                    modeBadge = `<span style="background: rgba(245, 158, 11, 0.12); color: #d97706; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 800;"><i class="fa-solid fa-lock"></i> Khóa MHEnt ID</span>`;
                 } else {
-                    modeBadge = `<span style="background: rgba(16, 185, 129, 0.12); color: #059669; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 800;"><i class="fa-solid fa-clock"></i> Hẹn giờ sự kiện</span>`;
+                    modeBadge = `<span style="background: rgba(16, 185, 129, 0.12); color: #059669; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 800;"><i class="fa-solid fa-clock"></i> Hẹn giờ sự kiện</span>`;
                 }
 
+                let categoryBadge = '';
+                if (item.category === 'cinema') categoryBadge = `<span style="background: rgba(255, 133, 162, 0.15); color: #ff527b; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-film"></i> Cinema</span>`;
+                else if (item.category === 'study') categoryBadge = `<span style="background: rgba(14, 165, 233, 0.15); color: #0284c7; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-graduation-cap"></i> Study</span>`;
+                else if (item.category === 'arena') categoryBadge = `<span style="background: rgba(168, 85, 247, 0.15); color: #9333ea; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-gamepad"></i> Arena</span>`;
+                else if (item.category === 'manga') categoryBadge = `<span style="background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-book-open"></i> Manga</span>`;
+                else if (item.category === 'music') categoryBadge = `<span style="background: rgba(236, 72, 153, 0.15); color: #ec4899; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-music"></i> Music</span>`;
+                else if (item.category && item.category !== 'general') categoryBadge = `<span style="background: rgba(99, 102, 241, 0.15); color: #6366f1; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-sparkles"></i> MHEnt</span>`;
+
+                const posterHtml = item.posterUrl ? `<img src="${item.posterUrl}" alt="Poster" style="width: 48px; height: 64px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.12); flex-shrink: 0;" onerror="this.style.display='none'">` : '';
+
                 card.innerHTML = `
-                    <div style="flex: 1; min-width: 280px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
-                            <a href="${shortUrl}" target="_blank" style="font-weight: 900; font-size: 16px; color: var(--hub-color); text-decoration: none;">/go?id=${item.id}</a>
-                            ${modeBadge}
-                        </div>
-                        <div style="font-weight: 800; font-size: 15px; margin-bottom: 4px; color: var(--text-main);">${item.title || item.id}</div>
-                        <div style="font-size: 13px; color: #64748b; word-break: break-all;">
-                            <i class="fa-solid fa-arrow-turn-down-right"></i> ${item.targetUrl}
+                    <div style="display: flex; gap: 14px; align-items: flex-start; flex: 1; min-width: 280px;">
+                        ${posterHtml}
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                                <a href="${shortUrl}" target="_blank" style="font-weight: 900; font-size: 16px; color: var(--hub-color); text-decoration: none;">/go?id=${item.id}</a>
+                                ${modeBadge}
+                                ${categoryBadge}
+                            </div>
+                            <div style="font-weight: 800; font-size: 15px; margin-bottom: 4px; color: var(--text-main);">${item.title || item.id}</div>
+                            <div style="font-size: 13px; color: #64748b; word-break: break-all;">
+                                <i class="fa-solid fa-arrow-turn-down-right"></i> ${item.targetUrl}
+                            </div>
                         </div>
                     </div>
 
