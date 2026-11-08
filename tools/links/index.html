@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Anti-FOUC Dark Mode Detection -->
+    <script>
+        (function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+                return match ? decodeURIComponent(match[3]) : null;
+            }
+            const saved = localStorage.getItem('mhent_dark_mode') || getCookie('mhent_dark_mode');
+            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'on' || (!saved && systemDark)) {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Gateway & Smart Links - MHEnt Tools</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
+
+    <!-- CSS Foundations -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/tools/tools-theme.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link rel="stylesheet" href="/css/mhent-mobile.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script src="/js/config.js"></script>
+    <script src="/js/mhent-ui.js"></script>
+
+    <style>
+        :root {
+            --link-accent: #f43f5e;
+            --link-accent-hover: #e11d48;
+            --link-bg-soft: rgba(244, 63, 94, 0.08);
+            --link-gradient: linear-gradient(135deg, #f43f5e, #fb7185);
+            --hub-color: #f43f5e;
+            --hub-bg: rgba(244, 63, 94, 0.12);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-canvas, #f8fafc);
+            color: var(--text-main, #0f172a);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dark-mode body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+        }
+
+        .tools-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 28px;
+            background: var(--bg-glass-strong, rgba(255, 255, 255, 0.95));
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+        .dark-mode .tools-header-bar {
+            background: rgba(15, 23, 42, 0.92);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .header-brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .header-brand-wrap img {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            max-width: 1360px;
+            width: 94%;
+            margin: 28px auto 60px auto;
+        }
+
+        /* Top Hero Card */
+        .hero-banner-card {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 32px 36px;
+            box-shadow: 0 15px 35px -5px rgba(30, 27, 75, 0.4);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(244, 63, 94, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-size: 1.85rem;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .hero-desc {
+            font-size: 0.98rem;
+            color: #cbd5e1;
+            max-width: 720px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Stat Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: var(--bg-glass-strong, #ffffff);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 20px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .dark-mode .stat-card {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.45rem;
+        }
+        .stat-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 800;
+        }
+        .stat-info .num {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* Action bar */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+            max-width: 450px;
+        }
+        .search-input-wrap i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            background: var(--bg-glass-strong, #ffffff);
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .dark-mode .search-input {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(15, 23, 42, 0.8);
+        }
+        .search-input:focus {
+            border-color: var(--link-accent);
+            box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15);
+        }
+
+        .btn-create {
+            background: var(--link-gradient);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 22px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.35);
+            transition: all 0.2s ease;
+        }
+        .btn-create:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 12px 25px rgba(244, 63, 94, 0.45);
+        }
+
+        .btn-preset {
+            background: rgba(99, 102, 241, 0.12);
+            color: #6366f1;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .dark-mode .btn-preset {
+            color: #a5b4fc;
+        }
+        .btn-preset:hover {
+            background: rgba(99, 102, 241, 0.22);
+        }
+
+        /* Links Table / Card View */
+        .links-container {
+            background: var(--bg-glass-strong, #ffffff);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+        .dark-mode .links-container {
+            background: rgba(15, 23, 42, 0.75);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .link-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: background 0.2s;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .dark-mode .link-row {
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+        }
+        .link-row:last-child {
+            border-bottom: none;
+        }
+        .link-row:hover {
+            background: rgba(244, 63, 94, 0.02);
+        }
+        .dark-mode .link-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .link-main-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 320px;
+        }
+        .link-thumb {
+            width: 58px;
+            height: 72px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #cbd5e1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .link-slug-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 3px 10px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+        .dark-mode .link-slug-badge {
+            color: #a5b4fc;
+        }
+
+        .link-details-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin: 0 0 4px 0;
+            line-height: 1.35;
+        }
+        .link-details-target {
+            font-size: 0.82rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            word-break: break-all;
+        }
+
+        /* Status badges */
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .badge-public {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+        .dark-mode .badge-public {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+        .badge-auth {
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+        }
+        .dark-mode .badge-auth {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+        .badge-expired {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+        }
+        .dark-mode .badge-expired {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        .badge-disabled {
+            background: rgba(100, 116, 139, 0.12);
+            color: #64748b;
+        }
+
+        .link-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-table-action {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: var(--bg-glass-strong, #ffffff);
+            color: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .dark-mode .btn-table-action {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .btn-table-action:hover {
+            transform: translateY(-2px);
+            border-color: var(--link-accent);
+            color: var(--link-accent);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+        .modal-card {
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--bg-glass-strong, #ffffff);
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .dark-mode .modal-card {
+            background: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f8fafc;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: inherit;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: inherit;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .dark-mode .form-input, .dark-mode .form-select, .dark-mode .form-textarea {
+            border-color: rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--link-accent);
+            box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15);
+        }
+        .form-hint {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .dark-mode .modal-footer {
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="tools-header-bar">
+        <a class="header-brand-wrap" onclick="window.location.href='/tools'">
+            <img src="/assets/avt-web.jpg" alt="MHEnt Tools">
+            <div>
+                <div style="font-weight: 900; font-size: 1.1rem; color: var(--link-accent);">MHEnt. Tools</div>
+                <div style="font-size: 0.72rem; color: #64748b; font-weight: 700;">Smart Gateway & Shortlinks</div>
+            </div>
+        </a>
+
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <button onclick="toggleDarkMode()" title="Đổi giao diện" style="background: none; border: none; font-size: 1.15rem; color: inherit; cursor: pointer; padding: 6px 10px;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <div id="user-auth-slot">
+                <!-- User profile slot -->
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <!-- Hero Header -->
+        <div class="hero-banner-card">
+            <div>
+                <h1 class="hero-title">
+                    <i class="fa-solid fa-link" style="color: #fb7185;"></i> Cổng Điều Hướng Thông Minh
+                </h1>
+                <p class="hero-desc">
+                    Bảo vệ liên kết Google Drive, tải phim và tài nguyên toàn hệ sinh thái MHEnt Universe.
+                    Tự động hóa theo lịch trình: <strong>Mở tự do 1 tuần đầu</strong>, sau đó <strong>yêu cầu đăng nhập tài khoản MHEnt ID đến Tết 2027</strong> để giữ an toàn kho lưu trữ.
+                </p>
+            </div>
+            <div>
+                <button class="btn-create" onclick="openCreateModal()">
+                    <i class="fa-solid fa-plus"></i> Tạo Liên Kết Mới
+                </button>
+            </div>
+        </div>
+
+        <!-- Stat Counter Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;">
+                    <i class="fa-solid fa-link"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Tổng Liên Kết</h4>
+                    <div class="num" id="stat-total-links" style="color: #6366f1;">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Đang Mở Tự Do</h4>
+                    <div class="num" id="stat-public-links" style="color: #10b981;">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Khóa MHEnt ID</h4>
+                    <div class="num" id="stat-auth-links" style="color: #f59e0b;">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(244, 63, 94, 0.12); color: #f43f5e;">
+                    <i class="fa-solid fa-arrow-pointer"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Tổng Lượt Click</h4>
+                    <div class="num" id="stat-total-clicks" style="color: #f43f5e;">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="action-bar">
+            <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="filter-search" class="search-input" placeholder="Tìm kiếm theo mã định danh (slug), tên phim, tài liệu..." oninput="filterLinks()">
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-preset" onclick="applyKimiMoviePreset()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Thiết lập mẫu Kimi Movie
+                </button>
+                <button class="btn-create" onclick="openCreateModal()">
+                    <i class="fa-solid fa-plus"></i> Tạo Mới
+                </button>
+            </div>
+        </div>
+
+        <!-- Links List -->
+        <div class="links-container" id="links-container">
+            <div id="links-loading" style="text-align: center; padding: 50px 20px;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--link-accent); margin-bottom: 14px;"></i>
+                <p style="font-size: 0.95rem; color: #64748b; font-weight: 700;">Đang tải danh sách liên kết từ Cloud Firestore...</p>
+            </div>
+
+            <div id="links-empty" style="display: none; text-align: center; padding: 60px 20px;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(244, 63, 94, 0.1); color: var(--link-accent); font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0 0 8px 0;">Chưa có liên kết nào</h3>
+                <p style="color: #64748b; font-size: 0.9rem; max-width: 400px; margin: 0 auto 20px auto;">Nhấn nút tạo liên kết để bắt đầu khởi tạo cổng điều hướng đầu tiên.</p>
+                <button class="btn-create" onclick="openCreateModal()">Tạo Liên Kết Ngay</button>
+            </div>
+
+            <div id="links-list-body" style="display: none;">
+                <!-- Link rows rendered here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Tạo / Sửa Liên Kết -->
+    <div class="modal-overlay" id="link-modal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 id="modal-title" style="font-size: 1.35rem; font-weight: 900; margin: 0;">Tạo Liên Kết Mới</h3>
+                <button onclick="closeModal()" style="background: none; border: none; font-size: 1.3rem; color: inherit; cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="link-form" onsubmit="handleSaveLink(event)">
+                <div class="form-group">
+                    <label class="form-label">Mã định danh Slug (Đường dẫn rút gọn) *</label>
+                    <input type="text" id="form-slug" class="form-input" placeholder="vd: kimi-movie" required pattern="[a-zA-Z0-9\-_]+" title="Chỉ chứa chữ cái, số và dấu gạch nối">
+                    <div class="form-hint">
+                        Đường dẫn công khai sẽ là: <code id="slug-preview" style="color: var(--link-accent); font-weight: 800;">https://www.mhentuniverse.com/go?id=kimi-movie</code>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tên Tiêu Đề Phim / Tài Nguyên *</label>
+                    <input type="text" id="form-title" class="form-input" placeholder="vd: You and Idol Pretty Cure the Movie: For You! Our KirakkiLive!" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mô tả phụ / Subtitle</label>
+                    <input type="text" id="form-subtitle" class="form-input" placeholder="vd: Trọn bộ bản dịch chất lượng cao HD/4K từ MHEnt Subtitle Team">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Đường dẫn Đích (Google Drive Link / Download Link) *</label>
+                    <input type="url" id="form-target-url" class="form-input" placeholder="https://drive.google.com/drive/folders/..." required>
+                    <div class="form-hint">Khách xem sẽ được chuyển tiếp tới link này khi thỏa mãn điều kiện thời gian hoặc đăng nhập MHEnt ID.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Link Ảnh Poster / Thumbnail (Tùy chọn)</label>
+                    <input type="url" id="form-poster-url" class="form-input" placeholder="https://www.mhentuniverse.com/assets/poster-kimi-movie.jpg">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Chế Độ Phân Phối</label>
+                    <select id="form-mode" class="form-select" onchange="handleModeChange()">
+                        <option value="timed">Chiến dịch Phim: Mở tự do 1 tuần -> Khóa MHEnt ID đến Tết 2027</option>
+                        <option value="public">Công khai vĩnh viễn (Không bao giờ khóa)</option>
+                        <option value="auth_only">Bắt buộc đăng nhập MHEnt ID (Member Only)</option>
+                        <option value="direct">Chuyển hướng tức thì (Direct Shortlink)</option>
+                    </select>
+                </div>
+
+                <div id="timed-fields-group">
+                    <div class="form-group">
+                        <label class="form-label">Hạn Mở Tự Do (Public Until)</label>
+                        <input type="datetime-local" id="form-public-until" class="form-input">
+                        <div class="form-hint">Trước mốc này, người dùng vào link tải trực tiếp không cần tài khoản.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Hạn Đóng Toàn Bộ / Tết 2027 (Expire At)</label>
+                        <input type="datetime-local" id="form-expire-at" class="form-input">
+                        <div class="form-hint">Sau mốc này, liên kết sẽ báo hết hạn chiến dịch phát hành Drive.</div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                    <input type="checkbox" id="form-active" checked style="width: 18px; height: 18px; accent-color: var(--link-accent); cursor: pointer;">
+                    <label for="form-active" style="font-weight: 800; cursor: pointer;">Kích hoạt liên kết này ngay</label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal()" style="background: none; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 18px; font-weight: 700; cursor: pointer; color: inherit;">
+                        Hủy
+                    </button>
+                    <button type="submit" id="btn-save-submit" class="btn-create" style="padding: 10px 24px;">
+                        Lưu Liên Kết
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+
+        let linksList = [];
+        let isEditing = false;
+        let originalSlug = null;
+
+        function renderAuthSlot() {
+            const user = window.getMHEntUser ? window.getMHEntUser() : null;
+            const slot = document.getElementById('user-auth-slot');
+            if (user) {
+                slot.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="window.location.href='/profile.html'">
+                        <img src="${user.photoURL || '/assets/avt-web.jpg'}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--link-accent);">
+                        <span style="font-size: 0.85rem; font-weight: 800;">${user.displayName || 'Admin'}</span>
+                    </div>
+                `;
+            } else {
+                slot.innerHTML = `
+                    <button onclick="window.openMHEntLogin(window.location.href)" style="background: var(--link-accent); color: white; border: none; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.82rem; cursor: pointer;">
+                        Đăng nhập
+                    </button>
+                `;
+            }
+        }
+
+        // Lắng nghe dữ liệu realtime
+        function listenLinks() {
+            const colRef = collection(db, "mhent_links");
+            onSnapshot(colRef, (snapshot) => {
+                linksList = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    data.id = docSnap.id;
+                    linksList.push(data);
+                });
+
+                updateStats();
+                filterLinks();
+            }, (error) => {
+                console.error("Lỗi realtime links:", error);
+                document.getElementById('links-loading').innerHTML = `
+                    <p style="color: #ef4444; font-weight: 800;"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi kết nối Firestore: ${error.message}</p>
+                `;
+            });
+        }
+
+        function updateStats() {
+            const total = linksList.length;
+            let publicCount = 0;
+            let authCount = 0;
+            let totalClicks = 0;
+            const now = new Date();
+
+            linksList.forEach(item => {
+                totalClicks += (item.clickCount || 0);
+                if (item.active !== false) {
+                    const publicUntil = item.publicUntil ? new Date(item.publicUntil) : null;
+                    const expireAt = item.expireAt ? new Date(item.expireAt) : null;
+
+                    if (expireAt && now > expireAt) {
+                        // Expired
+                    } else if (item.mode === 'public' || (!publicUntil) || (publicUntil && now <= publicUntil)) {
+                        publicCount++;
+                    } else {
+                        authCount++;
+                    }
+                }
+            });
+
+            document.getElementById('stat-total-links').innerText = total;
+            document.getElementById('stat-public-links').innerText = publicCount;
+            document.getElementById('stat-auth-links').innerText = authCount;
+            document.getElementById('stat-total-clicks').innerText = totalClicks;
+        }
+
+        window.filterLinks = function() {
+            const query = (document.getElementById('filter-search').value || '').toLowerCase().trim();
+            const filtered = linksList.filter(item => {
+                const s = (item.id || '').toLowerCase();
+                const t = (item.title || '').toLowerCase();
+                const u = (item.targetUrl || '').toLowerCase();
+                return s.includes(query) || t.includes(query) || u.includes(query);
+            });
+
+            renderLinksTable(filtered);
+        };
+
+        function renderLinksTable(items) {
+            document.getElementById('links-loading').style.display = 'none';
+
+            if (items.length === 0) {
+                document.getElementById('links-empty').style.display = 'block';
+                document.getElementById('links-list-body').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('links-empty').style.display = 'none';
+            const listBody = document.getElementById('links-list-body');
+            listBody.style.display = 'block';
+            listBody.innerHTML = '';
+
+            const now = new Date();
+
+            items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'link-row';
+
+                // Xác định trạng thái
+                let badgeHtml = '';
+                if (item.active === false) {
+                    badgeHtml = `<span class="badge-status badge-disabled"><i class="fa-solid fa-power-off"></i> Tạm tắt</span>`;
+                } else {
+                    const publicUntil = item.publicUntil ? new Date(item.publicUntil) : null;
+                    const expireAt = item.expireAt ? new Date(item.expireAt) : null;
+
+                    if (expireAt && now > expireAt) {
+                        badgeHtml = `<span class="badge-status badge-expired"><i class="fa-solid fa-clock-rotate-left"></i> Đã hết hạn</span>`;
+                    } else if (item.mode === 'public' || (!publicUntil) || (publicUntil && now <= publicUntil)) {
+                        badgeHtml = `<span class="badge-status badge-public"><i class="fa-solid fa-gift"></i> Đang mở tự do</span>`;
+                    } else {
+                        badgeHtml = `<span class="badge-status badge-auth"><i class="fa-solid fa-lock"></i> Khóa MHEnt ID</span>`;
+                    }
+                }
+
+                const posterSrc = item.posterUrl || '/assets/avt-web.jpg';
+                const shortUrl = `${window.location.origin}/go?id=${item.id}`;
+
+                row.innerHTML = `
+                    <div class="link-main-info">
+                        <img src="${posterSrc}" alt="Poster" class="link-thumb">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span class="link-slug-badge"><i class="fa-solid fa-link"></i> /go?id=${item.id}</span>
+                                ${badgeHtml}
+                            </div>
+                            <h4 class="link-details-title">${item.title || 'Không có tiêu đề'}</h4>
+                            <div class="link-details-target">
+                                <i class="fa-brands fa-google-drive"></i>
+                                <span>${item.targetUrl}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; min-width: 90px;">
+                        <div style="font-size: 1.35rem; font-weight: 900; color: var(--link-accent); line-height: 1;">${item.clickCount || 0}</div>
+                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 3px;">Lượt Click</div>
+                    </div>
+
+                    <div class="link-actions-group">
+                        <button class="btn-table-action" title="Sao chép liên kết" onclick="copyShortlink('${shortUrl}')">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <button class="btn-table-action" title="Mở thử trang Gateway" onclick="window.open('${shortUrl}', '_blank')">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </button>
+                        <button class="btn-table-action" title="Chỉnh sửa" onclick="editLink('${item.id}')">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-table-action" style="color: #ef4444;" title="Xóa" onclick="deleteLink('${item.id}')">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+
+                listBody.appendChild(row);
+            });
+        }
+
+        window.copyShortlink = function(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                if (typeof showToast === 'function') {
+                    showToast('Thành công', 'Đã sao chép link Gateway vào clipboard!', 'success');
+                } else {
+                    alert('Đã sao chép link Gateway!');
+                }
+            });
+        };
+
+        // Modal Handlers
+        window.openCreateModal = function() {
+            isEditing = false;
+            originalSlug = null;
+            document.getElementById('modal-title').innerText = 'Tạo Liên Kết Mới';
+            document.getElementById('link-form').reset();
+            document.getElementById('form-slug').disabled = false;
+            document.getElementById('form-active').checked = true;
+
+            // Default dates: Hết 15/11/2026 và Tết 17/02/2027
+            document.getElementById('form-public-until').value = '2026-11-15T23:59';
+            document.getElementById('form-expire-at').value = '2027-02-17T23:59';
+
+            updateSlugPreview();
+            document.getElementById('link-modal').style.display = 'flex';
+        };
+
+        window.closeModal = function() {
+            document.getElementById('link-modal').style.display = 'none';
+        };
+
+        window.editLink = function(id) {
+            const item = linksList.find(x => x.id === id);
+            if (!item) return;
+
+            isEditing = true;
+            originalSlug = id;
+            document.getElementById('modal-title').innerText = `Chỉnh Sửa Liên Kết: ${id}`;
+            document.getElementById('form-slug').value = id;
+            document.getElementById('form-slug').disabled = true;
+            document.getElementById('form-title').value = item.title || '';
+            document.getElementById('form-subtitle').value = item.subtitle || '';
+            document.getElementById('form-target-url').value = item.targetUrl || '';
+            document.getElementById('form-poster-url').value = item.posterUrl || '';
+            document.getElementById('form-mode').value = item.mode || 'timed';
+            document.getElementById('form-active').checked = item.active !== false;
+
+            if (item.publicUntil) {
+                document.getElementById('form-public-until').value = item.publicUntil.slice(0, 16);
+            } else {
+                document.getElementById('form-public-until').value = '';
+            }
+
+            if (item.expireAt) {
+                document.getElementById('form-expire-at').value = item.expireAt.slice(0, 16);
+            } else {
+                document.getElementById('form-expire-at').value = '';
+            }
+
+            updateSlugPreview();
+            handleModeChange();
+            document.getElementById('link-modal').style.display = 'flex';
+        };
+
+        window.deleteLink = async function(id) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa liên kết "${id}" không? Thao tác này không thể hoàn tác.`)) return;
+
+            try {
+                await deleteDoc(doc(db, "mhent_links", id));
+                if (typeof showToast === 'function') {
+                    showToast('Đã xóa', `Đã xóa liên kết ${id} thành công!`, 'info');
+                }
+            } catch (err) {
+                alert('Lỗi xóa: ' + err.message);
+            }
+        };
+
+        window.applyKimiMoviePreset = function() {
+            openCreateModal();
+            document.getElementById('form-slug').value = 'kimi-movie';
+            document.getElementById('form-title').value = 'You and Idol Pretty Cure the Movie: For You! Our KirakkiLive!';
+            document.getElementById('form-subtitle').value = 'Trọn bộ bản dịch chất lượng cao HD/4K từ MHEnt Subtitle Team';
+            document.getElementById('form-poster-url').value = 'https://www.mhentuniverse.com/assets/poster-kimi-movie.jpg';
+            document.getElementById('form-mode').value = 'timed';
+            document.getElementById('form-public-until').value = '2026-11-15T23:59';
+            document.getElementById('form-expire-at').value = '2027-02-17T23:59';
+            updateSlugPreview();
+        };
+
+        window.handleModeChange = function() {
+            const mode = document.getElementById('form-mode').value;
+            const timedGroup = document.getElementById('timed-fields-group');
+            if (mode === 'public' || mode === 'direct') {
+                timedGroup.style.display = 'none';
+            } else {
+                timedGroup.style.display = 'block';
+            }
+        };
+
+        function updateSlugPreview() {
+            const slug = (document.getElementById('form-slug').value || 'example').trim();
+            document.getElementById('slug-preview').innerText = `${window.location.origin}/go?id=${slug}`;
+        }
+        document.getElementById('form-slug').addEventListener('input', updateSlugPreview);
+
+        window.handleSaveLink = async function(e) {
+            e.preventDefault();
+            const slug = document.getElementById('form-slug').value.trim().toLowerCase();
+            const title = document.getElementById('form-title').value.trim();
+            const subtitle = document.getElementById('form-subtitle').value.trim();
+            const targetUrl = document.getElementById('form-target-url').value.trim();
+            const posterUrl = document.getElementById('form-poster-url').value.trim();
+            const mode = document.getElementById('form-mode').value;
+            const active = document.getElementById('form-active').checked;
+            
+            const rawPublic = document.getElementById('form-public-until').value;
+            const rawExpire = document.getElementById('form-expire-at').value;
+
+            const publicUntil = rawPublic ? new Date(rawPublic).toISOString() : null;
+            const expireAt = rawExpire ? new Date(rawExpire).toISOString() : null;
+
+            const user = window.getMHEntUser ? window.getMHEntUser() : null;
+
+            const payload = {
+                title,
+                subtitle,
+                targetUrl,
+                posterUrl,
+                mode,
+                active,
+                publicUntil,
+                expireAt,
+                updatedAt: new Date().toISOString()
+            };
+
+            if (!isEditing) {
+                payload.slug = slug;
+                payload.clickCount = 0;
+                payload.createdAt = new Date().toISOString();
+                payload.createdBy = user ? (user.email || user.uid) : 'admin';
+            }
+
+            try {
+                const targetSlug = isEditing ? originalSlug : slug;
+                await setDoc(doc(db, "mhent_links", targetSlug), payload, { merge: true });
+
+                closeModal();
+                if (typeof showToast === 'function') {
+                    showToast('Thành công', `Đã lưu liên kết ${targetSlug} thành công!`, 'success');
+                }
+            } catch (err) {
+                alert('Lỗi lưu liên kết: ' + err.message);
+            }
+        };
+
+        // Init
+        renderAuthSlot();
+        listenLinks();
+    </script>
+</body>
+</html>
