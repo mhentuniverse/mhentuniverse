@@ -19,10 +19,10 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang chuyển hướng... - MHEnt Gateway</title>
+    <title>MHEnt Smart Gateway</title>
     <meta property="og:site_name" content="MHEnt. Universe">
     <meta id="meta-og-title" property="og:title" content="MHEnt Smart Gateway">
-    <meta id="meta-og-desc" property="og:description" content="Cổng điều hướng và liên kết rút gọn thông minh của MHEnt Universe.">
+    <meta id="meta-og-desc" property="og:description" content="Cổng điều hướng thông minh & bảo vệ tài nguyên của MHEnt Universe.">
     <meta id="meta-og-image" property="og:image" content="https://www.mhentuniverse.com/assets/avt-web.jpg">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     
@@ -39,10 +39,12 @@
 
     <style>
         :root {
-            --gw-accent: #6366f1;
-            --gw-hover: #4f46e5;
-            --gw-pink: #ec4899;
-            --gw-success: #10b981;
+            --gw-indigo: #6366f1;
+            --gw-pink: #ff85a2;
+            --gw-pink-glow: rgba(255, 133, 162, 0.4);
+            --gw-cyan: #06b6d4;
+            --gw-emerald: #10b981;
+            --gw-amber: #f59e0b;
         }
 
         .main-container {
@@ -50,199 +52,340 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px 60px 20px;
+            padding: 40px 20px 70px 20px;
             margin-top: 65px;
+            position: relative;
         }
 
-        /* Minimalist Modern Gateway Card */
+        /* Hero Light Orbs */
+        .ambient-light-1 {
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(40px);
+        }
+        .ambient-light-2 {
+            position: absolute;
+            bottom: 15%;
+            right: 15%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255, 133, 162, 0.18) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(40px);
+        }
+
+        /* Gorgeous Lively Glassmorphism Card */
         .gateway-card {
             width: 100%;
-            max-width: 580px;
-            background: var(--bg-glass, rgba(255, 255, 255, 0.92));
-            border: 2px solid var(--border-color, #f1f5f9);
-            border-radius: 28px;
-            box-shadow: 0 20px 50px -10px rgba(99, 102, 241, 0.12);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 36px 32px;
+            max-width: 640px;
+            background: var(--bg-glass, rgba(255, 255, 255, 0.94));
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 32px;
+            box-shadow: 0 25px 60px -15px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(255, 133, 162, 0.15);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 40px 36px;
             position: relative;
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
         }
         .dark-mode .gateway-card {
-            background: var(--bg-glass-strong, rgba(15, 23, 42, 0.95));
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: var(--bg-glass-strong, rgba(15, 23, 42, 0.94));
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.25);
         }
 
-        /* Domain Pill on Top */
-        .target-domain-pill {
+        /* Status Pill */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 18px;
+            border-radius: 999px;
+            font-size: 13.5px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            margin: 0 auto 18px auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            transition: 0.3s;
+        }
+        .pill-open {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+            border: 1.5px solid rgba(16, 185, 129, 0.35);
+        }
+        .pill-lock {
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+            border: 1.5px solid rgba(245, 158, 11, 0.35);
+        }
+        .pill-expired {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+            border: 1.5px solid rgba(239, 68, 68, 0.35);
+        }
+
+        /* Universe Tag Pill */
+        .universe-tag {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             padding: 6px 16px;
             border-radius: 999px;
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 800;
-            background: var(--hub-bg);
-            color: var(--gw-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
+        .tag-cinema { background: rgba(255, 133, 162, 0.15); color: #ff527b; border: 1px solid rgba(255, 133, 162, 0.3); }
+        .tag-study { background: rgba(14, 165, 233, 0.15); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.3); }
+        .tag-arena { background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .tag-manga { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .tag-general { background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); }
 
-        .poster-preview-img {
-            max-width: 180px;
-            max-height: 220px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        /* Poster Preview */
+        .poster-wrapper {
+            margin-bottom: 22px;
+            display: inline-block;
+            position: relative;
+        }
+        .poster-img {
+            max-width: 200px;
+            max-height: 250px;
+            border-radius: 20px;
             object-fit: cover;
-            margin-bottom: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            transition: 0.3s transform ease;
+        }
+        .poster-wrapper:hover .poster-img {
+            transform: scale(1.03) translateY(-2px);
         }
 
         .link-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 900;
             line-height: 1.35;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
             color: var(--text-main, #1e293b);
         }
         .link-subtitle {
             font-size: 14.5px;
             color: #64748b;
             margin: 0 auto 24px auto;
-            max-width: 460px;
-            line-height: 1.5;
+            max-width: 500px;
+            line-height: 1.55;
             font-weight: 600;
         }
 
-        /* Status Banner Pill */
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 18px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 800;
-            margin-bottom: 24px;
-        }
-        .pill-open { background: rgba(16, 185, 129, 0.12); color: #059669; }
-        .dark-mode .pill-open { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .pill-auth { background: rgba(245, 158, 11, 0.12); color: #d97706; }
-        .dark-mode .pill-auth { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .pill-expired { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
-        .dark-mode .pill-expired { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-
-        /* Minimal Destination Box */
-        .destination-preview-box {
-            background: rgba(0, 0, 0, 0.02);
-            border: 1.5px dashed var(--border-color, #e2e8f0);
-            border-radius: 16px;
-            padding: 14px 18px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13.5px;
-            color: #64748b;
-            text-align: left;
-            word-break: break-all;
-        }
-        .dark-mode .destination-preview-box {
-            background: rgba(255, 255, 255, 0.02);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Main Big CTA */
-        .btn-cta-main {
+        /* ⏰ BIG COUNTDOWN CLOCK CARDS (LIVELY & EXCITING!) */
+        .countdown-strip {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            width: 100%;
-            padding: 16px 24px;
-            background: var(--gw-accent);
-            color: #ffffff !important;
-            border: none;
-            border-radius: 30px;
-            font-size: 16.5px;
-            font-weight: 800;
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
-            transition: all 0.25s ease;
+            margin: 22px 0 26px 0;
         }
-        .btn-cta-main:hover {
+        .cd-block {
+            background: var(--bg-glass, rgba(255, 255, 255, 0.8));
+            border: 1.5px solid var(--border-color, #e2e8f0);
+            border-radius: 18px;
+            padding: 12px 14px;
+            min-width: 68px;
+            box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.12);
+            position: relative;
+            overflow: hidden;
+            transition: 0.25s transform ease;
+        }
+        .dark-mode .cd-block {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.4);
+        }
+        .cd-block:hover {
             transform: translateY(-2px);
-            background: var(--gw-hover);
-            box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5);
+            border-color: var(--gw-pink);
+        }
+        .cd-num {
+            font-size: 26px;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, #6366f1, #ff85a2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .cd-lbl {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-top: 5px;
+            letter-spacing: 0.5px;
         }
 
-        /* Auto Redirect Bar */
-        .redirect-bar {
+        /* Event Highlight Box */
+        .event-banner-box {
+            border-radius: 22px;
+            padding: 20px 22px;
+            margin-bottom: 24px;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        .box-open {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(99, 102, 241, 0.06));
+            border: 1.5px solid rgba(16, 185, 129, 0.3);
+        }
+        .box-lock {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 133, 162, 0.08));
+            border: 1.5px solid rgba(245, 158, 11, 0.3);
+        }
+        .box-expired {
+            background: rgba(239, 68, 68, 0.06);
+            border: 1.5px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .event-banner-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+        .event-banner-desc {
+            font-size: 14px;
+            line-height: 1.55;
+            color: #475569;
+        }
+        .dark-mode .event-banner-desc {
+            color: #cbd5e1;
+        }
+
+        /* Glowing Action Button */
+        .btn-action-glow {
+            width: 100%;
+            padding: 17px 28px;
+            border-radius: 35px;
+            border: none;
+            font-size: 17px;
+            font-weight: 800;
+            color: #ffffff !important;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #6366f1, #ff85a2);
+            box-shadow: 0 12px 28px -5px rgba(99, 102, 241, 0.45), 0 0 20px rgba(255, 133, 162, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+        }
+        .btn-action-glow:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 16px 35px -5px rgba(255, 133, 162, 0.55), 0 0 25px rgba(99, 102, 241, 0.4);
+            filter: brightness(1.05);
+        }
+        .btn-action-glow:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+        .btn-login-gate {
+            background: linear-gradient(135deg, #0284c7, #6366f1);
+            box-shadow: 0 12px 28px -5px rgba(2, 132, 199, 0.45);
+        }
+
+        /* Destination Target Pill */
+        .dest-target-strip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #64748b;
             margin-top: 18px;
+        }
+
+        /* Auto-redirect bar */
+        .redirect-counter-strip {
+            margin-top: 15px;
             font-size: 13.5px;
             color: #64748b;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
-        .pause-btn {
+        .pause-pill-btn {
             background: none;
             border: 1px solid var(--border-color, #cbd5e1);
             border-radius: 8px;
-            padding: 3px 10px;
+            padding: 3px 8px;
             font-size: 12px;
             cursor: pointer;
             color: inherit;
         }
-
-        /* Lock Screen Card */
-        .lock-box {
-            background: rgba(245, 158, 11, 0.06);
-            border: 1.5px solid rgba(245, 158, 11, 0.25);
-            border-radius: 20px;
-            padding: 22px 20px;
-            margin-bottom: 24px;
+        .pause-pill-btn:hover {
+            border-color: var(--gw-pink);
+            color: var(--gw-pink);
         }
 
-        /* Bottom Meta */
-        .card-footer-meta {
+        /* Card Meta */
+        .card-bottom-meta {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 26px;
-            padding-top: 18px;
+            margin-top: 28px;
+            padding-top: 20px;
             border-top: 1px solid var(--border-color, #e2e8f0);
             font-size: 13px;
             color: #94a3b8;
         }
-        .card-footer-meta button {
+        .card-bottom-meta button {
             background: none;
             border: none;
-            color: var(--gw-accent);
-            font-size: 13px;
-            font-weight: 700;
+            color: var(--gw-indigo);
+            font-weight: 800;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        .card-bottom-meta button:hover {
+            background: var(--hub-bg);
         }
 
         .spinner-gw {
-            width: 44px;
-            height: 44px;
-            border: 3.5px solid rgba(99, 102, 241, 0.15);
-            border-top-color: #6366f1;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(99, 102, 241, 0.15);
+            border-top-color: #ff85a2;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px auto;
+            margin: 0 auto 18px auto;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="theme-game gradient-bg">
+
+    <!-- Ambient Lights -->
+    <div class="ambient-light-1"></div>
+    <div class="ambient-light-2"></div>
 
     <!-- TOP NAVBAR CHUẨN CỦA TOÀN BỘ MHENT UNIVERSE -->
     <nav class="navbar">
@@ -256,7 +399,7 @@
         <ul class="nav-links" id="nav-links">
             <li><a onclick="window.location.href='/'" style="cursor: pointer;">Đại Sảnh</a></li>
             <li><a onclick="window.location.href='/cinema'" style="cursor: pointer;">Cinema</a></li>
-            <li><a onclick="window.location.href='/tools'" style="cursor: pointer;">Bộ Công Cụ</a></li>
+            <li><a onclick="window.location.href='/tools'" style="cursor: pointer; color: var(--hub-color); font-weight: 900;">Bộ Công Cụ</a></li>
             <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
         </ul>
 
@@ -342,69 +485,99 @@
             <!-- Loading -->
             <div id="state-loading" style="padding: 50px 10px;">
                 <div class="spinner-gw"></div>
-                <h3 style="font-size: 17px; font-weight: 800; margin: 0 0 6px 0;">Đang kết nối liên kết...</h3>
-                <p style="font-size: 13.5px; color: #64748b; margin: 0;">Kiểm tra trạng thái điều hướng</p>
+                <h3 style="font-size: 18px; font-weight: 800; margin: 0 0 6px 0;">Đang kết nối cổng điều hướng...</h3>
+                <p style="font-size: 14px; color: #64748b; margin: 0;">Kiểm tra phân quyền và chính sách liên kết</p>
             </div>
 
             <!-- Not Found -->
             <div id="state-not-found" style="display: none; padding: 30px 10px;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 26px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                <div style="width: 65px; height: 65px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); color: #ef4444; font-size: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
                     <i class="fa-solid fa-link-slash"></i>
                 </div>
-                <h2 style="font-size: 20px; font-weight: 900; margin: 0 0 8px 0;">Liên kết không tồn tại</h2>
-                <p style="color: #64748b; font-size: 14px; margin: 0 0 22px 0;">Đường dẫn bạn truy cập có thể đã hết hạn hoặc chưa được tạo.</p>
-                <a href="/tools/links" class="btn-primary" style="display: inline-block;">Tạo liên kết mới</a>
+                <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 8px 0;">Liên kết không tồn tại</h2>
+                <p style="color: #64748b; font-size: 14.5px; margin: 0 0 24px 0;">Đường dẫn bạn truy cập có thể đã hết hạn hoặc chưa từng được tạo.</p>
+                <a href="/tools/links" class="btn-action-glow" style="display: inline-flex; width: auto; padding: 12px 28px; font-size: 15px;">
+                    <i class="fa-solid fa-plus"></i> Tạo liên kết mới
+                </a>
             </div>
 
-            <!-- Content -->
+            <!-- Content Area -->
             <div id="state-content" style="display: none;">
-                <!-- Platform / Domain Pill -->
+                <!-- Phân khu Universe Tag -->
                 <div>
-                    <div id="domain-pill" class="target-domain-pill">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span id="domain-pill-text">mhentuniverse.com</span>
+                    <div id="universe-tag" class="universe-tag tag-general">
+                        <i class="fa-solid fa-sparkles"></i> <span id="universe-tag-text">MHEnt Resource</span>
                     </div>
                 </div>
 
                 <!-- Poster (if provided) -->
-                <div id="poster-box" style="display: none;">
-                    <img id="poster-img" src="" alt="Thumbnail" class="poster-preview-img">
+                <div id="poster-box" class="poster-wrapper" style="display: none;">
+                    <img id="poster-img" src="" alt="Thumbnail" class="poster-img">
                 </div>
 
-                <!-- Title & Subtitle -->
+                <!-- Tiêu đề & Subtitle -->
                 <h1 id="link-title" class="link-title">Tiêu đề liên kết</h1>
                 <p id="link-subtitle" class="link-subtitle"></p>
 
-                <!-- Status Chip (Minimal, no wall of text!) -->
-                <div>
+                <!-- Trạng thái quyền truy cập (Status Pill) -->
+                <div style="margin-bottom: 20px;">
                     <div id="status-pill" class="status-pill pill-open">
-                        <i class="fa-solid fa-lock-open"></i> <span id="status-pill-text">Đang mở tự do</span>
+                        <i class="fa-solid fa-lock-open"></i> <span id="status-pill-text">Đang mở tự do (Không cần đăng nhập)</span>
                     </div>
                 </div>
 
-                <!-- Destination URL Preview Box -->
-                <div class="destination-preview-box">
-                    <span style="font-weight: 700; color: var(--text-main);">Đích đến:</span>
-                    <span id="target-domain-preview" style="font-family: monospace; font-size: 13px;">...</span>
+                <!-- ⏰ ĐỒNG HỒ ĐẾM NGƯỢC SỐ TO CỰC ĐẸP (NẾU CÓ HẠN) -->
+                <div id="countdown-strip" class="countdown-strip" style="display: none;">
+                    <div class="cd-block">
+                        <div id="cd-days" class="cd-num">00</div>
+                        <div class="cd-lbl">Ngày</div>
+                    </div>
+                    <div class="cd-block">
+                        <div id="cd-hours" class="cd-num">00</div>
+                        <div class="cd-lbl">Giờ</div>
+                    </div>
+                    <div class="cd-block">
+                        <div id="cd-mins" class="cd-num">00</div>
+                        <div class="cd-lbl">Phút</div>
+                    </div>
+                    <div class="cd-block">
+                        <div id="cd-secs" class="cd-num">00</div>
+                        <div class="cd-lbl">Giây</div>
+                    </div>
                 </div>
 
-                <!-- CTA Container -->
+                <!-- Khung Banner Thông Báo Tinh Tế (Lively Event Box) -->
+                <div id="event-box" class="event-banner-box box-open">
+                    <div class="event-banner-heading" id="event-box-heading">
+                        <i class="fa-solid fa-gift" style="color: #10b981;"></i> <span>Sự Kiện Mở Tự Do!</span>
+                    </div>
+                    <div class="event-banner-desc" id="event-box-desc">
+                        Liên kết đang được mở tự do cho mọi người. Nhanh tay truy cập trước khi chuyển sang chế độ thành viên!
+                    </div>
+                </div>
+
+                <!-- Nút Bấm Chính (Glowing CTA Button) -->
                 <div id="cta-container"></div>
 
-                <!-- Auto Redirect Bar -->
-                <div id="redirect-bar" class="redirect-bar" style="display: none;">
-                    <span>Tự động chuyển tiếp sau <strong id="countdown-val">3</strong>s...</span>
-                    <button class="pause-btn" onclick="pauseAutoRedirect()">Dừng lại</button>
+                <!-- Đích đến Preview & Tự động chuyển tiếp -->
+                <div class="dest-target-strip">
+                    <span id="dest-domain-badge"><i class="fa-solid fa-arrow-up-right-from-square"></i> Đích đến: <strong id="dest-domain-text">google.com</strong></span>
                 </div>
 
-                <!-- Card Footer Meta -->
-                <div class="card-footer-meta">
+                <div id="redirect-strip" class="redirect-counter-strip" style="display: none;">
+                    <span><i class="fa-solid fa-spinner fa-spin"></i> Tự động chuyển hướng sau <strong id="cd-timer-val">5</strong>s...</span>
+                    <button class="pause-pill-btn" onclick="pauseAutoRedirect()">Tạm dừng</button>
+                </div>
+
+                <!-- Thẻ Meta Dưới Cùng -->
+                <div class="card-bottom-meta">
                     <div>
-                        <span id="click-counter"><i class="fa-solid fa-eye"></i> 0 lượt xem</span>
+                        <span id="click-counter"><i class="fa-solid fa-eye"></i> 0 lượt truy cập</span>
                     </div>
                     <div style="display: flex; gap: 14px;">
                         <button onclick="copyCurrentLink()"><i class="fa-regular fa-copy"></i> Sao chép link</button>
-                        <a href="/tools/links" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo link tương tự
+                        <a id="universe-back-link" href="/cinema" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                            <i class="fa-solid fa-film"></i> Rạp Cinema
                         </a>
                     </div>
                 </div>
@@ -478,8 +651,9 @@
         const auth = getAuth(app);
 
         let activeLinkData = null;
+        let countdownInterval = null;
         let redirectTimer = null;
-        let redirectCount = 3;
+        let redirectCount = 5;
         let isPaused = false;
 
         // Navbar & Auth
@@ -560,13 +734,34 @@
 
         function getPlatformInfo(url) {
             const lower = (url || '').toLowerCase();
-            if (lower.includes('drive.google.com')) return { name: 'Google Drive', icon: 'fa-brands fa-google-drive', action: 'Mở Google Drive' };
-            if (lower.includes('mega.nz')) return { name: 'MEGA', icon: 'fa-solid fa-cloud', action: 'Mở tệp trên MEGA' };
-            if (lower.includes('mediafire.com')) return { name: 'MediaFire', icon: 'fa-solid fa-fire', action: 'Mở MediaFire' };
-            if (lower.includes('youtube.com') || lower.includes('youtu.be')) return { name: 'YouTube', icon: 'fa-brands fa-youtube', action: 'Xem trên YouTube' };
-            if (lower.includes('facebook.com') || lower.includes('fb.com')) return { name: 'Facebook', icon: 'fa-brands fa-facebook', action: 'Mở trên Facebook' };
-            if (lower.includes('fshare.vn')) return { name: 'Fshare', icon: 'fa-solid fa-download', action: 'Mở trên Fshare' };
-            return { name: parseDomain(url), icon: 'fa-solid fa-arrow-up-right-from-square', action: 'Truy cập liên kết' };
+            if (lower.includes('drive.google.com')) return { name: 'Google Drive', icon: 'fa-brands fa-google-drive', action: 'Tải Trên Google Drive' };
+            if (lower.includes('mega.nz')) return { name: 'MEGA', icon: 'fa-solid fa-cloud-arrow-down', action: 'Tải Trên MEGA' };
+            if (lower.includes('mediafire.com')) return { name: 'MediaFire', icon: 'fa-solid fa-fire', action: 'Tải Trên MediaFire' };
+            if (lower.includes('youtube.com') || lower.includes('youtu.be')) return { name: 'YouTube', icon: 'fa-brands fa-youtube', action: 'Xem Trên YouTube' };
+            if (lower.includes('fshare.vn')) return { name: 'Fshare', icon: 'fa-solid fa-folder-arrow-down', action: 'Tải Trên Fshare' };
+            return { name: parseDomain(url), icon: 'fa-solid fa-arrow-up-right-from-square', action: 'Truy Cập Liên Kết' };
+        }
+
+        function getUniverseInfo(cat) {
+            switch ((cat || '').toLowerCase()) {
+                case 'cinema': return { text: 'Cinema • Vũ Trụ Điện Ảnh', cls: 'tag-cinema', icon: 'fa-solid fa-film', url: '/cinema' };
+                case 'study': return { text: 'Study • Không Gian Học Tập', cls: 'tag-study', icon: 'fa-solid fa-graduation-cap', url: 'https://study.mhentuniverse.com' };
+                case 'arena': return { text: 'Arena • Đấu Trí & Game', cls: 'tag-arena', icon: 'fa-solid fa-gamepad', url: '/arena' };
+                case 'manga': return { text: 'Manga • Truyện Tranh', cls: 'tag-manga', icon: 'fa-solid fa-book-open', url: '/manga' };
+                default: return { text: 'MHEnt Universe Resource', cls: 'tag-general', icon: 'fa-solid fa-sparkles', url: '/' };
+            }
+        }
+
+        function formatDateTimeVN(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            const hours = String(d.getHours()).padStart(2, '0');
+            const mins = String(d.getMinutes()).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${hours}:${mins} ngày ${day}/${month}/${year}`;
         }
 
         function getSlug() {
@@ -618,18 +813,28 @@
             document.getElementById('state-content').style.display = 'block';
 
             const platform = getPlatformInfo(data.targetUrl);
+            const universe = getUniverseInfo(data.category);
             const domain = parseDomain(data.targetUrl);
 
             document.title = `${data.title || platform.name} - MHEnt Gateway`;
             document.getElementById('link-title').innerText = data.title || platform.name;
-            document.getElementById('link-subtitle').innerText = data.subtitle || '';
-            document.getElementById('domain-pill-text').innerText = platform.name;
-            document.getElementById('target-domain-preview').innerText = domain;
-            document.getElementById('click-counter').innerHTML = `<i class="fa-solid fa-eye"></i> ${data.clickCount || 0} lượt xem`;
+            document.getElementById('link-subtitle').innerText = data.subtitle || 'Liên kết phân phối tài nguyên chính thức từ Miyazaki Haruto Entertainment.';
+            
+            // Universe Tag
+            const tagEl = document.getElementById('universe-tag');
+            tagEl.className = `universe-tag ${universe.cls}`;
+            tagEl.innerHTML = `<i class="${universe.icon}"></i> <span>${universe.text}</span>`;
+
+            const backLink = document.getElementById('universe-back-link');
+            backLink.href = universe.url;
+            backLink.innerHTML = `<i class="${universe.icon}"></i> ${universe.text.split('•')[0].trim()}`;
+
+            document.getElementById('dest-domain-text').innerText = domain;
+            document.getElementById('click-counter').innerHTML = `<i class="fa-solid fa-eye"></i> ${data.clickCount || 0} lượt truy cập`;
 
             if (data.posterUrl) {
                 document.getElementById('poster-img').src = data.posterUrl;
-                document.getElementById('poster-box').style.display = 'block';
+                document.getElementById('poster-box').style.display = 'inline-block';
             }
 
             const now = new Date();
@@ -637,7 +842,7 @@
             const expireAt = data.expireAt ? new Date(data.expireAt) : null;
             const mode = data.mode || 'timed';
 
-            // Direct mode -> auto redirect right away
+            // Direct mode -> Navigate right away
             if (mode === 'direct' && data.targetUrl) {
                 window.navigateTarget(data.targetUrl);
                 return;
@@ -647,96 +852,179 @@
 
             // Expired
             if (expireAt && now > expireAt) {
-                renderExpired();
+                renderExpired(data, expireAt);
                 return;
             }
 
-            // Public stage
+            // Open public
             const isPublic = mode === 'public' || (!publicUntil) || (publicUntil && now <= publicUntil);
 
             if (isPublic && mode !== 'auth_only') {
                 renderOpen(data, platform, publicUntil);
             } else {
-                renderAuth(data, platform, user);
+                renderAuth(data, platform, user, publicUntil, expireAt);
             }
         }
 
         function renderOpen(data, platform, publicUntil) {
-            const pill = document.getElementById('status-pill');
-            pill.className = 'status-pill pill-open';
-            
-            if (publicUntil) {
-                const diffDays = Math.ceil((publicUntil - new Date()) / (1000 * 60 * 60 * 24));
-                pill.innerHTML = `<i class="fa-solid fa-lock-open"></i> Đang mở tự do • Còn ${diffDays > 0 ? diffDays : 1} ngày`;
-            } else {
-                pill.innerHTML = `<i class="fa-solid fa-lock-open"></i> Liên kết công khai`;
+            const cta = document.getElementById('cta-container');
+            const eventBox = document.getElementById('event-box');
+            const statusPill = document.getElementById('status-pill');
+
+            if (statusPill) {
+                statusPill.className = 'status-pill pill-open';
+                statusPill.innerHTML = `<i class="fa-solid fa-lock-open"></i> <span>Đang mở tự do (Không cần đăng nhập)</span>`;
+                statusPill.style.display = 'inline-flex';
             }
 
-            const cta = document.getElementById('cta-container');
+            eventBox.className = 'event-banner-box box-open';
+
+            if (publicUntil) {
+                startCountdown(publicUntil);
+                document.getElementById('event-box-heading').innerHTML = `<i class="fa-solid fa-gift" style="color: #10b981;"></i> <span>Đang Trong Giai Đoạn Phát Hành Tự Do</span>`;
+                
+                let desc = `Liên kết tài nguyên đang được mở công khai hoàn toàn tự do cho tất cả người dùng đến hết <strong>${formatDateTimeVN(publicUntil)}</strong>. `;
+                if (data.expireAt) {
+                    desc += `Sau thời gian này, hệ thống sẽ tự động chuyển sang chế độ tải tài nguyên thành viên MHEnt ID đến <strong>${formatDateTimeVN(data.expireAt)}</strong> nhằm phòng chống spam.`;
+                } else {
+                    desc += `Sau thời gian này, hệ thống sẽ chuyển sang chế độ bảo vệ tài khoản MHEnt ID.`;
+                }
+                document.getElementById('event-box-desc').innerHTML = data.customNotice || desc;
+            } else {
+                document.getElementById('countdown-strip').style.display = 'none';
+                document.getElementById('event-box-heading').innerHTML = `<i class="fa-solid fa-sparkles" style="color: #6366f1;"></i> <span>Liên Kết Mở Tự Do</span>`;
+                document.getElementById('event-box-desc').innerHTML = data.customNotice || `Liên kết công khai đã sẵn sàng, bạn có thể truy cập ngay lập tức bên dưới.`;
+            }
+
             cta.innerHTML = `
-                <button onclick="window.navigateTarget('${data.targetUrl}')" class="btn-cta-main">
-                    <i class="${platform.icon}"></i> ${platform.action}
+                <button onclick="window.navigateTarget('${data.targetUrl}')" class="btn-action-glow">
+                    <i class="${platform.icon}" style="font-size: 20px;"></i> ${platform.action}
                 </button>
             `;
 
-            // Auto redirect 3s
-            startAutoRedirect(data.targetUrl);
-        }
-
-        function renderAuth(data, platform, user) {
-            const pill = document.getElementById('status-pill');
-            pill.className = 'status-pill pill-auth';
-            pill.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Bảo vệ tài khoản MHEnt ID`;
-
-            const cta = document.getElementById('cta-container');
-
-            if (user) {
-                cta.innerHTML = `
-                    <div style="background: rgba(16, 185, 129, 0.1); border-radius: 16px; padding: 12px; margin-bottom: 18px; font-size: 14px; color: #059669; font-weight: 700;">
-                        <i class="fa-solid fa-circle-check"></i> Đã mở khóa cho tài khoản: <strong>${user.displayName || user.email}</strong>
-                    </div>
-                    <button onclick="window.navigateTarget('${data.targetUrl}')" class="btn-cta-main" style="background: #10b981;">
-                        <i class="${platform.icon}"></i> ${platform.action}
-                    </button>
-                `;
-            } else {
-                cta.innerHTML = `
-                    <div class="lock-box">
-                        <div style="font-weight: 800; font-size: 15px; color: #d97706; margin-bottom: 6px;">
-                            <i class="fa-solid fa-lock"></i> Yêu cầu đăng nhập để mở khóa
-                        </div>
-                        <div style="font-size: 13.5px; color: #64748b; line-height: 1.5;">
-                            Liên kết này được cài đặt chỉ mở cho thành viên hệ thống MHEnt Universe.
-                        </div>
-                    </div>
-                    <button onclick="window.openMHEntLogin(window.location.href)" class="btn-cta-main">
-                        <i class="fa-solid fa-key"></i> Đăng nhập bằng MHEnt ID để mở khóa
-                    </button>
-                `;
+            // Display paused status text so user can click comfortably
+            const redirectStrip = document.getElementById('redirect-strip');
+            if (redirectStrip) {
+                redirectStrip.style.display = 'flex';
+                redirectStrip.innerHTML = `<span style="color: #10b981; font-weight: 700; font-size: 13.5px;"><i class="fa-solid fa-circle-check"></i> Đã dừng tự động chuyển hướng. Bạn có thể nhấn nút phía trên khi đã sẵn sàng!</span>`;
             }
         }
 
-        function renderExpired() {
-            const pill = document.getElementById('status-pill');
-            pill.className = 'status-pill pill-expired';
-            pill.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Liên kết đã hết hạn`;
+        function renderAuth(data, platform, user, publicUntil, expireAt) {
+            const cta = document.getElementById('cta-container');
+            const eventBox = document.getElementById('event-box');
+            const statusPill = document.getElementById('status-pill');
+
+            if (expireAt) {
+                startCountdown(expireAt);
+            } else {
+                document.getElementById('countdown-strip').style.display = 'none';
+            }
+
+            if (user) {
+                if (statusPill) {
+                    statusPill.className = 'status-pill pill-open';
+                    statusPill.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Đã mở khóa tài khoản MHEnt ID</span>`;
+                    statusPill.style.display = 'inline-flex';
+                }
+
+                eventBox.className = 'event-banner-box box-open';
+                document.getElementById('event-box-heading').innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> <span>Xác Thực Thành Viên MHEnt ID Thành Công!</span>`;
+                document.getElementById('event-box-desc').innerHTML = `
+                    Xin chào <strong>${user.displayName || 'Thành viên'}</strong>! Bạn đã đăng nhập hệ thống MHEnt Universe và được mở khóa tải tài nguyên này.
+                `;
+
+                cta.innerHTML = `
+                    <button onclick="window.navigateTarget('${data.targetUrl}')" class="btn-action-glow">
+                        <i class="${platform.icon}" style="font-size: 20px;"></i> ${platform.action}
+                    </button>
+                `;
+            } else {
+                if (statusPill) {
+                    statusPill.className = 'status-pill pill-lock';
+                    statusPill.innerHTML = `<i class="fa-solid fa-lock"></i> <span>Yêu cầu đăng nhập tài khoản MHEnt ID</span>`;
+                    statusPill.style.display = 'inline-flex';
+                }
+
+                eventBox.className = 'event-banner-box box-lock';
+                document.getElementById('event-box-heading').innerHTML = `<i class="fa-solid fa-lock" style="color: #f59e0b;"></i> <span>Khu Vực Bảo Vệ Thành Viên MHEnt ID</span>`;
+                document.getElementById('event-box-desc').innerHTML = `
+                    ${publicUntil ? `Giai đoạn mở tự do đã khép lại vào <strong>${formatDateTimeVN(publicUntil)}</strong>. ` : ''}Hiện tại liên kết chỉ mở cho người dùng đã có tài khoản tại hệ thống <strong>MHEnt. Universe</strong>${expireAt ? ` (đến hết <strong>${formatDateTimeVN(expireAt)}</strong>)` : ''} nhằm phòng chống spam. Vui lòng đăng nhập để tiếp tục truy cập!
+                `;
+
+                cta.innerHTML = `
+                    <button onclick="window.redirectToLogin(window.location.pathname + window.location.search)" class="btn-action-glow btn-login-gate">
+                        <i class="fa-solid fa-key" style="font-size: 19px;"></i> Đăng Nhập Bằng MHEnt ID Để Mở Khóa
+                    </button>
+                `;
+            }
+
+            const redirectStrip = document.getElementById('redirect-strip');
+            if (redirectStrip) redirectStrip.style.display = 'none';
+        }
+
+        function renderExpired(data, expireAt) {
+            document.getElementById('countdown-strip').style.display = 'none';
+            const statusPill = document.getElementById('status-pill');
+            if (statusPill) {
+                statusPill.className = 'status-pill pill-expired';
+                statusPill.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> <span>Đã hết hạn phân phối</span>`;
+                statusPill.style.display = 'inline-flex';
+            }
+
+            const eventBox = document.getElementById('event-box');
+            eventBox.className = 'event-banner-box box-expired';
+            document.getElementById('event-box-heading').innerHTML = `<i class="fa-solid fa-clock-rotate-left" style="color: #ef4444;"></i> <span>Đợt Phân Phối Đã Kết Thúc</span>`;
+            document.getElementById('event-box-desc').innerHTML = `
+                Thời hạn chia sẻ cho liên kết này đã chính thức khép lại vào <strong>${formatDateTimeVN(expireAt)}</strong>. Cảm ơn bạn đã luôn quan tâm và đồng hành cùng MHEnt Universe!
+            `;
 
             const cta = document.getElementById('cta-container');
             cta.innerHTML = `
-                <div style="font-size: 14.5px; color: #64748b; margin-bottom: 20px;">
-                    Thời gian phân phối cho liên kết này đã kết thúc.
-                </div>
-                <a href="/" class="btn-cta-main" style="background: #64748b;">
-                    <i class="fa-solid fa-house"></i> Về Trang Chủ MHEnt
+                <a href="/" class="btn-action-glow" style="background: #64748b;">
+                    <i class="fa-solid fa-house"></i> Về Đại Sảnh MHEnt Universe
                 </a>
             `;
+
+            const redirectStrip = document.getElementById('redirect-strip');
+            if (redirectStrip) redirectStrip.style.display = 'none';
+        }
+
+        function startCountdown(targetDate) {
+            const strip = document.getElementById('countdown-strip');
+            strip.style.display = 'flex';
+
+            function tick() {
+                const now = new Date();
+                const diff = targetDate - now;
+
+                if (diff <= 0) {
+                    clearInterval(countdownInterval);
+                    if (activeLinkData) render(activeLinkData);
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((diff / 1000 / 60) % 60);
+                const seconds = Math.floor((diff / 1000) % 60);
+
+                document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+                document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('cd-mins').innerText = String(minutes).padStart(2, '0');
+                document.getElementById('cd-secs').innerText = String(seconds).padStart(2, '0');
+            }
+
+            tick();
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(tick, 1000);
         }
 
         function startAutoRedirect(targetUrl) {
-            const bar = document.getElementById('redirect-bar');
-            const span = document.getElementById('countdown-val');
-            bar.style.display = 'flex';
-            redirectCount = 3;
+            const strip = document.getElementById('redirect-strip');
+            const span = document.getElementById('cd-timer-val');
+            strip.style.display = 'flex';
+            redirectCount = 5;
             span.innerText = redirectCount;
 
             redirectTimer = setInterval(() => {
@@ -753,13 +1041,13 @@
         window.pauseAutoRedirect = function() {
             isPaused = true;
             if (redirectTimer) clearInterval(redirectTimer);
-            document.getElementById('redirect-bar').innerHTML = `<span style="color: #10b981; font-weight: 700;"><i class="fa-solid fa-check"></i> Đã dừng chuyển hướng tự động</span>`;
+            document.getElementById('redirect-strip').innerHTML = `<span style="color: #10b981; font-weight: 700;"><i class="fa-solid fa-check"></i> Đã dừng tự động chuyển hướng. Bạn có thể nhấn nút phía trên khi sẵn sàng!</span>`;
         };
 
         window.copyCurrentLink = function() {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 if (typeof showToast === 'function') showToast('Thành công', 'Đã sao chép link Gateway!', 'success');
-                else alert('Đã sao chép link!');
+                else alert('Đã sao chép!');
             });
         };
 
