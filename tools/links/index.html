@@ -293,6 +293,40 @@
             flex-shrink: 0;
         }
 
+        /* Filter Pills for Feed */
+        .filter-pill-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1.5px solid var(--border-color, #cbd5e1);
+            background: transparent;
+            font-size: 12.5px;
+            font-weight: 800;
+            color: #64748b;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-pill-btn:hover {
+            border-color: var(--hub-color);
+            color: var(--hub-color);
+        }
+        .filter-pill-btn.active {
+            background: var(--hub-color);
+            color: white;
+            border-color: var(--hub-color);
+            box-shadow: 0 4px 12px var(--hub-bg);
+        }
+        .dark-mode .filter-pill-btn {
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #94a3b8;
+        }
+        .dark-mode .filter-pill-btn.active {
+            background: #6366f1;
+            color: white;
+        }
+
         .optional-fields-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -757,9 +791,14 @@
                 </div>
             </div>
 
-            <button type="submit" id="btn-submit-form" class="btn-create-submit">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="btn-submit-text">Tạo Liên Kết Rút Gọn Ngay</span>
-            </button>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button type="submit" id="btn-submit-form" class="btn-create-submit" style="flex: 1;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="btn-submit-text">Tạo Liên Kết Rút Gọn Ngay</span>
+                </button>
+                <button type="button" id="edit-cancel-btn" onclick="cancelEdit()" class="btn-create-submit" style="display: none; width: auto; padding: 17px 24px; background: #64748b; box-shadow: none;">
+                    <i class="fa-solid fa-xmark"></i> Hủy
+                </button>
+            </div>
         </form>
 
         <!-- Result Box -->
@@ -783,10 +822,21 @@
 
     <!-- MAIN LINKS LIST -->
     <main class="list-container">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px;">
-            <h3 style="font-size: 21px; font-weight: 900; margin: 0; display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-list-check" style="color: var(--hub-color);"></i> Danh Sách Liên Kết Đã Tạo
-            </h3>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 14px;">
+            <div>
+                <h3 style="font-size: 21px; font-weight: 900; margin: 0 0 8px 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-list-check" style="color: var(--hub-color);"></i> Danh Sách Liên Kết Đã Tạo
+                </h3>
+                <!-- Filter Pills: Tất Cả vs Của Tôi -->
+                <div style="display: flex; gap: 8px;">
+                    <button class="filter-pill-btn active" id="filter-all-btn" onclick="setFeedFilter('all')">
+                        Tất cả (<span id="count-all-links">0</span>)
+                    </button>
+                    <button class="filter-pill-btn" id="filter-my-btn" onclick="setFeedFilter('my')">
+                        <i class="fa-solid fa-crown" style="color: #10b981;"></i> Của tôi (<span id="count-my-links">0</span>)
+                    </button>
+                </div>
+            </div>
             <div style="font-size: 14px; color: #64748b; font-weight: 700;">
                 Tổng số: <strong id="total-badge" style="color: var(--hub-color);">0</strong> liên kết
             </div>
@@ -971,21 +1021,74 @@
             document.cookie = `mhent_dark_mode=${isDark ? 'on' : 'off'}; domain=.mhentuniverse.com; path=/; max-age=31536000; SameSite=Lax`;
         };
 
+        let activeCurrentUser = null;
+        let editingLinkId = null;
+        let activeFeedFilter = 'all';
+
         onAuthStateChanged(auth, async (user) => {
-            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            activeCurrentUser = user || (window.getMHEntUser && window.getMHEntUser());
             const btnTheme = document.getElementById('btn-theme-toggle');
-            if (activeUser) {
+            if (activeCurrentUser) {
                 if (document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
                 if (btnTheme) btnTheme.style.display = 'none';
                 if (document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
-                if (document.getElementById('user-avatar')) document.getElementById('user-avatar').src = activeUser.photoURL || '/assets/avt-web.jpg';
-                if (document.getElementById('user-name')) document.getElementById('user-name').innerText = activeUser.displayName || 'Thành viên';
+                if (document.getElementById('user-avatar')) document.getElementById('user-avatar').src = activeCurrentUser.photoURL || '/assets/avt-web.jpg';
+                if (document.getElementById('user-name')) document.getElementById('user-name').innerText = activeCurrentUser.displayName || 'Thành viên';
             } else {
                 if (document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
                 if (btnTheme) btnTheme.style.display = 'flex';
                 if (document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
             }
+
+            // Update feed permissions when user logs in / out
+            if (linksList && linksList.length > 0) {
+                updateFilterCounters();
+                renderFeed(linksList);
+            }
         });
+
+        // Permissions Check
+        function canManageLink(item) {
+            const current = activeCurrentUser || auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
+            if (!current) return false;
+
+            const email = (current.email || '').toLowerCase();
+            const uid = current.uid || '';
+            const role = (current.role || '').toLowerCase();
+
+            // Admin: Full access
+            const isAdmin = 
+                email === 'mhent@mhentuniverse.com' ||
+                email === 'contact@mhentuniverse.com' ||
+                email === 'tokugawasakura58@gmail.com' ||
+                email === 'miyazakiharuto.ent.co@gmail.com' ||
+                email.endsWith('@mhentuniverse.com') ||
+                email.includes('admin') ||
+                role.includes('admin') ||
+                role.includes('boss') ||
+                role.includes('chủ tịch');
+
+            if (isAdmin) return true;
+
+            // Owner: Can manage their own link
+            if (item.createdByUid && uid && item.createdByUid === uid) return true;
+            if (item.createdByEmail && email && item.createdByEmail.toLowerCase() === email) return true;
+            if (item.createdBy && (item.createdBy === uid || item.createdBy.toLowerCase() === email)) return true;
+
+            return false;
+        }
+
+        function isUserOwner(item) {
+            const current = activeCurrentUser || auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
+            if (!current) return false;
+            const email = (current.email || '').toLowerCase();
+            const uid = current.uid || '';
+            return Boolean(
+                (item.createdByUid && uid && item.createdByUid === uid) ||
+                (item.createdByEmail && email && item.createdByEmail.toLowerCase() === email) ||
+                (item.createdBy && (item.createdBy === uid || item.createdBy.toLowerCase() === email))
+            );
+        }
 
         // Mode Toggler
         window.setMode = function(mode) {
@@ -1048,7 +1151,91 @@
             return res;
         }
 
-        // Handle Quick & Advanced Create
+        // Edit Existing Link (Chỉnh sửa link của chính mình hoặc Admin)
+        window.editLink = function(id) {
+            const item = linksList.find(x => x.id === id);
+            if (!item) return;
+
+            if (!canManageLink(item)) {
+                if (typeof showToast === 'function') {
+                    showToast('Từ chối truy cập', 'Chỉ người tạo hoặc Admin mới có quyền chỉnh sửa liên kết này!', 'error');
+                } else {
+                    alert('Chỉ người tạo hoặc Admin mới có quyền chỉnh sửa liên kết này!');
+                }
+                return;
+            }
+
+            editingLinkId = id;
+
+            // Scroll up to form smoothly
+            const formBox = document.querySelector('.shortener-container');
+            if (formBox) formBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Switch to advanced mode to show all parameters
+            setCreatorTab('advanced');
+            setMode(item.mode || 'direct');
+            if (item.category) selectCategory(item.category);
+
+            // Populate fields
+            document.getElementById('quick-target-url').value = item.targetUrl || '';
+            
+            document.getElementById('adv-slug').value = item.id || item.slug || '';
+            document.getElementById('adv-slug').disabled = true; // Khóa slug khi sửa để không làm gãy đường dẫn
+            document.getElementById('quick-slug').value = item.id || item.slug || '';
+            document.getElementById('quick-slug').disabled = true;
+
+            document.getElementById('adv-title').value = item.title || '';
+            document.getElementById('quick-title').value = item.title || '';
+            document.getElementById('adv-subtitle').value = item.subtitle || '';
+            document.getElementById('adv-poster-url').value = item.posterUrl || '';
+            previewPosterUrl(item.posterUrl || '');
+            document.getElementById('adv-notice').value = item.customNotice || '';
+            document.getElementById('adv-btn-text').value = item.buttonText || '';
+            document.getElementById('quick-btn-text').value = item.buttonText || '';
+
+            if (item.autoRedirectSeconds !== undefined) {
+                document.getElementById('adv-redirect-secs').value = String(item.autoRedirectSeconds);
+            }
+
+            const pad = n => String(n).padStart(2, '0');
+            if (item.publicUntil) {
+                const d = new Date(item.publicUntil);
+                if (!isNaN(d.getTime())) {
+                    document.getElementById('quick-public-until').value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                }
+            } else {
+                document.getElementById('quick-public-until').value = '';
+            }
+
+            if (item.expireAt) {
+                const d = new Date(item.expireAt);
+                if (!isNaN(d.getTime())) {
+                    document.getElementById('quick-expire-at').value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                }
+            } else {
+                document.getElementById('quick-expire-at').value = '';
+            }
+
+            // Update submit button UI
+            document.getElementById('btn-submit-text').innerText = `Lưu Thay Đổi Cho /go?id=${id}`;
+            document.getElementById('edit-cancel-btn').style.display = 'inline-flex';
+
+            if (typeof showToast === 'function') {
+                showToast('Chế độ chỉnh sửa', `Đang chỉnh sửa liên kết: /go?id=${id}`, 'info');
+            }
+        };
+
+        window.cancelEdit = function() {
+            editingLinkId = null;
+            document.getElementById('quick-shorten-form').reset();
+            document.getElementById('adv-slug').disabled = false;
+            document.getElementById('quick-slug').disabled = false;
+            document.getElementById('adv-poster-preview').style.display = 'none';
+            document.getElementById('edit-cancel-btn').style.display = 'none';
+            document.getElementById('btn-submit-text').innerText = currentCreatorTab === 'advanced' ? 'Xuất Bản Trang Gateway Đầy Đủ Ngay' : 'Tạo Liên Kết Rút Gọn Ngay';
+        };
+
+        // Handle Create or Update
         window.handleQuickCreate = async function(e) {
             e.preventDefault();
             const targetUrl = document.getElementById('quick-target-url').value.trim();
@@ -1064,7 +1251,7 @@
             let autoRedirectSeconds = 6;
 
             if (currentCreatorTab === 'advanced') {
-                slug = document.getElementById('adv-slug').value.trim().toLowerCase();
+                slug = (editingLinkId || document.getElementById('adv-slug').value.trim().toLowerCase());
                 title = document.getElementById('adv-title').value.trim();
                 subtitle = document.getElementById('adv-subtitle').value.trim();
                 posterUrl = document.getElementById('adv-poster-url').value.trim();
@@ -1072,7 +1259,7 @@
                 buttonText = document.getElementById('adv-btn-text').value.trim();
                 autoRedirectSeconds = parseInt(document.getElementById('adv-redirect-secs').value, 10);
             } else {
-                slug = document.getElementById('quick-slug').value.trim().toLowerCase();
+                slug = (editingLinkId || document.getElementById('quick-slug').value.trim().toLowerCase());
                 title = document.getElementById('quick-title').value.trim();
                 buttonText = document.getElementById('quick-btn-text').value.trim();
             }
@@ -1087,9 +1274,9 @@
             const publicUntil = (mode === 'timed' && rawPublic) ? new Date(rawPublic).toISOString() : null;
             const expireAt = (mode === 'timed' && rawExpire) ? new Date(rawExpire).toISOString() : null;
 
-            const user = window.getMHEntUser ? window.getMHEntUser() : null;
+            const activeUser = activeCurrentUser || auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
 
-            const payload = {
+            let payload = {
                 slug,
                 title,
                 subtitle,
@@ -1102,14 +1289,33 @@
                 mode,
                 publicUntil,
                 expireAt,
-                active: true,
-                clickCount: 0,
-                createdAt: new Date().toISOString(),
-                createdBy: user ? (user.email || user.uid) : 'guest'
+                active: true
             };
+
+            const isEdit = Boolean(editingLinkId);
+            if (isEdit) {
+                const existing = linksList.find(x => x.id === editingLinkId);
+                if (existing && !canManageLink(existing)) {
+                    alert('Bạn không có quyền chỉnh sửa liên kết này!');
+                    return;
+                }
+                payload.updatedAt = new Date().toISOString();
+                payload.updatedBy = activeUser ? (activeUser.email || activeUser.uid) : 'guest';
+            } else {
+                payload.clickCount = 0;
+                payload.createdAt = new Date().toISOString();
+                payload.createdBy = activeUser ? (activeUser.email || activeUser.uid) : 'guest';
+                payload.createdByUid = activeUser ? (activeUser.uid || '') : '';
+                payload.createdByEmail = activeUser ? (activeUser.email || '') : '';
+                payload.creatorName = activeUser ? (activeUser.displayName || 'Thành viên') : 'Khách';
+            }
 
             try {
                 await setDoc(doc(db, "mhent_links", slug), payload, { merge: true });
+
+                if (isEdit) {
+                    window.cancelEdit();
+                }
 
                 lastCreatedUrl = `${window.location.origin}/go?id=${slug}`;
                 document.getElementById('result-link-url').href = lastCreatedUrl;
@@ -1117,10 +1323,10 @@
                 document.getElementById('created-result').style.display = 'block';
 
                 if (typeof showToast === 'function') {
-                    showToast('Thành công', 'Đã tạo liên kết Gateway thành công!', 'success');
+                    showToast('Thành công', isEdit ? 'Đã cập nhật liên kết thành công!' : 'Đã tạo liên kết Gateway thành công!', 'success');
                 }
             } catch (err) {
-                alert('Lỗi tạo liên kết: ' + err.message);
+                alert('Lỗi: ' + err.message);
             }
         };
 
@@ -1135,6 +1341,42 @@
         window.openCreatedResult = function() {
             if (lastCreatedUrl) window.open(lastCreatedUrl, '_blank');
         };
+
+        // Feed Filter: All vs My Links
+        window.setFeedFilter = function(filter) {
+            activeFeedFilter = filter;
+            const btnAll = document.getElementById('filter-all-btn');
+            const btnMy = document.getElementById('filter-my-btn');
+            if (filter === 'all') {
+                btnAll.classList.add('active');
+                btnMy.classList.remove('active');
+            } else {
+                const activeUser = activeCurrentUser || auth.currentUser || (window.getMHEntUser && window.getMHEntUser());
+                if (!activeUser) {
+                    if (typeof showToast === 'function') {
+                        showToast('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để xem danh sách liên kết của bạn!', 'info');
+                    } else {
+                        alert('Vui lòng đăng nhập để xem danh sách liên kết của bạn!');
+                    }
+                    window.redirectToLogin('/tools/links');
+                    return;
+                }
+                btnMy.classList.add('active');
+                btnAll.classList.remove('active');
+            }
+            renderFeed(linksList);
+        };
+
+        function updateFilterCounters() {
+            let myCount = 0;
+            linksList.forEach(item => {
+                if (isUserOwner(item)) myCount++;
+            });
+            const cAll = document.getElementById('count-all-links');
+            const cMy = document.getElementById('count-my-links');
+            if (cAll) cAll.innerText = linksList.length;
+            if (cMy) cMy.innerText = myCount;
+        }
 
         // Realtime Feed
         function listenFeed() {
@@ -1172,6 +1414,7 @@
                 document.getElementById('stat-total-clicks').innerText = totalClicks;
                 document.getElementById('total-badge').innerText = linksList.length;
 
+                updateFilterCounters();
                 renderFeed(linksList);
             });
         }
@@ -1179,7 +1422,12 @@
         function renderFeed(items) {
             document.getElementById('links-feed-loading').style.display = 'none';
 
-            if (items.length === 0) {
+            let displayItems = items;
+            if (activeFeedFilter === 'my') {
+                displayItems = items.filter(x => isUserOwner(x));
+            }
+
+            if (displayItems.length === 0) {
                 document.getElementById('links-feed-empty').style.display = 'block';
                 document.getElementById('links-feed').innerHTML = '';
                 return;
@@ -1189,13 +1437,15 @@
             const feed = document.getElementById('links-feed');
             feed.innerHTML = '';
 
-            items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            displayItems.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-            items.forEach(item => {
+            displayItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'link-item-card';
 
                 const shortUrl = `${window.location.origin}/go?id=${item.id}`;
+                const canManage = canManageLink(item);
+                const isOwner = isUserOwner(item);
 
                 let modeBadge = '';
                 if (item.mode === 'direct') {
@@ -1214,6 +1464,16 @@
                 else if (item.category === 'music') categoryBadge = `<span style="background: rgba(236, 72, 153, 0.15); color: #ec4899; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-music"></i> Music</span>`;
                 else if (item.category && item.category !== 'general') categoryBadge = `<span style="background: rgba(99, 102, 241, 0.15); color: #6366f1; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800;"><i class="fa-solid fa-sparkles"></i> MHEnt</span>`;
 
+                let ownershipBadge = '';
+                if (isOwner) {
+                    ownershipBadge = `<span style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-crown"></i> Của bạn</span>`;
+                } else if (canManage) {
+                    ownershipBadge = `<span style="background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;"><i class="fa-solid fa-shield-halved"></i> Quản trị viên</span>`;
+                } else {
+                    const creatorLabel = item.creatorName || (item.createdByEmail ? item.createdByEmail.split('@')[0] : 'Ẩn danh');
+                    ownershipBadge = `<span style="font-size: 11px; color: #94a3b8; font-weight: 700;"><i class="fa-regular fa-user"></i> ${creatorLabel}</span>`;
+                }
+
                 const posterHtml = item.posterUrl ? `<img src="${item.posterUrl}" alt="Poster" style="width: 48px; height: 64px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.12); flex-shrink: 0;" onerror="this.style.display='none'">` : '';
 
                 card.innerHTML = `
@@ -1224,6 +1484,7 @@
                                 <a href="${shortUrl}" target="_blank" style="font-weight: 900; font-size: 16px; color: var(--hub-color); text-decoration: none;">/go?id=${item.id}</a>
                                 ${modeBadge}
                                 ${categoryBadge}
+                                ${ownershipBadge}
                             </div>
                             <div style="font-weight: 800; font-size: 15px; margin-bottom: 4px; color: var(--text-main);">${item.title || item.id}</div>
                             <div style="font-size: 13px; color: #64748b; word-break: break-all;">
@@ -1237,16 +1498,21 @@
                         <div style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-top: 2px;">Clicks</div>
                     </div>
 
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
                         <button class="action-icon-btn" title="Sao chép link" onclick="copyLink('${shortUrl}')">
                             <i class="fa-regular fa-copy"></i>
                         </button>
                         <button class="action-icon-btn" title="Mở thử" onclick="window.open('${shortUrl}', '_blank')">
                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </button>
-                        <button class="action-icon-btn" style="color: #ef4444;" title="Xóa" onclick="deleteLink('${item.id}')">
-                            <i class="fa-regular fa-trash-can"></i>
-                        </button>
+                        ${canManage ? `
+                            <button class="action-icon-btn" style="color: var(--hub-color);" title="Chỉnh sửa liên kết" onclick="editLink('${item.id}')">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </button>
+                            <button class="action-icon-btn" style="color: #ef4444;" title="Xóa liên kết" onclick="deleteLink('${item.id}')">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 `;
 
@@ -1262,10 +1528,22 @@
         };
 
         window.deleteLink = async function(id) {
-            if (!confirm(`Bạn có chắc muốn xóa liên kết "${id}" không?`)) return;
+            const item = linksList.find(x => x.id === id);
+            if (!item) return;
+
+            if (!canManageLink(item)) {
+                if (typeof showToast === 'function') {
+                    showToast('Từ chối truy cập', 'Chỉ người tạo hoặc Admin mới có quyền xóa liên kết này!', 'error');
+                } else {
+                    alert('Chỉ người tạo hoặc Admin mới có quyền xóa liên kết này!');
+                }
+                return;
+            }
+
+            if (!confirm(`Bạn có chắc chắn muốn xóa liên kết "${item.title || id}" không? Hành động này không thể hoàn tác.`)) return;
             try {
                 await deleteDoc(doc(db, "mhent_links", id));
-                if (typeof showToast === 'function') showToast('Đã xóa', `Đã xóa ${id}!`, 'info');
+                if (typeof showToast === 'function') showToast('Đã xóa', `Đã xóa liên kết ${id}!`, 'info');
             } catch (e) {
                 alert('Lỗi: ' + e.message);
             }
