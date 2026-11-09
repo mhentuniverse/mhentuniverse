@@ -674,6 +674,9 @@
                 <span>Bingo Master</span>
                 <span class="brand-badge">Classroom Edition</span>
             </a>
+            <span id="cloud-lesson-badge" style="display: none; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-cloud"></i> <span id="cloud-lesson-name">Giáo án</span>
+            </span>
         </div>
 
         <!-- Real-time Stats -->
@@ -788,6 +791,19 @@
             <h2 style="margin-top: 0; font-size: 24px; font-weight: 900; color: #38bdf8; display: flex; align-items: center; gap: 10px;">
                 <i class="fa-solid fa-sliders"></i> Cài Đặt Danh Sách Từ Vựng
             </h2>
+
+            <!-- Cloud Loader -->
+            <div style="margin-bottom: 20px; padding: 14px 16px; background: rgba(14, 165, 233, 0.1); border: 1.5px dashed rgba(14, 165, 233, 0.4); border-radius: 14px;">
+                <div style="font-weight: 800; font-size: 13.5px; color: #38bdf8; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Nạp giáo án từ Đám mây (MHEnt Cloud ID):
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="cloud-id-input" placeholder="Dán mã ID hoặc link chứa ?id=..." style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 9px 12px; color: white; font-weight: 700; outline: none; font-size: 13.5px;">
+                    <button type="button" onclick="loadFromCloudId()" id="btn-cloud-fetch" style="background: var(--bingo-accent); color: white; border: none; padding: 9px 18px; border-radius: 10px; font-weight: 900; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+                        <i class="fa-solid fa-download"></i> Tải bài
+                    </button>
+                </div>
+            </div>
 
             <!-- Quick Presets -->
             <div style="margin-bottom: 20px;">
@@ -1052,8 +1068,80 @@
             speakWord(last.word);
         }
 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
+
+        async function fetchGameFromCloud(gameId) {
+            if (!gameId) return false;
+            try {
+                if (gameId.includes('id=')) {
+                    const match = gameId.match(/[?&]id=([^&]+)/);
+                    if (match) gameId = decodeURIComponent(match[1]);
+                }
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getGameById', gameType: 'bingo', rowId: gameId.trim() })
+                });
+                const result = await res.json();
+                if (result.success && result.gameData) {
+                    const data = result.gameData;
+                    const words = data.words || data.globalWordList || data.items || [];
+                    const lines = words.map(w => {
+                        if (typeof w === 'object' && w.word) return w.meaning ? `${w.word} | ${w.meaning}` : w.word;
+                        return String(w);
+                    });
+                    if (lines.length > 0) {
+                        parseWordlist(lines);
+                        localStorage.setItem('mhent_bingo_wordlist', JSON.stringify(lines));
+                        
+                        const badge = document.getElementById('cloud-lesson-badge');
+                        if (badge) {
+                            document.getElementById('cloud-lesson-name').innerText = result.dataName || `Giáo án #${gameId.slice(-4)}`;
+                            badge.style.display = 'inline-flex';
+                        }
+                        if (typeof triggerConfetti === 'function') triggerConfetti(0.5);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.error('Lỗi tải từ đám mây:', e);
+            }
+            return false;
+        }
+
+        async function loadFromCloudId() {
+            const input = document.getElementById('cloud-id-input').value.trim();
+            if (!input) {
+                alert('Vui lòng dán mã ID giáo án hoặc đường link!');
+                return;
+            }
+            const btn = document.getElementById('btn-cloud-fetch');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
+            btn.disabled = true;
+
+            const ok = await fetchGameFromCloud(input);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            if (ok) {
+                closeSettingsModal();
+                alert('Tải bài học từ Đám mây thành công!');
+            } else {
+                alert('Không tìm thấy giáo án với mã ID này trên Đám mây!');
+            }
+        }
+
         // Init Game Data
-        function initData() {
+        async function initData() {
+            // 1. Check URL query param ?id= or ?game=
+            const q = new URLSearchParams(window.location.search);
+            const cloudId = q.get('id') || q.get('game') || q.get('data');
+            if (cloudId) {
+                const ok = await fetchGameFromCloud(cloudId);
+                if (ok) return;
+            }
+
+            // 2. Check localStorage
             const saved = localStorage.getItem('mhent_bingo_wordlist');
             if (saved) {
                 try {
@@ -1064,7 +1152,7 @@
                     }
                 } catch (e) {}
             }
-            // Fallback to verbs preset
+            // 3. Fallback to verbs preset
             parseWordlist(PRESETS.verbs);
         }
 
@@ -1557,6 +1645,24 @@
             } else if (e.code === 'KeyR') {
                 e.preventDefault();
                 confirmReset();
+            }
+        });
+
+        // Real-time synchronization from Admin Panel
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'mhent_bingo_cmd' && e.newValue) {
+                try {
+                    const cmd = JSON.parse(e.newValue);
+                    if (cmd.action === 'SYNC' && cmd.payload && Array.isArray(cmd.payload.words)) {
+                        parseWordlist(cmd.payload.words);
+                        const badge = document.getElementById('cloud-lesson-badge');
+                        if (badge) {
+                            document.getElementById('cloud-lesson-name').innerText = 'Đã cập nhật từ GV';
+                            badge.style.display = 'inline-flex';
+                        }
+                        if (typeof triggerConfetti === 'function') triggerConfetti(0.5);
+                    }
+                } catch (err) {}
             }
         });
 

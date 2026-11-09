@@ -685,6 +685,24 @@
             <div id="tab-bingo" class="admin-tab">
                 <h1 class="admin-title" style="color: #0ea5e9;"><i class="fa-solid fa-gamepad"></i> Đại Tiệc Bingo</h1>
                 <div class="admin-card">
+                    <div class="cloud-sync-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                            <h3 style="margin:0; color: #0ea5e9;"><i class="fa-solid fa-cloud"></i> Quản lý Đám mây (MHEnt. Database)</h3>
+                            <button class="btn-admin" style="background: #64748b; padding: 6px 12px; font-size: 12px;" onclick="loadCloudGames('bingo')"><i class="fa-solid fa-rotate-right"></i> Tải lại</button>
+                        </div>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <select class="admin-select cloud-selector-bingo" style="flex: 2; min-width: 200px;" onchange="loadSelectedGame('bingo')"><option value="">-- Chọn bộ dữ liệu đã lưu --</option></select>
+                            <div id="display-id-bingo" style="background: #0f172a; color: #10b981; padding: 10px; border-radius: 12px; font-family: monospace; font-weight: 900; display: flex; align-items: center; border: 1px solid #334155; min-width: 100px; justify-content: center;" title="Mã ID Giáo án">------</div>
+                            <input type="text" class="admin-input cloud-data-name-bingo" style="flex: 2; min-width: 200px;" placeholder="Nhập tên giáo án (VD: Bài Ôn Tập Unit 1 - 25 từ)...">
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-admin" style="background: #10b981; flex: 1; min-width: 140px;" onclick="saveToCloud('bingo', true)"><i class="fa-solid fa-file-circle-plus"></i> Tạo mới Đám Mây</button>
+                            <button class="btn-admin" style="background: #3b82f6; flex: 1; min-width: 140px;" onclick="saveToCloud('bingo', false)"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu thay đổi</button>
+                            <button class="btn-admin" style="background: #ef4444; flex: 1; min-width: 140px;" onclick="deleteFromCloud('bingo')"><i class="fa-solid fa-trash"></i> Xóa khỏi Mây</button>
+                            <button class="btn-admin" style="background: #8b5cf6; flex: 1; min-width: 140px;" onclick="copyDirectLink('bingo')"><i class="fa-solid fa-link"></i> Lấy Link Chơi</button>
+                        </div>
+                    </div>
+
                     <button class="btn-admin" onclick="window.open('/teach/bingo', '_blank')" style="width: 100%; margin-bottom: 25px; background: #0ea5e9; padding: 15px; font-size: 16px;">
                         <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU BINGO (MÁY CHIẾU)
                     </button>
@@ -702,7 +720,7 @@
 
                     <h3 style="margin-top: 0; color: #0ea5e9;"><i class="fa-solid fa-bolt"></i> 2. Đồng Bộ & Xuất Phát</h3>
                     <button class="btn-admin" style="width: 100%; background: #10b981; padding: 16px; font-size: 16px;" onclick="adminSaveBingoWordlist()">
-                        <i class="fa-solid fa-floppy-disk"></i> LƯU DANH SÁCH & MỞ MÀN CHIẾU BINGO NGAY
+                        <i class="fa-solid fa-paper-plane"></i> ĐẨY DỮ LIỆU SANG MÁY CHIẾU & MỞ CHƠI NGAY
                     </button>
                 </div>
             </div>
@@ -800,7 +818,7 @@
             } else { 
                 document.getElementById('security-shield').style.opacity = '0'; 
                 setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); 
-                ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing'].forEach(t => loadCloudGames(t));
+                ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing', 'bingo'].forEach(t => loadCloudGames(t));
             }
         });
         
@@ -850,6 +868,8 @@
                 return;
             }
             localStorage.setItem('mhent_bingo_wordlist', JSON.stringify(lines));
+            localStorage.setItem('mhent_bingo_cmd', JSON.stringify({ action: 'SYNC', payload: { words: lines }, rand: Math.random() }));
+            showToast('Thành công', 'Đã lưu và đồng bộ danh sách từ vựng Bingo sang máy chiếu!', 'success');
             window.open('/teach/bingo', '_blank');
         };
 
@@ -1180,7 +1200,7 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
         };
 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
-        window.cloudState = { vocab: [], baam: [], spin: [], tug: [], bomb: [], blast: [], unscram: [], racing: [] };
+        window.cloudState = { vocab: [], baam: [], spin: [], tug: [], bomb: [], blast: [], unscram: [], racing: [], bingo: [] };
 
         window.loadCloudGames = async function(gameType) {
             const uid = window.getTeachActiveUid ? window.getTeachActiveUid() : '';
@@ -1354,6 +1374,12 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
                 if (questions.length === 0) { showToast("Lỗi", "Bảng chưa có câu hỏi nào thì lưu làm gì nè sếp!", "error"); return null; }
                 return { questions: questions };
             }
+            if(gameType === 'bingo') {
+                const raw = document.getElementById('admin-bingo-words').value;
+                const lines = raw.split('\n').map(s => s.trim()).filter(Boolean);
+                if (lines.length === 0) { showToast("Lỗi", "Vui lòng nhập danh sách từ vựng trước khi lưu!", "error"); return null; }
+                return { words: lines };
+            }
         };
 
         window.loadSelectedGame = function(gameType) {
@@ -1468,6 +1494,15 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
                     `;
                     tbody.appendChild(tr);
                 });
+            }
+            if(gameType === 'bingo') {
+                const words = data.words || data.globalWordList || data.items || [];
+                if (Array.isArray(words)) {
+                    document.getElementById('admin-bingo-words').value = words.map(w => {
+                        if (typeof w === 'object' && w.word) return w.meaning ? `${w.word} | ${w.meaning}` : w.word;
+                        return String(w);
+                    }).join('\n');
+                }
             }
             
             showToast('Tải thành công', 'Dữ liệu đã được nạp xuống bảng điều khiển!', 'success');
