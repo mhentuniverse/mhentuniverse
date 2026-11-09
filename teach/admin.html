@@ -197,6 +197,7 @@
             <a class="admin-menu-item" id="menu-blast" onclick="switchAdminTab('blast'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-cubes"></i> Blast Block</a>
             <a class="admin-menu-item" id="menu-unscram" onclick="switchAdminTab('unscram'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-hurricane"></i> Word Tornado</a>
             <a class="admin-menu-item" id="menu-racing" onclick="switchAdminTab('racing'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-flag-checkered"></i> Đua Xe Flashcard</a>
+            <a class="admin-menu-item" id="menu-bingo" onclick="switchAdminTab('bingo'); if(window.innerWidth<=768) toggleAdminLeftDrawer();"><i class="fa-solid fa-gamepad"></i> Đại Tiệc Bingo</a>
         </aside>
 
         <main class="admin-content">
@@ -680,6 +681,31 @@
                     </button>
                 </div>
             </div>
+
+            <div id="tab-bingo" class="admin-tab">
+                <h1 class="admin-title" style="color: #0ea5e9;"><i class="fa-solid fa-gamepad"></i> Đại Tiệc Bingo</h1>
+                <div class="admin-card">
+                    <button class="btn-admin" onclick="window.open('/teach/bingo', '_blank')" style="width: 100%; margin-bottom: 25px; background: #0ea5e9; padding: 15px; font-size: 16px;">
+                        <i class="fa-solid fa-desktop"></i> MỞ MÀN HÌNH TRÌNH CHIẾU BINGO (MÁY CHIẾU)
+                    </button>
+
+                    <h3 style="margin-top: 0; color: #0ea5e9;"><i class="fa-solid fa-list-check"></i> 1. Danh Sách Từ Vựng Ôn Tập</h3>
+                    <p style="font-size: 13.5px; color: #64748b; margin-top: 0;">Nhập danh sách từ (Mỗi dòng một từ, có thể kèm nghĩa dạng <code>Từ | Nghĩa</code>). Khuyên dùng 25 từ trở lên cho phiếu 5x5.</p>
+
+                    <textarea id="admin-bingo-words" class="admin-textarea" style="height: 180px; font-family: monospace; font-size: 14px;" placeholder="Ví dụ:&#10;accept | chấp nhận&#10;achieve | đạt được&#10;celebrate | ăn mừng&#10;discover | khám phá"></textarea>
+
+                    <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 25px; flex-wrap: wrap;">
+                        <button class="btn-admin" style="background: #334155; padding: 8px 14px; font-size: 13px;" onclick="adminApplyBingoPreset('verbs')">🏃 25 Động từ</button>
+                        <button class="btn-admin" style="background: #334155; padding: 8px 14px; font-size: 13px;" onclick="adminApplyBingoPreset('adjectives')">✨ 25 Tính từ</button>
+                        <button class="btn-admin" style="background: #334155; padding: 8px 14px; font-size: 13px;" onclick="adminApplyBingoPreset('classroom')">🏫 25 Đồ dùng học tập</button>
+                    </div>
+
+                    <h3 style="margin-top: 0; color: #0ea5e9;"><i class="fa-solid fa-bolt"></i> 2. Đồng Bộ & Xuất Phát</h3>
+                    <button class="btn-admin" style="width: 100%; background: #10b981; padding: 16px; font-size: 16px;" onclick="adminSaveBingoWordlist()">
+                        <i class="fa-solid fa-floppy-disk"></i> LƯU DANH SÁCH & MỞ MÀN CHIẾU BINGO NGAY
+                    </button>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -791,10 +817,41 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.replace('#', '');
-            const validTabs = ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing'];
+            const validTabs = ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing', 'bingo'];
             if (validTabs.includes(hash)) switchAdminTab(hash);
             else switchAdminTab('vocab');
+
+            // Load saved bingo words if any
+            const savedBingo = localStorage.getItem('mhent_bingo_wordlist');
+            if (savedBingo) {
+                try {
+                    const parsed = JSON.parse(savedBingo);
+                    if (Array.isArray(parsed)) document.getElementById('admin-bingo-words').value = parsed.join('\n');
+                } catch(e) {}
+            }
         });
+
+        window.adminApplyBingoPreset = function(type) {
+            const presets = {
+                verbs: ["accept | chấp nhận", "achieve | đạt được", "admire | ngưỡng mộ", "advise | khuyên", "borrow | mượn", "celebrate | ăn mừng", "compare | so sánh", "create | tạo ra", "decide | quyết định", "discover | khám phá", "encourage | động viên", "explore | thám hiểm", "forgive | tha thứ", "imagine | tưởng tượng", "improve | cải thiện", "inspire | truyền cảm hứng", "listen | lắng nghe", "manage | quản lý", "notice | chú ý", "organize | tổ chức", "practice | luyện tập", "protect | bảo vệ", "remember | ghi nhớ", "succeed | thành công", "travel | du lịch"],
+                adjectives: ["ambitious | có hoài bão", "brilliant | xuất sắc", "cheerful | vui tươi", "courageous | dũng cảm", "diligent | siêng năng", "energetic | tràn đầy năng lượng", "enthusiastic | nhiệt huyết", "fearless | không sợ hãi", "friendly | thân thiện", "generous | hào phóng", "grateful | biết ơn", "honest | trung thực", "humble | khiêm tốn", "independent | tự lập", "innovative | đổi mới", "intelligent | thông minh", "kind | tử tế", "optimistic | lạc quan", "patient | kiên nhẫn", "peaceful | bình yên", "polite | lịch sự", "reliable | đáng tin cậy", "sincere | chân thành", "talented | tài năng", "warmhearted | ấm áp"],
+                classroom: ["backpack | ba lô", "blackboard | bảng đen", "calculator | máy tính", "calendar | lịch", "chalk | phấn viết", "compass | com-pa", "crayon | bút sáp màu", "dictionary | từ điển", "eraser | cục tẩy", "globe | quả địa cầu", "glue | keo dán", "highlighter | bút dạ quang", "laptop | máy tính xách tay", "notebook | vở ghi bài", "paintbrush | cọ vẽ", "paperclip | kẹp giấy", "pencil | bút chì", "projector | máy chiếu", "ruler | thước kẻ", "scissors | cái kéo", "sharpener | gọt bút chì", "stapler | bấm kim", "textbook | sách giáo khoa", "whiteboard | bảng trắng", "schedule | thời khóa biểu"]
+            };
+            if (presets[type]) {
+                document.getElementById('admin-bingo-words').value = presets[type].join('\n');
+            }
+        };
+
+        window.adminSaveBingoWordlist = function() {
+            const raw = document.getElementById('admin-bingo-words').value;
+            const lines = raw.split('\n').filter(s => s.trim());
+            if (lines.length < 5) {
+                alert('Vui lòng nhập ít nhất 5 từ vựng để bắt đầu trò chơi!');
+                return;
+            }
+            localStorage.setItem('mhent_bingo_wordlist', JSON.stringify(lines));
+            window.open('/teach/bingo', '_blank');
+        };
 
         for(let i=0; i<4; i++) addTableRow();
         let globalWordList = [], currentGridOrder = [], solvedWords = [], activeInputMode = 'table', activeWordId = null;
