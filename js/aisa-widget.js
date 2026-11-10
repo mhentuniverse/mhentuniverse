@@ -623,7 +623,7 @@
     root.id = 'aisa-widget-root';
     root.innerHTML = `
         <div class="aisa-tooltip-bubble" id="aisaTooltip">
-            <span>${currentContext.tooltip}</span>
+            <span id="aisaTooltipText" data-i18n="aisa.tooltip_${siteType}">${currentContext.tooltip}</span>
             <span class="aisa-close-tip" onclick="document.getElementById('aisaTooltip').style.display='none'; event.stopPropagation();">✕</span>
         </div>
 
@@ -667,7 +667,7 @@
             </div>
 
             <form class="aisa-footer" id="aisaChatForm">
-                <textarea class="aisa-input" id="aisaUserInput" rows="1" placeholder="Nhắn gửi AISA... (Shift+Enter để xuống dòng)" autocomplete="off"></textarea>
+                <textarea class="aisa-input" id="aisaUserInput" rows="1" placeholder="Nhắn gửi AISA... (Shift+Enter để xuống dòng)" autocomplete="off" data-i18n-placeholder="aisa.input_placeholder"></textarea>
                 <button type="submit" class="aisa-btn-send" id="aisaBtnSend">Gửi →</button>
             </form>
         </div>
@@ -706,6 +706,26 @@
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     window.addEventListener('storage', syncTheme);
     syncTheme();
+
+    // Đồng bộ đa ngôn ngữ MHEnt i18n
+    function updateAisaLanguage() {
+        if (!window.MHEntI18n) return;
+        const key = 'aisa.tooltip_' + siteType;
+        const translated = window.MHEntI18n.t(key);
+        const tipEl = document.getElementById('aisaTooltipText');
+        if (tipEl && translated && translated !== key) {
+            tipEl.innerText = translated;
+        }
+        const inputEl = document.getElementById('aisaUserInput');
+        if (inputEl) {
+            const ph = window.MHEntI18n.t('aisa.input_placeholder');
+            if (ph && ph !== 'aisa.input_placeholder') {
+                inputEl.placeholder = ph;
+            }
+        }
+    }
+    window.addEventListener('mhent:langchange', updateAisaLanguage);
+    setTimeout(updateAisaLanguage, 100);
 
     // Logic Tương Tác
     const fab = document.getElementById('aisaFab');

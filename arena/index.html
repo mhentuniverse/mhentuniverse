@@ -72,7 +72,7 @@
 
         <ul class="nav-links" id="nav-links">
             <li><a onclick="window.location.href='/arena'" style="cursor: pointer;">Trang Chủ</a></li>
-            <li><a onclick="window.location.href='/arena#arena-section'" style="cursor: pointer;">Danh Sách Cuộc Thi</a></li>
+            <li><a onclick="window.location.href='/arena#arena-section'" style="cursor: pointer;" data-i18n="arena.nav_contests">Danh Sách Cuộc Thi</a></li>
             <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về Chúng Tớ</a></li>
         </ul>
 
@@ -171,18 +171,18 @@
         })();
     </script>
         <h1>Miyazaki Haruto Entertainment <span>Arena</span></h1>
-        <p class="small-description">Hệ thống thi trắc nghiệm trực tuyến - Nhanh chóng, minh bạch & chính xác!</p>
+        <p class="small-description" data-i18n="arena.hero_subtitle">Hệ thống thi trắc nghiệm trực tuyến – Nhanh chóng, minh bạch & chính xác!</p>
         
         <div class="arena-join-box">
-            <input type="text" id="quiz-code-input" class="arena-input" placeholder="Nhập mã cuộc thi (Ví dụ: HOITHIDOAN)">
+            <input type="text" id="quiz-code-input" class="arena-input" placeholder="Nhập mã cuộc thi (Ví dụ: HOITHIDOAN)" data-i18n-placeholder="arena.join_input_placeholder">
             <button id="btn-join-code" class="btn-join-arena">
-                <i class="fa-solid fa-right-to-bracket"></i> Tham gia
+                <i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="arena.btn_join_action">Tham gia</span>
             </button>
         </div>
     </header>
 
     <main id="arena-section" class="arena-section">
-        <h2 class="section-title"><i class="fa-solid fa-fire-flame-curved"></i> Các hội thi đang mở</h2>
+        <h2 class="section-title"><i class="fa-solid fa-fire-flame-curved"></i> <span data-i18n="arena.open_contests_heading">Các hội thi đang mở</span></h2>
         
         <div class="quiz-grid" id="quiz-list-container">
             <!-- Loading indicator sẽ được thay thế bằng JavaScript -->
@@ -355,7 +355,7 @@
                 // Tắt Typing Popup
                 if (window.hideTypingPopup) window.hideTypingPopup();
 
-                if (!quizzes || quizzes.length === 0) return container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px; font-weight: bold;">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
+                if (!quizzes || quizzes.length === 0) return container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px; font-weight: bold;" data-i18n="arena.no_quizzes">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
 
                 container.innerHTML = ''; 
                 let displayCount = 0; 
@@ -379,7 +379,7 @@
 
                     displayCount++;
 
-                    let statusHtml = currentStatus === 'open' || currentStatus === 'challenge' ? `<span class="quiz-status status-open">Đang mở</span>` : (currentStatus === 'test' ? `<span class="quiz-status" style="background: rgba(202, 138, 4, 0.1); color: #ca8a04; border: 1px solid rgba(202, 138, 4, 0.2);">Đang Test</span>` : `<span class="quiz-status status-closed">Đã đóng</span>`);
+                    let statusHtml = currentStatus === 'open' || currentStatus === 'challenge' ? `<span class="quiz-status status-open" data-i18n="arena.status_open">Đang mở</span>` : (currentStatus === 'test' ? `<span class="quiz-status" style="background: rgba(202, 138, 4, 0.1); color: #ca8a04; border: 1px solid rgba(202, 138, 4, 0.2);" data-i18n="arena.status_test">Đang Test</span>` : `<span class="quiz-status status-closed" data-i18n="arena.status_closed">Đã đóng</span>`);
                     
                     let verifiedBadge = quiz.is_verified ? `<span style="background: rgba(2, 132, 199, 0.1); color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(2, 132, 199, 0.2);"><i class="fa-solid fa-circle-check"></i> OFFICIAL</span>` : `<span style="background: rgba(100, 116, 139, 0.1); color: var(--text-secondary); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(100, 116, 139, 0.2);"><i class="fa-solid fa-users"></i> COMMUNITY</span>`;
                     let schoolBadge = (quiz.mode && (quiz.mode.includes('_aca') || quiz.mode.includes('_academic') || quiz.mode.includes('_school'))) ? `<span style="background: rgba(161, 98, 7, 0.1); color: #a16207; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(161, 98, 7, 0.2);"><i class="fa-solid fa-school-flag"></i> ACADEMIC</span>` : '';
@@ -397,17 +397,20 @@
                             <p class="quiz-desc">${quiz.description}</p>
                             <div class="quiz-meta">
                                 <span class="meta-item"><i class="fa-solid fa-fingerprint"></i> ${quiz.id}</span>
-                                <span class="meta-item"><i class="fa-solid fa-list-ol"></i> ${quiz.question_count} câu</span>
-                                <span class="meta-item"><i class="fa-solid fa-stopwatch"></i> ${quiz.time_limit} phút</span>
+                                <span class="meta-item"><i class="fa-solid fa-list-ol"></i> ${quiz.question_count} <span data-i18n="arena.unit_questions">câu</span></span>
+                                <span class="meta-item"><i class="fa-solid fa-stopwatch"></i> ${quiz.time_limit} <span data-i18n="arena.unit_minutes">phút</span></span>
                             </div>
                         </a>
                     `;
                 });
-                if (displayCount === 0) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px; font-weight: bold;">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
+                if (window.MHEntI18n && typeof window.MHEntI18n.translatePage === 'function') {
+                    window.MHEntI18n.translatePage();
+                }
+                if (displayCount === 0) container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px; font-weight: bold;" data-i18n="arena.no_quizzes">Hiện tại chưa có hội thi nào mở. Cậu quay lại sau nha!</div>';
 
             } catch (error) { 
                 if (window.hideTypingPopup) window.hideTypingPopup();
-                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 40px; font-weight: bold;">Lỗi kết nối máy chủ! Vui lòng thử lại sau.</div>'; 
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 40px; font-weight: bold;" data-i18n="arena.server_error">Lỗi kết nối máy chủ! Vui lòng thử lại sau.</div>'; 
             }
         }
 

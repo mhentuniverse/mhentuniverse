@@ -11,15 +11,23 @@ const svgWarning = `<svg viewBox="0 0 24 24" width="50" height="50" stroke="#f59
 // ==========================================
 window.showPopup = function(message, isError = false) {
     removeExistingOverlays();
+    let defaultTitle = isError ? "Ối, Lỗi Rùi!" : "Thành Công!";
+    let btnText = "Tuyệt vời";
+    let tMsg = message;
+    if (window.MHEntI18n && typeof window.MHEntI18n.translateText === 'function') {
+        defaultTitle = window.MHEntI18n.translateText(defaultTitle);
+        btnText = window.MHEntI18n.translateText(btnText);
+        tMsg = window.MHEntI18n.translateText(message);
+    }
     const overlay = document.createElement('div');
     overlay.className = 'mhent-ui-overlay'; // Bỏ chữ 'show' ở đây
     overlay.id = 'mhent-active-popup';
     overlay.innerHTML = `
         <div class="mhent-ui-box ${isError ? 'error' : 'success'}">
             <div class="mhent-ui-icon">${isError ? svgError : svgSuccess}</div>
-            <h3 class="mhent-ui-title">${isError ? "Ối, Lỗi Rùi!" : "Thành Công!"}</h3>
-            <p class="mhent-ui-msg">${message}</p>
-            <button class="mhent-ui-btn-primary" onclick="closePopup()">Tuyệt vời</button>
+            <h3 class="mhent-ui-title">${defaultTitle}</h3>
+            <p class="mhent-ui-msg">${tMsg}</p>
+            <button class="mhent-ui-btn-primary" onclick="closePopup()">${btnText}</button>
         </div>
     `;
     document.body.appendChild(overlay);
@@ -37,17 +45,27 @@ window.showPopup = function(message, isError = false) {
 // ==========================================
 window.showConfirmPopup = function(title, message, onConfirm, onCancel) {
     removeExistingOverlays();
+    let tTitle = title;
+    let tMsg = message;
+    let cancelText = "Hủy bỏ";
+    let confirmText = "Xác nhận";
+    if (window.MHEntI18n && typeof window.MHEntI18n.translateText === 'function') {
+        tTitle = window.MHEntI18n.translateText(title);
+        tMsg = window.MHEntI18n.translateText(message);
+        cancelText = window.MHEntI18n.t('action.cancel', cancelText);
+        confirmText = window.MHEntI18n.t('action.confirm', confirmText);
+    }
     const overlay = document.createElement('div');
     overlay.className = 'mhent-ui-overlay'; 
     overlay.id = 'mhent-active-confirm';
     overlay.innerHTML = `
         <div class="mhent-ui-box warning">
             <div class="mhent-ui-icon">${svgWarning}</div>
-            <h3 class="mhent-ui-title">${title}</h3>
-            <p class="mhent-ui-msg">${message}</p>
+            <h3 class="mhent-ui-title">${tTitle}</h3>
+            <p class="mhent-ui-msg">${tMsg}</p>
             <div class="mhent-ui-actions">
-                <button class="mhent-ui-btn-outline" id="mhent-cancel">Hủy bỏ</button>
-                <button class="mhent-ui-btn-primary" id="mhent-accept">Xác nhận</button>
+                <button class="mhent-ui-btn-outline" id="mhent-cancel">${cancelText}</button>
+                <button class="mhent-ui-btn-primary" id="mhent-accept">${confirmText}</button>
             </div>
         </div>
     `;
@@ -139,6 +157,12 @@ function removeExistingOverlays() {
 // 3. TOAST THÔNG BÁO GÓC MÀN HÌNH
 // ==========================================
 window.showToast = function(title, message, type = 'success') {
+    let tTitle = title;
+    let tMsg = message;
+    if (window.MHEntI18n && typeof window.MHEntI18n.translateText === 'function') {
+        tTitle = window.MHEntI18n.translateText(title);
+        tMsg = window.MHEntI18n.translateText(message);
+    }
     let container = document.getElementById('mhent-toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -152,8 +176,8 @@ window.showToast = function(title, message, type = 'success') {
     toast.innerHTML = `
         <div class="mhent-toast-icon">${icon}</div>
         <div class="mhent-toast-content">
-            <div class="mhent-toast-title">${title}</div>
-            <div class="mhent-toast-desc">${message}</div>
+            <div class="mhent-toast-title">${tTitle}</div>
+            <div class="mhent-toast-desc">${tMsg}</div>
         </div>
     `;
     container.appendChild(toast);

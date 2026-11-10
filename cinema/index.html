@@ -98,7 +98,7 @@
 
         <ul class="nav-links" id="nav-links">
             <li><a onclick="window.location.href='/cinema'" style="cursor: pointer;">Trang Chủ</a></li>
-            <li><a onclick="window.location.href='/cinema#current-anime'" style="cursor: pointer;">Danh sách Phim</a></li>
+            <li><a onclick="window.location.href='/cinema#current-anime'" style="cursor: pointer;" data-i18n="cinema.list_nav">Danh sách Phim</a></li>
             <li><a onclick="window.location.href='/about'" style="cursor: pointer;">Về chúng tớ</a></li>
         </ul>
 
@@ -244,8 +244,8 @@
         })();
     </script>
         <h1>Miyazaki Haruto Entertainment <span>Cinema</span> 🌟</h1>
-        <p class="small-description">Vũ trụ điện ảnh thu nhỏ – Trải nghiệm bản dịch tâm huyết từ MHEnt. và hơn cả thế! 🎬</p>
-        <a onclick="window.location.href='/cinema#current-anime'" class="btn-primary" style="cursor: pointer;">Khám phá ngay </a>
+        <p class="small-description" data-i18n="cinema.hero_quote">Vũ trụ điện ảnh thu nhỏ – Trải nghiệm bản dịch tâm huyết từ MHEnt. và hơn cả thế! 🎬</p>
+        <a onclick="window.location.href='/cinema#current-anime'" class="btn-primary" style="cursor: pointer;" data-i18n="cinema.explore_now">Khám phá ngay</a>
     </header>
 
     <section id="continue-watching-section" class="movie-section" style="display: none; padding-bottom: 0; padding-top: 20px;">
@@ -260,12 +260,12 @@
     </section>
 
     <main id="current-anime" class="movie-section">
-        <h2 class="section-title">Phim đang chiếu</h2><br>
+        <h2 class="section-title" data-i18n="cinema.now_showing">Phim đang chiếu</h2><br>
 
         <div class="filter-section" style="margin-bottom: 25px; display: flex; flex-direction: column; gap: 15px; align-items: flex-start;">            
             <div style="position: relative; max-width: 500px; width: 100%;">
                 <svg viewBox="0 0 24 24" width="20" height="20" class="main-search-icon svg-icon" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="search-box" placeholder="Tên phim cậu muốn tìm là gì..." oninput="toggleClearBtn(this, 'main-clear-btn'); window.applyFilters();">
+                <input type="text" id="search-box" placeholder="Tên phim cậu muốn tìm là gì..." data-i18n-placeholder="cinema.search_prompt" oninput="toggleClearBtn(this, 'main-clear-btn'); window.applyFilters();">
                 <span class="search-clear-btn main-clear" id="main-clear-btn" onclick="clearSearch('search-box', 'main-clear-btn')" title="Xóa" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; display: none; color: var(--text-muted);">
                     <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </span>
@@ -778,7 +778,7 @@
 
             const tagContainer = document.getElementById('homepage-tags');
             if (tagContainer) {
-                let tagsHTML = `<button class="filter-btn active" id="btn-tag-all" onclick="filterMovies('All', this)">Tất cả</button>`;
+                let tagsHTML = `<button class="filter-btn active" id="btn-tag-all" data-i18n="cinema.tag_all" onclick="filterMovies('All', this)">Tất cả</button>`;
                 
                 const tagIcons = {
                     'Phép thuật': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
@@ -786,16 +786,33 @@
                     'Đời thường': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>',
                     'Idol': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>',
                     'Movie': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
-                    'Phim rạp': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>'
+                    'Phim rạp': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+                    'Hài hước': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>',
+                    'Học đường': '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>'
                 };
                 
                 const defaultIcon = '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>';
 
+                const tagKeyMap = {
+                    'Phép thuật': 'cinema.tag_magic',
+                    'Hành động': 'cinema.tag_action',
+                    'Đời thường': 'cinema.tag_slice_of_life',
+                    'Idol': 'cinema.tag_idol',
+                    'Movie': 'cinema.tag_movie',
+                    'Phim rạp': 'cinema.tag_theatrical',
+                    'Hài hước': 'cinema.tag_comedy',
+                    'Học đường': 'cinema.tag_school'
+                };
+
                 allTags.forEach(tag => {
-                    let icon = tagIcons[tag] || defaultIcon; 
-                    tagsHTML += `<button class="filter-btn" onclick="filterMovies('${tag}', this)">${icon} ${tag}</button>`;
+                    let icon = tagIcons[tag] || defaultIcon;
+                    let i18nAttr = tagKeyMap[tag] ? ` data-i18n="${tagKeyMap[tag]}"` : '';
+                    tagsHTML += `<button class="filter-btn" onclick="filterMovies('${tag}', this)">${icon} <span${i18nAttr}>${tag}</span></button>`;
                 });
                 tagContainer.innerHTML = tagsHTML;
+                if (window.MHEntI18n && typeof window.MHEntI18n.translatePage === 'function') {
+                    window.MHEntI18n.translatePage();
+                }
             }
         };
 
@@ -850,7 +867,7 @@
             container.innerHTML = ''; 
 
             if (moviesArray.length === 0) {
-                container.innerHTML = '<div style="width:100%; text-align:center; padding: 40px 0;"><h3 style="color:#ff85a2;">Ui, rạp chưa chiếu phim này rùi... 🥲</h3><p style="color:#888;">Cậu thử đổi từ khóa hoặc bỏ bớt tag xem sao nhé!</p></div>';
+                container.innerHTML = '<div style="width:100%; text-align:center; padding: 40px 0;"><h3 style="color:#ff85a2;" data-i18n="cinema.no_results_title">Ui, rạp chưa chiếu phim này rùi... 🥲</h3><p style="color:#888;" data-i18n="cinema.no_results_desc">Cậu thử đổi từ khóa hoặc bỏ bớt tag xem sao nhé!</p></div>';
                 return;
             }
 
@@ -871,7 +888,7 @@
                         <div class="movie-info">
                             <h3>${movie.title}</h3>
                             <p>${currentStatus}</p>
-                            <a onclick="window.location.href='/cinema/watch?id=${movie.id}'" style="cursor: pointer;" class="watch-link">▶ Xem phim</a>
+                            <a onclick="window.location.href='/cinema/watch?id=${movie.id}'" style="cursor: pointer;" class="watch-link" data-i18n="cinema.watch_movie_btn">▶ Xem phim</a>
                         </div>
                     </div>
                 `;
