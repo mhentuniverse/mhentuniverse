@@ -678,6 +678,7 @@
         }
     </style>
     <script src="/js/config.js"></script>
+    <script src="/js/mhent-i18n.js"></script>
 </head>
 <body>
 
@@ -697,16 +698,17 @@
         <!-- Real-time Stats -->
         <div class="stats-strip">
             <div class="stats-item">
-                <span>Đã gọi:</span> <strong id="stat-called">0</strong>/<span id="stat-total">25</span>
+                <span data-i18n="bingo.called">Đã gọi:</span> <strong id="stat-called">0</strong>/<span id="stat-total">25</span>
             </div>
             <div style="opacity: 0.3;">|</div>
             <div class="stats-item">
-                <span>Còn lại:</span> <strong id="stat-remain" style="color: #f59e0b;">25</strong>
+                <span data-i18n="bingo.remain">Còn lại:</span> <strong id="stat-remain" style="color: #f59e0b;">25</strong>
             </div>
         </div>
 
         <!-- Quick Actions -->
         <div class="top-actions">
+            <div id="lang-switcher-slot"></div>
             <button class="icon-btn" id="btn-sound-toggle" onclick="toggleAudio()" title="Bật/Tắt âm thanh hiệu ứng">
                 <i class="fa-solid fa-volume-high"></i>
             </button>
@@ -740,43 +742,43 @@
                 </div>
 
                 <div id="word-display-area">
-                    <h1 class="current-word-text" id="display-word">SẴN SÀNG! 🎲</h1>
-                    <div class="current-meaning-text" id="display-meaning">Nhấn BỐC TỪ TIẾP THEO hoặc phím Space để bắt đầu</div>
+                    <h1 class="current-word-text" id="display-word" data-i18n="bingo.ready_title">SẴN SÀNG! 🎲</h1>
+                    <div class="current-meaning-text" id="display-meaning" data-i18n="bingo.ready_desc">Nhấn BỐC TỪ TIẾP THEO hoặc phím Space để bắt đầu</div>
                 </div>
 
                 <button class="speech-replay-btn" id="btn-replay-speech" onclick="speakCurrentWord()" style="display: none;">
-                    <i class="fa-solid fa-volume-high"></i> <span>Phát âm lại</span>
+                    <i class="fa-solid fa-volume-high"></i> <span data-i18n="bingo.replay_speech">Phát âm lại</span>
                 </button>
             </div>
 
             <!-- CTA Buttons -->
             <div class="cta-container">
                 <button class="btn-draw" id="btn-draw-word" onclick="drawNextWord()">
-                    <i class="fa-solid fa-dice"></i> <span>Bốc Từ Tiếp Theo</span> <span style="font-size: 13px; opacity: 0.85; font-weight: 700;">(Space)</span>
+                    <i class="fa-solid fa-dice"></i> <span data-i18n="bingo.btn_draw">Bốc Từ Tiếp Theo</span> <span style="font-size: 13px; opacity: 0.85; font-weight: 700;">(Space)</span>
                 </button>
                 <button class="btn-bingo-alert" onclick="triggerBingoCelebration()">
-                    <i class="fa-solid fa-trophy"></i> <span>Có Bạn Bingo!</span> <span style="font-size: 12px; opacity: 0.85; font-weight: 700;">(B)</span>
+                    <i class="fa-solid fa-trophy"></i> <span data-i18n="bingo.btn_bingo">Có Bạn Bingo!</span> <span style="font-size: 12px; opacity: 0.85; font-weight: 700;">(B)</span>
                 </button>
             </div>
 
             <!-- Recent Calls Strip -->
             <div class="recent-strip-box">
                 <div class="recent-strip-header">
-                    <span><i class="fa-solid fa-clock-rotate-left"></i> 5 từ vừa gọi gần nhất:</span>
-                    <span id="call-speed-label" style="color: #64748b;">Chế độ kịch tính</span>
+                    <span><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="bingo.recent_calls">5 từ vừa gọi gần nhất:</span></span>
+                    <span id="call-speed-label" style="color: #64748b;" data-i18n="bingo.mode_suspense">Chế độ kịch tính</span>
                 </div>
                 <div class="recent-pills" id="recent-pills-list">
-                    <div style="color: #64748b; font-size: 13.5px; font-weight: 700; padding: 6px 0;">Chưa có từ nào được bốc...</div>
+                    <div style="color: #64748b; font-size: 13.5px; font-weight: 700; padding: 6px 0;" data-i18n="bingo.no_calls">Chưa có từ nào được bốc...</div>
                 </div>
             </div>
 
             <!-- Keyboard shortcut guide -->
             <div class="key-hints-strip">
-                <div><span class="key-badge">Space</span> Bốc từ</div>
-                <div><span class="key-badge">B</span> Báo Bingo</div>
-                <div><span class="key-badge">S</span> Phát âm lại</div>
-                <div><span class="key-badge">F</span> Toàn màn hình</div>
-                <div><span class="key-badge">R</span> Chơi lại</div>
+                <div><span class="key-badge">Space</span> <span data-i18n="bingo.hint_draw">Bốc từ</span></div>
+                <div><span class="key-badge">B</span> <span data-i18n="bingo.hint_bingo">Báo Bingo</span></div>
+                <div><span class="key-badge">S</span> <span data-i18n="bingo.hint_replay">Phát âm lại</span></div>
+                <div><span class="key-badge">F</span> <span data-i18n="bingo.hint_fullscreen">Toàn màn hình</span></div>
+                <div><span class="key-badge">R</span> <span data-i18n="bingo.hint_reset">Chơi lại</span></div>
             </div>
 
         </section>
@@ -786,7 +788,7 @@
             <div class="matrix-header">
                 <h3 class="matrix-title">
                     <i class="fa-solid fa-border-all" style="color: var(--bingo-accent);"></i>
-                    <span>Bảng Radar Từ Vựng</span>
+                    <span data-i18n="bingo.radar_title">Bảng Radar Từ Vựng</span>
                 </h3>
                 <span style="font-size: 12.5px; color: #94a3b8; font-weight: 800;" id="matrix-counter">0/25</span>
             </div>
@@ -804,36 +806,36 @@
             <button class="modal-close-btn" onclick="closeSettingsModal()"><i class="fa-solid fa-xmark"></i></button>
             
             <h2 style="margin-top: 0; font-size: 24px; font-weight: 900; color: #38bdf8; display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-sliders"></i> Cài Đặt Danh Sách Từ Vựng
+                <i class="fa-solid fa-sliders"></i> <span data-i18n="bingo.settings_title">Cài Đặt Danh Sách Từ Vựng</span>
             </h2>
 
             <!-- Cloud Loader -->
             <div style="margin-bottom: 20px; padding: 14px 16px; background: rgba(14, 165, 233, 0.1); border: 1.5px dashed rgba(14, 165, 233, 0.4); border-radius: 14px;">
                 <div style="font-weight: 800; font-size: 13.5px; color: #38bdf8; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> Nạp giáo án từ Đám mây (MHEnt Cloud ID):
+                    <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="bingo.cloud_load_title">Nạp giáo án từ Đám mây (MHEnt Cloud ID):</span>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <input type="text" id="cloud-id-input" placeholder="Dán mã ID hoặc link chứa ?id=..." style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 9px 12px; color: white; font-weight: 700; outline: none; font-size: 13.5px;">
+                    <input type="text" id="cloud-id-input" placeholder="Dán mã ID hoặc link chứa ?id=..." data-i18n-placeholder="bingo.cloud_input_placeholder" style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 9px 12px; color: white; font-weight: 700; outline: none; font-size: 13.5px;">
                     <button type="button" onclick="loadFromCloudId()" id="btn-cloud-fetch" style="background: var(--bingo-accent); color: white; border: none; padding: 9px 18px; border-radius: 10px; font-weight: 900; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-                        <i class="fa-solid fa-download"></i> Tải bài
+                        <i class="fa-solid fa-download"></i> <span data-i18n="bingo.cloud_fetch_btn">Tải bài</span>
                     </button>
                 </div>
             </div>
 
             <!-- Quick Presets -->
             <div style="margin-bottom: 20px;">
-                <div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">
+                <div style="font-size: 13px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;" data-i18n="bingo.presets_title">
                     Mẫu gợi ý bài học nhanh:
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="preset-pill" onclick="applyPreset('verbs')">🏃 25 Động từ thông dụng</button>
-                    <button class="preset-pill" onclick="applyPreset('adjectives')">✨ 25 Tính từ miêu tả</button>
-                    <button class="preset-pill" onclick="applyPreset('classroom')">🏫 25 Đồ dùng & Trường học</button>
+                    <button class="preset-pill" onclick="applyPreset('verbs')" data-i18n="bingo.preset_verbs">🏃 25 Động từ thông dụng</button>
+                    <button class="preset-pill" onclick="applyPreset('adjectives')" data-i18n="bingo.preset_adjectives">✨ 25 Tính từ miêu tả</button>
+                    <button class="preset-pill" onclick="applyPreset('classroom')" data-i18n="bingo.preset_classroom">🏫 25 Đồ dùng & Trường học</button>
                 </div>
             </div>
 
             <div style="margin-bottom: 18px;">
-                <label style="display: block; font-weight: 800; font-size: 14px; margin-bottom: 6px; color: #e2e8f0;">
+                <label style="display: block; font-weight: 800; font-size: 14px; margin-bottom: 6px; color: #e2e8f0;" data-i18n="bingo.input_label">
                     Danh sách từ vựng (Mỗi dòng một từ, có thể thêm nghĩa: <code>Từ | Nghĩa</code>):
                 </label>
                 <textarea id="wordlist-input" style="width: 100%; height: 180px; background: #0f172a; border: 1.5px solid #334155; border-radius: 12px; padding: 12px; color: white; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; line-height: 1.5; resize: vertical; box-sizing: border-box; outline: none;"></textarea>
@@ -846,29 +848,29 @@
             <!-- Toggles -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 24px;">
                 <div style="background: #0f172a; padding: 12px 16px; border-radius: 12px; border: 1px solid #334155;">
-                    <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">Thời gian quay kịch tính</div>
+                    <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;" data-i18n="bingo.roll_time_title">Thời gian quay kịch tính</div>
                     <select id="setting-roll-duration" style="width: 100%; background: #1e293b; color: white; border: 1px solid #475569; padding: 6px 10px; border-radius: 8px; font-weight: 700; outline: none;">
-                        <option value="1800">⚡ Nhanh (1.8 giây)</option>
-                        <option value="3000" selected>🎯 Chuẩn kịch tính (3.0 giây)</option>
-                        <option value="4500">🔥 Cực căng thẳng (4.5 giây)</option>
+                        <option value="1800" data-i18n="bingo.roll_fast">⚡ Nhanh (1.8 giây)</option>
+                        <option value="3000" selected data-i18n="bingo.roll_standard">🎯 Chuẩn kịch tính (3.0 giây)</option>
+                        <option value="4500" data-i18n="bingo.roll_intense">🔥 Cực căng thẳng (4.5 giây)</option>
                     </select>
                 </div>
 
                 <div style="background: #0f172a; padding: 12px 16px; border-radius: 12px; border: 1px solid #334155;">
-                    <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">Thẻ Sự Kiện Bất Ngờ</div>
+                    <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;" data-i18n="bingo.mystery_title">Thẻ Sự Kiện Bất Ngờ</div>
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-top: 6px;">
                         <input type="checkbox" id="setting-mystery-events" checked style="width: 18px; height: 18px; cursor: pointer;">
-                        <span>Kích hoạt Thần May Mắn (10%)</span>
+                        <span data-i18n="bingo.mystery_checkbox">Kích hoạt Thần May Mắn (10%)</span>
                     </label>
                 </div>
             </div>
 
             <div style="display: flex; gap: 12px;">
                 <button onclick="saveSettingsAndReload()" style="flex: 1; padding: 14px; background: var(--bingo-accent); border: none; border-radius: 12px; color: white; font-weight: 900; font-size: 16px; cursor: pointer;">
-                    <i class="fa-solid fa-floppy-disk"></i> Lưu & Bắt Đầu Ván Mới
+                    <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="bingo.save_and_start">Lưu & Bắt Đầu Ván Mới</span>
                 </button>
                 <button onclick="closeSettingsModal()" style="padding: 14px 20px; background: #334155; border: none; border-radius: 12px; color: white; font-weight: 800; cursor: pointer;">
-                    Đóng
+                    <span data-i18n="action.close">Đóng</span>
                 </button>
             </div>
         </div>
@@ -880,21 +882,21 @@
             <button class="modal-close-btn" onclick="closeBingoModal()"><i class="fa-solid fa-xmark"></i></button>
 
             <div style="font-size: 60px; margin-bottom: 5px;">🎉🏆✨</div>
-            <h1 style="font-size: 42px; font-weight: 900; color: #f59e0b; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 2px;">
+            <h1 style="font-size: 42px; font-weight: 900; color: #f59e0b; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 2px;" data-i18n="bingo.win_title">
                 BINGO! CHIẾN THẮNG!
             </h1>
-            <p style="font-size: 16px; color: #e2e8f0; margin: 0 0 25px 0;">
+            <p style="font-size: 16px; color: #e2e8f0; margin: 0 0 25px 0;" data-i18n="bingo.win_subtitle">
                 Chúc mừng bạn học sinh đã xuất sắc hoàn thành hàng Bingo đầu tiên! 🌟
             </p>
 
             <!-- Verification section -->
             <div style="background: #0f172a; padding: 20px; border-radius: 16px; border: 1.5px solid #334155; text-align: left; margin-bottom: 24px;">
                 <div style="font-weight: 800; font-size: 15px; color: #38bdf8; margin-bottom: 10px; display: flex; justify-content: space-between;">
-                    <span><i class="fa-solid fa-clipboard-check"></i> Xác minh 5 từ trên phiếu của học sinh:</span>
-                    <span id="verify-status-badge" style="font-size: 12px; color: #94a3b8;">Chọn 5 từ để kiểm tra</span>
+                    <span><i class="fa-solid fa-clipboard-check"></i> <span data-i18n="bingo.verify_title">Xác minh 5 từ trên phiếu của học sinh:</span></span>
+                    <span id="verify-status-badge" style="font-size: 12px; color: #94a3b8;" data-i18n="bingo.verify_prompt">Chọn 5 từ để kiểm tra</span>
                 </div>
                 
-                <input type="text" id="verify-search-input" placeholder="Gõ từ của học sinh để đối chiếu..." style="width: 100%; padding: 10px 14px; background: #1e293b; border: 1px solid #475569; border-radius: 10px; color: white; font-weight: 700; outline: none; margin-bottom: 12px; box-sizing: border-box;" oninput="filterVerifyWords()">
+                <input type="text" id="verify-search-input" placeholder="Gõ từ của học sinh để đối chiếu..." data-i18n-placeholder="bingo.verify_search" style="width: 100%; padding: 10px 14px; background: #1e293b; border: 1px solid #475569; border-radius: 10px; color: white; font-weight: 700; outline: none; margin-bottom: 12px; box-sizing: border-box;" oninput="filterVerifyWords()">
 
                 <div id="verify-words-list" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Checkable word pills -->
@@ -903,10 +905,10 @@
 
             <div style="display: flex; gap: 12px;">
                 <button onclick="triggerConfettiCannon()" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #f59e0b, #ef4444); border: none; border-radius: 12px; color: white; font-weight: 900; font-size: 16px; cursor: pointer;">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Bắn Thêm Pháo Hoa!
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="bingo.confetti_more">Bắn Thêm Pháo Hoa!</span>
                 </button>
                 <button onclick="closeBingoModal()" style="padding: 14px 24px; background: #334155; border: none; border-radius: 12px; color: white; font-weight: 800; cursor: pointer;">
-                    Tiếp tục trò chơi
+                    <span data-i18n="bingo.continue_game">Tiếp tục trò chơi</span>
                 </button>
             </div>
         </div>
@@ -918,19 +920,19 @@
             <button class="modal-close-btn" onclick="closePrintModal()"><i class="fa-solid fa-xmark"></i></button>
 
             <h2 style="margin-top: 0; font-size: 22px; font-weight: 900; color: #38bdf8; display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-print"></i> Tạo Phiếu Bingo Phát Cho Học Sinh
+                <i class="fa-solid fa-print"></i> <span data-i18n="bingo.print_modal_title">Tạo Phiếu Bingo Phát Cho Học Sinh</span>
             </h2>
-            <p style="color: #94a3b8; font-size: 14px; margin-top: 0;">
-                Hệ thống hỗ trợ in phiếu đẹp mắt theo chuẩn $5 \times 5$ (25 ô) kèm ô trung tâm ⭐ FREE STAR.
+            <p style="color: #94a3b8; font-size: 14px; margin-top: 0;" data-i18n="bingo.print_modal_desc">
+                Hệ thống hỗ trợ in phiếu đẹp mắt theo chuẩn 5x5 (25 ô) kèm ô trung tâm ⭐ FREE STAR.
             </p>
 
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 800; font-size: 14px; margin-bottom: 8px;">Loại phiếu muốn in:</label>
                 <div style="display: flex; gap: 10px;">
-                    <button class="preset-pill active" id="btn-print-blank" onclick="selectPrintType('blank')" style="flex: 1; padding: 12px;">
+                    <button class="preset-pill active" id="btn-print-blank" onclick="selectPrintType('blank')" style="flex: 1; padding: 12px;" data-i18n="bingo.print_blank_btn">
                         📝 Phiếu Trống (Học sinh tự điền từ)
                     </button>
-                    <button class="preset-pill" id="btn-print-random" onclick="selectPrintType('random')" style="flex: 1; padding: 12px;">
+                    <button class="preset-pill" id="btn-print-random" onclick="selectPrintType('random')" style="flex: 1; padding: 12px;" data-i18n="bingo.print_random_btn">
                         🎲 Phiếu Điền Sẵn (Trộn từ tự động)
                     </button>
                 </div>
@@ -947,7 +949,7 @@
             </div>
 
             <button onclick="executePrint()" style="width: 100%; padding: 15px; background: #10b981; border: none; border-radius: 12px; color: white; font-weight: 900; font-size: 16px; cursor: pointer;">
-                <i class="fa-solid fa-print"></i> Mở Trình In Ngay (Print Preview)
+                <i class="fa-solid fa-print"></i> <span data-i18n="bingo.print_do_print">Mở Hộp Thoại In Ngay</span>
             </button>
         </div>
     </div>
@@ -1217,13 +1219,25 @@
             const screen = document.getElementById('roll-screen');
             screen.className = 'roll-screen-box';
             document.getElementById('call-order-badge').style.display = 'none';
-            renderDisplayWord('SẴN SÀNG! 🎲', false);
-            document.getElementById('display-meaning').innerText = 'Nhấn BỐC TỪ TIẾP THEO hoặc phím Space để bắt đầu';
+
+            const displayWordEl = document.getElementById('display-word');
+            const displayMeaningEl = document.getElementById('display-meaning');
+            displayWordEl.setAttribute('data-i18n', 'bingo.ready_title');
+            displayMeaningEl.setAttribute('data-i18n', 'bingo.ready_desc');
+            if (window.MHEntI18n) {
+                displayWordEl.innerText = window.MHEntI18n.t('bingo.ready_title', 'SẴN SÀNG! 🎲');
+                displayMeaningEl.innerText = window.MHEntI18n.t('bingo.ready_desc', 'Nhấn BỐC TỪ TIẾP THEO hoặc phím Space để bắt đầu');
+            } else {
+                renderDisplayWord('SẴN SÀNG! 🎲', false);
+                displayMeaningEl.innerText = 'Nhấn BỐC TỪ TIẾP THEO hoặc phím Space để bắt đầu';
+            }
+
             document.getElementById('btn-replay-speech').style.display = 'none';
             document.getElementById('btn-draw-word').disabled = false;
 
+            const noCallsText = window.MHEntI18n ? window.MHEntI18n.t('bingo.no_calls', 'Chưa có từ nào được bốc...') : 'Chưa có từ nào được bốc...';
             document.getElementById('recent-pills-list').innerHTML = `
-                <div style="color: #64748b; font-size: 13.5px; font-weight: 700; padding: 6px 0;">Chưa có từ nào được bốc...</div>
+                <div style="color: #64748b; font-size: 13.5px; font-weight: 700; padding: 6px 0;" data-i18n="bingo.no_calls">${noCallsText}</div>
             `;
 
             renderMatrix();
@@ -1249,7 +1263,9 @@
         function drawNextWord() {
             if (isRolling) return;
             if (remainingWords.length === 0) {
-                alert('Tất cả các từ trong danh sách đã được bốc hết rồi!');
+                const alertMsg = window.MHEntI18n && window.MHEntI18n.getLang() === 'ja' ? 'すべての単語が引き終わりました！' :
+                    (window.MHEntI18n && window.MHEntI18n.getLang() === 'en' ? 'All words in the list have been drawn!' : 'Tất cả các từ trong danh sách đã được bốc hết rồi!');
+                alert(alertMsg);
                 return;
             }
 
@@ -1260,6 +1276,11 @@
             screen.className = 'roll-screen-box rolling';
             document.getElementById('call-order-badge').style.display = 'none';
             document.getElementById('btn-replay-speech').style.display = 'none';
+
+            const displayWordEl = document.getElementById('display-word');
+            const displayMeaningEl = document.getElementById('display-meaning');
+            displayWordEl.removeAttribute('data-i18n');
+            displayMeaningEl.removeAttribute('data-i18n');
 
             // Check Mystery Event (10% chance if enabled and called > 3)
             const shouldTriggerMystery = mysteryEnabled && calledWords.length >= 3 && Math.random() < 0.12;
@@ -1273,7 +1294,7 @@
                 // Pick a random word from remaining for the rolling display
                 const randomSample = remainingWords[Math.floor(Math.random() * remainingWords.length)];
                 renderDisplayWord(randomSample.word, true);
-                document.getElementById('display-meaning').innerText = randomSample.meaning || 'Đang bốc thăm ngẫu nhiên...';
+                displayMeaningEl.innerText = randomSample.meaning || '...';
 
                 playBeep(450 + Math.random() * 200, 0.05, 'sine');
 
@@ -1295,13 +1316,17 @@
             document.getElementById('btn-draw-word').disabled = false;
 
             const screen = document.getElementById('roll-screen');
+            const displayWordEl = document.getElementById('display-word');
+            const displayMeaningEl = document.getElementById('display-meaning');
+            displayWordEl.removeAttribute('data-i18n');
+            displayMeaningEl.removeAttribute('data-i18n');
 
             if (isMystery) {
                 // Mystery Event card
                 const event = MYSTERY_EVENTS[Math.floor(Math.random() * MYSTERY_EVENTS.length)];
                 screen.className = 'roll-screen-box mystery';
-                document.getElementById('display-word').innerHTML = `<span style="color: ${event.color}; font-size: clamp(32px, 5vw, 54px);">${event.title}</span>`;
-                document.getElementById('display-meaning').innerHTML = `<strong style="color: #fff; font-size: 20px;">${event.desc}</strong>`;
+                displayWordEl.innerHTML = `<span style="color: ${event.color}; font-size: clamp(32px, 5vw, 54px);">${event.title}</span>`;
+                displayMeaningEl.innerHTML = `<strong style="color: #fff; font-size: 20px;">${event.desc}</strong>`;
                 
                 playChordSuccess();
                 triggerConfetti(0.4);
@@ -1321,10 +1346,18 @@
 
             screen.className = 'roll-screen-box revealed';
             document.getElementById('call-order-badge').style.display = 'inline-flex';
-            document.getElementById('call-order-num').innerText = `LƯỢT GỌI #${calledWords.length}`;
+
+            const currentLang = window.MHEntI18n ? window.MHEntI18n.getLang() : 'vi';
+            if (currentLang === 'ja') {
+                document.getElementById('call-order-num').innerText = `第${calledWords.length}回目`;
+            } else if (currentLang === 'en') {
+                document.getElementById('call-order-num').innerText = `CALL #${calledWords.length}`;
+            } else {
+                document.getElementById('call-order-num').innerText = `LƯỢT GỌI #${calledWords.length}`;
+            }
 
             renderDisplayWord(chosen.word, false);
-            document.getElementById('display-meaning').innerText = chosen.meaning ? `(${chosen.meaning})` : '';
+            displayMeaningEl.innerText = chosen.meaning ? `(${chosen.meaning})` : '';
             document.getElementById('btn-replay-speech').style.display = 'inline-flex';
 
             // Stats Update
@@ -1696,6 +1729,24 @@
                         if (typeof triggerConfetti === 'function') triggerConfetti(0.5);
                     }
                 } catch (err) {}
+            }
+        });
+
+        // Language Change Listener
+        window.addEventListener('mhent:langchange', (e) => {
+            const lang = (e.detail && e.detail.lang) || (window.MHEntI18n ? window.MHEntI18n.getLang() : 'vi');
+            if (calledWords.length === 0) {
+                const dWord = document.getElementById('display-word');
+                const dMeaning = document.getElementById('display-meaning');
+                if (dWord && window.MHEntI18n) dWord.innerText = window.MHEntI18n.t('bingo.ready_title');
+                if (dMeaning && window.MHEntI18n) dMeaning.innerText = window.MHEntI18n.t('bingo.ready_desc');
+            } else {
+                const badge = document.getElementById('call-order-num');
+                if (badge) {
+                    if (lang === 'ja') badge.innerText = `第${calledWords.length}回目`;
+                    else if (lang === 'en') badge.innerText = `CALL #${calledWords.length}`;
+                    else badge.innerText = `LƯỢT GỌI #${calledWords.length}`;
+                }
             }
         });
 
