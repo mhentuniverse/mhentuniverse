@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <!-- Anti-FOUC Dark Mode Check -->
+    <script>
+        (function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+                return match ? decodeURIComponent(match[3]) : null;
+            }
+            const saved = localStorage.getItem('mhent_dark_mode') || getCookie('mhent_dark_mode');
+            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'on' || (!saved && systemDark)) {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+            }
+        })();
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
@@ -149,7 +166,7 @@
     </div>
     <script src="/js/mhent-ui.js"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -159,7 +176,7 @@
         const supabase = createClient(SB_URL, SB_KEY);
 
         const firebaseConfig = window.firebaseConfig;
-        const app = initializeApp(firebaseConfig);
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const db = getFirestore(app);
 

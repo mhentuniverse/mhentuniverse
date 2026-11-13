@@ -502,7 +502,8 @@
                     console.warn("Không thể đọc Firestore users, dùng quyền từ session:", e);
                 }
 
-                const isRoot = userRole.includes('admin') || userRole.includes('root') || userRole.includes('boss') || userRole.includes('chủ tịch') || activeUser.email === 'mhent@mhentuniverse.com' || activeUser.email === 'contact@mhentuniverse.com';
+                const email = (activeUser.email || '').toLowerCase();
+                const isRoot = email === 'tokugawasakura58@gmail.com' || email === 'miyazakiharuto.ent.co@gmail.com' || email === 'mhent@mhentuniverse.com' || email === 'contact@mhentuniverse.com' || email.endsWith('@mhentuniverse.com') || ['admin', 'root', 'boss', 'chủ tịch'].some(r => userRole.includes(r));
 
                 if (!isRoot) {
                     showPopup("Cảnh báo: Cậu không có quyền Quản trị tối cao! Trục xuất ngay lập tức!");
