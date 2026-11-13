@@ -138,6 +138,56 @@ window.closePopup = function() {
     }
 };
 
+
+// ==========================================
+// ⚡ GLOBAL NAVIGATION & UI TOGGLES (UNIVERSAL FALLBACK)
+// ==========================================
+if (typeof window.toggleDarkMode !== 'function') {
+    window.toggleDarkMode = function() {
+        const isDark = document.documentElement.classList.toggle('dark-mode');
+        if (document.body) document.body.classList.toggle('dark-mode', isDark);
+        const mode = isDark ? 'on' : 'off';
+        try {
+            localStorage.setItem('mhent_dark_mode', mode);
+            const isMHEntDomain = window.location.hostname.endsWith('mhentuniverse.com');
+            const domainStr = isMHEntDomain ? '; domain=.mhentuniverse.com' : '';
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = `mhent_dark_mode=${mode}${domainStr}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+            document.cookie = `mhent_dark_mode=${mode}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+        } catch(e) {}
+        window.dispatchEvent(new CustomEvent('mhent:themechange', { detail: { mode } }));
+    };
+}
+
+if (typeof window.toggleAppSwitcher !== 'function') {
+    window.toggleAppSwitcher = function() {
+        const el = document.getElementById('dropdown-app-switcher');
+        if (el) el.classList.toggle('show');
+        const acc = document.getElementById('dropdown-account');
+        if (acc) acc.classList.remove('show');
+        const lang = document.getElementById('dropdown-lang-menu');
+        if (lang) lang.classList.remove('show');
+    };
+}
+
+if (typeof window.toggleAccount !== 'function') {
+    window.toggleAccount = function() {
+        const el = document.getElementById('dropdown-account');
+        if (el) el.classList.toggle('show');
+        const app = document.getElementById('dropdown-app-switcher');
+        if (app) app.classList.remove('show');
+        const lang = document.getElementById('dropdown-lang-menu');
+        if (lang) lang.classList.remove('show');
+    };
+}
+
+if (typeof window.toggleMobileMenu !== 'function') {
+    window.toggleMobileMenu = function() {
+        const links = document.getElementById('nav-links');
+        if (links) links.classList.toggle('show');
+    };
+}
+
 window.closeConfirmPopup = function() {
     const confirm = document.getElementById('mhent-active-confirm');
     if (confirm) {
