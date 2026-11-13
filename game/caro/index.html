@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <!-- Anti-FOUC Dark Mode Check -->
+    <!-- Kiểm tra Dark Mode ngay lập tức trước khi Render để tránh chớp trắng (Anti-FOUC) -->
     <script>
         (function() {
             function getCookie(name) {
@@ -18,1193 +18,438 @@
         })();
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="https://www.mhentuniverse.com/game/caro/" />    
     <meta property="og:site_name" content="MHEnt. Universe">
-    <meta property="og:title" content="Caro Đại Chiến - MHEnt. Gaming">
-    <meta property="og:description" content="Đấu trí cờ Caro (Gomoku) 15x15 đỉnh cao cùng Bot AISA hoặc thách đấu bạn bè không cần cài đặt!">
+    <meta property="og:title" content="Sảnh Chờ - Caro .io | MHEnt. Game">
+    <meta property="og:description" content="Trò chơi Cờ Caro 15x15 .io - Đấu trí trực tuyến cùng bạn bè hoặc so tài với Bot AISA Echo / Harmony!">
     <meta property="og:image" content="https://www.mhentuniverse.com/assets/avt-web.jpg">
-    <title>Caro Đại Chiến - MHEnt. Gaming</title>
+    <title>Sảnh Chờ - Caro .io | MHEnt. Game</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0ea5e9">
     <link rel="icon" type="image/png" sizes="48x48" href="/assets/icon-web.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-web.png">
-
-    <!-- CSS chung của hệ sinh thái MHEnt -->
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/game/game-theme.css"> 
     <link rel="stylesheet" href="/css/mhent-ui.css">
     <link rel="stylesheet" href="/css/mhent-mobile.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-
+    
     <style>
-        :root {
-            --caro-primary: #0ea5e9;
-            --caro-primary-dark: #0284c7;
-            --caro-bg: rgba(14, 165, 233, 0.12);
-            --caro-x-color: #ef4444;
-            --caro-o-color: #0ea5e9;
-            --board-line: #cbd5e1;
-            --board-bg: #ffffff;
-            --board-wood: #f8fafc;
+        :root { 
+            --caro-color: #0ea5e9; 
+            --caro-bg: rgba(14, 165, 233, 0.12); 
+            --caro-dark: #0284c7;
         }
 
-        body.dark-mode {
-            --board-line: #334155;
-            --board-bg: #0f172a;
-            --board-wood: #1e293b;
-        }
+        body { background: #f8fafc; font-family: 'Nunito', sans-serif; }
+        body.dark-mode { background: #0f172a; }
 
-        body {
-            background: #f1f5f9;
-            color: #1e293b;
-            min-height: 100vh;
-            font-family: 'Nunito', sans-serif;
-        }
+        .lobby-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
 
-        body.dark-mode {
-            background: #090d16;
-            color: #f8fafc;
-        }
+        .action-card { background: #fff; border-radius: 20px; padding: 40px 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 2px solid transparent; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        body.dark-mode .action-card { background: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .action-card:hover { border-color: var(--caro-color); transform: translateY(-5px); box-shadow: 0 15px 35px var(--caro-bg); }
 
-        .caro-container {
-            max-width: 1200px;
-            margin: 20px auto 60px auto;
-            padding: 0 16px;
-        }
+        .action-icon { font-size: 55px; color: var(--caro-color); margin-bottom: 20px; transition: 0.3s; }
+        .action-card:hover .action-icon { transform: scale(1.1); }
 
-        .caro-header-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        .action-title { font-size: 24px; font-weight: 900; margin-bottom: 15px; color: #1e293b; }
+        body.dark-mode .action-title { color: #f8fafc; }
 
-        .btn-back-hub {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid #e2e8f0;
-            color: #475569;
-            font-weight: 800;
-            font-size: 14px;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-        }
+        .room-input { width: 100%; padding: 15px; font-size: 24px; font-weight: 900; text-align: center; letter-spacing: 8px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 20px; outline: none; background: #f8fafc; color: var(--caro-color); transition: 0.3s; }
+        .room-input::placeholder { letter-spacing: 1px; font-weight: 600; color: #94a3b8; font-size: 16px; }
+        .room-input:focus { border-color: var(--caro-color); background: #fff; box-shadow: 0 4px 15px var(--caro-bg); }
+        body.dark-mode .room-input { background: #0f172a; border-color: #334155; }
+        body.dark-mode .room-input:focus { background: #1e293b; }
 
-        body.dark-mode .btn-back-hub {
-            background: rgba(30, 41, 59, 0.7);
-            border-color: #334155;
-            color: #cbd5e1;
-        }
+        .btn-caro { background: var(--caro-color); color: white; border: none; padding: 16px 30px; font-size: 16px; font-weight: 900; border-radius: 12px; cursor: pointer; width: 100%; transition: 0.3s; box-shadow: 0 4px 15px var(--caro-bg); text-transform: uppercase; }
+        .btn-caro:hover { background: var(--caro-dark); transform: translateY(-2px); box-shadow: 0 8px 20px var(--caro-bg); }
+        .btn-caro:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        .btn-back-hub:hover {
-            color: var(--caro-primary);
-            border-color: var(--caro-primary);
-            transform: translateY(-2px);
-        }
+        .room-list-container { grid-column: 1 / -1; background: #fff; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
+        body.dark-mode .room-list-container { background: #1e293b; border-color: #334155; }
 
-        .caro-arena-grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 24px;
-            align-items: start;
-        }
+        .quick-modes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 20px; }
+        .quick-mode-card { border: 2px solid #e2e8f0; border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: space-between; background: #f8fafc; transition: 0.3s; cursor: pointer; text-decoration: none; }
+        body.dark-mode .quick-mode-card { border-color: #334155; background: #0f172a; }
+        .quick-mode-card:hover { border-color: var(--caro-color); background: #fff; box-shadow: 0 10px 25px var(--caro-bg); transform: translateY(-3px); }
+        body.dark-mode .quick-mode-card:hover { background: #1e293b; }
 
-        @media (max-width: 960px) {
-            .caro-arena-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        .mode-info { display: flex; align-items: center; gap: 14px; }
+        .mode-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .mode-text h4 { margin: 0 0 4px 0; font-size: 16px; font-weight: 900; color: #1e293b; }
+        body.dark-mode .mode-text h4 { color: #f8fafc; }
+        .mode-text p { margin: 0; font-size: 13px; color: #64748b; font-weight: 700; }
+        body.dark-mode .mode-text p { color: #94a3b8; }
 
-        /* BẢNG ĐIỀU KHIỂN BÊN TRÁI */
-        .caro-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+        .btn-play-tag { background: var(--caro-color); color: white; border: none; padding: 8px 18px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+        .btn-play-tag:hover { background: var(--caro-dark); }
 
-        .caro-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-        }
+        @media (max-width: 768px) { .lobby-container { grid-template-columns: 1fr; } }
 
-        body.dark-mode .caro-card {
-            background: #1e293b;
-            border-color: #334155;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* BẢNG TỈ SỐ & LƯỢT ĐI */
-        .players-versus {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            gap: 10px;
-            text-align: center;
-        }
-
-        .player-box {
-            padding: 14px 10px;
-            border-radius: 14px;
-            border: 2px solid transparent;
-            transition: all 0.25s ease;
-            position: relative;
-        }
-
-        .player-box.active {
-            border-color: var(--caro-primary);
-            background: var(--caro-bg);
-            box-shadow: 0 0 20px var(--caro-bg);
-            transform: scale(1.02);
-        }
-
-        .player-badge-piece {
-            font-size: 26px;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 6px;
-        }
-
-        .piece-x { color: var(--caro-x-color); text-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
-        .piece-o { color: var(--caro-o-color); text-shadow: 0 0 12px rgba(14, 165, 233, 0.4); }
-
-        .player-name {
-            font-weight: 900;
-            font-size: 14px;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .player-score {
-            font-size: 20px;
-            font-weight: 900;
-            color: #64748b;
-        }
-
-        .vs-text {
-            font-weight: 900;
-            font-size: 16px;
-            color: #94a3b8;
-            letter-spacing: 1px;
-        }
-
-        /* AISA CHAT BUBBLE TRÊN SIDEBAR */
-        .aisa-talk-box {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 12px 14px;
-            border-radius: 14px;
-            background: rgba(244, 114, 182, 0.1);
-            border: 1px solid rgba(244, 114, 182, 0.25);
-            font-size: 13px;
-            line-height: 1.4;
-            color: var(--text-primary);
-        }
-
-        .aisa-avatar-mini {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            border: 2px solid #ec4899;
-        }
-
-        /* NÚT TÍNH NĂNG */
-        .mode-btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .mode-btn {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-            padding: 12px 14px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: left;
-        }
-
-        body.dark-mode .mode-btn {
-            background: #0f172a;
-            border-color: #334155;
-            color: #cbd5e1;
-        }
-
-        .mode-btn:hover {
-            border-color: var(--caro-primary);
-            color: var(--caro-primary);
-            transform: translateX(3px);
-        }
-
-        .mode-btn.active {
-            background: var(--caro-primary);
-            border-color: var(--caro-primary);
-            color: #ffffff;
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
-        }
-
-        .action-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .btn-action-caro {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            background: #ffffff;
-            color: #334155;
-            font-weight: 800;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        body.dark-mode .btn-action-caro {
-            background: #0f172a;
-            border-color: #334155;
-            color: #e2e8f0;
-        }
-
-        .btn-action-caro:hover {
-            border-color: var(--caro-primary);
-            color: var(--caro-primary);
-        }
-
-        .btn-new-game {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: 900;
-            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
-        }
-
-        .btn-new-game:hover {
-            filter: brightness(1.1);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        /* KHU VỰC BÀN CỜ CARO TRUNG TÂM */
-        .board-wrapper {
-            background: var(--board-wood);
-            border-radius: 24px;
-            padding: 24px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        body.dark-mode .board-wrapper {
-            background: #1e293b;
-            border-color: #334155;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-        }
-
-        .board-status-banner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 630px;
-            margin-bottom: 16px;
-            padding: 10px 18px;
-            border-radius: 12px;
-            background: var(--board-bg);
-            border: 1px solid #e2e8f0;
-            font-weight: 800;
-            font-size: 14.5px;
-        }
-
-        body.dark-mode .board-status-banner {
-            background: #0f172a;
-            border-color: #334155;
-        }
-
-        .board-scroll-area {
-            max-width: 100%;
-            overflow: auto;
-            padding: 10px;
-            border-radius: 16px;
-            background: var(--board-bg);
-            border: 2px solid var(--board-line);
-            touch-action: manipulation;
-        }
-
-        .caro-grid-table {
-            border-collapse: collapse;
-            margin: 0 auto;
-            user-select: none;
-            cursor: pointer;
-        }
-
-        .caro-cell {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            min-height: 36px;
-            border: 1px solid var(--board-line);
-            text-align: center;
-            vertical-align: middle;
-            font-size: 22px;
-            font-weight: 900;
-            line-height: 1;
-            transition: background 0.15s ease, transform 0.1s ease;
-            position: relative;
-        }
-
-        @media (max-width: 600px) {
-            .caro-cell {
-                width: 28px;
-                height: 28px;
-                min-width: 28px;
-                min-height: 28px;
-                font-size: 17px;
-            }
-        }
-
-        .caro-cell:hover:empty {
-            background: rgba(14, 165, 233, 0.12);
-        }
-
-        .caro-cell.last-move {
-            background: rgba(245, 158, 11, 0.25) !important;
-            box-shadow: inset 0 0 0 2px #f59e0b;
-        }
-
-        .caro-cell.winning-line {
-            background: rgba(16, 185, 129, 0.35) !important;
-            animation: pulseWin 1s infinite alternate ease-in-out;
-        }
-
-        @keyframes pulseWin {
-            from { transform: scale(1); filter: brightness(1); }
-            to { transform: scale(1.08); filter: brightness(1.3); }
-        }
-
-        /* MODAL THẮNG VÁN */
-        .win-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 99999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .win-overlay.show { display: flex; }
-
-        .win-modal {
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 36px 30px;
-            text-align: center;
-            max-width: 420px;
-            width: 90%;
-            border: 2px solid var(--caro-primary);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        body.dark-mode .win-modal {
-            background: #1e293b;
-            border-color: #38bdf8;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.6); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .win-icon {
-            font-size: 64px;
-            margin-bottom: 12px;
-            animation: trophyBob 1.5s infinite ease-in-out;
-        }
-
-        @keyframes trophyBob {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-
-        .win-title {
-            font-size: 26px;
-            font-weight: 900;
-            margin: 0 0 8px 0;
-            color: var(--text-primary);
-        }
-
-        .win-desc {
-            color: #64748b;
-            font-size: 15px;
-            margin-bottom: 24px;
-        }
-
-        body.dark-mode .win-desc { color: #94a3b8; }
+        /* MODAL SETTINGS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 9999; display: none; justify-content: center; align-items: center; opacity: 0; transition: 0.3s; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box { background: #1e293b; border: 2px solid #334155; border-radius: 20px; width: 90%; max-width: 500px; padding: 30px; transform: translateY(20px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+        .modal-close { position: absolute; top: 20px; right: 20px; font-size: 24px; color: #64748b; cursor: pointer; transition: 0.2s; background: none; border: none; }
+        .modal-close:hover { color: #ef4444; }
+        .setting-group { margin-bottom: 20px; text-align: left; }
+        .setting-group label { display: block; font-weight: 800; color: #cbd5e1; margin-bottom: 10px; font-size: 14px; }
+        .setting-select { width: 100%; padding: 12px 15px; border-radius: 12px; background: #0f172a; border: 2px solid #334155; color: white; font-size: 15px; font-weight: 700; outline: none; transition: 0.3s; font-family: 'Nunito', sans-serif; cursor: pointer; }
+        .setting-select:focus { border-color: var(--caro-color); box-shadow: 0 0 0 4px var(--caro-bg); }
     </style>
-</head>
-<body class="theme-game">
-
-    <!-- NAVBAR CHUẨN MHENT UNIVERSE -->
-    <nav class="navbar">
-        <div class="nav-left">
-            <a onclick="window.location.href='/game'" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <img src="/assets/avt-web.jpg" alt="MHEnt Avatar" class="avt-img" style="border-color: var(--caro-primary);">
-                <span class="logo-name" style="color: var(--caro-primary);">Caro Đại Chiến</span>
-            </a>
-        </div>
-
-        <ul class="nav-links" id="nav-links">
-            <li><a onclick="window.location.href='/game'" style="cursor: pointer;" data-i18n="nav.hub">Sảnh Game</a></li>
-            <li><a onclick="window.location.href='/game/chess'" style="cursor: pointer;">Cờ Vua</a></li>
-            <li><a onclick="window.location.href='/game/xiangqi'" style="cursor: pointer;">Cờ Tướng</a></li>
-            <li><a onclick="window.location.href='/about'" style="cursor: pointer;" data-i18n="nav.about">Về chúng tớ</a></li>
-        </ul>
-
-        <div class="nav-right">
-            <div class="user-section">
-                <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Tắt/Mở đèn">
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                </button>
-            </div>
-            <div class="menu-toggle" onclick="toggleMobileMenu()">
-                <svg viewBox="0 0 24 24" width="28" height="28" style="stroke: var(--caro-primary);"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </div>
-        </div>
-    </nav>
-
-    <div class="caro-container">
-        
-        <div class="caro-header-bar">
-            <a onclick="window.location.href='/game'" class="btn-back-hub">
-                <i class="fa-solid fa-arrow-left"></i> <span data-i18n="nav.back">Về Trung Tâm Game</span>
-            </a>
-            <div style="font-weight: 800; font-size: 14px; color: #64748b;">
-                <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Chuỗi 5 quân liên tiếp (ngang, dọc, chéo) để chiến thắng!
-            </div>
-        </div>
-
-        <div class="caro-arena-grid">
-            
-            <!-- CỘT ĐIỀU KHIỂN BÊN TRÁI -->
-            <div class="caro-sidebar">
-                
-                <!-- BẢNG TỈ SỐ -->
-                <div class="caro-card">
-                    <div class="players-versus">
-                        <div class="player-box active" id="box-p1">
-                            <div class="player-badge-piece piece-x">✕</div>
-                            <div class="player-name" id="name-p1">Người chơi 1</div>
-                            <div class="player-score" id="score-p1">0</div>
-                        </div>
-
-                        <div class="vs-text">VS</div>
-
-                        <div class="player-box" id="box-p2">
-                            <div class="player-badge-piece piece-o">◯</div>
-                            <div class="player-name" id="name-p2">AISA Echo 😈</div>
-                            <div class="player-score" id="score-p2">0</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- AISA COMMENTARY BOX -->
-                <div class="caro-card" style="padding: 14px;">
-                    <div class="aisa-talk-box" id="aisa-reaction-box">
-                        <img src="/assets/avt-web.jpg" class="aisa-avatar-mini" id="aisa-speaker-avt">
-                        <div>
-                            <div style="font-weight: 900; color: #ec4899; margin-bottom: 2px;" id="aisa-speaker-name">AISA Echo 😈</div>
-                            <div id="aisa-speaker-quote">Trận đấu bắt đầu! Xem cậu có qua được mắt của Echo không nào!</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CHẾ ĐỘ CHƠI -->
-                <div class="caro-card">
-                    <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 900; color: #64748b; text-transform: uppercase;">
-                        <i class="fa-solid fa-gamepad"></i> Chế Độ Đấu
-                    </h3>
-                    
-                    <div class="mode-btn-group">
-                        <button type="button" class="mode-btn active" id="btn-mode-echo" onclick="setGameMode('echo')">
-                            <span style="font-size: 18px;">😈</span>
-                            <div>
-                                <div>AISA Echo (Cao Thủ)</div>
-                                <div style="font-size: 11.5px; opacity: 0.8; font-weight: 700;">Tấn công dồn dập, chặn nước hiểm</div>
-                            </div>
-                        </button>
-
-                        <button type="button" class="mode-btn" id="btn-mode-harmony" onclick="setGameMode('harmony')">
-                            <span style="font-size: 18px;">🌸</span>
-                            <div>
-                                <div>AISA Harmony (Thân Thiện)</div>
-                                <div style="font-size: 11.5px; opacity: 0.8; font-weight: 700;">Đánh từ tốn, vừa sức người mới</div>
-                            </div>
-                        </button>
-
-                        <button type="button" class="mode-btn" id="btn-mode-pvp" onclick="setGameMode('pvp')">
-                            <span style="font-size: 18px;">👥</span>
-                            <div>
-                                <div>2 Người (Chơi chung máy)</div>
-                                <div style="font-size: 11.5px; opacity: 0.8; font-weight: 700;">Thay phiên nhau đi lượt X / O</div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <div class="action-row">
-                        <button type="button" class="btn-action-caro" id="btn-undo" onclick="undoMove()">
-                            <i class="fa-solid fa-rotate-left"></i> Đi lại (Undo)
-                        </button>
-                        <button type="button" class="btn-action-caro" id="btn-sound-toggle" onclick="toggleSound()">
-                            <i class="fa-solid fa-volume-high" id="sound-icon"></i> Âm thanh
-                        </button>
-                        <button type="button" class="btn-action-caro btn-new-game" onclick="resetGame(true)">
-                            <i class="fa-solid fa-plus"></i> Ván Đấu Mới
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- BÀN CỜ CARO TRUNG TÂM -->
-            <div class="board-wrapper">
-                <div class="board-status-banner">
-                    <div>
-                        <span id="turn-indicator-text" style="color: var(--caro-primary);">Đến lượt: Phe X (Đi trước)</span>
-                    </div>
-                    <div style="font-size: 13px; color: #64748b;">
-                        Tổng nước đi: <strong id="total-moves-count" style="color: var(--text-primary);">0</strong>
-                    </div>
-                </div>
-
-                <div class="board-scroll-area">
-                    <table class="caro-grid-table" id="caro-board">
-                        <!-- 15x15 Caro Cells được tạo tự động bởi JavaScript -->
-                    </table>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- MODAL THẮNG CUỘC & ĂN MỪNG -->
-    <div class="win-overlay" id="win-modal-overlay">
-        <div class="win-modal">
-            <div class="win-icon" id="win-icon-display">🏆</div>
-            <h2 class="win-title" id="win-title-text">CHIẾN THẮNG!</h2>
-            <p class="win-desc" id="win-desc-text">Bạn đã nối thành công 5 quân liên tiếp và giành chiến thắng ngoạn mục!</p>
-            
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button type="button" class="btn-action-caro btn-new-game" style="width: auto; padding: 12px 28px;" onclick="closeWinModalAndRestart()">
-                    <i class="fa-solid fa-rotate-right"></i> Chơi Ván Tiếp Theo
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCRIPT CHỨC NĂNG & THUẬT TOÁN AI CARO THÔNG MINH -->
-    <script>
-        // =====================================================================
-        // 1. CẤU HÌNH & TRẠNG THÁI GAME
-        // =====================================================================
-        const BOARD_SIZE = 15;
-        let boardState = []; // Mảng 2 chiều 15x15: null, 'X', 'O'
-        let currentTurn = 'X'; // 'X' luôn đi trước
-        let gameMode = 'echo'; // 'echo', 'harmony', 'pvp'
-        let isGameOver = false;
-        let isAiThinking = false;
-        let moveHistory = []; // Lưu tọa độ [{r, c, player}]
-        let scoreX = 0;
-        let scoreO = 0;
-        let soundEnabled = true;
-
-        // Web Audio Synthesizer (Âm thanh chuẩn studio không cần tải file ngoài)
-        let audioCtx = null;
-        function getAudioContext() {
-            if (!audioCtx) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (AudioContextClass) audioCtx = new AudioContextClass();
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
-        }
-
-        function playThudSound(pitch = 380) {
-            if (!soundEnabled) return;
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(pitch, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.08);
-            } catch(e) {}
-        }
-
-        function playWinFanfare() {
-            if (!soundEnabled) return;
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-                notes.forEach((freq, idx) => {
-                    setTimeout(() => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                        gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.35);
-                    }, idx * 100);
-                });
-            } catch(e) {}
-        }
-
-        // =====================================================================
-        // 2. KHỞI TẠO BÀN CỜ
-        // =====================================================================
-        function initBoard() {
-            boardState = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
-            moveHistory = [];
-            currentTurn = 'X';
-            isGameOver = false;
-            isAiThinking = false;
-
-            const table = document.getElementById('caro-board');
-            table.innerHTML = '';
-
-            for (let r = 0; r < BOARD_SIZE; r++) {
-                const tr = document.createElement('tr');
-                for (let c = 0; c < BOARD_SIZE; c++) {
-                    const td = document.createElement('td');
-                    td.className = 'caro-cell';
-                    td.dataset.row = r;
-                    td.dataset.col = c;
-                    td.onclick = () => handleCellClick(r, c);
-                    tr.appendChild(td);
-                }
-                table.appendChild(tr);
-            }
-
-            updateTurnUI();
-            updateAisaReaction('start');
-        }
-
-        // =====================================================================
-        // 3. XỬ LÝ NƯỚC ĐI
-        // =====================================================================
-        function handleCellClick(r, c) {
-            if (isGameOver || isAiThinking) return;
-            if (boardState[r][c] !== null) return;
-            if (gameMode !== 'pvp' && currentTurn === 'O') return; // Chờ lượt bot
-
-            makeMove(r, c, currentTurn);
-
-            // Nếu đấu với Bot và chưa kết thúc, kích hoạt lượt Bot sau 350ms
-            if (!isGameOver && gameMode !== 'pvp' && currentTurn === 'O') {
-                isAiThinking = true;
-                updateTurnUI();
-                setTimeout(runAiTurn, 320);
-            }
-        }
-
-        function makeMove(r, c, player) {
-            boardState[r][c] = player;
-            moveHistory.push({ r, c, player });
-
-            // Cập nhật DOM
-            const cell = document.querySelector(`.caro-cell[data-row="${r}"][data-col="${c}"]`);
-            if (cell) {
-                // Xóa highlight nước cũ
-                document.querySelectorAll('.caro-cell.last-move').forEach(el => el.classList.remove('last-move'));
-                cell.classList.add('last-move');
-
-                if (player === 'X') {
-                    cell.innerHTML = '<span class="piece-x">✕</span>';
-                    playThudSound(460);
-                } else {
-                    cell.innerHTML = '<span class="piece-o">◯</span>';
-                    playThudSound(360);
-                }
-            }
-
-            // Kiểm tra chiến thắng
-            const winLine = checkWin(r, c, player);
-            if (winLine) {
-                handleGameOver(player, winLine);
-                return;
-            }
-
-            // Kiểm tra hòa bàn cờ
-            if (moveHistory.length === BOARD_SIZE * BOARD_SIZE) {
-                handleGameOver('draw', null);
-                return;
-            }
-
-            // Đổi lượt
-            currentTurn = currentTurn === 'X' ? 'O' : 'X';
-            updateTurnUI();
-        }
-
-        function undoMove() {
-            if (isGameOver || isAiThinking || moveHistory.length === 0) return;
-
-            // Nếu đấu với Bot thì lùi 2 nước (nước Bot và nước Người)
-            const stepsToUndo = (gameMode !== 'pvp' && moveHistory.length >= 2) ? 2 : 1;
-
-            for (let i = 0; i < stepsToUndo; i++) {
-                if (moveHistory.length === 0) break;
-                const last = moveHistory.pop();
-                boardState[last.r][last.c] = null;
-                const cell = document.querySelector(`.caro-cell[data-row="${last.r}"][data-col="${last.c}"]`);
-                if (cell) {
-                    cell.innerHTML = '';
-                    cell.classList.remove('last-move', 'winning-line');
-                }
-            }
-
-            // Highlight lại nước đi trước đó nếu có
-            document.querySelectorAll('.caro-cell.last-move').forEach(el => el.classList.remove('last-move'));
-            if (moveHistory.length > 0) {
-                const prev = moveHistory[moveHistory.length - 1];
-                const prevCell = document.querySelector(`.caro-cell[data-row="${prev.r}"][data-col="${prev.c}"]`);
-                if (prevCell) prevCell.classList.add('last-move');
-            }
-
-            currentTurn = 'X';
-            isGameOver = false;
-            updateTurnUI();
-            updateAisaReaction('undo');
-        }
-
-        // =====================================================================
-        // 4. THUẬT TOÁN KIỂM TRA 5 QUÂN LIÊN TIẾP
-        // =====================================================================
-        const DIRECTIONS = [
-            [0, 1],  // Ngang
-            [1, 0],  // Dọc
-            [1, 1],  // Chéo chính \
-            [1, -1]  // Chéo phụ /
-        ];
-
-        function checkWin(r, c, player) {
-            for (let [dr, dc] of DIRECTIONS) {
-                let line = [{ r, c }];
-
-                // Tiến theo hướng dương
-                let step = 1;
-                while (true) {
-                    let nr = r + dr * step;
-                    let nc = c + dc * step;
-                    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && boardState[nr][nc] === player) {
-                        line.push({ r: nr, c: nc });
-                        step++;
-                    } else {
-                        break;
-                    }
-                }
-
-                // Tiến theo hướng ngược lại
-                step = 1;
-                while (true) {
-                    let nr = r - dr * step;
-                    let nc = c - dc * step;
-                    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && boardState[nr][nc] === player) {
-                        line.push({ r: nr, c: nc });
-                        step++;
-                    } else {
-                        break;
-                    }
-                }
-
-                // Nối đủ 5 quân trở lên là chiến thắng
-                if (line.length >= 5) {
-                    return line;
-                }
-            }
-            return null;
-        }
-
-        // =====================================================================
-        // 5. THUẬT TOÁN AI ĐỐI THỦ THÔNG MINH (AISA BOT)
-        // =====================================================================
-        function runAiTurn() {
-            isAiThinking = false;
-            if (isGameOver) return;
-
-            let bestMove = null;
-
-            if (gameMode === 'harmony') {
-                // AISA Harmony: Đánh thông minh nhẹ nhàng, ưu tiên tấn công vừa phải
-                bestMove = calculateBestMove('O', 'X', 0.6);
-            } else {
-                // AISA Echo: Đánh gắt gao, tính toán chặn nước đôi 3, chuỗi 4 mở và chuỗi 5
-                bestMove = calculateBestMove('O', 'X', 1.15);
-            }
-
-            if (bestMove) {
-                makeMove(bestMove.r, bestMove.c, 'O');
-                updateAisaReaction('bot_moved');
-            }
-        }
-
-        function calculateBestMove(aiPlayer, humanPlayer, defendWeight = 1.0) {
-            // Nước đầu tiên nếu bàn cờ trống: đánh vào tâm (7, 7)
-            if (moveHistory.length === 0) return { r: 7, c: 7 };
-            if (moveHistory.length === 1) {
-                const first = moveHistory[0];
-                const centerDeltas = [[0, 1], [1, 0], [1, 1], [-1, 1]];
-                for (let [dr, dc] of centerDeltas) {
-                    let nr = first.r + dr, nc = first.c + dc;
-                    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && boardState[nr][nc] === null) {
-                        return { r: nr, c: nc };
-                    }
-                }
-            }
-
-            let maxScore = -Infinity;
-            let candidates = [];
-
-            // Quét các ô trống có tiếp giáp quân đã đánh (trong bán kính 2 ô)
-            for (let r = 0; r < BOARD_SIZE; r++) {
-                for (let c = 0; c < BOARD_SIZE; c++) {
-                    if (boardState[r][c] !== null) continue;
-                    if (!hasNeighbor(r, c, 2)) continue;
-
-                    // Tính điểm tấn công của AI nếu đi vào ô này
-                    const attackScore = evaluateCell(r, c, aiPlayer);
-                    // Tính điểm phòng thủ: chặn hiểm nước của người chơi
-                    const defenseScore = evaluateCell(r, c, humanPlayer);
-
-                    // Tổng hợp điểm: Nếu AI thắng ngay lập tức (attack >= 100,000) thì chọn ngay!
-                    if (attackScore >= 100000) return { r, c };
-
-                    const totalScore = attackScore + defenseScore * defendWeight;
-
-                    if (totalScore > maxScore) {
-                        maxScore = totalScore;
-                        candidates = [{ r, c }];
-                    } else if (totalScore === maxScore) {
-                        candidates.push({ r, c });
-                    }
-                }
-            }
-
-            // Nếu có nhiều ô cùng điểm cao nhất, chọn ngẫu nhiên 1 ô
-            if (candidates.length > 0) {
-                return candidates[Math.floor(Math.random() * candidates.length)];
-            }
-
-            // Phương án dự phòng: tìm ô trống đầu tiên
-            for (let r = 0; r < BOARD_SIZE; r++) {
-                for (let c = 0; c < BOARD_SIZE; c++) {
-                    if (boardState[r][c] === null) return { r, c };
-                }
-            }
-            return null;
-        }
-
-        function hasNeighbor(r, c, radius) {
-            for (let dr = -radius; dr <= radius; dr++) {
-                for (let dc = -radius; dc <= radius; dc++) {
-                    if (dr === 0 && dc === 0) continue;
-                    let nr = r + dr, nc = c + dc;
-                    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-                        if (boardState[nr][nc] !== null) return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        // Đánh giá thế cờ cho 1 quân cờ nếu đi vào ô (r, c)
-        function evaluateCell(r, c, player) {
-            let score = 0;
-
-            for (let [dr, dc] of DIRECTIONS) {
-                let count = 1;
-                let openEnds = 0;
-
-                // Tiến
-                let step = 1;
-                while (step <= 4) {
-                    let nr = r + dr * step;
-                    let nc = c + dc * step;
-                    if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) break;
-                    if (boardState[nr][nc] === player) { count++; step++; }
-                    else if (boardState[nr][nc] === null) { openEnds++; break; }
-                    else break;
-                }
-
-                // Lùi
-                step = 1;
-                while (step <= 4) {
-                    let nr = r - dr * step;
-                    let nc = c - dc * step;
-                    if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) break;
-                    if (boardState[nr][nc] === player) { count++; step++; }
-                    else if (boardState[nr][nc] === null) { openEnds++; break; }
-                    else break;
-                }
-
-                // Chấm điểm thế cờ
-                if (count >= 5) {
-                    score += 100000; // Thắng tuyệt đối
-                } else if (count === 4) {
-                    if (openEnds === 2) score += 20000; // 4 mở 2 đầu: không thể cản
-                    else if (openEnds === 1) score += 4000; // 4 chặn 1 đầu
-                } else if (count === 3) {
-                    if (openEnds === 2) score += 3000; // 3 mở 2 đầu
-                    else if (openEnds === 1) score += 600; // 3 chặn 1 đầu
-                } else if (count === 2) {
-                    if (openEnds === 2) score += 400;
-                    else if (openEnds === 1) score += 80;
-                }
-            }
-
-            return score;
-        }
-
-        // =====================================================================
-        // 6. KẾT THÚC VÁN & ĂN MỪNG CHIẾN THẮNG
-        // =====================================================================
-        function handleGameOver(winner, winLine) {
-            isGameOver = true;
-
-            if (winLine && winLine.length >= 5) {
-                winLine.forEach(pt => {
-                    const cell = document.querySelector(`.caro-cell[data-row="${pt.r}"][data-col="${pt.c}"]`);
-                    if (cell) cell.classList.add('winning-line');
-                });
-            }
-
-            if (winner === 'X') {
-                scoreX++;
-                document.getElementById('score-p1').innerText = scoreX;
-                playWinFanfare();
-                triggerConfetti();
-                showWinModal('Phe X (✕) Thắng Trận!', 'Xin chúc mừng! Nước cờ 5 quân tuyệt đẹp đã phân định thắng bại!');
-                updateAisaReaction('x_wins');
-            } else if (winner === 'O') {
-                scoreO++;
-                document.getElementById('score-p2').innerText = scoreO;
-                playWinFanfare();
-                if (gameMode === 'pvp') {
-                    triggerConfetti();
-                    showWinModal('Phe O (◯) Thắng Trận!', 'Xin chúc mừng Phe O đã lội ngược dòng xuất sắc!');
-                } else {
-                    showWinModal(gameMode === 'echo' ? 'AISA Echo Thắng!' : 'AISA Harmony Thắng!', 'Đừng nản lòng nhé! Bấm chơi ván mới để phục thù ngay!');
-                }
-                updateAisaReaction('o_wins');
-            } else {
-                showWinModal('Bàn Cờ Bất Phân Thắng Bại!', 'Hai bên đã cầm hòa sau những nước đấu trí nghẹt thở!');
-                updateAisaReaction('draw');
-            }
-        }
-
-        function triggerConfetti() {
-            if (typeof confetti === 'function') {
-                confetti({
-                    particleCount: 120,
-                    spread: 80,
-                    origin: { y: 0.6 }
-                });
-            }
-        }
-
-        function showWinModal(title, desc) {
-            document.getElementById('win-title-text').innerText = title;
-            document.getElementById('win-desc-text').innerText = desc;
-            document.getElementById('win-modal-overlay').classList.add('show');
-        }
-
-        function closeWinModalAndRestart() {
-            document.getElementById('win-modal-overlay').classList.remove('show');
-            resetGame(false);
-        }
-
-        // =====================================================================
-        // 7. GIAO DIỆN & TƯƠNG TÁC PHỤ
-        // =====================================================================
-        function updateTurnUI() {
-            const p1Box = document.getElementById('box-p1');
-            const p2Box = document.getElementById('box-p2');
-            const turnText = document.getElementById('turn-indicator-text');
-            const movesCount = document.getElementById('total-moves-count');
-
-            movesCount.innerText = moveHistory.length;
-
-            if (isGameOver) {
-                turnText.innerText = 'Trận đấu đã kết thúc!';
-                turnText.style.color = '#10b981';
-                p1Box.classList.remove('active');
-                p2Box.classList.remove('active');
-                return;
-            }
-
-            if (currentTurn === 'X') {
-                p1Box.classList.add('active');
-                p2Box.classList.remove('active');
-                turnText.innerHTML = 'Đến lượt: <strong style="color: var(--caro-x-color);">Phe X (✕)</strong>';
-            } else {
-                p2Box.classList.add('active');
-                p1Box.classList.remove('active');
-                if (isAiThinking) {
-                    turnText.innerHTML = 'Đến lượt: <strong style="color: var(--caro-o-color);">AISA đang suy nghĩ... <i class="fa-solid fa-spinner fa-spin"></i></strong>';
-                } else {
-                    turnText.innerHTML = 'Đến lượt: <strong style="color: var(--caro-o-color);">Phe O (◯)</strong>';
-                }
-            }
-        }
-
-        function setGameMode(mode) {
-            gameMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-
-            const nameP2 = document.getElementById('name-p2');
-            const speakerName = document.getElementById('aisa-speaker-name');
-
-            if (mode === 'echo') {
-                document.getElementById('btn-mode-echo').classList.add('active');
-                nameP2.innerText = 'AISA Echo 😈';
-                speakerName.innerText = 'AISA Echo 😈';
-            } else if (mode === 'harmony') {
-                document.getElementById('btn-mode-harmony').classList.add('active');
-                nameP2.innerText = 'AISA Harmony 🌸';
-                speakerName.innerText = 'AISA Harmony 🌸';
-            } else {
-                document.getElementById('btn-mode-pvp').classList.add('active');
-                nameP2.innerText = 'Người chơi 2 ◯';
-                speakerName.innerText = 'Trọng tài AISA ✨';
-            }
-
-            resetGame(true);
-        }
-
-        function resetGame(resetScores = false) {
-            if (resetScores) {
-                scoreX = 0;
-                scoreO = 0;
-                document.getElementById('score-p1').innerText = '0';
-                document.getElementById('score-p2').innerText = '0';
-            }
-            document.getElementById('win-modal-overlay').classList.remove('show');
-            initBoard();
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('sound-icon');
-            if (soundEnabled) {
-                icon.className = 'fa-solid fa-volume-high';
-                if (window.showToast) window.showToast('Âm thanh', 'Đã bật hiệu ứng âm thanh!', 'info');
-            } else {
-                icon.className = 'fa-solid fa-volume-xmark';
-                if (window.showToast) window.showToast('Âm thanh', 'Đã tắt âm thanh!', 'info');
-            }
-        }
-
-        function updateAisaReaction(event) {
-            const quoteEl = document.getElementById('aisa-speaker-quote');
-            if (!quoteEl) return;
-
-            const quotes = {
-                echo: {
-                    start: "Bắt đầu nào! Đừng mong bắt nạt được Echo nhé! 😈",
-                    bot_moved: "Nước này coi như khởi động nhẹ thôi!",
-                    undo: "Ủa đi sai rồi xin đi lại hả? Thôi được nể tình cho đi lại đó! 🙄",
-                    x_wins: "Ui cha, cậu chơi được đó nha... Ván sau Echo sẽ nghiêm túc! 😤",
-                    o_wins: "Haha! Echo win rùi nè! Thua đừng khóc nhen! 🎉😈",
-                    draw: "Hòa à? Cũng ngang tài ngang sức đấy!"
-                },
-                harmony: {
-                    start: "Chào bạn iu! Chúc bạn có những nước cờ thật thoải mái nha! 🌸",
-                    bot_moved: "Em vừa hạ một quân cờ rồi nè, tới lượt bạn đó!",
-                    undo: "Không sao đâu nè, cứ suy nghĩ kỹ rồi đi lại nha bạn iu! ✨",
-                    x_wins: "Oa, bạn đánh xuất sắc quá! Chúc mừng bạn chiến thắng! 🌟💖",
-                    o_wins: "A may mắn quá em vừa đủ 5 quân rùi. Ván sau bạn cố lên nha! 🌸",
-                    draw: "Một ván cờ thật đẹp và cân tài cân sức nè!"
-                },
-                pvp: {
-                    start: "Trận đấu 2 người bắt đầu! Chúc hai bạn thi đấu vui vẻ và fair-play!",
-                    bot_moved: "Một nước cờ đầy toan tính!",
-                    undo: "Đã cho phép lùi lại một nước cờ!",
-                    x_wins: "Phe X đã giành chiến thắng thuyết phục!",
-                    o_wins: "Phe O đã giành chiến thắng giòn giã!",
-                    draw: "Bàn cờ kết thúc với tỉ số hòa đẹp mắt!"
-                }
-            };
-
-            const pool = quotes[gameMode] || quotes.echo;
-            if (pool[event]) quoteEl.innerText = pool[event];
-        }
-
-        // Tự động khởi chạy bàn cờ khi tải trang
-        window.addEventListener('DOMContentLoaded', initBoard);
-    </script>
-
-    <!-- SCRIPT CHUNG -->
     <script src="/js/config.js"></script>
     <script src="/js/mhent-i18n.js"></script>
+</head>
+<body class="dark-mode">
+
+    <!-- NAVBAR MHEnt CHUẨN -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a onclick="window.location.href='/game'" class="logo" style="cursor: pointer;">
+                    <img src="/assets/avt-web.jpg" alt="MHEnt Logo" class="avt-img">
+                    <span class="logo-name">Caro .io - MHEnt. Game</span>
+                </a>
+            </div>
+
+            <div class="nav-right">
+                <div class="user-section">
+                    <div class="app-switcher-container">
+                        <div id="btn-app-switcher" class="app-switcher-btn" onclick="toggleAppSwitcher()" title="Hệ sinh thái MHEnt">
+                            <svg viewBox="0 0 24 24" width="20" height="20" class="svg-icon"><circle cx="5" cy="5" r="2"></circle><circle cx="12" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="19" r="2"></circle><circle cx="12" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle></svg>
+                        </div>
+                        
+                        <div id="dropdown-app-switcher" class="dropdown-menu app-switcher-menu">
+                            <a onclick="window.location.href='/'" class="app-item"><span class="app-name">Đại Sảnh</span></a>
+                            <a onclick="window.location.href='/cinema'" class="app-item"><span class="app-name">Cinema</span></a>
+                            <a onclick="window.location.href='/arena'" class="app-item"><span class="app-name">Arena</span></a>
+                            <a onclick="window.location.href='/game'" class="app-item active"><span class="app-name">Game Hub</span></a>
+                        </div>
+                    </div>
+
+                    <button id="btn-theme-toggle" class="btn-theme" onclick="toggleDarkMode()" title="Chuyển chế độ sáng/tối">
+                        <svg viewBox="0 0 24 24" width="18" height="18" class="svg-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    
+                    <button id="btn-login" class="btn-login btn-with-icon" style="background: var(--caro-color);">
+                        <svg viewBox="0 0 24 24" width="16" height="16" class="svg-icon"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg> Đăng nhập
+                    </button>
+
+                    <div id="user-profile" class="user-profile" style="position: relative; display: none;">
+                        <div onclick="toggleAccount()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <img id="user-avatar" src="" alt="User" class="user-avatar" style="border-color: var(--caro-color);">
+                            <span id="user-name" class="user-name">Tên User</span>
+                        </div>
+                        
+                        <div id="dropdown-account" class="dropdown-menu account-dropdown">
+                            <div class="dropdown-item" onclick="window.location.href='/profile#info'">Hồ sơ</div>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">Chế độ Tối</div>
+                            <div class="dropdown-divider"></div>
+                            <div id="btn-logout" class="dropdown-item" style="color: #ef4444 !important;">Đăng xuất</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-toggle" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" width="28" height="28" class="svg-icon" style="stroke: var(--caro-color);"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero" style="background: linear-gradient(135deg, #0284c7 0%, #0f172a 100%);">
+        <h1>Caro <span>.io</span> 🎯🔥</h1>
+        <p class="small-description">Đấu trí cờ Caro (Gomoku) 15x15 kinh điển - Nối 5 quân liên tiếp, so tài cùng Bot AISA thông minh hoặc tạo bàn đấu bạn bè!</p>
+        <a onclick="window.location.href='/game'" class="btn-primary" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; cursor: pointer;">
+            <i class="fa-solid fa-arrow-left"></i> Về Kho Game
+        </a>
+    </section>
+
+    <!-- SẢNH CHỌN PHÒNG & TẠO PHÒNG -->
+    <main class="lobby-container">
+        
+        <!-- CARD 1: TẠO BÀN CỜ MỚI -->
+        <div class="action-card">
+            <div class="action-icon"><i class="fa-solid fa-hashtag"></i></div>
+            <h2 class="action-title">Tạo Bàn Cờ Mới</h2>
+            <p style="color: #94a3b8; font-size: 15px; margin-bottom: 25px; line-height: 1.5;">
+                Tùy chỉnh chế độ đấu với Bot AISA (Echo / Harmony), 2 người trên cùng máy (PvP) hoặc tạo bàn riêng.
+            </p>
+            <button class="btn-caro" onclick="openSettingsModal()">
+                <i class="fa-solid fa-plus"></i> + TẠO PHÒNG NGAY
+            </button>
+        </div>
+
+        <!-- CARD 2: THAM GIA BẰNG MÃ -->
+        <div class="action-card">
+            <div class="action-icon"><i class="fa-solid fa-door-open"></i></div>
+            <h2 class="action-title">Tham Gia Bằng Mã</h2>
+            <p style="color: #94a3b8; font-size: 15px; margin-bottom: 25px; line-height: 1.5;">
+                Đã có mã phòng 5 chữ số từ bạn bè? Nhập mã vào bên dưới để vào bàn thi đấu ngay.
+            </p>
+            <input type="text" id="join-room-id" class="room-input" placeholder="VD: 58291" maxlength="5">
+            <button class="btn-caro" onclick="joinRoomByInput()">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> →] VÀO BÀN
+            </button>
+        </div>
+
+        <!-- CARD 3: TRẠM PHÁT SÓNG & CHẾ ĐỘ LUYỆN TẬP NHANH -->
+        <div class="room-list-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 20px; font-weight: 900; color: #38bdf8; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-bolt"></i> Chế Độ Đấu Nhanh Cùng AISA
+                </h3>
+                <span style="font-size: 13px; color: #94a3b8;">Không cần chờ đối thủ</span>
+            </div>
+
+            <div class="quick-modes-grid">
+                <!-- Mode 1: AISA Echo -->
+                <a href="/game/caro/play?mode=echo" class="quick-mode-card">
+                    <div class="mode-info">
+                        <div class="mode-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="mode-text">
+                            <h4>AISA Echo 😈</h4>
+                            <p>Bot Heuristic chiến thuật cao cấp, bắt nước đôi hiểm hóc.</p>
+                        </div>
+                    </div>
+                    <button class="btn-play-tag" style="background: #ef4444;">ĐẤU NGAY</button>
+                </a>
+
+                <!-- Mode 2: AISA Harmony -->
+                <a href="/game/caro/play?mode=harmony" class="quick-mode-card">
+                    <div class="mode-info">
+                        <div class="mode-icon" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9;">
+                            <i class="fa-solid fa-heart"></i>
+                        </div>
+                        <div class="mode-text">
+                            <h4>AISA Harmony 🌸</h4>
+                            <p>Bot ôn hòa, luyện tập phản xạ và cảm giác bàn cờ.</p>
+                        </div>
+                    </div>
+                    <button class="btn-play-tag" style="background: #0ea5e9;">LUYỆN TẬP</button>
+                </a>
+
+                <!-- Mode 3: 2 Người (Local PvP) -->
+                <a href="/game/caro/play?mode=pvp" class="quick-mode-card">
+                    <div class="mode-info">
+                        <div class="mode-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                            <i class="fa-solid fa-user-group"></i>
+                        </div>
+                        <div class="mode-text">
+                            <h4>Đấu 2 Người (PvP) 👥</h4>
+                            <p>So tài trực tiếp cùng bạn bè trên cùng máy tính / điện thoại.</p>
+                        </div>
+                    </div>
+                    <button class="btn-play-tag" style="background: #10b981;">SOLO 1V1</button>
+                </a>
+            </div>
+
+            <!-- HƯỚNG DẪN LUẬT CHƠI GOMOKU -->
+            <div style="margin-top: 25px; padding: 20px; background: rgba(15, 23, 42, 0.5); border-radius: 14px; border: 1px dashed #334155;">
+                <h4 style="margin: 0 0 10px 0; color: #f8fafc; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-book-open" style="color: var(--caro-color);"></i> Luật Thi Đấu Cờ Caro 15x15 MHEnt
+                </h4>
+                <ul style="margin: 0; padding-left: 20px; color: #94a3b8; font-size: 13.5px; line-height: 1.8;">
+                    <li>Bàn cờ kích thước chuẩn <strong>15x15 ô vuông</strong>. Quân <strong>X</strong> (Đỏ neon) đi trước, Quân <strong>O</strong> (Xanh neon) đi sau.</li>
+                    <li>Người chơi nào tạo được <strong>5 quân cờ liên tiếp</strong> theo hàng ngang, dọc hoặc đường chéo mà <strong>không bị chặn cả 2 đầu</strong> sẽ giành chiến thắng ngay lập tức!</li>
+                    <li>Hỗ trợ tính năng <strong>Đi Lại (Undo)</strong> khi luyện tập cùng Bot AISA để người chơi thử nghiệm các biến thế cờ mới.</li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL CẤU HÌNH TẠO PHÒNG -->
+    <div id="room-settings-modal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+            <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 900; color: #f8fafc; text-align: center;">
+                <i class="fa-solid fa-sliders" style="color: var(--caro-color);"></i> Cấu Hình Bàn Cờ Caro
+            </h2>
+
+            <div class="setting-group">
+                <label>Đối Thủ / Chế Độ</label>
+                <select id="set-mode" class="setting-select">
+                    <option value="echo">😈 Đấu với AISA Echo (Chiến Thuật Cao Cấp)</option>
+                    <option value="harmony">🌸 Đấu với AISA Harmony (Ôn Hòa Luyện Tập)</option>
+                    <option value="pvp">👥 Đấu 2 Người (Pass & Play Trên Cùng Máy)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>Thời Gian Mỗi Nước Đi</label>
+                <select id="set-time" class="setting-select">
+                    <option value="30">30 giây / nước (Tiêu chuẩn Blitz)</option>
+                    <option value="60">60 giây / nước (Thư thái)</option>
+                    <option value="0">Không giới hạn thời gian (Luyện tập)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>Quyền Đi Trước</label>
+                <select id="set-first" class="setting-select">
+                    <option value="X">Cậu đi trước (Quân X - Đỏ Neon)</option>
+                    <option value="O">Đối thủ đi trước (Cậu Quân O - Xanh Neon)</option>
+                </select>
+            </div>
+
+            <button id="btn-confirm-create" class="btn-caro" style="margin-top: 10px;" onclick="confirmCreateRoom()">
+                <i class="fa-solid fa-check"></i> XÁC NHẬN & VÀO BÀN
+            </button>
+        </div>
+    </div>
+
+    <!-- MEGA FOOTER -->
+    <footer class="mhent-mega-footer" style="margin-top: 60px;">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand-col">
+                    <a onclick="window.location.href='/'" class="footer-brand-title" style="cursor: pointer;">
+                        <img src="/assets/avt-web.jpg" alt="MHEnt Logo" class="footer-brand-logo">
+                        <span class="footer-brand-name">MHEnt. Universe</span>
+                    </a>
+                    <p class="footer-brand-slogan">
+                        Đế chế Đa Vũ Trụ Giải Trí Số & Sáng Tạo Nghệ Thuật. Kết nối cộng đồng anime, âm nhạc, văn hóa đại chúng và minigame giải trí đỉnh cao.
+                    </p>
+                    <div class="footer-corp-meta">
+                        Vận hành bởi <strong>Miyazaki Haruto Entertainment Co., Ltd.</strong>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h3 class="footer-col-heading">🎮 MHEnt Gaming</h3>
+                    <ul class="footer-links-list">
+                        <li><a onclick="window.location.href='/game/caro'" class="footer-nav-link" style="color: var(--caro-color); font-weight: bold;">Caro .io</a></li>
+                        <li><a onclick="window.location.href='/game/chess'" class="footer-nav-link">Cờ Vua .io</a></li>
+                        <li><a onclick="window.location.href='/game/xiangqi'" class="footer-nav-link">Cờ Tướng .io</a></li>
+                        <li><a onclick="window.location.href='/game'" class="footer-nav-link">Tất Cả Game</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3 class="footer-col-heading">🌐 Vũ Trụ Giải Trí</h3>
+                    <ul class="footer-links-list">
+                        <li><a onclick="window.location.href='/cinema'" class="footer-nav-link">Cinema</a></li>
+                        <li><a onclick="window.location.href='/arena'" class="footer-nav-link">Arena Đấu Trí</a></li>
+                        <li><a onclick="window.location.href='/tools'" class="footer-nav-link">Công Cụ Studio</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3 class="footer-col-heading">⚖️ Hệ Thống & Pháp Lý</h3>
+                    <ul class="footer-links-list">
+                        <li><a onclick="window.location.href='/login'" class="footer-nav-link">Cổng Định Danh MHEnt ID</a></li>
+                        <li><a onclick="window.location.href='/about'" class="footer-nav-link">Về chúng tớ & Báo cáo lỗi</a></li>
+                        <li><a onclick="window.open('https://www.facebook.com/mhentuniverse', '_blank')" class="footer-nav-link">Cộng đồng MHEnt Universe</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-bottom-row">
+                <div>© 2026 <strong>Miyazaki Haruto Entertainment Co., Ltd.</strong> All rights reserved.</div>
+                <div class="footer-social-strip">
+                    <a onclick="window.open('https://www.facebook.com/mharuto.entertainment/', '_blank')">Fanpage</a>
+                    <span>•</span>
+                    <a onclick="window.open('https://www.facebook.com/mhentuniverse', '_blank')">Community</a>
+                    <span>•</span>
+                    <span style="opacity: 0.65;">MHEnt OS v2.4</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = window.firebaseConfig;
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null; 
+
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        if (btnLogin) btnLogin.addEventListener('click', () => { window.redirectToLogin('/game/caro'); });
+        if (btnLogout) btnLogout.addEventListener('click', async () => { await signOut(auth); window.location.href = '/game'; }); 
+
+        window.toggleAccount = function() {
+            const acc = document.getElementById('dropdown-account');
+            const switcher = document.getElementById('dropdown-app-switcher');
+            if (switcher) switcher.classList.remove('show');
+            if (acc) acc.classList.toggle('show');
+        };
+        window.toggleAppSwitcher = function() {
+            const switcher = document.getElementById('dropdown-app-switcher');
+            const acc = document.getElementById('dropdown-account');
+            if (acc) acc.classList.remove('show');
+            if (switcher) switcher.classList.toggle('show');
+        };
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-section') && !event.target.closest('.modal-box')) {
+                document.getElementById('dropdown-account')?.classList.remove('show');
+                document.getElementById('dropdown-app-switcher')?.classList.remove('show');
+            }
+        };
+        window.toggleMobileMenu = function() { document.getElementById('nav-links')?.classList.toggle('active'); };
+
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+        };
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('mhent_dark_mode', 'on');
+
+        onAuthStateChanged(auth, async (user) => {
+            const activeUser = user || (window.getMHEntUser && window.getMHEntUser());
+            if (activeUser) {
+                currentUser = activeUser;
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'none';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'flex';
+                document.getElementById('user-name').innerText = activeUser.displayName || "Khách";
+                document.getElementById('user-avatar').src = (activeUser.photoURL && activeUser.photoURL.trim() !== "") ? activeUser.photoURL : "/assets/avt-web.jpg";
+            } else {
+                currentUser = null; 
+                if(document.getElementById('btn-login')) document.getElementById('btn-login').style.display = 'flex';
+                if(document.getElementById('user-profile')) document.getElementById('user-profile').style.display = 'none';
+            }
+        });
+
+        window.openSettingsModal = () => document.getElementById('room-settings-modal').classList.add('active');
+        window.closeSettingsModal = () => document.getElementById('room-settings-modal').classList.remove('active');
+
+        window.confirmCreateRoom = function() {
+            const mode = document.getElementById('set-mode').value;
+            const timeLimit = document.getElementById('set-time').value;
+            const myPiece = document.getElementById('set-first').value;
+            
+            const params = new URLSearchParams();
+            params.set('mode', mode);
+            if (timeLimit !== "30") params.set('time', timeLimit);
+            if (myPiece !== "X") params.set('first', myPiece);
+
+            window.location.href = `/game/caro/play?${params.toString()}`;
+        };
+
+        window.joinRoomByInput = function() {
+            const roomId = document.getElementById('join-room-id').value.trim();
+            if (!roomId || roomId.length < 4) {
+                return showToast("Lỗi", "Vui lòng nhập mã phòng hợp lệ (4-5 ký tự)!", "warning");
+            }
+            window.location.href = `/game/caro/play?id=${roomId}`;
+        };
+    </script>
     <script src="/js/mhent-ui.js"></script>
     <script src="/js/aisa-widget.js" defer></script>
 </body>
