@@ -1145,3 +1145,25 @@ window.saveCustomNav = function() {
 
     if (typeof showToast === 'function') showToast("Thành công", "Đã cập nhật thanh Menu của cậu!", "success");
 };
+
+// ⚡ ĐỒNG BỘ TÊN USER KHI CHUYỂN ĐỔI NGÔN NGỮ (ANTI-WIPEOUT)
+window.addEventListener('mhent:langchange', () => {
+    try {
+        const user = window.currentUserProfile || (function() {
+            try {
+                const raw = localStorage.getItem('mhent_user_profile');
+                return raw ? JSON.parse(raw) : null;
+            } catch(e) { return null; }
+        })();
+        if (user) {
+            const userNameList = document.querySelectorAll('#user-name, .user-name');
+            const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Thành viên MHEnt');
+            userNameList.forEach(el => {
+                el.textContent = displayName;
+                el.removeAttribute('data-i18n');
+                el.removeAttribute('data-i18n-orig');
+                el.setAttribute('data-i18n-skip', 'true');
+            });
+        }
+    } catch(e) {}
+});

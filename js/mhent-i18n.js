@@ -1039,6 +1039,52 @@
     }
 
     // Auto-discover and tag common elements
+    
+    function isProtectedUserElement(el) {
+        if (!el || el.nodeType !== 1) return false;
+        if (el.hasAttribute('data-i18n-skip') || el.hasAttribute('data-no-translate')) return true;
+
+        const id = el.id || '';
+        if (['user-name', 'creator-name-title', 'user-email', 'user-role', 'team-name', 'user-profile', 'profile-trigger', 'user-avatar', 'user-section'].includes(id)) {
+            return true;
+        }
+
+        const classList = el.classList;
+        if (
+            classList.contains('user-name') ||
+            classList.contains('user-display-name') ||
+            classList.contains('user-email') ||
+            classList.contains('user-role') ||
+            classList.contains('team-name') ||
+            classList.contains('profile-name') ||
+            classList.contains('user-badge') ||
+            classList.contains('attendee-name') ||
+            classList.contains('guest-name')
+        ) {
+            return true;
+        }
+
+        // Inside dropdown items, allow menu actions to translate
+        if (el.closest('.dropdown-item') || el.classList.contains('dropdown-item')) {
+            return false;
+        }
+
+        if (
+            el.closest('#user-name') ||
+            el.closest('.user-name') ||
+            el.closest('#user-profile') ||
+            el.closest('.user-profile') ||
+            el.closest('.profile-trigger') ||
+            el.closest('#profile-trigger') ||
+            el.closest('.user-section') ||
+            el.closest('.user-card')
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
     function autoDiscoverAndTag(root = document.body) {
         if (!root || !root.querySelectorAll) return;
 
