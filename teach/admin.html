@@ -1438,6 +1438,24 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
                 if (lines.length === 0) { showToast("Lỗi", "Vui lòng nhập danh sách từ vựng trước khi lưu!", "error"); return null; }
                 return { words: lines };
             }
+            if(gameType === 'hiddenpicture') {
+                const rows = document.querySelectorAll('#hiddenpicture-rows .hp-row');
+                const deck = [];
+                rows.forEach(r => {
+                    const word = (r.querySelector('.hp-word')?.value || '').trim();
+                    const meaning = (r.querySelector('.hp-meaning')?.value || '').trim();
+                    const ipa = (r.querySelector('.hp-ipa')?.value || '').trim();
+                    const img = (r.querySelector('.hp-img')?.value || '').trim();
+                    if(word || img) {
+                        deck.push({ word, meaning, ipa, img });
+                    }
+                });
+                if(deck.length === 0) {
+                    showToast('Lỗi', 'Vui lòng nhập ít nhất 1 tranh có từ vựng hoặc link ảnh!', 'error');
+                    return null;
+                }
+                return { deck: deck };
+            }
         };
 
         window.loadSelectedGame = function(gameType) {
@@ -1560,6 +1578,16 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
                         if (typeof w === 'object' && w.word) return w.meaning ? `${w.word} | ${w.meaning}` : w.word;
                         return String(w);
                     }).join('\n');
+                }
+            }
+            if(gameType === 'hiddenpicture') {
+                const container = document.getElementById('hiddenpicture-rows');
+                if(container) {
+                    container.innerHTML = '';
+                    const deck = data.deck || [];
+                    if(deck.length > 0) {
+                        deck.forEach(item => window.addHiddenPictureRow(item.word, item.img, item.meaning, item.ipa));
+                    }
                 }
             }
             
@@ -1734,12 +1762,11 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
         window.sendRacingCmd = function(action, team) {
             localStorage.setItem('mhent_racing_cmd', JSON.stringify({ action: action, payload: { team: team }, rand: Math.random() }));
         };
-    </script>
-    <script src="/js/mhent-ui.js">
+    
         /* ==============================================================
            HIDDEN PICTURE ADMIN MANAGEMENT LOGIC
            ============================================================== */
-        window.addHiddenPictureRow = function(word = "", img = "", meaning = "", ipa = "") {
+        window.addHiddenPictureRow = function(word = '', img = '', meaning = '', ipa = '') {
             const container = document.getElementById('hiddenpicture-rows');
             if(!container) return;
             const count = container.querySelectorAll('.hp-row').length + 1;
@@ -1782,22 +1809,22 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
         window.adminApplyHiddenPicturePreset = function(type) {
             const presets = {
                 household: [
-                    { word: "COMPUTER", img: "https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1000&auto=format&fit=crop&q=80", meaning: "Máy vi tính để bàn", ipa: "/kəmˈpjuː.tər/" },
-                    { word: "BATHTUB", img: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1000&auto=format&fit=crop&q=80", meaning: "Bồn tắm nằm", ipa: "/ˈbɑːθ.tʌb/" },
-                    { word: "SOFA", img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&auto=format&fit=crop&q=80", meaning: "Ghế sô-pha", ipa: "/ˈsəʊ.fə/" },
-                    { word: "REFRIGERATOR", img: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=1000&auto=format&fit=crop&q=80", meaning: "Tủ lạnh", ipa: "/rɪˈfrɪdʒ.ər.eɪ.tər/" },
-                    { word: "GUITAR", img: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1000&auto=format&fit=crop&q=80", meaning: "Đàn ghi-ta", ipa: "/ɡɪˈtɑːr/" }
+                    { word: 'COMPUTER', img: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1000&auto=format&fit=crop&q=80', meaning: 'Máy vi tính để bàn', ipa: '/kəmˈpjuː.tər/' },
+                    { word: 'BATHTUB', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1000&auto=format&fit=crop&q=80', meaning: 'Bồn tắm nằm', ipa: '/ˈbɑːθ.tʌb/' },
+                    { word: 'SOFA', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&auto=format&fit=crop&q=80', meaning: 'Ghế sô-pha', ipa: '/ˈsəʊ.fə/' },
+                    { word: 'REFRIGERATOR', img: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=1000&auto=format&fit=crop&q=80', meaning: 'Tủ lạnh', ipa: '/rɪˈfrɪdʒ.ər.eɪ.tər/' },
+                    { word: 'GUITAR', img: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1000&auto=format&fit=crop&q=80', meaning: 'Đàn ghi-ta', ipa: '/ɡɪˈtɑːr/' }
                 ],
                 animals: [
-                    { word: "ELEPHANT", img: "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=1000&auto=format&fit=crop&q=80", meaning: "Con voi khổng lồ", ipa: "/ˈel.ɪ.fənt/" },
-                    { word: "DUCK", img: "https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?w=1000&auto=format&fit=crop&q=80", meaning: "Chú vịt vàng bơi lội", ipa: "/dʌk/" },
-                    { word: "PENGUIN", img: "https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=1000&auto=format&fit=crop&q=80", meaning: "Chim cánh cụt", ipa: "/ˈpeŋ.ɡwɪn/" },
-                    { word: "CAT", img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=1000&auto=format&fit=crop&q=80", meaning: "Mèo cưng dễ thương", ipa: "/kæt/" }
+                    { word: 'ELEPHANT', img: 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=1000&auto=format&fit=crop&q=80', meaning: 'Con voi khổng lồ', ipa: '/ˈel.ɪ.fənt/' },
+                    { word: 'DUCK', img: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?w=1000&auto=format&fit=crop&q=80', meaning: 'Chú vịt vàng bơi lội', ipa: '/dʌk/' },
+                    { word: 'PENGUIN', img: 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=1000&auto=format&fit=crop&q=80', meaning: 'Chim cánh cụt', ipa: '/ˈpeŋ.ɡwɪn/' },
+                    { word: 'CAT', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=1000&auto=format&fit=crop&q=80', meaning: 'Mèo cưng dễ thương', ipa: '/kæt/' }
                 ],
                 school: [
-                    { word: "BACKPACK", img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1000&auto=format&fit=crop&q=80", meaning: "Ba lô đi học", ipa: "/ˈbæk.pæk/" },
-                    { word: "GLOBE", img: "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=1000&auto=format&fit=crop&q=80", meaning: "Quả địa cầu", ipa: "/ɡləʊb/" },
-                    { word: "SCISSORS", img: "https://images.unsplash.com/photo-1503792501406-2c40da09e1e2?w=1000&auto=format&fit=crop&q=80", meaning: "Cái kéo thủ công", ipa: "/ˈsɪz.əz/" }
+                    { word: 'BACKPACK', img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1000&auto=format&fit=crop&q=80', meaning: 'Ba lô đi học', ipa: '/ˈbæk.pæk/' },
+                    { word: 'GLOBE', img: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=1000&auto=format&fit=crop&q=80', meaning: 'Quả địa cầu', ipa: '/ɡləʊb/' },
+                    { word: 'SCISSORS', img: 'https://images.unsplash.com/photo-1503792501406-2c40da09e1e2?w=1000&auto=format&fit=crop&q=80', meaning: 'Cái kéo thủ công', ipa: '/ˈsɪz.əz/' }
                 ]
             };
 
@@ -1810,6 +1837,7 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
             showToast('Nạp mẫu', 'Đã nạp bộ tranh ' + type.toUpperCase(), 'info');
         };
 
-</script>
+    </script>
+    <script src="/js/mhent-ui.js"></script>
 </body>
 </html>
