@@ -1895,10 +1895,81 @@
         }
 
         /* ==============================================================
-           10. APP INITIALIZATION
+           10. CLOUD & ADMIN REALTIME SYNC LOGIC
+           ============================================================== */
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
+
+        async function fetchGameFromCloud(gameId) {
+            if (!gameId) return false;
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getGameById', gameType: 'hiddenpicture', rowId: gameId.trim() })
+                });
+                const result = await res.json();
+                if (result.success && result.gameData) {
+                    const data = result.gameData;
+                    const deck = data.deck || data.items || [];
+                    if (Array.isArray(deck) && deck.length) {
+                        activeDeck = deck;
+                        saveDeckToDB(activeDeck);
+                        return true;
+                    }
+                }
+            } catch (err) {
+                console.warn("Không thể tải từ cloud:", err);
+            }
+            return false;
+        }
+
+        // Listen for realtime push updates from Admin Panel
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'mhent_hiddenpicture_deck' || e.key === 'mhent_hiddenpicture_cmd') {
+                try {
+                    const cmd = e.key === 'mhent_hiddenpicture_cmd' ? JSON.parse(e.newValue) : null;
+                    const newDeck = (cmd && cmd.payload) ? cmd.payload : JSON.parse(localStorage.getItem('mhent_hiddenpicture_deck'));
+                    if (Array.isArray(newDeck) && newDeck.length) {
+                        activeDeck = newDeck;
+                        currentSlideIdx = 0;
+                        saveDeckToDB(activeDeck);
+                        loadCurrentSlideImage();
+                        playCluePopSound();
+                    }
+                } catch(err) {}
+            }
+        });
+
+        /* ==============================================================
+           11. APP INITIALIZATION
            ============================================================== */
         async function initApp() {
-            // Try loading saved custom deck from IndexedDB
+            // 1. Check URL query params for Cloud Game ID (?id=...)
+            const q = new URLSearchParams(window.location.search);
+            const cloudId = q.get('id') || q.get('game') || q.get('data');
+            if (cloudId) {
+                const ok = await fetchGameFromCloud(cloudId);
+                if (ok) {
+                    resizeCanvas();
+                    loadCurrentSlideImage();
+                    return;
+                }
+            }
+
+            // 2. Check localStorage synced from Admin
+            const adminDeckStr = localStorage.getItem('mhent_hiddenpicture_deck');
+            if (adminDeckStr) {
+                try {
+                    const parsed = JSON.parse(adminDeckStr);
+                    if (Array.isArray(parsed) && parsed.length) {
+                        activeDeck = parsed;
+                        resizeCanvas();
+                        loadCurrentSlideImage();
+                        return;
+                    }
+                } catch(e) {}
+            }
+
+            // 3. Try loading saved custom deck from IndexedDB
             const savedDeck = await loadDeckFromDB();
             if (savedDeck && savedDeck.length) {
                 activeDeck = savedDeck;
