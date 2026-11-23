@@ -1289,6 +1289,10 @@
             const item = activeDeck[currentSlideIdx];
             isRevealed = false;
             imageLoaded = false;
+            isMouseInside = false;
+            mouseX = -1000;
+            mouseY = -1000;
+            if (spyCursorEl) spyCursorEl.style.display = 'none';
             
             document.getElementById('reveal-card').style.display = 'none';
             document.getElementById('main-btn-label').innerText = 'Mở Đáp Án (Space)';
@@ -1481,17 +1485,13 @@
             mCtx.globalCompositeOperation = 'destination-out';
 
             if (gameMode === 'spy') {
-                // Cutout circle at mouse coordinate
-                if (isMouseInside && mouseX > -100) {
+                // Cutout circle at mouse coordinate ONLY when pointer is actively inside
+                if (isMouseInside && mouseX > -100 && mouseY > -100) {
                     mCtx.beginPath();
                     mCtx.arc(mouseX, mouseY, spyglassRadius, 0, Math.PI * 2);
                     mCtx.fill();
-                } else {
-                    // Default center circle if user hasn't moved mouse yet
-                    mCtx.beginPath();
-                    mCtx.arc(w / 2, h / 2, spyglassRadius, 0, Math.PI * 2);
-                    mCtx.fill();
                 }
+                // When mouse hasn't moved / is outside: no cutout, 100% dark solid mask (zero leak)!
             } else {
                 // Mode Random Shapes: Cutout each shape
                 randomCutouts.forEach(c => {
@@ -1504,8 +1504,16 @@
             ctx.drawImage(maskCanvas, 0, 0);
             ctx.restore();
 
-            // 4. Draw decorative borders around cutouts (Glowing border)
-            if (gameMode === 'shapes') {
+            // 4. Draw decorative borders / prompt
+            if (gameMode === 'spy' && (!isMouseInside || mouseX <= -100)) {
+                // Subtle gentle prompt in center without showing ANY picture
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+                ctx.font = 'bold 16px Nunito, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('🔍 Rê chuột hoặc chạm vào màn hình để soi kính lúp...', w / 2, h / 2);
+                ctx.restore();
+            } else if (gameMode === 'shapes') {
                 ctx.save();
                 randomCutouts.forEach(c => {
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
@@ -1546,8 +1554,14 @@
             updatePointerPos(e.clientX, e.clientY);
         });
 
+        stageWrapper.addEventListener('pointerdown', (e) => {
+            updatePointerPos(e.clientX, e.clientY);
+        });
+
         stageWrapper.addEventListener('pointerleave', () => {
             isMouseInside = false;
+            mouseX = -1000;
+            mouseY = -1000;
             spyCursorEl.style.display = 'none';
             renderStage();
         });
