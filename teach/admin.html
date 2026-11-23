@@ -152,17 +152,38 @@
         <h2 style="font-weight: 900;">ĐANG KIỂM TRA QUYỀN GIÁO VIÊN...</h2>
     </div>
 
-    <div id="image-search-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="color: white; margin: 0; font-size: 24px;"><i class="fa-solid fa-images"></i> Kho Ảnh / GIF Siêu Tốc</h3>
-                <span style="color: #ef4444; font-size: 28px; cursor: pointer;" onclick="document.getElementById('image-search-modal').style.display='none'"><i class="fa-solid fa-xmark"></i></span>
+    <div id="image-search-modal" class="modal-overlay" onclick="if(event.target === this) window.closeImageSearchModal()">
+        <div class="modal-content" style="max-height: 85vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="color: white; margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-images" style="color: #0ea5e9;"></i> Kho Tìm Ảnh Minh Họa Siêu Tốc
+                </h3>
+                <button type="button" class="btn-admin" style="background: #ef4444; padding: 6px 14px; border-radius: 8px; font-size: 13px;" onclick="window.closeImageSearchModal()" title="Đóng cửa sổ (Esc)">
+                    <i class="fa-solid fa-xmark"></i> Đóng (Esc)
+                </button>
             </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                <input type="text" id="img-search-input" class="admin-input" placeholder="Gõ từ khóa (Tiếng Anh ra nhiều hình xịn hơn)..." style="flex: 1; min-width: 200px;" onkeypress="if(event.key === 'Enter') executeImageSearch()">
-                <button class="btn-admin" onclick="executeImageSearch()" style="min-width: 100px;"><i class="fa-solid fa-magnifying-glass"></i> Tìm</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                <input type="text" id="img-search-input" class="admin-input" placeholder="Nhập từ khóa tiếng Anh (VD: cat, sofa, computer, school...)" style="flex: 1; min-width: 220px;" onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.executeImageSearch(); }">
+                <button type="button" class="btn-admin" onclick="window.executeImageSearch()" style="min-width: 110px; background: #0ea5e9;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Tìm Kiếm
+                </button>
             </div>
-            <div id="img-search-results" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; max-height: 400px; overflow-y: auto;">
+            <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;">
+                <span style="font-size: 12px; color: #94a3b8; font-weight: 700;">Gợi ý từ khóa:</span>
+                <button type="button" class="btn-tag" onclick="window.quickSearchTag('computer')" style="background:#334155;color:#f8fafc;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">💻 computer</button>
+                <button type="button" class="btn-tag" onclick="window.quickSearchTag('elephant')" style="background:#334155;color:#f8fafc;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">🐘 elephant</button>
+                <button type="button" class="btn-tag" onclick="window.quickSearchTag('guitar')" style="background:#334155;color:#f8fafc;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">🎸 guitar</button>
+                <button type="button" class="btn-tag" onclick="window.quickSearchTag('backpack')" style="background:#334155;color:#f8fafc;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">🎒 backpack</button>
+                <button type="button" class="btn-tag" onclick="window.quickSearchTag('dog')" style="background:#334155;color:#f8fafc;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">🐶 dog</button>
+                <button type="button" class="btn-tag" onclick="window.quickSearchTag('book')" style="background:#334155;color:#f8fafc;border:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">📚 book</button>
+            </div>
+            <div id="img-search-results" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; overflow-y: auto; max-height: 420px; padding: 4px; flex: 1;">
+            </div>
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #334155; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="img-direct-url" class="admin-input" placeholder="Hoặc dán trực tiếp link ảnh (https://...) vào đây..." style="flex: 1; min-width: 200px; font-size: 13px;">
+                <button type="button" class="btn-admin" style="background: #10b981; padding: 8px 16px; font-size: 13px;" onclick="window.applyDirectImageUrl()">
+                    <i class="fa-solid fa-check"></i> Dùng Link Này
+                </button>
             </div>
         </div>
     </div>
@@ -756,9 +777,12 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                         <div>
                             <h3 style="margin: 0; color: #8b5cf6;"><i class="fa-solid fa-images"></i> Danh Sách Tranh & Từ Vựng</h3>
-                            <p style="font-size: 13.5px; color: #64748b; margin-top: 4px; margin-bottom: 0;">Thêm các hình ảnh kèm từ vựng tiếng Anh. Bấm icon ảnh 🖼️ để tìm kiếm GIF / Hình ảnh siêu tốc từ Tenor/Unsplash!</p>
+                            <p style="font-size: 13.5px; color: #64748b; margin-top: 4px; margin-bottom: 0;">Thêm các hình ảnh kèm từ vựng tiếng Anh. Bấm nút 🖼️ <b>Tìm Ảnh</b> để tự động tra cứu kho ảnh siêu nét!</p>
                         </div>
-                        <button class="btn-admin" style="background: #10b981; padding: 8px 16px; font-size: 13px;" onclick="addHiddenPictureRow()"><i class="fa-solid fa-plus"></i> Thêm Tranh Mới</button>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn-admin" style="background: #64748b; padding: 8px 16px; font-size: 13px;" onclick="adminCreateBlankHiddenPicture()"><i class="fa-solid fa-file"></i> Tạo Mới Trống</button>
+                            <button type="button" class="btn-admin" style="background: #10b981; padding: 8px 16px; font-size: 13px;" onclick="addHiddenPictureRow()"><i class="fa-solid fa-plus"></i> Thêm Tranh Mới</button>
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
@@ -887,7 +911,7 @@
             history.replaceState(null, null, '#' + tabName);
             if(tabName === 'hiddenpicture') {
                 const rows = document.getElementById('hiddenpicture-rows');
-                if(rows && rows.children.length === 0) window.adminApplyHiddenPicturePreset('household');
+                if(rows && rows.children.length === 0) window.adminCreateBlankHiddenPicture();
             }
         };
 
@@ -1218,43 +1242,154 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
         addBaamSpecialRow("Fan tặng bạn Lightstick!", 20);
 
         window.currentImageTarget = null;
+        window.closeImageSearchModal = function() {
+            const modal = document.getElementById('image-search-modal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        // Close on ESC
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                window.closeImageSearchModal();
+            }
+        });
+
         window.openImageSearch = function(btnElement) {
-            window.currentImageTarget = btnElement.previousElementSibling; 
-            document.getElementById('image-search-modal').style.display = 'flex';
-            document.getElementById('img-search-results').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8; font-weight: bold; padding: 40px;">Nhập từ khóa (Ví dụ: cat, happy, dance) và bấm Tìm kiếm nhé!</div>';
+            let targetInput = btnElement.previousElementSibling;
+            if (!targetInput || !targetInput.classList.contains('q-img')) {
+                const parent = btnElement.closest('.hp-row') || btnElement.parentElement;
+                targetInput = parent.querySelector('.q-img, .hp-img');
+            }
+            window.currentImageTarget = targetInput;
+
+            // Auto-detect keyword from the current row
+            let defaultQuery = '';
+            const row = btnElement.closest('.hp-row, .baam-q-row');
+            if (row) {
+                const wordInput = row.querySelector('.hp-word, .q-text');
+                if (wordInput && wordInput.value.trim()) {
+                    defaultQuery = wordInput.value.trim().toLowerCase();
+                }
+            }
+
+            const modal = document.getElementById('image-search-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+
+            const searchInput = document.getElementById('img-search-input');
+            const directInput = document.getElementById('img-direct-url');
+            if (directInput && targetInput) directInput.value = targetInput.value || '';
+
+            if (searchInput) {
+                searchInput.value = defaultQuery;
+                setTimeout(() => searchInput.focus(), 60);
+            }
+
+            if (defaultQuery) {
+                window.executeImageSearch();
+            } else {
+                document.getElementById('img-search-results').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: #94a3b8; font-weight: bold; padding: 40px;">
+                        <i class="fa-solid fa-magnifying-glass fa-2x" style="margin-bottom: 12px; display: block; color: #0ea5e9;"></i>
+                        Nhập từ khóa tiếng Anh phía trên hoặc bấm vào gợi ý bên dưới để tra cứu kho ảnh nhé!
+                    </div>
+                `;
+            }
+        };
+
+        window.quickSearchTag = function(tag) {
+            const searchInput = document.getElementById('img-search-input');
+            if (searchInput) searchInput.value = tag;
+            window.executeImageSearch();
+        };
+
+        window.applyDirectImageUrl = function() {
+            const directInput = document.getElementById('img-direct-url');
+            const url = directInput ? directInput.value.trim() : '';
+            if (!url) {
+                showToast('Lỗi', 'Vui lòng dán link ảnh trước!', 'error');
+                return;
+            }
+            window.selectImage(url);
         };
 
         window.executeImageSearch = async function() {
-            const query = document.getElementById('img-search-input').value.trim();
-            if(!query) return;
+            const query = (document.getElementById('img-search-input')?.value || '').trim();
+            if(!query) {
+                showToast('Nhắc nhở', 'Vui lòng nhập từ khóa tìm ảnh!', 'info');
+                return;
+            }
             const resDiv = document.getElementById('img-search-results');
-            resDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #0ea5e9; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-3x"></i></div>';
-            
+            resDiv.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #0ea5e9; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-3x"></i><p style="margin-top: 10px; color: #94a3b8;">Đang tìm ảnh chất lượng cao cho "${query}"...</p></div>`;
+
             try {
-                const res = await fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&key=LIVDSRZULELA&limit=12`);
+                // Search Wikimedia Commons (high-res educational photos, completely open & CORS enabled)
+                const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=16&prop=imageinfo&iiprop=url|thumburl&iiurlwidth=500&format=json&origin=*`;
+                const res = await fetch(wikiUrl);
                 const data = await res.json();
-                if(data.results && data.results.length > 0) {
+                const pages = (data.query && data.query.pages) ? Object.values(data.query.pages) : [];
+
+                const validImages = [];
+                pages.forEach(p => {
+                    if (p.imageinfo && p.imageinfo[0]) {
+                        const info = p.imageinfo[0];
+                        const thumb = info.thumburl || info.url;
+                        const original = info.url;
+                        if (thumb && !thumb.endsWith('.svg.png') && !thumb.endsWith('.pdf.png')) {
+                            validImages.push({
+                                thumb: thumb,
+                                full: original,
+                                title: p.title ? p.title.replace(/^File:/i, '').replace(/\.[^/.]+$/, '') : query
+                            });
+                        }
+                    }
+                });
+
+                if(validImages.length > 0) {
                     resDiv.innerHTML = '';
-                    data.results.forEach(gif => {
-                        const imgUrl = gif.media[0].gif.url;
-                        resDiv.innerHTML += `
-                            <div style="cursor: pointer; border: 3px solid transparent; border-radius: 8px; overflow: hidden; transition: 0.2s;" onmouseover="this.style.borderColor='#0ea5e9'" onmouseout="this.style.borderColor='transparent'" onclick="selectImage('${imgUrl}')">
-                                <img src="${imgUrl}" style="width: 100%; height: 120px; object-fit: cover;">
+                    validImages.forEach(img => {
+                        const card = document.createElement('div');
+                        card.style.cssText = 'cursor: pointer; background: #0f172a; border: 2px solid #334155; border-radius: 10px; overflow: hidden; transition: 0.2s; display: flex; flex-direction: column; position: relative;';
+                        card.onmouseover = () => { card.style.borderColor = '#0ea5e9'; card.style.transform = 'translateY(-3px)'; card.style.boxShadow = '0 6px 15px rgba(14,165,233,0.3)'; };
+                        card.onmouseout = () => { card.style.borderColor = '#334155'; card.style.transform = 'none'; card.style.boxShadow = 'none'; };
+                        card.onclick = () => window.selectImage(img.thumb);
+                        card.innerHTML = `
+                            <div style="width: 100%; height: 110px; background: #1e293b; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                <img src="${img.thumb}" alt="${img.title}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/assets/avt-web.jpg'">
+                            </div>
+                            <div style="padding: 6px 8px; font-size: 11px; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;" title="${img.title}">
+                                ${img.title}
                             </div>
                         `;
+                        resDiv.appendChild(card);
                     });
                 } else {
-                    resDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; font-weight: bold; padding: 40px;">Huhu không tìm thấy hình nào cả! Cậu thử từ khóa tiếng Anh xem?</div>';
+                    resDiv.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; color: #f59e0b; font-weight: bold; padding: 40px;">
+                            <i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 10px; display: block;"></i>
+                            Không tìm thấy ảnh cho từ khóa "<b>${query}</b>"!<br>
+                            <span style="font-size: 13px; color: #94a3b8; font-weight: normal; margin-top: 6px; display: inline-block;">Thầy/Cô thử đổi sang từ vựng tiếng Anh (VD: cat, chair, car, apple...) hoặc dán trực tiếp link ảnh vào ô bên dưới nhé.</span>
+                        </div>
+                    `;
                 }
             } catch(e) {
-                resDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 40px;">Lỗi mạng rồi! Cậu tạm thời lên Google copy link dán vào nhé 🥲</div>';
+                console.error("Image search error:", e);
+                resDiv.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 40px;">
+                        <i class="fa-solid fa-circle-exclamation fa-2x" style="margin-bottom: 10px; display: block;"></i>
+                        Không thể kết nối đến máy chủ ảnh! Thầy/Cô hãy dán trực tiếp link ảnh từ Google/Unsplash vào ô bên dưới nhé.
+                    </div>
+                `;
             }
         };
 
         window.selectImage = function(url) {
-            if(window.currentImageTarget) { window.currentImageTarget.value = url; }
-            document.getElementById('image-search-modal').style.display = 'none';
-            showToast('Thành công', 'Đã gắn ảnh xịn xò vào câu hỏi!', 'success');
+            if(window.currentImageTarget) {
+                window.currentImageTarget.value = url;
+                window.currentImageTarget.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            window.closeImageSearchModal();
+            showToast('Thành công', 'Đã gắn ảnh vào bài giảng!', 'success');
         };
 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
