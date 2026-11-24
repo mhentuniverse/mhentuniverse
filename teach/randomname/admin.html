@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Gọi Tên Ngẫu Nhiên (Random Name Admin) - MHEnt. Edu</title>
+    <link rel="icon" type="image/png" href="/assets/icon-web.png">
+    
+    <!-- CSS & Fonts -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/teach/teach-theme.css">
+    <link rel="stylesheet" href="/css/mhent-ui.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Bangers&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --hub-color: #22c55e;
+            --hub-bg: rgba(34, 197, 94, 0.12);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .admin-nav {
+            height: 70px;
+            background: #1e293b;
+            border-bottom: 2px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .nav-brand img {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid var(--hub-color);
+        }
+
+        .admin-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 30px 20px 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .card-panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 14px;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #facc15;
+        }
+
+        .btn-action {
+            background: var(--hub-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .input-text {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-text:focus {
+            border-color: var(--hub-color);
+        }
+
+        /* Remote Control Bar */
+        .remote-hero-bar {
+            background: linear-gradient(135deg, #166534 0%, #14532d 100%);
+            border: 2px solid #4ade80;
+            border-radius: 20px;
+            padding: 24px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(22, 163, 74, 0.3);
+        }
+
+        .btn-remote-launch {
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+            color: #0f172a;
+            border: none;
+            padding: 16px 36px;
+            border-radius: 16px;
+            font-family: 'Bangers', cursive;
+            font-size: 26px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(234, 179, 8, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        .btn-remote-launch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(234, 179, 8, 0.6);
+            background: #fde047;
+        }
+
+        /* Preset pills */
+        .preset-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .btn-preset {
+            background: #334155;
+            color: #cbd5e1;
+            border: 1px solid #475569;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-preset:hover {
+            background: #475569;
+            color: white;
+            border-color: var(--hub-color);
+        }
+
+        /* Student Grid Display */
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 12px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .student-card {
+            background: #0f172a;
+            border: 1.5px solid #334155;
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s;
+        }
+        .student-card:hover {
+            border-color: #64748b;
+        }
+
+        .student-card.excluded {
+            opacity: 0.4;
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .student-card.called {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .st-badge {
+            background: #334155;
+            color: #facc15;
+            font-weight: 900;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-right: 8px;
+        }
+
+        .st-name {
+            font-weight: 800;
+            font-size: 14px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .toast-popup {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1e293b;
+            border: 2px solid var(--hub-color);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            z-index: 1000;
+            display: none;
+            animation: toastIn 0.3s ease;
+        }
+
+        @keyframes toastIn {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAVBAR -->
+    <header class="admin-nav">
+        <a class="nav-brand" onclick="window.location.href='/teach'">
+            <img src="/assets/avt-web.jpg" alt="MHEnt">
+            <div>
+                <span style="font-weight: 900; font-size: 16px; color: var(--hub-color); display: block;">MHEnt. Edu</span>
+                <span style="font-size: 12px; color: #94a3b8;">Trạm Điều Khiển Gọi Tên (Random Name)</span>
+            </div>
+        </a>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="/teach/randomname/pvz.html" target="_blank" class="btn-action" style="background: #8b5cf6;" title="Mở màn hình máy chiếu học sinh">
+                <i class="fa-solid fa-desktop"></i> Mở Màn Chiếu PvZ
+            </a>
+            <a href="/teach/admin.html" class="btn-action btn-secondary" title="Về tổng trạm giáo viên">
+                <i class="fa-solid fa-arrow-left"></i> Tổng Trạm GV
+            </a>
+        </div>
+    </header>
+
+    <div class="admin-container">
+
+        <!-- HERO REMOTE LAUNCH PANEL -->
+        <div class="remote-hero-bar">
+            <div>
+                <div style="font-family: 'Bangers', cursive; font-size: 28px; color: #facc15; letter-spacing: 1px;">
+                    <i class="fa-solid fa-gamepad"></i> ĐIỀU KHIỂN TỪ XA MÁY CHIẾU (REMOTE)
+                </div>
+                <div style="font-size: 14px; color: #dcfce7; margin-top: 4px;">
+                    Bấm nút bên cạnh để kích hoạt đợt sóng Zombie gọi tên trên máy chiếu ngay lập tức!
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <button class="btn-remote-launch" onclick="sendRemoteCallCmd()">
+                    <i class="fa-solid fa-bullhorn"></i> GỌI TÊN NGAY!
+                </button>
+            </div>
+        </div>
+
+        <!-- CONFIGURATION & PRESETS -->
+        <div class="card-panel">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fa-solid fa-sliders"></i> Cấu Hình Luật Chơi & Lớp Học</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-action" style="background: #10b981;" onclick="syncConfigToGame()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Lưu & Đẩy Sang Máy Chiếu
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px; color: #cbd5e1;">Tên Lớp Học / Giáo Án:</label>
+                    <input type="text" id="cfg-class-name" class="input-text" style="width: 100%;" value="Lớp 10A1 (Sĩ số 40)" placeholder="VD: Lớp 11 Chuyên Anh...">
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px; color: #cbd5e1;">Chế Độ Trò Chơi (PvZ Mode):</label>
+                    <select id="cfg-game-mode" class="input-text" style="width: 100%; cursor: pointer;">
+                        <option value="shoot">🎯 Chế độ 1: Bắn hạ hy sinh (Peashooter / Cherry Bomb)</option>
+                        <option value="rush">🚨 Chế độ 2: Đột kích vô nhà (Chạy đua vào lớp học)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px; color: #cbd5e1;">Số Lượng Người Chọn Mỗi Lượt:</label>
+                    <select id="cfg-pick-count" class="input-text" style="width: 100%; cursor: pointer;">
+                        <option value="1">1 bạn (Kiểm tra miệng đơn)</option>
+                        <option value="2">2 bạn (Đối kháng / Tranh tài)</option>
+                        <option value="3">3 bạn (Thực hiện bài tập nhóm)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div>
+                <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 8px; color: #cbd5e1;">Bộ Lớp Mẫu Nhanh (Presets):</label>
+                <div class="preset-pills">
+                    <button type="button" class="btn-preset" onclick="applyPreset('class40')">🏫 Lớp 10A1 (Sĩ số 40)</button>
+                    <button type="button" class="btn-preset" onclick="applyPreset('class35eng')">🇬🇧 Lớp 11 Anh (35 bạn)</button>
+                    <button type="button" class="btn-preset" onclick="applyPreset('quick45')">🔢 Sĩ số ngẫu nhiên 1 - 45</button>
+                    <button type="button" class="btn-preset" onclick="applyPreset('blank')" style="background: #475569; color: #facc15;"><i class="fa-solid fa-file"></i> Tạo Danh Sách Trống</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROSTER INPUT & FAST GENERATOR -->
+        <div class="card-panel">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fa-solid fa-user-plus"></i> Nhập Danh Sách Học Sinh</h3>
+                <div style="font-size: 13px; color: #94a3b8;">
+                    Hiện có: <b style="color: #4ade80;" id="total-count-text">40</b> bạn | Sẵn sàng: <b style="color: #facc15;" id="available-count-text">40</b> bạn
+                </div>
+            </div>
+
+            <!-- Dual input methods -->
+            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
+                <!-- Fast size generator -->
+                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 14px; padding: 18px;">
+                    <h4 style="margin: 0 0 10px; color: #38bdf8; font-size: 15px;"><i class="fa-solid fa-bolt"></i> Cách 1: Sinh nhanh theo sĩ số</h4>
+                    <p style="font-size: 12.5px; color: #94a3b8; margin: 0 0 12px;">Chỉ cần nhập số lượng học sinh trong lớp, hệ thống sẽ tự động tạo danh sách theo STT từ 1 đến N.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="quick-size-input" class="input-text" value="40" min="5" max="80" style="width: 100px; font-weight: 800; font-size: 16px; text-align: center;">
+                        <button class="btn-action" style="flex: 1;" onclick="generateByClassSize()">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Danh Sách
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Batch Textarea Input -->
+                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 14px; padding: 18px;">
+                    <h4 style="margin: 0 0 10px; color: #38bdf8; font-size: 15px;"><i class="fa-solid fa-paste"></i> Cách 2: Dán danh sách từ Word / Excel</h4>
+                    <p style="font-size: 12.5px; color: #94a3b8; margin: 0 0 12px;">Dán danh sách học sinh (mỗi dòng 1 bạn, có thể kèm STT như: 1. Nguyễn Văn A...).</p>
+                    <textarea id="batch-paste-textarea" class="input-text" rows="3" style="width: 100%; resize: vertical;" placeholder="1. Nguyễn Văn A&#10;2. Trần Thị B&#10;3. Lê Hoàng C..."></textarea>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                        <button class="btn-action" style="background: #0284c7;" onclick="parseBatchStudents()">
+                            <i class="fa-solid fa-list-check"></i> Cập Nhật Danh Sách Này
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STUDENT ROSTER GRID / INTERACTION -->
+        <div class="card-panel">
+            <div class="panel-header">
+                <h3 class="panel-title"><i class="fa-solid fa-users"></i> Bảng Danh Sách Học Sinh Hiện Tại</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-action btn-secondary" onclick="resetAllStatuses()" style="font-size: 12px; padding: 6px 12px;">
+                        <i class="fa-solid fa-rotate-left"></i> Khôi phục gọi (Reset)
+                    </button>
+                    <button class="btn-action btn-secondary" onclick="addSingleStudent()" style="font-size: 12px; padding: 6px 12px;">
+                        <i class="fa-solid fa-plus"></i> Thêm 1 bạn
+                    </button>
+                </div>
+            </div>
+
+            <div style="font-size: 12.5px; color: #94a3b8; margin-bottom: 12px;">
+                💡 <b>Mẹo cho giáo viên:</b> Click vào thẻ học sinh để đánh dấu <b>Vắng mặt (Bỏ qua)</b> nếu hôm nay bạn đó nghỉ học.
+            </div>
+
+            <div class="student-grid" id="student-grid-container">
+                <!-- Dynamically rendered cards -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-popup" id="toast-popup"></div>
+
+    <script type="module">
+        let rosterState = {
+            className: "Lớp 10A1 (Sĩ số 40)",
+            students: [],
+            gameMode: "shoot",
+            pickCount: 1
+        };
+
+        const PRESET_CLASSES = {
+            class40: {
+                name: "Lớp 10A1 (Sĩ số 40)",
+                names: [
+                    "Nguyễn An Khang", "Trần Bảo Ngọc", "Lê Gia Huy", "Phạm Minh Anh", "Hoàng Tuấn Kiệt",
+                    "Vũ Thùy Dương", "Đặng Quang Minh", "Bùi Khánh Linh", "Đỗ Hữu Nghĩa", "Hồ Phương Thảo",
+                    "Ngô Tiến Đạt", "Dương Diệu Linh", "Lý Thanh Tùng", "Đinh Bích Phương", "Mai Hoàng Long",
+                    "Phan Thúy Hằng", "Trịnh Quốc Bảo", "Đoàn Mỹ Duyên", "Lương Hải Nam", "Võ Quỳnh Chi",
+                    "Trương Văn Hùng", "Cao Minh Khôi", "Lâm Yến Nhi", "Lê Tấn Phát", "Nguyễn Ngọc Ánh",
+                    "Trần Quốc Huy", "Phạm Trọng Nhân", "Hoàng Bảo Trâm", "Vũ Hoàng Quân", "Đặng Thảo Vy",
+                    "Bùi Đức Duy", "Đỗ Quỳnh Như", "Hồ Văn Cường", "Ngô Nhật Linh", "Dương Tùng Lâm",
+                    "Lý Ngọc Hà", "Đinh Thiên Phúc", "Mai Lan Hương", "Phan Gia Khiêm", "Trịnh Bảo Châu"
+                ]
+            },
+            class35eng: {
+                name: "Lớp 11 Chuyên Anh (35 bạn)",
+                names: [
+                    "Alex Nguyễn (Anh Khoa)", "Bella Trần (Bảo Ngọc)", "Chris Lê (Chí Dũng)", "Daisy Phạm (Diệu Anh)",
+                    "Ethan Hoàng (Hải Đăng)", "Fiona Vũ (Phương Mai)", "Gabriel Đặng (Gia Huy)", "Hannah Bùi (Hà My)",
+                    "Ian Đỗ (Quang Khải)", "Julia Hồ (Kim Ngân)", "Kevin Ngô (Minh Quân)", "Lily Dương (Linh San)",
+                    "Max Lý (Thanh Tùng)", "Nora Đinh (Như Quỳnh)", "Oliver Mai (Tuấn Phong)", "Penny Phan (Thanh Trúc)",
+                    "Quinn Trịnh (Quốc Anh)", "Ruby Đoàn (Hồng Vân)", "Sam Lương (Sơn Tùng)", "Tina Võ (Thảo Tiên)",
+                    "Victor Trương (Việt Hoàng)", "Wendy Cao (Bảo Uyên)", "Xavier Lâm (Xuân Bách)", "Yvonne Lê (Yến Chi)",
+                    "Zack Nguyễn (Đăng Khoa)", "Lucas Trần (Huy Hoàng)", "Maya Phạm (Mai Anh)", "Noah Hoàng (Nam Khánh)",
+                    "Olivia Vũ (Ngọc Diệp)", "Patrick Đặng (Phúc Khang)", "Rose Bùi (Trà My)", "Theo Đỗ (Thế Anh)",
+                    "Uma Hồ (Uyên Nhi)", "Vincent Ngô (Văn Hải)", "Zoe Dương (Quỳnh Anh)"
+                ]
+            }
+        };
+
+        function showToast(msg) {
+            const t = document.getElementById('toast-popup');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
+        }
+
+        function loadConfig() {
+            try {
+                const saved = localStorage.getItem('mhent_pvz_config');
+                if (saved) {
+                    const cfg = JSON.parse(saved);
+                    rosterState = Object.assign(rosterState, cfg);
+                } else {
+                    // Default 40
+                    applyPreset('class40');
+                    return;
+                }
+            } catch(e) {}
+
+            document.getElementById('cfg-class-name').value = rosterState.className;
+            document.getElementById('cfg-game-mode').value = rosterState.gameMode || 'shoot';
+            document.getElementById('cfg-pick-count').value = rosterState.pickCount || 1;
+            renderStudentCards();
+        }
+
+        function saveConfig(silent = false) {
+            rosterState.className = document.getElementById('cfg-class-name').value.trim() || 'Lớp Học';
+            rosterState.gameMode = document.getElementById('cfg-game-mode').value;
+            rosterState.pickCount = parseInt(document.getElementById('cfg-pick-count').value) || 1;
+
+            localStorage.setItem('mhent_pvz_config', JSON.stringify(rosterState));
+            if (!silent) showToast('Đã lưu và đồng bộ cài đặt!');
+        }
+
+        window.syncConfigToGame = function() {
+            saveConfig(true);
+            // Notify Projector
+            localStorage.setItem('mhent_pvz_cmd', JSON.stringify({
+                action: 'SYNC_ROSTER',
+                rand: Math.random()
+            }));
+            showToast('Đã chuyển toàn bộ dữ liệu sang màn chiếu!');
+        };
+
+        window.sendRemoteCallCmd = function() {
+            saveConfig(true);
+            localStorage.setItem('mhent_pvz_cmd', JSON.stringify({
+                action: 'CALL_NOW',
+                gameMode: rosterState.gameMode,
+                pickCount: rosterState.pickCount,
+                rand: Math.random()
+            }));
+            showToast('Đã phát lệnh GỌI TÊN sang máy chiếu!');
+        };
+
+        window.applyPreset = function(type) {
+            if (type === 'blank') {
+                rosterState.className = "Lớp Mới (Trống)";
+                rosterState.students = [{ id: 'st_1', stt: 1, name: 'Học sinh #1', excluded: false, called: false }];
+            } else if (type === 'quick45') {
+                rosterState.className = "Sĩ số 1 - 45";
+                rosterState.students = Array.from({ length: 45 }, (_, i) => ({
+                    id: 'st_' + (i + 1),
+                    stt: i + 1,
+                    name: `Số ${i + 1}`,
+                    excluded: false,
+                    called: false
+                }));
+            } else if (PRESET_CLASSES[type]) {
+                const p = PRESET_CLASSES[type];
+                rosterState.className = p.name;
+                rosterState.students = p.names.map((name, i) => ({
+                    id: 'st_' + (i + 1),
+                    stt: i + 1,
+                    name: name,
+                    excluded: false,
+                    called: false
+                }));
+            }
+
+            document.getElementById('cfg-class-name').value = rosterState.className;
+            renderStudentCards();
+            saveConfig();
+        };
+
+        window.generateByClassSize = function() {
+            const size = parseInt(document.getElementById('quick-size-input').value) || 40;
+            rosterState.className = `Lớp (Sĩ số ${size})`;
+            rosterState.students = Array.from({ length: size }, (_, i) => ({
+                id: 'st_' + (i + 1),
+                stt: i + 1,
+                name: `Học sinh #${i + 1}`,
+                excluded: false,
+                called: false
+            }));
+            document.getElementById('cfg-class-name').value = rosterState.className;
+            renderStudentCards();
+            saveConfig();
+            showToast(`Đã tạo nhanh ${size} học sinh!`);
+        };
+
+        window.parseBatchStudents = function() {
+            const raw = document.getElementById('batch-paste-textarea').value.trim();
+            if (!raw) {
+                alert('Vui lòng dán danh sách học sinh vào ô văn bản trước!');
+                return;
+            }
+            const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+            if (lines.length === 0) return;
+
+            rosterState.students = lines.map((line, idx) => {
+                // Remove leading numbers e.g. "1. ", "1/ ", "1 - "
+                const cleanName = line.replace(/^\d+[\.\-\/\s)]+\s*/, '').trim();
+                return {
+                    id: 'st_' + (idx + 1),
+                    stt: idx + 1,
+                    name: cleanName || `Học sinh #${idx + 1}`,
+                    excluded: false,
+                    called: false
+                };
+            });
+
+            document.getElementById('batch-paste-textarea').value = '';
+            renderStudentCards();
+            saveConfig();
+            showToast(`Đã nạp ${rosterState.students.length} học sinh từ văn bản!`);
+        };
+
+        window.resetAllStatuses = function() {
+            rosterState.students.forEach(s => {
+                s.called = false;
+                s.excluded = false;
+            });
+            renderStudentCards();
+            saveConfig();
+            localStorage.setItem('mhent_pvz_cmd', JSON.stringify({ action: 'RESET_ROSTER', rand: Math.random() }));
+            showToast('Đã khôi phục trạng thái tất cả học sinh!');
+        };
+
+        window.addSingleStudent = function() {
+            const count = rosterState.students.length + 1;
+            const newName = prompt('Nhập họ và tên học sinh:', `Học sinh #${count}`);
+            if (newName && newName.trim()) {
+                rosterState.students.push({
+                    id: 'st_' + count + '_' + Date.now(),
+                    stt: count,
+                    name: newName.trim(),
+                    excluded: false,
+                    called: false
+                });
+                renderStudentCards();
+                saveConfig();
+            }
+        };
+
+        function renderStudentCards() {
+            const container = document.getElementById('student-grid-container');
+            container.innerHTML = '';
+
+            const total = rosterState.students.length;
+            const available = rosterState.students.filter(s => !s.excluded && !s.called).length;
+            document.getElementById('total-count-text').innerText = total;
+            document.getElementById('available-count-text').innerText = available;
+
+            rosterState.students.forEach((s, idx) => {
+                s.stt = idx + 1; // Re-index STT
+                const card = document.createElement('div');
+                card.className = 'student-card' + (s.excluded ? ' excluded' : '') + (s.called ? ' called' : '');
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; overflow: hidden; cursor: pointer; flex: 1;" onclick="toggleExcludeStudent('${s.id}')">
+                        <span class="st-badge">#${s.stt}</span>
+                        <span class="st-name" title="${s.name}">${s.name}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <button style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;" onclick="editStudentName('${s.id}')" title="Sửa tên">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px;" onclick="deleteStudent('${s.id}')" title="Xóa học sinh này">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.toggleExcludeStudent = function(id) {
+            const st = rosterState.students.find(s => s.id === id);
+            if (st) {
+                st.excluded = !st.excluded;
+                renderStudentCards();
+                saveConfig(true);
+            }
+        };
+
+        window.editStudentName = function(id) {
+            const st = rosterState.students.find(s => s.id === id);
+            if (!st) return;
+            const updated = prompt('Đổi tên học sinh:', st.name);
+            if (updated && updated.trim()) {
+                st.name = updated.trim();
+                renderStudentCards();
+                saveConfig(true);
+            }
+        };
+
+        window.deleteStudent = function(id) {
+            rosterState.students = rosterState.students.filter(s => s.id !== id);
+            renderStudentCards();
+            saveConfig(true);
+        };
+
+        // Initialize on load
+        loadConfig();
+    </script>
+</body>
+</html>
