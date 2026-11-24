@@ -1182,6 +1182,7 @@
         };
 
         function startZombieMarch(availablePool, winners, winnerIds) {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
             const stage = document.getElementById('stage-container');
             const lanes = document.querySelectorAll('.lawn-lane');
             const laneCount = lanes.length; // 5 lanes
@@ -1312,7 +1313,7 @@
                     }
                 });
 
-                if (!resolved || activeZombies.some(z => z.alive)) {
+                if (!resolved) {
                     animationFrameId = requestAnimationFrame(tick);
                 }
             }
