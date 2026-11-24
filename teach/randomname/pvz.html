@@ -662,9 +662,9 @@
             <div class="badge-pill">
                 <i class="fa-solid fa-gauge-high" style="color: #f59e0b;"></i>
                 <select id="speed-select" style="background: transparent; color: #f8fafc; border: none; font-weight: 800; font-size: 13px; cursor: pointer;" onchange="updateSpeed(this.value)">
-                    <option value="slow" style="background: #0f172a; color: white;">🐢 Hồi hộp (~10s)</option>
-                    <option value="normal" selected style="background: #0f172a; color: white;">⚡ Vừa phải (~8s)</option>
-                    <option value="fast" style="background: #0f172a; color: white;">🚀 Siêu tốc (~5s)</option>
+                    <option value="slow" style="background: #0f172a; color: white;">🐢 Hồi hộp kịch tính (~16s)</option>
+                    <option value="normal" selected style="background: #0f172a; color: white;">⚡ Chuẩn hồi hộp (~12.5s)</option>
+                    <option value="fast" style="background: #0f172a; color: white;">🚀 Nhanh gọn (~7s)</option>
                 </select>
             </div>
         </div>
@@ -1069,13 +1069,9 @@
             const marchGroup = [...availablePool].sort(() => Math.random() - 0.5);
 
             // Determine Target March Duration based on Speed Setting
-            let targetDuration = 8.5; // seconds
-            if (state.waveSpeed === 'slow') targetDuration = 11.0;
-            if (state.waveSpeed === 'fast') targetDuration = 5.5;
-
-            // Base speed: distance (from right edge ~stageWidth+100 to house entrance ~200) divided by time
-            const baseDistance = stageWidth;
-            const baseSpeedPerSec = baseDistance / targetDuration;
+            let targetDuration = 12.5; // seconds (Natural, thrilling suspense)
+            if (state.waveSpeed === 'slow') targetDuration = 16.0;
+            if (state.waveSpeed === 'fast') targetDuration = 7.0;
 
             // Distribute students evenly into lanes
             marchGroup.forEach((student, index) => {
@@ -1093,14 +1089,13 @@
                 const skin = ZOMBIE_SKINS[Math.floor(Math.random() * ZOMBIE_SKINS.length)];
                 const isWinner = winnerIds.has(student.id);
 
-                // Stagger spawn: Winner is positioned near the front pack but natural
+                // Compact columns so 100% of students (all 35-45) enter the visible screen within 2.5s!
                 const colOrder = Math.floor(index / laneCount);
-                // Stagger starting X spread from right edge outward
-                let startX = stageWidth + 40 + (colOrder * 90) + (Math.random() * 50);
+                let startX = stageWidth + 25 + (colOrder * 45) + ((index % 3) * 15);
 
                 if (isWinner) {
-                    // Place winner strategically near front/middle of the horde
-                    startX = stageWidth + 60 + (Math.random() * 80);
+                    // Position winner near front row of horde
+                    startX = stageWidth + 30 + ((index % 3) * 18);
                 }
 
                 zombieEl.style.top = topPos + 'px';
@@ -1113,16 +1108,16 @@
                 `;
                 stage.appendChild(zombieEl);
 
-                // Calculate custom speed for this zombie so winner arrives exactly at target climax!
-                let speed = (baseSpeedPerSec / 60) * (0.85 + Math.random() * 0.3);
+                // Calculate speedPerSec (pixels per second) - Frame-rate independent
+                let speedPerSec = (startX - 220) / (targetDuration * (1.05 + (Math.random() * 0.15)));
                 if (isWinner) {
                     if (state.gameMode === 'rush') {
-                        // Winner must reach X = 180 (house entrance) at exactly targetDuration
-                        speed = (startX - 180) / (targetDuration * 60);
+                        // Winner must reach porch (X = 180) at targetDuration
+                        speedPerSec = (startX - 180) / targetDuration;
                     } else {
-                        // Mode shoot: Winner reaches around 42% of lawn width at targetDuration
-                        const stopX = stageWidth * 0.42;
-                        speed = (startX - stopX) / (targetDuration * 60);
+                        // Mode shoot: Winner reaches around 40% of lawn width at targetDuration
+                        const stopX = stageWidth * 0.40;
+                        speedPerSec = (startX - stopX) / targetDuration;
                     }
                 }
 
@@ -1133,15 +1128,15 @@
                     laneIdx: laneIdx,
                     x: startX,
                     top: topPos,
-                    speed: speed,
+                    speedPerSec: speedPerSec,
                     alive: true
                 });
             });
 
             // Play authentic groans
             AudioPlayer.play('groan', 0.7);
-            setTimeout(() => AudioPlayer.play('groan2', 0.6), 2500);
-            setTimeout(() => AudioPlayer.play('groan', 0.6), 5500);
+            setTimeout(() => AudioPlayer.play('groan2', 0.6), 3000);
+            setTimeout(() => AudioPlayer.play('groan', 0.6), 7500);
 
             // Peashooter rapid fire loop (steady authentic shooting)
             const shootInterval = setInterval(() => {
@@ -1160,21 +1155,24 @@
                 });
             }, 380);
 
-            // Animation Frame Ticker
+            // Animation Frame Ticker (Uses Delta-Time: smooth across 60Hz, 120Hz, 144Hz, 240Hz)
+            let lastTime = performance.now();
             let startTime = performance.now();
             let resolved = false;
 
-            function tick(time) {
-                const elapsed = (time - startTime) / 1000;
+            function tick(currentTime) {
+                const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+                lastTime = currentTime;
+                const elapsed = (currentTime - startTime) / 1000;
 
                 activeZombies.forEach(z => {
                     if (!z.alive) return;
-                    z.x -= z.speed;
+                    z.x -= z.speedPerSec * dt;
                     z.el.style.left = z.x + 'px';
 
                     // Climax conditions
                     if (!resolved) {
-                        if (state.gameMode === 'shoot' && elapsed >= (targetDuration - 0.6) && z.isWinner) {
+                        if (state.gameMode === 'shoot' && elapsed >= (targetDuration - 0.5) && z.isWinner) {
                             resolved = true;
                             clearInterval(shootInterval);
                             triggerShootClimax(z, winners);

@@ -781,23 +781,23 @@
                             <p style="font-size: 13.5px; color: #64748b; margin-top: 4px; margin-bottom: 0;">Thêm các hình ảnh kèm từ vựng tiếng Anh. Bấm nút 🖼️ <b>Tìm Ảnh</b> để tự động tra cứu kho ảnh siêu nét!</p>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" class="btn-admin" style="background: #64748b; padding: 8px 16px; font-size: 13px;" onclick="adminCreateBlankHiddenPicture()"><i class="fa-solid fa-file"></i> Tạo Mới Trống</button>
-                            <button type="button" class="btn-admin" style="background: #10b981; padding: 8px 16px; font-size: 13px;" onclick="addHiddenPictureRow()"><i class="fa-solid fa-plus"></i> Thêm Tranh Mới</button>
+                            <button type="button" class="btn-admin" style="background: #64748b; padding: 8px 16px; font-size: 13px;" onclick="window.adminCreateBlankHiddenPicture()"><i class="fa-solid fa-file"></i> Tạo Mới Trống</button>
+                            <button type="button" class="btn-admin" style="background: #10b981; padding: 8px 16px; font-size: 13px;" onclick="window.addHiddenPictureRow()"><i class="fa-solid fa-plus"></i> Thêm Tranh Mới</button>
                         </div>
                     </div>
 
                     <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                         <span style="font-size: 13px; color: #94a3b8; display: flex; align-items: center; font-weight: 700;">Bộ đề mẫu:</span>
-                        <button class="btn-admin" style="background: #334155; padding: 6px 12px; font-size: 12px;" onclick="adminApplyHiddenPicturePreset('household')">🛋️ Đồ dùng gia đình</button>
-                        <button class="btn-admin" style="background: #334155; padding: 6px 12px; font-size: 12px;" onclick="adminApplyHiddenPicturePreset('animals')">🐾 Động vật</button>
-                        <button class="btn-admin" style="background: #334155; padding: 6px 12px; font-size: 12px;" onclick="adminApplyHiddenPicturePreset('school')">🎒 Trường học</button>
+                        <button type="button" class="btn-admin" style="background: #334155; padding: 6px 12px; font-size: 12px;" onclick="window.adminApplyHiddenPicturePreset('household')">🛋️ Đồ dùng gia đình</button>
+                        <button type="button" class="btn-admin" style="background: #334155; padding: 6px 12px; font-size: 12px;" onclick="window.adminApplyHiddenPicturePreset('animals')">🐾 Động vật</button>
+                        <button type="button" class="btn-admin" style="background: #334155; padding: 6px 12px; font-size: 12px;" onclick="window.adminApplyHiddenPicturePreset('school')">🎒 Trường học</button>
                     </div>
 
                     <div id="hiddenpicture-rows" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
                         <!-- Injected dynamically -->
                     </div>
 
-                    <button class="btn-admin" style="width: 100%; background: #10b981; padding: 16px; font-size: 16px;" onclick="syncHiddenPictureToGame()">
+                    <button type="button" class="btn-admin" style="width: 100%; background: #10b981; padding: 16px; font-size: 16px;" onclick="window.syncHiddenPictureToGame()">
                         <i class="fa-solid fa-paper-plane"></i> ĐẨY DỮ LIỆU SANG MÁY CHIẾU & MỞ CHƠI NGAY
                     </button>
                 </div>
@@ -897,22 +897,113 @@
             } else { 
                 document.getElementById('security-shield').style.opacity = '0'; 
                 setTimeout(() => document.getElementById('security-shield').style.display = 'none', 500); 
-                ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing', 'bingo'].forEach(t => loadCloudGames(t));
+                ['vocab', 'baam', 'spin', 'tug', 'bomb', 'blast', 'unscram', 'racing', 'bingo', 'hiddenpicture'].forEach(t => loadCloudGames(t));
             }
         });
         
         window.toggleDarkMode = function() { document.body.classList.toggle('dark-mode'); localStorage.setItem('mhent_dark_mode', document.body.classList.contains('dark-mode') ? 'on' : 'off'); };
         if (localStorage.getItem('mhent_dark_mode') === 'on') document.body.classList.add('dark-mode');
 
+        /* ==============================================================
+           HIDDEN PICTURE ADMIN MANAGEMENT LOGIC (DEFINED EARLY & HOISTED)
+           ============================================================== */
+        window.addHiddenPictureRow = function(word = '', img = '', meaning = '', ipa = '') {
+            const container = document.getElementById('hiddenpicture-rows');
+            if(!container) return;
+            const count = container.querySelectorAll('.hp-row').length + 1;
+            const div = document.createElement('div');
+            div.className = 'hp-row';
+            div.style.cssText = 'background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;';
+            div.innerHTML = `
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <span class="hp-badge" style="background: #8b5cf6; color: white; border-radius: 8px; padding: 4px 10px; font-weight: 900; font-size: 13px;">#${count}</span>
+                    <input type="text" class="admin-input hp-word" placeholder="TỪ VỰNG (VD: COMPUTER)" style="flex: 1.5; min-width: 160px; font-weight: 800; text-transform: uppercase;" value="${word}">
+                    <input type="text" class="admin-input hp-meaning" placeholder="Nghĩa tiếng Việt (VD: Máy tính để bàn)" style="flex: 1.5; min-width: 160px;" value="${meaning}">
+                    <input type="text" class="admin-input hp-ipa" placeholder="Phiên âm IPA (VD: /kəmˈpjuː.tər/)" style="flex: 1; min-width: 140px;" value="${ipa}">
+                    <button type="button" class="btn-admin" style="background: #ef4444; padding: 0 12px; height: 38px;" onclick="this.closest('.hp-row').remove(); window.updateHiddenPictureBadges();" title="Xóa tranh này"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" class="admin-input q-img hp-img" placeholder="Link Ảnh/GIF (Unsplash, Drive, Imgur...)" style="flex: 1;" value="${img}">
+                    <button type="button" class="btn-admin" style="background: #0ea5e9; padding: 0 15px; height: 38px;" onclick="window.openImageSearch(this)" title="Tìm ảnh siêu tốc"><i class="fa-solid fa-image"></i> Tìm Ảnh</button>
+                </div>
+            `;
+            container.appendChild(div);
+            window.updateHiddenPictureBadges();
+        };
+
+        window.updateHiddenPictureBadges = function() {
+            document.querySelectorAll('#hiddenpicture-rows .hp-row').forEach((row, i) => {
+                const badge = row.querySelector('.hp-badge');
+                if(badge) badge.innerText = '#' + (i + 1);
+            });
+        };
+
+        window.adminCreateBlankHiddenPicture = function(notify = false) {
+            const container = document.getElementById('hiddenpicture-rows');
+            if(container) {
+                container.innerHTML = '';
+                window.addHiddenPictureRow('', '', '', '');
+            }
+            const nameInput = document.querySelector('.cloud-data-name-hiddenpicture');
+            if(nameInput) nameInput.value = '';
+            const idDisplay = document.getElementById('display-id-hiddenpicture');
+            if(idDisplay) idDisplay.innerText = '------';
+            const selector = document.querySelector('.cloud-selector-hiddenpicture');
+            if(selector) selector.value = '';
+            if(notify) showToast('Tạo mới trống', 'Đã tạo bản mẫu trống! Thầy/Cô hãy nhập từ vựng và link ảnh nhé.', 'info');
+        };
+
+        window.syncHiddenPictureToGame = function() {
+            const payload = window.getGamePayload('hiddenpicture');
+            if(!payload) return;
+            localStorage.setItem('mhent_hiddenpicture_deck', JSON.stringify(payload.deck));
+            localStorage.setItem('mhent_hiddenpicture_cmd', JSON.stringify({ action: 'SYNC', payload: payload.deck, rand: Math.random() }));
+            showToast('Đồng bộ', 'Đã chuyển toàn bộ ' + payload.deck.length + ' tranh sang màn hình trò chơi!', 'success');
+            window.open('/teach/hiddenpicture', '_blank');
+        };
+
+        window.adminApplyHiddenPicturePreset = function(type) {
+            const presets = {
+                household: [
+                    { word: 'COMPUTER', img: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1000&auto=format&fit=crop&q=80', meaning: 'Máy vi tính để bàn', ipa: '/kəmˈpjuː.tər/' },
+                    { word: 'BATHTUB', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1000&auto=format&fit=crop&q=80', meaning: 'Bồn tắm nằm', ipa: '/ˈbɑːθ.tʌb/' },
+                    { word: 'SOFA', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&auto=format&fit=crop&q=80', meaning: 'Ghế sô-pha', ipa: '/ˈsəʊ.fə/' },
+                    { word: 'REFRIGERATOR', img: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=1000&auto=format&fit=crop&q=80', meaning: 'Tủ lạnh', ipa: '/rɪˈfrɪdʒ.ər.eɪ.tər/' },
+                    { word: 'GUITAR', img: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1000&auto=format&fit=crop&q=80', meaning: 'Đàn ghi-ta', ipa: '/ɡɪˈtɑːr/' }
+                ],
+                animals: [
+                    { word: 'ELEPHANT', img: 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=1000&auto=format&fit=crop&q=80', meaning: 'Con voi khổng lồ', ipa: '/ˈel.ɪ.fənt/' },
+                    { word: 'DUCK', img: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?w=1000&auto=format&fit=crop&q=80', meaning: 'Chú vịt vàng bơi lội', ipa: '/dʌk/' },
+                    { word: 'PENGUIN', img: 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=1000&auto=format&fit=crop&q=80', meaning: 'Chim cánh cụt', ipa: '/ˈpeŋ.ɡwɪn/' },
+                    { word: 'CAT', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=1000&auto=format&fit=crop&q=80', meaning: 'Mèo cưng dễ thương', ipa: '/kæt/' }
+                ],
+                school: [
+                    { word: 'BACKPACK', img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1000&auto=format&fit=crop&q=80', meaning: 'Ba lô đi học', ipa: '/ˈbæk.pæk/' },
+                    { word: 'GLOBE', img: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=1000&auto=format&fit=crop&q=80', meaning: 'Quả địa cầu', ipa: '/ɡləʊb/' },
+                    { word: 'SCISSORS', img: 'https://images.unsplash.com/photo-1503792501406-2c40da09e1e2?w=1000&auto=format&fit=crop&q=80', meaning: 'Cái kéo thủ công', ipa: '/ˈsɪz.əz/' }
+                ]
+            };
+
+            const list = presets[type];
+            if(!list) return;
+            const container = document.getElementById('hiddenpicture-rows');
+            if(!container) return;
+            container.innerHTML = '';
+            list.forEach(item => window.addHiddenPictureRow(item.word, item.img, item.meaning, item.ipa));
+            showToast('Nạp mẫu', 'Đã nạp bộ tranh ' + type.toUpperCase(), 'info');
+        };
+
         window.switchAdminTab = function(tabName) {
             document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.admin-menu-item').forEach(menu => menu.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.add('active');
-            document.getElementById('menu-' + tabName).classList.add('active');
+            const targetTab = document.getElementById('tab-' + tabName);
+            const targetMenu = document.getElementById('menu-' + tabName);
+            if(targetTab) targetTab.classList.add('active');
+            if(targetMenu) targetMenu.classList.add('active');
             history.replaceState(null, null, '#' + tabName);
             if(tabName === 'hiddenpicture') {
                 const rows = document.getElementById('hiddenpicture-rows');
-                if(rows && rows.children.length === 0) window.adminCreateBlankHiddenPicture();
+                if(rows && rows.children.length === 0) window.adminCreateBlankHiddenPicture(false);
             }
         };
 
@@ -1323,10 +1414,14 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
             const resDiv = document.getElementById('img-search-results');
             resDiv.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #0ea5e9; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-3x"></i><p style="margin-top: 10px; color: #94a3b8;">Đang tìm ảnh chất lượng cao cho "${query}"...</p></div>`;
 
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 4500);
+
             try {
                 // Search Wikimedia Commons (high-res educational photos, completely open & CORS enabled)
                 const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=16&prop=imageinfo&iiprop=url|thumburl&iiurlwidth=500&format=json&origin=*`;
-                const res = await fetch(wikiUrl);
+                const res = await fetch(wikiUrl, { signal: controller.signal });
+                clearTimeout(timer);
                 const data = await res.json();
                 const pages = (data.query && data.query.pages) ? Object.values(data.query.pages) : [];
 
@@ -1366,19 +1461,26 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
                     });
                 } else {
                     resDiv.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; color: #f59e0b; font-weight: bold; padding: 40px;">
+                        <div style="grid-column: 1/-1; text-align: center; color: #f59e0b; padding: 25px;">
                             <i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 10px; display: block;"></i>
-                            Không tìm thấy ảnh cho từ khóa "<b>${query}</b>"!<br>
-                            <span style="font-size: 13px; color: #94a3b8; font-weight: normal; margin-top: 6px; display: inline-block;">Thầy/Cô thử đổi sang từ vựng tiếng Anh (VD: cat, chair, car, apple...) hoặc dán trực tiếp link ảnh vào ô bên dưới nhé.</span>
+                            Không có ảnh sẵn trên Wikimedia cho từ khóa "<b>${query}</b>"!<br>
+                            <span style="font-size: 13px; color: #94a3b8; display: inline-block; margin-top: 6px;">Thầy/Cô có thể mở Google Tìm Ảnh rồi dán link ảnh vào ô bên dưới:</span><br>
+                            <button type="button" class="btn-admin" style="background: #0ea5e9; padding: 8px 18px; margin-top: 14px; font-weight: 800;" onclick="window.open('https://www.google.com/search?tbm=isch&q=' + encodeURIComponent('${query}'), '_blank')">
+                                <i class="fa-brands fa-google"></i> Mở Google Tìm Ảnh "${query}"
+                            </button>
                         </div>
                     `;
                 }
             } catch(e) {
-                console.error("Image search error:", e);
+                clearTimeout(timer);
+                console.warn("Image search fallback:", e);
                 resDiv.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 40px;">
-                        <i class="fa-solid fa-circle-exclamation fa-2x" style="margin-bottom: 10px; display: block;"></i>
-                        Không thể kết nối đến máy chủ ảnh! Thầy/Cô hãy dán trực tiếp link ảnh từ Google/Unsplash vào ô bên dưới nhé.
+                    <div style="grid-column: 1/-1; text-align: center; color: #cbd5e1; padding: 25px;">
+                        <i class="fa-brands fa-google fa-3x" style="color: #0ea5e9; margin-bottom: 12px; display: block;"></i>
+                        <p style="margin: 0 0 12px 0; font-size: 14px;">Máy chủ ảnh đang bận. Thầy/Cô mở Google Ảnh để chọn ảnh ưng ý nhé:</p>
+                        <button type="button" class="btn-admin" style="background: #0ea5e9; padding: 10px 20px; font-weight: 800; border-radius: 8px;" onclick="window.open('https://www.google.com/search?tbm=isch&q=' + encodeURIComponent('${query}'), '_blank')">
+                            <i class="fa-brands fa-google"></i> Tìm ảnh "${query}" trên Google
+                        </button>
                     </div>
                 `;
             }
@@ -1394,7 +1496,7 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
         };
 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2D9oAH4Q21Xf9NZls3J2Ojh7jCZB_H6iIg9dISJaBF79GXiJNr7AwFi819Rt_kctaeQ/exec";
-        window.cloudState = { vocab: [], baam: [], spin: [], tug: [], bomb: [], blast: [], unscram: [], racing: [], bingo: [] };
+        window.cloudState = { vocab: [], baam: [], spin: [], tug: [], bomb: [], blast: [], unscram: [], racing: [], bingo: [], hiddenpicture: [] };
 
         window.loadCloudGames = async function(gameType) {
             const uid = window.getTeachActiveUid ? window.getTeachActiveUid() : '';
@@ -1898,81 +2000,6 @@ Honesty is the best policy. | Thật thà là phẩm chất quý giá nhất`;
         window.sendRacingCmd = function(action, team) {
             localStorage.setItem('mhent_racing_cmd', JSON.stringify({ action: action, payload: { team: team }, rand: Math.random() }));
         };
-    
-        /* ==============================================================
-           HIDDEN PICTURE ADMIN MANAGEMENT LOGIC
-           ============================================================== */
-        window.addHiddenPictureRow = function(word = '', img = '', meaning = '', ipa = '') {
-            const container = document.getElementById('hiddenpicture-rows');
-            if(!container) return;
-            const count = container.querySelectorAll('.hp-row').length + 1;
-            const div = document.createElement('div');
-            div.className = 'hp-row';
-            div.style.cssText = 'background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;';
-            div.innerHTML = `
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                    <span class="hp-badge" style="background: #8b5cf6; color: white; border-radius: 8px; padding: 4px 10px; font-weight: 900; font-size: 13px;">#${count}</span>
-                    <input type="text" class="admin-input hp-word" placeholder="TỪ VỰNG (VD: COMPUTER)" style="flex: 1.5; min-width: 160px; font-weight: 800; text-transform: uppercase;" value="${word}">
-                    <input type="text" class="admin-input hp-meaning" placeholder="Nghĩa tiếng Việt (VD: Máy tính để bàn)" style="flex: 1.5; min-width: 160px;" value="${meaning}">
-                    <input type="text" class="admin-input hp-ipa" placeholder="Phiên âm IPA (VD: /kəmˈpjuː.tər/)" style="flex: 1; min-width: 140px;" value="${ipa}">
-                    <button class="btn-admin" style="background: #ef4444; padding: 0 12px; height: 38px;" onclick="this.closest('.hp-row').remove(); updateHiddenPictureBadges();" title="Xóa tranh này"><i class="fa-solid fa-trash"></i></button>
-                </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" class="admin-input q-img hp-img" placeholder="Link Ảnh/GIF (Unsplash, Drive, Imgur...)" style="flex: 1;" value="${img}">
-                    <button class="btn-admin" style="background: #0ea5e9; padding: 0 15px; height: 38px;" onclick="openImageSearch(this)" title="Tìm ảnh siêu tốc"><i class="fa-solid fa-image"></i> Tìm Ảnh</button>
-                </div>
-            `;
-            container.appendChild(div);
-            window.updateHiddenPictureBadges();
-        };
-
-        window.updateHiddenPictureBadges = function() {
-            document.querySelectorAll('#hiddenpicture-rows .hp-row').forEach((row, i) => {
-                const badge = row.querySelector('.hp-badge');
-                if(badge) badge.innerText = '#' + (i + 1);
-            });
-        };
-
-        window.syncHiddenPictureToGame = function() {
-            const payload = window.getGamePayload('hiddenpicture');
-            if(!payload) return;
-            localStorage.setItem('mhent_hiddenpicture_deck', JSON.stringify(payload.deck));
-            localStorage.setItem('mhent_hiddenpicture_cmd', JSON.stringify({ action: 'SYNC', payload: payload.deck, rand: Math.random() }));
-            showToast('Đồng bộ', 'Đã chuyển toàn bộ ' + payload.deck.length + ' tranh sang màn hình trò chơi!', 'success');
-            window.open('/teach/hiddenpicture', '_blank');
-        };
-
-        window.adminApplyHiddenPicturePreset = function(type) {
-            const presets = {
-                household: [
-                    { word: 'COMPUTER', img: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1000&auto=format&fit=crop&q=80', meaning: 'Máy vi tính để bàn', ipa: '/kəmˈpjuː.tər/' },
-                    { word: 'BATHTUB', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1000&auto=format&fit=crop&q=80', meaning: 'Bồn tắm nằm', ipa: '/ˈbɑːθ.tʌb/' },
-                    { word: 'SOFA', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&auto=format&fit=crop&q=80', meaning: 'Ghế sô-pha', ipa: '/ˈsəʊ.fə/' },
-                    { word: 'REFRIGERATOR', img: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=1000&auto=format&fit=crop&q=80', meaning: 'Tủ lạnh', ipa: '/rɪˈfrɪdʒ.ər.eɪ.tər/' },
-                    { word: 'GUITAR', img: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1000&auto=format&fit=crop&q=80', meaning: 'Đàn ghi-ta', ipa: '/ɡɪˈtɑːr/' }
-                ],
-                animals: [
-                    { word: 'ELEPHANT', img: 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=1000&auto=format&fit=crop&q=80', meaning: 'Con voi khổng lồ', ipa: '/ˈel.ɪ.fənt/' },
-                    { word: 'DUCK', img: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?w=1000&auto=format&fit=crop&q=80', meaning: 'Chú vịt vàng bơi lội', ipa: '/dʌk/' },
-                    { word: 'PENGUIN', img: 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=1000&auto=format&fit=crop&q=80', meaning: 'Chim cánh cụt', ipa: '/ˈpeŋ.ɡwɪn/' },
-                    { word: 'CAT', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=1000&auto=format&fit=crop&q=80', meaning: 'Mèo cưng dễ thương', ipa: '/kæt/' }
-                ],
-                school: [
-                    { word: 'BACKPACK', img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1000&auto=format&fit=crop&q=80', meaning: 'Ba lô đi học', ipa: '/ˈbæk.pæk/' },
-                    { word: 'GLOBE', img: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=1000&auto=format&fit=crop&q=80', meaning: 'Quả địa cầu', ipa: '/ɡləʊb/' },
-                    { word: 'SCISSORS', img: 'https://images.unsplash.com/photo-1503792501406-2c40da09e1e2?w=1000&auto=format&fit=crop&q=80', meaning: 'Cái kéo thủ công', ipa: '/ˈsɪz.əz/' }
-                ]
-            };
-
-            const list = presets[type];
-            if(!list) return;
-            const container = document.getElementById('hiddenpicture-rows');
-            if(!container) return;
-            container.innerHTML = '';
-            list.forEach(item => window.addHiddenPictureRow(item.word, item.img, item.meaning, item.ipa));
-            showToast('Nạp mẫu', 'Đã nạp bộ tranh ' + type.toUpperCase(), 'info');
-        };
-
     </script>
     <script src="/js/mhent-ui.js"></script>
 </body>
