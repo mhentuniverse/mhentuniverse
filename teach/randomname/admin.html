@@ -349,6 +349,15 @@
                         <option value="3">3 bạn (Thực hiện bài tập nhóm)</option>
                     </select>
                 </div>
+
+                <div>
+                    <label style="display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px; color: #cbd5e1;">Tốc Độ Đợt Sóng (PvZ Speed):</label>
+                    <select id="cfg-wave-speed" class="input-text" style="width: 100%; cursor: pointer;">
+                        <option value="slow">🐢 Hồi hộp kịch tính (~11 giây)</option>
+                        <option value="normal" selected>⚡ Vừa phải, chuẩn PvZ (~8.5 giây)</option>
+                        <option value="fast">🚀 Nhanh gọn (~5.5 giây)</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Quick Presets -->
@@ -489,6 +498,7 @@
             document.getElementById('cfg-class-name').value = rosterState.className;
             document.getElementById('cfg-game-mode').value = rosterState.gameMode || 'shoot';
             document.getElementById('cfg-pick-count').value = rosterState.pickCount || 1;
+            document.getElementById('cfg-wave-speed').value = rosterState.waveSpeed || 'normal';
             renderStudentCards();
         }
 
@@ -496,6 +506,7 @@
             rosterState.className = document.getElementById('cfg-class-name').value.trim() || 'Lớp Học';
             rosterState.gameMode = document.getElementById('cfg-game-mode').value;
             rosterState.pickCount = parseInt(document.getElementById('cfg-pick-count').value) || 1;
+            rosterState.waveSpeed = document.getElementById('cfg-wave-speed').value || 'normal';
 
             localStorage.setItem('mhent_pvz_config', JSON.stringify(rosterState));
             if (!silent) showToast('Đã lưu và đồng bộ cài đặt!');
@@ -517,6 +528,7 @@
                 action: 'CALL_NOW',
                 gameMode: rosterState.gameMode,
                 pickCount: rosterState.pickCount,
+                waveSpeed: rosterState.waveSpeed,
                 rand: Math.random()
             }));
             showToast('Đã phát lệnh GỌI TÊN sang máy chiếu!');
